@@ -1,2 +1,8 @@
-# queue-management
+# Queue Management
 A Django application that allows users to create, join, and manage queues.
+
+All project documents are in the [Project Wiki](../../wiki/Home).
+
+- [Vision and Scope](../../wiki/Vision%20and%20Scope)
+- [Requirements](../../wiki/Requirements)
+- [Project Plan](../../wiki/Project%20Plan)
