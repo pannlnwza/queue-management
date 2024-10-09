@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    {% block title %}<title>Queue Management</title>{% endblock %}
+    <style>
+        :root {
+            --primary-color: #3b82f6;
+            --primary-dark: #2563eb;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            line-height: 1.6;
+        }
+
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 2rem;
+            background-color: white;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .nav-left-group {
+            display: flex;
+            align-items: center;
+            flex-grow: 1;
+        }
+
+        .nav-brand {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            text-decoration: none;
+            margin-right: 2.5rem;
+        }
+
+        .nav-center {
+            display: flex;
+            gap: 1.5rem;
+        }
+
+        .nav-item {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 0.9375rem;
+            transition: color 0.2s;
+            white-space: nowrap;
+        }
+
+        .nav-item:hover {
+            color: var(--text-primary);
+        }
+
+        .nav-right {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .btn {
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            font-size: 0.9375rem;
+            font-weight: 500;
+            text-decoration: none;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        .btn-outline {
+            border: 1px solid var(--text-secondary);
+            color: var(--text-secondary);
+        }
+
+        .btn-outline:hover {
+            border-color: var(--text-primary);
+            color: var(--text-primary);
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary-dark);
+        }
+
+
+    </style>
+    {% block extra_head %}{% endblock %}
+</head>
+    <nav class="navbar">
+        <div class="nav-left-group">
+            <div><a href="/" class="nav-brand">Queue Management</a></div>
+            <div class="nav-center">
+                <a href="/queues" class="nav-item">Queue</a>
+                <a href="/create" class="nav-item">Create Queue</a>
+                {% if user.is_authenticated %}
+                    <a href="/dashboard" class="nav-item">Dashboard</a>
+                {% endif %}
+            </div>
+        </div>
+        <div class="nav-right">
+            {% if user.is_authenticated %}
+                <a href="{% url 'queue:main' %}" class="btn btn-outline">Log out</a>
+            {% else %}
+                <a href="{% url 'queue:main' %}" class="btn btn-outline">Log in</a>
+            {% endif %}
+            <a href="/contact" class="btn btn-primary">Contact us</a>
+        </div>
+    </nav>
+<body>
+{% block content %} {% endblock %}
+</body>
+</html>
