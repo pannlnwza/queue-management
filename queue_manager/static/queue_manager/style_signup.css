@@ -1,0 +1,32 @@
+/* Table styling */
+table {
+    width: 60%;
+    border-collapse: collapse;
+    margin-top: 20px;
+    background-color: white;
+}
+
+th, td {
+    padding: 10px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+}
+
+th {
+    background-color: #f2f2f2;
+}
+
+ul.messages {
+    list-style-type: none;
+    padding: 0;
+}
+
+.messages .error {
+    color: red;
+    font-weight: bold;
+}
+
+.messages .success {
+    color: green;
+    font-weight: bold;
+}
