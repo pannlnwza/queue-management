@@ -108,8 +108,8 @@ AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
 ]
 
-LOGIN_REDIRECT_URL = 'polls:index'  # after login, show list of polls
-LOGOUT_REDIRECT_URL = 'login'       # after logout, return to login page
+LOGIN_REDIRECT_URL = 'queue:index'
+LOGOUT_REDIRECT_URL = 'login'
 
 # Internationalization
 # https://docs.djangoproject.com/en/5.1/topics/i18n/
@@ -160,7 +160,7 @@ LOGGING = {
         },
     },
     'loggers': {
-        'polls': {
+        'queue': {
             'handlers': ['file', 'console'],
             'level': 'DEBUG',
             'propagate': True,

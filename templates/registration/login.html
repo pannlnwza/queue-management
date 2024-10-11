@@ -1,0 +1,41 @@
+{% load static %}
+<link rel="stylesheet" href="{% static 'queue_manager/style_login.css' %}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+</head>
+<body>
+    <div class="login-box">
+        <h2>Login</h2>
+        <form method="post">
+            {% csrf_token %}
+            <table>
+                <tr>
+                    <td>
+                        <label for="id_username">Username:</label>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <input type="text" id="id_username" name="username">
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <label for="id_password">Password:</label>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <input type="text" id="id_password" name="password">
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2"><button type="submit">Login</button></td>
+                </tr>
+            </table>
+        </form>
+        <p>Don't have an account? <a href="{% url 'signup' %}">Sign up here</a></p>
+    </div>
+</body>
