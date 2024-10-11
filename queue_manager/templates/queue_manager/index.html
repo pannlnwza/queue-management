@@ -43,7 +43,7 @@
             font-size: 0.9rem;
         }
         .stat-value {
-            color: red;
+            color: black;
             font-size: 1.5rem;
             font-weight: bold;
         }
@@ -58,7 +58,7 @@
             border-radius: 4px;
         }
         .join-btn {
-            background-color: #1e2a3a;
+            background-color: var(--primary-color);
             color: white;
             border: none;
             padding: 0.5rem 1rem;
@@ -70,32 +70,32 @@
 {% block content %}
     <main>
         <div class="card">
-            <div class="card-title">Current Queue</div>
+            <div class="card-title">Current Queues</div>
             {% if queue_list %}
-            {% for queue in queue_list %}
-            <h3>{{ queue.name }}</h3>
-            <div class="queue-stats">
-                <div>
-                    <div class="stat-label">Your Position</div>
-                    <div class="stat-value"></div>
-                </div>
-            </div>
-            <div>
-                <div class="stat-label">Queue Length</div>
-                <div class="stat-value">{{ queue.get_queue_length }}</div>
-            </div>
-        </div>
-        {% endfor %}
-        {% else %}
+                {% for queue in queue_list %}
+                    <h3>{{ queue.name }}</h3>
+                    <div class="queue-stats">
+                        <div>
+                            <div class="stat-label">Your Position</div>
+                            <div class="stat-value">{{ queue.participant_set.first.position }}</div>
+                        </div>
+                        <div>
+                            <div class="stat-label">Queue Length</div>
+                            <div class="stat-value">{{ queue.participant_set.count }}</div>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% else %}
                 <div class="card">You are not in a queue.</div>
-        {% endif %}
-
+            {% endif %}
+        </div>
 
         <div class="card">
             <div class="card-title">Join Queue by Code</div>
-            <form class="join-form">
-                <input type="text" class="join-input" placeholder="Enter queue code">
-                <button class="join-btn">Join Queue</button>
+            <form class="join-form" method="POST" action="{% url 'queue:index' %}">
+                {% csrf_token %}
+                <input type="text" class="join-input" placeholder="Enter queue code" name="queue_code">
+                <button type="submit" class="join-btn">Join Queue</button>
             </form>
         </div>
     </main>
