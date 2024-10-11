@@ -71,22 +71,24 @@
     <main>
         <div class="card">
             <div class="card-title">Current Queue</div>
-            <h3 style="color: red">QUEUE NAME</h3>
+            {% if queue_list %}
+            {% for queue in queue_list %}
+            <h3>{{ queue.name }}</h3>
             <div class="queue-stats">
                 <div>
                     <div class="stat-label">Your Position</div>
-                    <div class="stat-value">POSITION NUM</div>
-                </div>
-                <div>
-                    <div class="stat-label">Estimated Wait Time</div>
-                    <div class="stat-value">ESTIMATED TIME NUM</div>
+                    <div class="stat-value"></div>
                 </div>
             </div>
             <div>
                 <div class="stat-label">Queue Length</div>
-                <div class="stat-value">LENGTH NUM</div>
+                <div class="stat-value">{{ queue.get_queue_length }}</div>
             </div>
         </div>
+        {% endfor %}
+        {% else %}
+                <div class="card">You are not in a queue.</div>
+        {% endif %}
 
 
         <div class="card">
