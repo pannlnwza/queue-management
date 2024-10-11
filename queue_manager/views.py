@@ -15,7 +15,7 @@ def signup(request):
             raw_passwd = form.cleaned_data.get('password1')
             user = authenticate(username=username, password=raw_passwd)
             login(request, user)
-        return redirect('polls:index')
+        return redirect('queue:index')
         # what if form is not valid?
         # we should display a message in signup.html
     else:
