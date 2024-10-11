@@ -1,18 +1,62 @@
 {% load static %}
 <link rel="stylesheet" href="{% static 'queue_manager/style_signup.css' %}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up</title>
+</head>
+<body>
+    <div class="signup-box">
+        <h2>Register</h2>
 
-<h2>Register</h2>
-
-<form method="POST">
-    {% csrf_token %}
-    <table style="padding: 2ex;">
-    {{ form.as_table }}     {# this line shows the sign-up form #}
-    <tr>
-    <td colspan="2">
-    <button type="submit">Register</button>
-    </td>
-    </tr>
-    </table>
-</form>
-
-<p>Already have an account? <a href="{% url 'login' %}">Log in here</a></p>
+        <form method="POST">
+            {% csrf_token %}
+            <table style="padding: 2ex;">
+                <tr>
+                    <td>
+                        <label for="id_username">Username:</label>
+                    </td>
+                </tr>
+                    <td>
+                        <input type="text" id="id_username" name="username" data-info="Required. 150 characters or fewer. Letters, digits and @/./+/-/_ only.">
+                    </td>
+                <tr>
+                    <td>
+                        <label for="id_email">Email:</label>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <input type="email" id="id_email" name="email" data-info="Provide a valid email address.">
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <label for="id_password1">Password:</label>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <input type="password" id="id_password1" name="password1" data-info="Your password must contain at least 8 characters.">
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <label for="id_password2">Confirm Password:</label>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <input type="password" id="id_password2" name="password2" data-info="Retype your password for confirmation.">
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2">
+                        <button type="submit">Register</button>
+                    </td>
+                </tr>
+            </table>
+        </form>
+        <p>Already have an account? <a href="{% url 'login' %}">Log in here</a></p>
+    </div>
+</body>

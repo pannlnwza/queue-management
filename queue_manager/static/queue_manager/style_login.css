@@ -15,6 +15,31 @@ body {
     width: 300px;
 }
 
+.login-box form input {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 5px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+.login-box table td {
+    padding: 4px;
+}
+.login-box button {
+    margin-top: 10px;
+    padding: 10px;
+}
+
+.login-box table td {
+    padding: 8px;
+}
+.login-box button {
+    margin-top: 10px;
+    padding: 10px;
+}
+
+
+
 h2 {
     text-align: center;
 }
@@ -26,6 +51,11 @@ table {
 button {
     width: 100%;
     padding: 10px;
+    background-color: #007BFF;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
 }
 
 p {
