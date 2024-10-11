@@ -3,6 +3,6 @@ from queue_manager.views import *
 
 app_name = 'queue'
 urlpatterns = [
-    path('', MainView.as_view(), name='main'),
+    path('', IndexView.as_view(), name='index'),
 
 ]
