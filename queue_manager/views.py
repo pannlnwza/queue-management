@@ -6,6 +6,7 @@ from django.contrib.auth.forms import UserCreationForm
 from .forms import QueueForm
 from django.urls import reverse_lazy
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib import messages
 
 
 def signup(request):
@@ -39,6 +40,28 @@ class IndexView(generic.ListView):
         else:
             return Queue.objects.none()
 
+    def post(self, request, *args, **kwargs):
+        # Handle form submission for joining a queue
+        if request.method == "POST":
+            queue_code = request.POST.get('queue_code')
+            try:
+                queue = Queue.objects.get(code=queue_code)
+                # Check if the user is already a participant in the queue
+                if not queue.participant_set.filter(user=request.user).exists():
+                    # Add the user as a participant
+                    position = queue.participant_set.count() + 1
+                    Participant.objects.create(user=request.user, queue=queue, position=position)
+                    # Optionally, update queue's estimated wait time
+                    queue.update_estimated_wait_time(average_time_per_participant=5)
+                    return self.get(request, *args, **kwargs)  # Re-render the page after joining
+                else:
+                    # Optionally handle the case where the user is already in the queue
+                    pass
+            except Queue.DoesNotExist:
+                # Optionally handle the case where the queue code is invalid
+                pass
+        return self.get(request, *args, **kwargs)
+
 
 class CreateQView(LoginRequiredMixin, generic.CreateView):
     model = Queue
@@ -51,5 +74,14 @@ class CreateQView(LoginRequiredMixin, generic.CreateView):
         return super().form_valid(form)
 
 
-
+def join_queue(request):
+    if request.method == 'POST':
+        code = request.POST.get('queue_code', '').upper()
+        try:
+            queue = Queue.objects.get(code=code)
+            # Logic for adding the user to the queue...
+            messages.success(request, "You have successfully joined the queue.")
+        except Queue.DoesNotExist:
+            messages.error(request, "Invalid queue code.")
+        return redirect('queue:index')
 
