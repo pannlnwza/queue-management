@@ -3,6 +3,9 @@ from django.views import generic
 from queue_manager.models import *
 from django.contrib.auth import login, authenticate
 from django.contrib.auth.forms import UserCreationForm
+from .forms import QueueForm
+from django.urls import reverse_lazy
+from django.contrib.auth.mixins import LoginRequiredMixin
 
 
 def signup(request):
@@ -35,3 +38,18 @@ class IndexView(generic.ListView):
             return Queue.objects.filter(participant__user=self.request.user)
         else:
             return Queue.objects.none()
+
+
+class CreateQView(LoginRequiredMixin, generic.CreateView):
+    model = Queue
+    form_class = QueueForm
+    template_name = 'queue_manager/create_q.html'
+    success_url = reverse_lazy('queue:index')
+
+    def form_valid(self, form):
+        form.instance.created_by = self.request.user
+        return super().form_valid(form)
+
+
+
+
