@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    {% block title %}<title>Queue Management</title>{% endblock %}
+    <style>
+        :root {
+            --primary-color: #153e72;
+            --primary-dark: #2563eb;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            line-height: 1.6;
+        }
+
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 2rem;
+            background-color: white;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .nav-left-group {
+            display: flex;
+            align-items: center;
+            flex-grow: 1;
+        }
+
+        .nav-brand {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            text-decoration: none;
+            margin-right: 2.5rem;
+        }
+
+        .nav-center {
+            display: flex;
+            gap: 1.5rem;
+        }
+
+        .nav-item {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 0.9375rem;
+            transition: color 0.2s;
+            white-space: nowrap;
+        }
+
+        .nav-item:hover {
+            color: var(--text-primary);
+        }
+
+        .nav-right {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .btn {
+            padding: 0.5rem 1rem;
+            border-radius: 3rem;
+            font-size: 0.9375rem;
+            font-weight: 500;
+            text-decoration: none;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        .btn-outline {
+            border: 1px solid var(--text-secondary);
+            color: var(--text-secondary);
+        }
+
+        .btn-outline:hover {
+            border-color: var(--text-primary);
+            color: var(--text-primary);
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary-dark);
+        }
+        .dropdown {
+            position: relative;
+            display: inline-block;
+        }
+
+        .dropdown-toggle {
+            cursor: pointer;
+            color: var(--text-primary);
+            font-weight: 500;
+            font-size: 0.9375rem;
+            padding: 0.5rem 1rem;
+            border-radius: 3rem;
+            background-color: white;
+            border: 1px solid white;
+            white-space: nowrap;
+        }
+
+        .dropdown-toggle:focus {
+            outline: none;
+        }
+
+        /* Hide dropdown menu by default */
+        .dropdown-menu {
+            display: none;
+            position: absolute;
+            background-color: white;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 5px;
+            margin-top: 0.5rem;
+            min-width: 10rem;
+            right: 0;
+            z-index: 1000;
+        }
+
+        .dropdown-menu a {
+            color: var(--text-secondary);
+            padding: 0.5rem 1rem;
+            text-decoration: none;
+            display: block;
+            font-size: 0.9375rem;
+        }
+
+        .dropdown-item {
+            background: white;
+        }
+
+        .dropdown-menu a:hover {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        /* Show dropdown on focus within */
+        .dropdown:focus-within .dropdown-menu {
+            display: block;
+        }
+
+        /* Handle when user clicks away */
+        .dropdown-toggle:focus + .dropdown-menu {
+            display: block;
+        }
+    </style>
+    {% block extra_head %}{% endblock %}
+</head>
+    <nav class="navbar">
+        <div class="nav-left-group">
+            <div><a href="/" class="nav-brand">Queue Management</a></div>
+            <div class="nav-center">
+                <a href="/queues" class="nav-item">Queue</a>
+                <a href="/create" class="nav-item">Create Queue</a>
+                {% if user.is_authenticated %}
+                    <a href="/dashboard" class="nav-item">Dashboard</a>
+                {% endif %}
+            </div>
+        </div>
+        <div class="nav-right">
+            {% if user.is_authenticated %}
+                <div class="dropdown">
+                    <button class="dropdown-toggle" tabindex="0">{{ user.username }}</button>
+                    <div class="dropdown-menu">
+                        <a href="/profile">Profile</a>
+                        <form action="{% url 'logout' %}" method="post" style="display: inline;">
+                            {% csrf_token %}
+                            <button type="submit" class="dropdown-item">Log out</button>
+                        </form>
+                    </div>
+                </div>
+            {% else %}
+                <a href="{% url 'queue:index' %}" class="btn btn-outline">Log in</a>
+            {% endif %}
+            <a href="/contact" class="btn btn-primary">Contact us</a>
+        </div>
+    </nav>
+<body>
+{% block content %} {% endblock %}
+</body>
+</html>
