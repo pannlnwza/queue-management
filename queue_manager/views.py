@@ -1,3 +1,5 @@
+import logging
+
 from django.shortcuts import render, redirect
 from django.views import generic
 from queue_manager.models import *
@@ -8,6 +10,8 @@ from django.urls import reverse_lazy
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+
+logger = logging.getLogger('queue')
 
 
 def signup(request):
@@ -66,9 +70,11 @@ def join_queue(request):
     if request.method == 'POST':
         # Get the queue code from the submitted form and convert it to uppercase
         code = request.POST.get('queue_code', '').upper()
+        logger.debug(f'User {request.user.username} attempted to join queue with code: {code}')
         try:
             # Attempt to retrieve the queue based on the provided code
             queue = Queue.objects.get(code=code)
+            logger.info(f'Queue found: {queue.name} for user {request.user.username}')
             # Check if the user is already a participant in the queue
             if not queue.participant_set.filter(user=request.user).exists():
                 last_position = queue.participant_set.count()
@@ -80,11 +86,13 @@ def join_queue(request):
                     position=new_position
                 )
                 messages.success(request, "You have successfully joined the queue.")
+                logger.info(f'User {request.user.username} joined queue {queue.name} at position {new_position}.')
             else:
                 messages.info(request, "You are already in this queue.")
+                logger.warning(f'User {request.user.username} attempted to join queue {queue.name} again.')
         except Queue.DoesNotExist:
             messages.error(request, "Invalid queue code.")
-
+            logger.error(f'User {request.user.username} attempted to join with an invalid queue code: {code}')
     # Redirect to the index page after processing the request
     return redirect('queue:index')
 
