@@ -1,3 +1,4 @@
+import logging
 from django.shortcuts import render, redirect
 from django.views import generic
 from queue_manager.models import *
@@ -8,6 +9,10 @@ from django.urls import reverse_lazy
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.signals import user_logged_in, user_logged_out, user_login_failed
+from django.dispatch import receiver
+
+logger = logging.getLogger('queue')
 
 
 def signup(request):
@@ -20,6 +25,7 @@ def signup(request):
             raw_passwd = form.cleaned_data.get('password1')
             user = authenticate(username=username, password=raw_passwd)
             login(request, user)
+            logger.info(f'New user signed up: {username}')
             return redirect('queue:index')
     else:
         form = UserCreationForm()
@@ -66,9 +72,11 @@ def join_queue(request):
     if request.method == 'POST':
         # Get the queue code from the submitted form and convert it to uppercase
         code = request.POST.get('queue_code', '').upper()
+        logger.debug(f'User {request.user.username} attempted to join queue with code: {code}')
         try:
             # Attempt to retrieve the queue based on the provided code
             queue = Queue.objects.get(code=code)
+            logger.info(f'Queue found: {queue.name} for user {request.user.username}')
             # Check if the user is already a participant in the queue
             if not queue.participant_set.filter(user=request.user).exists():
                 last_position = queue.participant_set.count()
@@ -80,11 +88,13 @@ def join_queue(request):
                     position=new_position
                 )
                 messages.success(request, "You have successfully joined the queue.")
+                logger.info(f'User {request.user.username} joined queue {queue.name} at position {new_position}.')
             else:
                 messages.info(request, "You are already in this queue.")
+                logger.warning(f'User {request.user.username} attempted to join queue {queue.name} again.')
         except Queue.DoesNotExist:
             messages.error(request, "Invalid queue code.")
-
+            logger.error(f'User {request.user.username} attempted to join with an invalid queue code: {code}')
     # Redirect to the index page after processing the request
     return redirect('queue:index')
 
@@ -96,3 +106,35 @@ class QueueListView(generic.ListView):
 
     def get_queryset(self):
         return Queue.objects.all()
+
+
+def get_client_ip(request):
+    """Retrieve the client's IP address from the request."""
+    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+    if x_forwarded_for:
+        ip = x_forwarded_for.split(',')[0]
+    else:
+        ip = request.META.get('REMOTE_ADDR')
+    return ip
+
+
+@receiver(user_logged_in)
+def user_login(request, user, **kwargs):
+    """Log a message when a user logs in."""
+    ip = get_client_ip(request)
+    logger.info(f"User {user.username} logged in from {ip}")
+
+
+@receiver(user_logged_out)
+def user_logout(request, user, **kwargs):
+    """Log a message when a user logs out."""
+    ip = get_client_ip(request)
+    logger.info(f"User {user.username} logged out from {ip}")
+
+
+@receiver(user_login_failed)
+def user_login_failed(credentials, request, **kwargs):
+    """Log a message when a user login attempt fails."""
+    ip = get_client_ip(request)
+    logger.warning(f"Failed login attempt for user "
+                   f"{credentials.get('username')} from {ip}")
