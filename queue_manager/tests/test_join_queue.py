@@ -21,7 +21,7 @@ class JoinQueueViewTests(TestCase):
         Test that a user can successfully join a queue.
         """
         self.client.login(username='testuser', password='testpassword')
-        response = self.client.post(reverse('queue:join_queue'), {'queue_code': self.queue.code})
+        response = self.client.post(reverse('queue:join'), {'queue_code': self.queue.code})
 
         participant_exists = Participant.objects.filter(user=self.user, queue=self.queue).exists()
         self.assertTrue(participant_exists)
@@ -35,9 +35,9 @@ class JoinQueueViewTests(TestCase):
         Test that a user who is already in a queue receives the correct message.
         """
         self.client.login(username='testuser', password='testpassword')
-        self.client.post(reverse('queue:join_queue'), {'queue_code': self.queue.code})
+        self.client.post(reverse('queue:join'), {'queue_code': self.queue.code})
 
-        response = self.client.post(reverse('queue:join_queue'), {'queue_code': self.queue.code})
+        response = self.client.post(reverse('queue:join'), {'queue_code': self.queue.code})
         participant_count = Participant.objects.filter(user=self.user, queue=self.queue).count()
         self.assertEqual(participant_count, 1)
 
@@ -48,7 +48,7 @@ class JoinQueueViewTests(TestCase):
         Test that a user receives an error message when trying to join a queue with an invalid code.
         """
         self.client.login(username='testuser', password='testpassword')
-        response = self.client.post(reverse('queue:join_queue'), {'queue_code': 'INVALIDCODE'})
+        response = self.client.post(reverse('queue:join'), {'queue_code': 'INVALIDCODE'})
 
         participant_exists = Participant.objects.filter(user=self.user, queue=self.queue).exists()
         self.assertFalse(participant_exists)
