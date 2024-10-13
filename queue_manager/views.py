@@ -1,3 +1,4 @@
+import logging
 from django.shortcuts import render, redirect
 from django.views import generic
 from queue_manager.models import *
@@ -7,6 +8,11 @@ from .forms import QueueForm
 from django.urls import reverse_lazy
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.signals import user_logged_in, user_logged_out, user_login_failed
+from django.dispatch import receiver
+
+logger = logging.getLogger('queue')
 
 
 def signup(request):
@@ -22,17 +28,13 @@ def signup(request):
         form = UserCreationForm(request.POST)
         if form.is_valid():
             form.save()
-            # get named fields from the form data
             username = form.cleaned_data.get('username')
-            # password input field is named 'password1'
             raw_passwd = form.cleaned_data.get('password1')
             user = authenticate(username=username, password=raw_passwd)
             login(request, user)
-        return redirect('queue:index')
-        # what if form is not valid?
-        # we should display a message in signup.html
+            logger.info(f'New user signed up: {username}')
+            return redirect('queue:index')
     else:
-        # create a user form and display it the signup page
         form = UserCreationForm()
     return render(request, 'registration/signup.html', {'form': form})
 
@@ -76,38 +78,7 @@ class IndexView(generic.ListView):
             }
             context['queue_positions'] = queue_positions
         return context
-
-    def post(self, request, *args, **kwargs):
-        """
-        Handle form submission for joining a queue.
-
-        Adds the authenticated user to the specified queue based on the provided queue code.
-
-        :param request: The HTTP request object containing the queue code.
-        :returns: Renders the index page after processing the request.
-        :raises Queue.DoesNotExist: If the queue code does not exist.
-        """
-        # Handle form submission for joining a queue
-        if request.method == "POST":
-            queue_code = request.POST.get('queue_code')
-            try:
-                queue = Queue.objects.get(code=queue_code)
-                # Check if the user is already a participant in the queue
-                if not queue.participant_set.filter(user=request.user).exists():
-                    # Add the user as a participant
-                    position = queue.participant_set.count() + 1
-                    Participant.objects.create(user=request.user, queue=queue, position=position)
-                    # Optionally, update queue's estimated wait time
-                    queue.update_estimated_wait_time(average_time_per_participant=5)
-                    return self.get(request, *args, **kwargs)  # Re-render the page after joining
-                else:
-                    # Optionally handle the case where the user is already in the queue
-                    pass
-            except Queue.DoesNotExist:
-                # Optionally handle the case where the queue code is invalid
-                pass
-        return self.get(request, *args, **kwargs)
-
+      
 
 class CreateQView(LoginRequiredMixin, generic.CreateView):
     """
@@ -136,6 +107,7 @@ class CreateQView(LoginRequiredMixin, generic.CreateView):
         return super().form_valid(form)
 
 
+@login_required
 def join_queue(request):
     """
     Add a user to a queue.
@@ -147,31 +119,32 @@ def join_queue(request):
     :raises Queue.DoesNotExist: If the queue code does not exist.
     """
     if request.method == 'POST':
+        # Get the queue code from the submitted form and convert it to uppercase
         code = request.POST.get('queue_code', '').upper()
+        logger.debug(f'User {request.user.username} attempted to join queue with code: {code}')
         try:
-            # Get the queue based on the provided code
+            # Attempt to retrieve the queue based on the provided code
             queue = Queue.objects.get(code=code)
-            # Check if the user is already in the queue
+            logger.info(f'Queue found: {queue.name} for user {request.user.username}')
+            # Check if the user is already a participant in the queue
             if not queue.participant_set.filter(user=request.user).exists():
-                # Get the position for the new participant (last position + 1)
                 last_position = queue.participant_set.count()
                 new_position = last_position + 1
-                # Add the user as a new participant in the queue
+                # Create a new Participant entry
                 Participant.objects.create(
                     user=request.user,
                     queue=queue,
                     position=new_position
                 )
-                # Success message for successfully joining the queue
-                messages.success(request,
-                                 "You have successfully joined the queue.")
+                messages.success(request, "You have successfully joined the queue.")
+                logger.info(f'User {request.user.username} joined queue {queue.name} at position {new_position}.')
             else:
-                # If the user is already in the queue, show an info message
                 messages.info(request, "You are already in this queue.")
+                logger.warning(f'User {request.user.username} attempted to join queue {queue.name} again.')
         except Queue.DoesNotExist:
-            # Handle the case where the queue code does not exist
             messages.error(request, "Invalid queue code.")
-    # Redirect to the queue index page after processing
+            logger.error(f'User {request.user.username} attempted to join with an invalid queue code: {code}')
+    # Redirect to the index page after processing the request
     return redirect('queue:index')
 
 
@@ -191,9 +164,41 @@ class QueueListView(generic.ListView):
 
     def get_queryset(self):
         """
-       Retrieve all queues.
+        Retrieve all queues.
 
-       :returns: A queryset of all queues available in the system.
-       """
+        :returns: A queryset of all queues available in the system.
+        """
         # Optionally, you can filter or sort the queues, or return all queues.
         return Queue.objects.all()
+
+
+def get_client_ip(request):
+    """Retrieve the client's IP address from the request."""
+    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+    if x_forwarded_for:
+        ip = x_forwarded_for.split(',')[0]
+    else:
+        ip = request.META.get('REMOTE_ADDR')
+    return ip
+
+
+@receiver(user_logged_in)
+def user_login(request, user, **kwargs):
+    """Log a message when a user logs in."""
+    ip = get_client_ip(request)
+    logger.info(f"User {user.username} logged in from {ip}")
+
+
+@receiver(user_logged_out)
+def user_logout(request, user, **kwargs):
+    """Log a message when a user logs out."""
+    ip = get_client_ip(request)
+    logger.info(f"User {user.username} logged out from {ip}")
+
+
+@receiver(user_login_failed)
+def user_login_failed(credentials, request, **kwargs):
+    """Log a message when a user login attempt fails."""
+    ip = get_client_ip(request)
+    logger.warning(f"Failed login attempt for user "
+                   f"{credentials.get('username')} from {ip}")
