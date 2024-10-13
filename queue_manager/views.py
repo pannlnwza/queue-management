@@ -43,13 +43,14 @@ class IndexView(generic.ListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         # Get the user's participant objects to include their positions
-        user_participants = Participant.objects.filter(user=self.request.user)
-        # Create a dictionary to hold queue positions
-        queue_positions = {
-            participant.queue.id: participant.position for participant in
-            user_participants
-        }
-        context['queue_positions'] = queue_positions
+        if self.request.user.is_authenticated:
+            user_participants = Participant.objects.filter(user=self.request.user)
+            # Create a dictionary to hold queue positions
+            queue_positions = {
+                participant.queue.id: participant.position for participant in
+                user_participants
+            }
+            context['queue_positions'] = queue_positions
         return context
 
     def post(self, request, *args, **kwargs):
