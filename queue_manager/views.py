@@ -25,6 +25,7 @@ def signup(request):
             raw_passwd = form.cleaned_data.get('password1')
             user = authenticate(username=username, password=raw_passwd)
             login(request, user)
+            logger.info(f'New user signed up: {username}')
             return redirect('queue:index')
     else:
         form = UserCreationForm()
