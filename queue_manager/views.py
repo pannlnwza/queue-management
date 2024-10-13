@@ -10,7 +10,14 @@ from django.contrib import messages
 
 
 def signup(request):
-    """Register a new user."""
+    """
+    Register a new user.
+    Handles the signup process, creating a new user if the provided data is valid.
+
+    :param request: The HTTP request object containing user signup data.
+    :returns: Redirects to the queue index page on successful signup.
+    :raises ValueError: If form data is invalid, displays an error message in the signup form.
+    """
     if request.method == 'POST':
         form = UserCreationForm(request.POST)
         if form.is_valid():
@@ -31,16 +38,33 @@ def signup(request):
 
 
 class IndexView(generic.ListView):
+    """
+    Display the index page for the user's queues.
+    Lists the queues the authenticated user is participating in.
+
+    :param template_name: The name of the template to render.
+    :param context_object_name: The name of the context variable to hold the queue list.
+    """
     template_name = 'queue_manager/index.html'
     context_object_name = 'queue_list'
 
     def get_queryset(self):
+        """
+        Get the list of queues for the authenticated user.
+        :returns: A queryset of queues the user is participating in, or an empty queryset if not authenticated.
+        """
         if self.request.user.is_authenticated:
             return Queue.objects.filter(participant__user=self.request.user)
         else:
             return Queue.objects.none()
 
     def get_context_data(self, **kwargs):
+        """
+        Add additional context data to the template.
+
+        :param kwargs: Additional keyword arguments passed to the method.
+        :returns: The updated context dictionary with user's queue positions.
+        """
         context = super().get_context_data(**kwargs)
         # Get the user's participant objects to include their positions
         if self.request.user.is_authenticated:
@@ -54,6 +78,15 @@ class IndexView(generic.ListView):
         return context
 
     def post(self, request, *args, **kwargs):
+        """
+        Handle form submission for joining a queue.
+
+        Adds the authenticated user to the specified queue based on the provided queue code.
+
+        :param request: The HTTP request object containing the queue code.
+        :returns: Renders the index page after processing the request.
+        :raises Queue.DoesNotExist: If the queue code does not exist.
+        """
         # Handle form submission for joining a queue
         if request.method == "POST":
             queue_code = request.POST.get('queue_code')
@@ -77,17 +110,42 @@ class IndexView(generic.ListView):
 
 
 class CreateQView(LoginRequiredMixin, generic.CreateView):
+    """
+    Create a new queue.
+
+    Provides a form for authenticated users to create a new queue.
+
+    :param model: The model to use for creating the queue.
+    :param form_class: The form class for queue creation.
+    :param template_name: The name of the template to render.
+    :param success_url: The URL to redirect to on successful queue creation.
+    """
     model = Queue
     form_class = QueueForm
     template_name = 'queue_manager/create_q.html'
     success_url = reverse_lazy('queue:index')
 
     def form_valid(self, form):
+        """
+        Set the creator of the queue to the current user.
+
+        :param form: The form containing the queue data.
+        :returns: The response after the form has been successfully validated and saved.
+        """
         form.instance.created_by = self.request.user
         return super().form_valid(form)
 
 
 def join_queue(request):
+    """
+    Add a user to a queue.
+
+    Processes the joining of a queue based on the provided queue code.
+
+    :param request: The HTTP request object containing the queue code.
+    :returns: Redirects to the queue index page after processing.
+    :raises Queue.DoesNotExist: If the queue code does not exist.
+    """
     if request.method == 'POST':
         code = request.POST.get('queue_code', '').upper()
         try:
@@ -118,10 +176,24 @@ def join_queue(request):
 
 
 class QueueListView(generic.ListView):
+    """
+    List all queues.
+
+    Displays all available queues to the user.
+
+    :param model: The model to use for retrieving the queues.
+    :param template_name: The name of the template to render.
+    :param context_object_name: The name of the context variable to hold the list of queues.
+    """
     model = Queue
     template_name = 'queue_manager/all_queues.html'
     context_object_name = 'queues'
 
     def get_queryset(self):
+        """
+       Retrieve all queues.
+
+       :returns: A queryset of all queues available in the system.
+       """
         # Optionally, you can filter or sort the queues, or return all queues.
         return Queue.objects.all()
