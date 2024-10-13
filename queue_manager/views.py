@@ -1,5 +1,4 @@
 import logging
-
 from django.shortcuts import render, redirect
 from django.views import generic
 from queue_manager.models import *
@@ -10,6 +9,8 @@ from django.urls import reverse_lazy
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.signals import user_logged_in, user_logged_out, user_login_failed
+from django.dispatch import receiver
 
 logger = logging.getLogger('queue')
 
@@ -104,3 +105,27 @@ class QueueListView(generic.ListView):
 
     def get_queryset(self):
         return Queue.objects.all()
+
+
+def get_client_ip(request):
+    """Retrieve the client's IP address from the request."""
+    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+    if x_forwarded_for:
+        ip = x_forwarded_for.split(',')[0]
+    else:
+        ip = request.META.get('REMOTE_ADDR')
+    return ip
+
+
+@receiver(user_logged_in)
+def user_login(request, user, **kwargs):
+    """Log a message when a user logs in."""
+    ip = get_client_ip(request)
+    logger.info(f"User {user.username} logged in from {ip}")
+
+
+@receiver(user_logged_out)
+def user_logout(request, user, **kwargs):
+    """Log a message when a user logs out."""
+    ip = get_client_ip(request)
+    logger.info(f"User {user.username} logged out from {ip}")
