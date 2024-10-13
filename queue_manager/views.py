@@ -129,3 +129,11 @@ def user_logout(request, user, **kwargs):
     """Log a message when a user logs out."""
     ip = get_client_ip(request)
     logger.info(f"User {user.username} logged out from {ip}")
+
+
+@receiver(user_login_failed)
+def user_login_failed(credentials, request, **kwargs):
+    """Log a message when a user login attempt fails."""
+    ip = get_client_ip(request)
+    logger.warning(f"Failed login attempt for user "
+                   f"{credentials.get('username')} from {ip}")
