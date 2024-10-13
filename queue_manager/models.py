@@ -14,13 +14,20 @@ class Queue(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     def save(self, *args, **kwargs) -> None:
-        """Save the queue instance. Generates a unique code if it doesn't already exist."""
+        """
+        Save the queue instance, generating a unique code if not provided.
+        :raises ValueError: If generating a unique code fails.
+        """
         if not self.code:
             self.code = self.generate_unique_code()
         super().save(*args, **kwargs)
 
     def update_estimated_wait_time(self, average_time_per_participant: int) -> None:
-        """Update the estimated wait time based on the number of participants."""
+        """Update the estimated wait time based on the number of participants.
+
+        :param average_time_per_participant: Average time per participant in minutes.
+        :raises ValueError: If the average time per participant is negative.
+        """
         if average_time_per_participant < 0:
             raise ValueError("Average time per participant cannot be negative.")
 
@@ -29,20 +36,33 @@ class Queue(models.Model):
         self.save()
 
     def get_participants(self) -> models.QuerySet:
-        """Return a queryset of all participants in this queue."""
+        """
+        Return a queryset of all participants in this queue.
+        :returns: A queryset containing all participants of the queue.
+        """
         return self.participant_set.all()
 
     def get_first_participant(self) -> 'Participant':
-        """Get the participant next in line (i.e., with the lowest position)."""
+        """
+        Get the participant next in line (i.e., with the lowest position).
+        :returns: The participant object with the lowest position in the queue.
+        """
         return self.participant_set.order_by('position').first()
 
     def __str__(self) -> str:
-        """Return a string representation of the queue."""
+        """
+        Return a string representation of the queue.
+        :returns: The name of the queue.
+        """
         return self.name
 
     @staticmethod
     def generate_unique_code(length: int = 6) -> str:
-        """Generate a unique code consisting of uppercase letters and digits."""
+        """
+        Generate a unique code consisting of uppercase letters and digits.
+        :param length: The length of the code to be generated (default is 6).
+        :returns: A unique code that does not exist in the Queue table.
+        """
         characters = string.ascii_uppercase + string.digits
         while True:
             code = ''.join(random.choices(characters, k=length))
@@ -57,7 +77,10 @@ class UserProfile(models.Model):
     phone_no = models.CharField(max_length=15)
 
     def __str__(self) -> str:
-        """Return a string representation of the user profile."""
+        """
+        Return a string representation of the user profile.
+        :returns: The username of the user associated with the profile.
+        """
         return self.user.username
 
 
@@ -72,12 +95,20 @@ class Participant(models.Model):
         unique_together = ('user', 'queue')
 
     def update_position(self, new_position: int) -> None:
-        """Update the position of the participant in the queue."""
+        """
+        Update the position of the participant in the queue.
+
+        :param new_position: The new position to assign to the participant.
+        :raises ValueError: If the new position is negative.
+        """
         if new_position < 0:
             raise ValueError("Position cannot be negative.")
         self.position = new_position
         self.save()
 
     def __str__(self) -> str:
-        """Return a string representation of the participant."""
+        """
+        Return a string representation of the participant.
+        :returns: The username of the user associated with the participant.
+        """
         return self.user.username
