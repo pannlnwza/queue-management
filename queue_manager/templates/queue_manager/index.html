@@ -1,4 +1,6 @@
 {% extends 'base.html' %}
+{% load custom_filters %}
+
 {% block extra_head %}
     <style>
         * {
@@ -77,7 +79,7 @@
                     <div class="queue-stats">
                         <div>
                             <div class="stat-label">Your Position</div>
-                            <div class="stat-value">{{ queue_positions.queue.id }}</div>
+                            <div class="stat-value">{{ queue_positions|get_item:queue.id }}</div>
                         </div>
                         <div>
                             <div class="stat-label">Queue Length</div>
