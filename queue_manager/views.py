@@ -85,3 +85,11 @@ def join_queue(request):
             messages.error(request, "Invalid queue code.")
         return redirect('queue:index')
 
+class QueueListView(generic.ListView):
+    model = Queue
+    template_name = 'queue_manager/all_queues.html'
+    context_object_name = 'queues'
+
+    def get_queryset(self):
+        # Optionally, you can filter or sort the queues, or return all queues.
+        return Queue.objects.all()
