@@ -96,9 +96,20 @@
             border: none;
         }
 
-        .btn-primary:hover {
-            background-color: var(--primary-dark);
+
+        .dropdown-toggle {
+            cursor: pointer;
+            color: var(--text-primary);
+            font-weight: 500;
+            font-size: 0.9375rem;
+            padding: 0.5rem 1rem;
+            border-radius: 3rem;
+            background-color: white;
+            border: 1px solid white;
+            white-space: nowrap;
         }
+
+
         .dropdown {
             position: relative;
             display: inline-block;
@@ -116,11 +127,6 @@
             white-space: nowrap;
         }
 
-        .dropdown-toggle:focus {
-            outline: none;
-        }
-
-        /* Hide dropdown menu by default */
         .dropdown-menu {
             display: none;
             position: absolute;
@@ -131,6 +137,19 @@
             min-width: 10rem;
             right: 0;
             z-index: 1000;
+        }
+
+        .logout-link {
+            font-family: 'Inter', sans-serif;
+            padding: 0.5rem 1rem;
+            width: 100%;
+            cursor: pointer;
+            border: solid white;
+        }
+
+        .dropdown:focus-within .dropdown-menu,
+        .dropdown:hover .dropdown-menu {
+            display: block;
         }
 
         .dropdown-menu a {
@@ -150,26 +169,45 @@
             color: white;
         }
 
-        /* Show dropdown on focus within */
-        .dropdown:focus-within .dropdown-menu {
-            display: block;
+        .messages {
+            margin: auto;
+            list-style: none;
+            padding: 0;
+            width: 90%;
         }
 
-        /* Handle when user clicks away */
-        .dropdown-toggle:focus + .dropdown-menu {
-            display: block;
+        .messages li {
+            padding: 0.5rem;
+            border-radius: 4px;
+            margin-bottom: 0.5rem;
+        }
+
+        .messages .success {
+            background-color: #d4edda;
+            color: #155724;
+        }
+
+        .messages .info {
+            background-color: #cce5ff;
+            color: #004085;
+        }
+
+        .messages .error {
+            background-color: #f8d7da;
+            color: #721c24;
         }
     </style>
     {% block extra_head %}{% endblock %}
 </head>
+<body>
     <nav class="navbar">
         <div class="nav-left-group">
             <div><a href="/" class="nav-brand">Queue Management</a></div>
             <div class="nav-center">
-                <a href="/queues" class="nav-item">Queue</a>
-                <a href="/create" class="nav-item">Create Queue</a>
+                <a href="{% url 'queue:queues' %}" class="nav-item">Browse Queues</a>
+                <a href="{% url 'queue:create_q' %}" class="nav-item">Create Queue</a>
                 {% if user.is_authenticated %}
-                    <a href="/dashboard" class="nav-item">Dashboard</a>
+                    <a href="{% url 'queue:index' %}" class="nav-item">Dashboard</a>
                 {% endif %}
             </div>
         </div>
@@ -178,20 +216,27 @@
                 <div class="dropdown">
                     <button class="dropdown-toggle" tabindex="0">{{ user.username }}</button>
                     <div class="dropdown-menu">
-                        <a href="/profile">Profile</a>
+                        <a href="{% url 'queue:index' %}" class="dropdown-item">Profile</a>
                         <form action="{% url 'logout' %}" method="post" style="display: inline;">
                             {% csrf_token %}
-                            <button type="submit" class="dropdown-item">Log out</button>
+                            <button type="submit" class="dropdown-item logout-link">Log out</button>
                         </form>
                     </div>
                 </div>
             {% else %}
                 <a href="{% url 'login' %}" class="btn btn-outline">Log in</a>
             {% endif %}
-            <a href="/contact" class="btn btn-primary">Contact us</a>
+            <a href="{% url 'queue:index' %}" class="btn btn-primary">Contact us</a>
         </div>
     </nav>
-<body>
-{% block content %} {% endblock %}
+
+{% if messages %}
+    <ul class="messages">
+        {% for message in messages %}
+            <li class="{{ message.tags }}">{{ message }}</li>
+        {% endfor %}
+    </ul>
+{% endif %}
+    {% block content %} {% endblock %}
 </body>
 </html>
