@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+
+{% block extra_head %}
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f2f5;
+        }
+        .card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 1rem;
+            padding: 1rem;
+        }
+        .card-title {
+            font-size: 1.1rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+    <main>
+        <div class="card">
+            <div class="card-title">All Queues</div>
+            {% if queues %}
+                <ul>
+                    {% for queue in queues %}
+                        <li>{{ queue.name }} - Code: {{ queue.code }}</li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p>No queues available.</p>
+            {% endif %}
+        </div>
+    </main>
+{% endblock %}
