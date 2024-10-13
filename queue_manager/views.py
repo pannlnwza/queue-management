@@ -40,6 +40,18 @@ class IndexView(generic.ListView):
         else:
             return Queue.objects.none()
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        # Get the user's participant objects to include their positions
+        user_participants = Participant.objects.filter(user=self.request.user)
+        # Create a dictionary to hold queue positions
+        queue_positions = {
+            participant.queue.id: participant.position for participant in
+            user_participants
+        }
+        context['queue_positions'] = queue_positions
+        return context
+
     def post(self, request, *args, **kwargs):
         # Handle form submission for joining a queue
         if request.method == "POST":
@@ -78,12 +90,31 @@ def join_queue(request):
     if request.method == 'POST':
         code = request.POST.get('queue_code', '').upper()
         try:
+            # Get the queue based on the provided code
             queue = Queue.objects.get(code=code)
-            # Logic for adding the user to the queue...
-            messages.success(request, "You have successfully joined the queue.")
+            # Check if the user is already in the queue
+            if not queue.participant_set.filter(user=request.user).exists():
+                # Get the position for the new participant (last position + 1)
+                last_position = queue.participant_set.count()
+                new_position = last_position + 1
+                # Add the user as a new participant in the queue
+                Participant.objects.create(
+                    user=request.user,
+                    queue=queue,
+                    position=new_position
+                )
+                # Success message for successfully joining the queue
+                messages.success(request,
+                                 "You have successfully joined the queue.")
+            else:
+                # If the user is already in the queue, show an info message
+                messages.info(request, "You are already in this queue.")
         except Queue.DoesNotExist:
+            # Handle the case where the queue code does not exist
             messages.error(request, "Invalid queue code.")
-        return redirect('queue:index')
+    # Redirect to the queue index page after processing
+    return redirect('queue:index')
+
 
 class QueueListView(generic.ListView):
     model = Queue
