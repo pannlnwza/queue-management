@@ -66,7 +66,7 @@ class Participant(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     queue = models.ForeignKey(Queue, on_delete=models.CASCADE)
     joined_at = models.DateTimeField(auto_now_add=True)
-    position = models.PositiveIntegerField(unique=True)
+    position = models.PositiveIntegerField()
 
     class Meta:
         unique_together = ('user', 'queue')
