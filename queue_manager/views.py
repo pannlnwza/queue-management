@@ -9,7 +9,8 @@ from django.urls import reverse_lazy
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.signals import user_logged_in, user_logged_out, user_login_failed
+from django.contrib.auth.signals import user_logged_in, user_logged_out, \
+    user_login_failed
 from django.dispatch import receiver
 
 logger = logging.getLogger('queue')
@@ -57,8 +58,7 @@ class IndexView(generic.ListView):
         """
         if self.request.user.is_authenticated:
             return Queue.objects.filter(participant__user=self.request.user)
-        else:
-            return Queue.objects.none()
+        return Queue.objects.none()
 
     def get_context_data(self, **kwargs):
         """
@@ -70,7 +70,8 @@ class IndexView(generic.ListView):
         context = super().get_context_data(**kwargs)
         # Get the user's participant objects to include their positions
         if self.request.user.is_authenticated:
-            user_participants = Participant.objects.filter(user=self.request.user)
+            user_participants = Participant.objects.filter(
+                user=self.request.user)
             # Create a dictionary to hold queue positions
             queue_positions = {
                 participant.queue.id: participant.position for participant in
@@ -78,7 +79,7 @@ class IndexView(generic.ListView):
             }
             context['queue_positions'] = queue_positions
         return context
-      
+
 
 class CreateQView(LoginRequiredMixin, generic.CreateView):
     """
@@ -121,11 +122,13 @@ def join_queue(request):
     if request.method == 'POST':
         # Get the queue code from the submitted form and convert it to uppercase
         code = request.POST.get('queue_code', '').upper()
-        logger.debug(f'User {request.user.username} attempted to join queue with code: {code}')
+        logger.debug(
+            f'User {request.user.username} attempted to join queue with code: {code}')
         try:
             # Attempt to retrieve the queue based on the provided code
             queue = Queue.objects.get(code=code)
-            logger.info(f'Queue found: {queue.name} for user {request.user.username}')
+            logger.info(
+                f'Queue found: {queue.name} for user {request.user.username}')
             # Check if the user is already a participant in the queue
             if not queue.participant_set.filter(user=request.user).exists():
                 last_position = queue.participant_set.count()
@@ -136,14 +139,18 @@ def join_queue(request):
                     queue=queue,
                     position=new_position
                 )
-                messages.success(request, "You have successfully joined the queue.")
-                logger.info(f'User {request.user.username} joined queue {queue.name} at position {new_position}.')
+                messages.success(request,
+                                 "You have successfully joined the queue.")
+                logger.info(
+                    f'User {request.user.username} joined queue {queue.name} at position {new_position}.')
             else:
                 messages.info(request, "You are already in this queue.")
-                logger.warning(f'User {request.user.username} attempted to join queue {queue.name} again.')
+                logger.warning(
+                    f'User {request.user.username} attempted to join queue {queue.name} again.')
         except Queue.DoesNotExist:
             messages.error(request, "Invalid queue code.")
-            logger.error(f'User {request.user.username} attempted to join with an invalid queue code: {code}')
+            logger.error(
+                f'User {request.user.username} attempted to join with an invalid queue code: {code}')
     # Redirect to the index page after processing the request
     return redirect('queue:index')
 
@@ -170,6 +177,15 @@ class QueueListView(generic.ListView):
         """
         # Optionally, you can filter or sort the queues, or return all queues.
         return Queue.objects.all()
+
+
+class ManageQueuesView(LoginRequiredMixin, generic.ListView):
+    model = Queue
+    template_name = 'queue_manager/manage_queues.html'
+    context_object_name = 'queues'
+
+    def get_queryset(self):
+        return Queue.objects.filter(created_by=self.request.user)
 
 
 def get_client_ip(request):
