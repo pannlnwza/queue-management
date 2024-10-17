@@ -222,6 +222,31 @@ class EditQueueView(LoginRequiredMixin, generic.UpdateView):
         context['participants'] = queue.participant_set.all()
         return context
 
+    def post(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        if request.POST.get('action') == 'delete_participant':
+            participant_id = request.POST.get('participant_id')
+            return self.delete_participant(participant_id)
+        if request.POST.get('action') == 'close_queue':
+            return self.close_queue()
+        return super().post(request, *args, **kwargs)
+
+    def delete_participant(self, participant_id):
+        try:
+            participant = Participant.objects.get(id=participant_id,
+                                                  queue=self.object)
+            participant.delete()
+            messages.success(self.request, "Participant removed successfully.")
+        except Participant.DoesNotExist:
+            messages.error(self.request, "Participant not found.")
+        return redirect(self.get_success_url())
+
+    def close_queue(self):
+        self.object.is_closed = True
+        self.object.save()
+        messages.success(self.request, "Queue closed successfully.")
+        return redirect(self.get_success_url())
+
 
 @receiver(user_logged_in)
 def user_login(request, user, **kwargs):
