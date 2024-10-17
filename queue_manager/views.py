@@ -180,11 +180,25 @@ class QueueListView(generic.ListView):
 
 
 class ManageQueuesView(LoginRequiredMixin, generic.ListView):
+    """
+    Manage queues.
+
+    Allows authenticated users to view, edit, and delete their queues.
+    Lists all user-associated queues and provides action options.
+
+    :param model: The model representing the queues.
+    :param template_name: Template for displaying the queue list.
+    :param context_object_name: Variable name for queues in the template.
+    """
     model = Queue
     template_name = 'queue_manager/manage_queues.html'
     context_object_name = 'queues'
 
     def get_queryset(self):
+        """
+        Retrieve the queues created by the logged-in user.
+        :returns: A queryset of queues created by the current user.
+        """
         return Queue.objects.filter(created_by=self.request.user)
 
 
