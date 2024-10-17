@@ -175,7 +175,6 @@ class QueueListView(generic.ListView):
 
         :returns: A queryset of all queues available in the system.
         """
-        # Optionally, you can filter or sort the queues, or return all queues.
         return Queue.objects.all()
 
 
@@ -210,6 +209,18 @@ def get_client_ip(request):
     else:
         ip = request.META.get('REMOTE_ADDR')
     return ip
+
+
+class EditQueueView(LoginRequiredMixin, generic.UpdateView):
+    model = Queue
+    form_class = QueueForm
+    template_name = 'queue_manager/edit_queue.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        queue = self.object
+        context['participants'] = queue.participant_set.all()
+        return context
 
 
 @receiver(user_logged_in)
