@@ -207,6 +207,7 @@
                 <a href="{% url 'queue:queues' %}" class="nav-item">Browse Queues</a>
                 <a href="{% url 'queue:create_q' %}" class="nav-item">Create Queue</a>
                 {% if user.is_authenticated %}
+                    <a href="{% url 'queue:manage_queues' %}" class="nav-item">Manage Queues</a>
                     <a href="{% url 'queue:index' %}" class="nav-item">Dashboard</a>
                 {% endif %}
             </div>

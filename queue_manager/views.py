@@ -5,7 +5,7 @@ from queue_manager.models import *
 from django.contrib.auth import login, authenticate
 from django.contrib.auth.forms import UserCreationForm
 from .forms import QueueForm
-from django.urls import reverse_lazy
+from django.urls import reverse_lazy, reverse
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -216,6 +216,9 @@ class EditQueueView(LoginRequiredMixin, generic.UpdateView):
     form_class = QueueForm
     template_name = 'queue_manager/edit_queue.html'
 
+    def get_success_url(self):
+        return reverse('queue:manage_queues')
+
     def get_context_data(self, **kwargs):
         """
         Add additional context data to the template.
@@ -241,6 +244,15 @@ class EditQueueView(LoginRequiredMixin, generic.UpdateView):
             return self.delete_participant(participant_id)
         if request.POST.get('action') == 'close_queue':
             return self.close_queue()
+        if request.POST.get('action') == 'edit_queue':
+            name = request.POST.get('name')
+            description = request.POST.get('description')
+            is_closed = request.POST.get('is_closed') == 'true'
+            try:
+                self.object.edit(name=name, description=description, is_closed=is_closed)
+                messages.success(self.request, "Queue updated successfully.")
+            except ValueError as e:
+                messages.error(self.request, str(e))
         return super().post(request, *args, **kwargs)
 
     def delete_participant(self, participant_id):
