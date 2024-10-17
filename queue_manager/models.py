@@ -12,6 +12,7 @@ class Queue(models.Model):
     estimated_wait_time = models.PositiveIntegerField(default=0)
     created_by = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    is_closed = models.BooleanField(default=False)
 
     def save(self, *args, **kwargs) -> None:
         """
