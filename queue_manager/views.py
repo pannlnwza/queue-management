@@ -201,28 +201,40 @@ class ManageQueuesView(LoginRequiredMixin, generic.ListView):
         return Queue.objects.filter(created_by=self.request.user)
 
 
-def get_client_ip(request):
-    """Retrieve the client's IP address from the request."""
-    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
-    if x_forwarded_for:
-        ip = x_forwarded_for.split(',')[0]
-    else:
-        ip = request.META.get('REMOTE_ADDR')
-    return ip
-
-
 class EditQueueView(LoginRequiredMixin, generic.UpdateView):
+    """
+    Edit an existing queue.
+
+    Allows authenticated users to change the queue's name, delete participants,
+    or close the queue.
+
+    :param model: The model to use for editing the queue.
+    :param form_class: The form class for queue editing.
+    :param template_name: The name of the template to render.
+    """
     model = Queue
     form_class = QueueForm
     template_name = 'queue_manager/edit_queue.html'
 
     def get_context_data(self, **kwargs):
+        """
+        Add additional context data to the template.
+
+        :param kwargs: Additional keyword arguments passed to the method.
+        :returns: The updated context dictionary.
+        """
         context = super().get_context_data(**kwargs)
         queue = self.object
         context['participants'] = queue.participant_set.all()
         return context
 
     def post(self, request, *args, **kwargs):
+        """
+        Handle POST requests to update the queue and manage participants.
+
+        :param request: The HTTP request object containing data for the queue and participants.
+        :returns: Redirects to the success URL after processing.
+        """
         self.object = self.get_object()
         if request.POST.get('action') == 'delete_participant':
             participant_id = request.POST.get('participant_id')
@@ -232,6 +244,7 @@ class EditQueueView(LoginRequiredMixin, generic.UpdateView):
         return super().post(request, *args, **kwargs)
 
     def delete_participant(self, participant_id):
+        """Delete a participant from the queue."""
         try:
             participant = Participant.objects.get(id=participant_id,
                                                   queue=self.object)
@@ -239,13 +252,24 @@ class EditQueueView(LoginRequiredMixin, generic.UpdateView):
             messages.success(self.request, "Participant removed successfully.")
         except Participant.DoesNotExist:
             messages.error(self.request, "Participant not found.")
-        return redirect(self.get_success_url())
+        return redirect('queue:manage_queues')
 
     def close_queue(self):
+        """Close the queue."""
         self.object.is_closed = True
         self.object.save()
         messages.success(self.request, "Queue closed successfully.")
-        return redirect(self.get_success_url())
+        return redirect('queue:manage_queues')
+
+
+def get_client_ip(request):
+    """Retrieve the client's IP address from the request."""
+    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+    if x_forwarded_for:
+        ip = x_forwarded_for.split(',')[0]
+    else:
+        ip = request.META.get('REMOTE_ADDR')
+    return ip
 
 
 @receiver(user_logged_in)
