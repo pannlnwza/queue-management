@@ -90,13 +90,8 @@
             <div class="card-title">Edit Your Queue Information</div>
             <form method="POST">
                 {% csrf_token %}
-                <div class="form-field">
-                    <label for="id_name">Queue Name</label>
-                    {{ form.name }}
-                </div>
-                <div class="form-field">
-                    <label for="id_description">Description</label>
-                    {{ form.description }}
+                <div>
+                    {{ form.as_p }}
                 </div>
                 <button type="submit" class="submit-btn" name="action" value="edit_queue">Save</button>
             </form>
