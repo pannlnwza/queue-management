@@ -7,4 +7,5 @@ urlpatterns = [
     path('create', CreateQView.as_view(), name='create_q'),
     path('queues/', QueueListView.as_view(), name='queues'),
     path('join/', join_queue, name='join'),
+    path('dashboard/<int:pk>/', QueueDashboardView.as_view(), name='dashboard')
 ]
