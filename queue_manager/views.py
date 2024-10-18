@@ -168,8 +168,13 @@ class QueueListView(generic.ListView):
 
         :returns: A queryset of all queues available in the system.
         """
-        # Optionally, you can filter or sort the queues, or return all queues.
         return Queue.objects.all()
+
+
+class QueueDashboardView(generic.DetailView):
+    model = Queue
+    template_name = 'queue_manager/normal_dashboard.html'
+    context_object_name = 'queue'
 
 
 def get_client_ip(request):
