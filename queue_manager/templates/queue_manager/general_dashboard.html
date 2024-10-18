@@ -30,6 +30,11 @@
             font-weight: bold;
             color: #007bff;
         }
+        .btn-add {
+            background-color: green;
+            color: white;
+            border: none;
+        }
     </style>
 {% endblock %}
 
@@ -38,9 +43,11 @@
         <h2>{{ queue.name }}</h2>
         <p>Status:
             <span class="status-badge {% if queue.status == 'active' %}status-active{% elif queue.status == 'busy' %}status-busy{% else %}status-closed{% endif %}">
-                {{ queue.get_status_display }}
+                no status yet
+                {#                {{ queue.status }}#}
             </span>
         </p>
+    <a class="btn btn-primary" href="{% url 'queue:index' %}" role="button">Edit</a>
 
         <div class="row mt-4">
             <div class="col-md-3">
@@ -85,6 +92,7 @@
                         <th>Participant ID</th>
                         <th>Check-in Time</th>
                         <th>Estimated Wait Time</th>
+                        <th>Actions (Not Usable Yet)</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -93,8 +101,20 @@
                         <td>{{ forloop.counter }}</td>
                         <td>{{ participant.user.username }}</td>
                         <td>{{ participant.joined_at }}</td>
-                        <td>{{ participant.estimated_wait_time }} min</td>
+                        <td>{{ queue.estimated_wait_time }} min</td> {# will change to estimated wait time for each participant later #}
+                        <td>
+                            <button class="btn btn-link p-0 me-2" title="Notify User">
+                            <i class="bi bi-bell-fill text-primary"></i>
+                        </button>
+                        <form method="post" action="{% url 'queue:index' %}" style="display: inline;">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-link p-0" title="Remove Participant">
+                                <i class="bi bi-x-circle-fill text-danger"></i>
+                            </button>
+                        </form>
+                    </td>
                     </tr>
+
                     {% empty %}
                     <tr>
                         <td colspan="5" class="text-center">No participants in the queue</td>
@@ -105,7 +125,6 @@
         </div>
 
         <div class="mt-3">
-            <a href="{% url 'queue:dashboard'  queue.id %}" class="btn btn-primary me-2">Add Participant</a>
             <a href="{% url 'queue:dashboard' queue.id %}" class="btn btn-secondary me-2">Update Queue</a>
         </div>
     </div>
