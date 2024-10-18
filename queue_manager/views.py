@@ -173,7 +173,7 @@ class QueueListView(generic.ListView):
 
 class QueueDashboardView(generic.DetailView):
     model = Queue
-    template_name = 'queue_manager/normal_dashboard.html'
+    template_name = 'queue_manager/general_dashboard.html'
     context_object_name = 'queue'
 
 
