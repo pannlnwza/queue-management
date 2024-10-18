@@ -6,6 +6,11 @@ from django.contrib.auth.models import User
 
 class Queue(models.Model):
     """Represents a queue created by a user."""
+    STATUS_CHOICES = [
+        ('open', 'Open'),
+        ('busy', 'Busy'),
+        ('closed', 'Closed')
+    ]
     name = models.CharField(max_length=255)
     description = models.TextField()
     code = models.CharField(max_length=6, unique=True, editable=False)
@@ -13,6 +18,7 @@ class Queue(models.Model):
     created_by = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     is_closed = models.BooleanField(default=False)
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='open')
 
     def save(self, *args, **kwargs) -> None:
         """
