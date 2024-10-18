@@ -57,7 +57,7 @@ class Queue(models.Model):
         """
         return self.participant_set.order_by('position').first()
 
-    def edit(self, name:str = None, description: str = None, is_closed: bool = None, status: str = None) -> None:
+    def edit(self, name: str = None, description: str = None, is_closed: bool = None, status: str = None) -> None:
         """
         Edit the queue's name, description, or closed status.
 
