@@ -53,6 +53,23 @@
         .edit-button:hover {
             background-color: #0056b3;
         }
+        .status-badge-red {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            background-color: darkred;
+            color: white;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            margin-left: 0.5rem;
+        }.status-badge-green {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            background-color: green;
+            color: white;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            margin-left: 0.5rem;
+        }
         ul {
             list-style-type: none;
             padding: 0;
@@ -72,7 +89,14 @@
                     {% for queue in queues %}
                         <li>
                             <div class="card">
-                                <div class="card-title">{{ queue.name }} - Code: {{ queue.code }}</div>
+                                <div class="card-title">
+                                    {{ queue.name }} - Code: {{ queue.code }}
+                                    {% if queue.is_closed %}
+                                        <span class="status-badge-red">Closed</span>
+                                    {% else %}
+                                        <span class="status-badge-green">Open</span>
+                                    {% endif %}
+                                </div>
                                 <div class="card-detail">Description: {{ queue.description }}</div>
                                 <a href="{% url 'queue:edit_queue' queue.pk %}" class="edit-button">Edit</a>
                             </div>

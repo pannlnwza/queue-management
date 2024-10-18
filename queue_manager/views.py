@@ -238,12 +238,13 @@ class EditQueueView(LoginRequiredMixin, generic.UpdateView):
         :param request: The HTTP request object containing data for the queue and participants.
         :returns: Redirects to the success URL after processing.
         """
+
         self.object = self.get_object()
         if request.POST.get('action') == 'delete_participant':
             participant_id = request.POST.get('participant_id')
             return self.delete_participant(participant_id)
-        if request.POST.get('action') == 'close_queue':
-            return self.close_queue()
+        if request.POST.get('action') == 'queue_status':
+            return self.queue_status_handler()
         if request.POST.get('action') == 'edit_queue':
             name = request.POST.get('name')
             description = request.POST.get('description')
@@ -257,6 +258,7 @@ class EditQueueView(LoginRequiredMixin, generic.UpdateView):
 
     def delete_participant(self, participant_id):
         """Delete a participant from the queue."""
+        print(participant_id)
         try:
             participant = Participant.objects.get(id=participant_id,
                                                   queue=self.object)
@@ -266,11 +268,11 @@ class EditQueueView(LoginRequiredMixin, generic.UpdateView):
             messages.error(self.request, "Participant not found.")
         return redirect('queue:manage_queues')
 
-    def close_queue(self):
+    def queue_status_handler(self):
         """Close the queue."""
-        self.object.is_closed = True
+        self.object.is_closed = not self.object.is_closed
         self.object.save()
-        messages.success(self.request, "Queue closed successfully.")
+        messages.success(self.request, "Queue status updated successfully.")
         return redirect('queue:manage_queues')
 
 
