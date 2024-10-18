@@ -176,6 +176,13 @@ class QueueDashboardView(generic.DetailView):
     template_name = 'queue_manager/general_dashboard.html'
     context_object_name = 'queue'
 
+    def get(self, request, *args, **kwargs):
+        queue = self.get_object()
+        if queue.created_by == request.user:
+            return super().get(request, *args, **kwargs)
+        messages.error(request, 'You are not the owner of this queue.')
+        return redirect('queue:index')
+
 
 def get_client_ip(request):
     """Retrieve the client's IP address from the request."""
