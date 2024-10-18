@@ -34,7 +34,9 @@
             {% if queues %}
                 <ul>
                     {% for queue in queues %}
+                        {% if not queue.is_closed %}
                         <li>{{ queue.name }} - Code: {{ queue.code }}</li>
+                        {% endif %}
                     {% endfor %}
                 </ul>
             {% else %}

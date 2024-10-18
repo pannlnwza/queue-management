@@ -130,23 +130,28 @@ def join_queue(request):
             logger.info(
                 f'Queue found: {queue.name} for user {request.user.username}')
             # Check if the user is already a participant in the queue
-            if not queue.participant_set.filter(user=request.user).exists():
-                last_position = queue.participant_set.count()
-                new_position = last_position + 1
-                # Create a new Participant entry
-                Participant.objects.create(
-                    user=request.user,
-                    queue=queue,
-                    position=new_position
-                )
-                messages.success(request,
-                                 "You have successfully joined the queue.")
-                logger.info(
-                    f'User {request.user.username} joined queue {queue.name} at position {new_position}.')
+            if not queue.is_closed:
+                if not queue.participant_set.filter(user=request.user).exists():
+                    last_position = queue.participant_set.count()
+                    new_position = last_position + 1
+                    # Create a new Participant entry
+                    Participant.objects.create(
+                        user=request.user,
+                        queue=queue,
+                        position=new_position
+                    )
+                    messages.success(request,
+                                     "You have successfully joined the queue.")
+                    logger.info(
+                        f'User {request.user.username} joined queue {queue.name} at position {new_position}.')
+                else:
+                    messages.info(request, "You are already in this queue.")
+                    logger.warning(
+                        f'User {request.user.username} attempted to join queue {queue.name} again.')
             else:
-                messages.info(request, "You are already in this queue.")
-                logger.warning(
-                    f'User {request.user.username} attempted to join queue {queue.name} again.')
+                messages.success(request, "The queue is closed.")
+                logger.info(
+                    f'User {request.user.username} attempted to join queue {queue.name} that has been closed.')
         except Queue.DoesNotExist:
             messages.error(request, "Invalid queue code.")
             logger.error(
