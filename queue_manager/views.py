@@ -1,5 +1,5 @@
 import logging
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404, Http404
 from django.views import generic
 from queue_manager.models import *
 from django.contrib.auth import login, authenticate
@@ -177,9 +177,19 @@ class QueueDashboardView(generic.DetailView):
     context_object_name = 'queue'
 
     def get(self, request, *args, **kwargs):
-        queue = self.get_object()
+        try:
+            queue = get_object_or_404(Queue, pk=kwargs.get('pk'))
+        except Http404:
+            logger.warning(f'User {request.user.username} attempted '
+                           f'to access a non-existent queue with ID {kwargs.get("pk")}.')
+            messages.error(request, 'Queue does not exist.')
+            return redirect('queue:index')
         if queue.created_by == request.user:
+            logger.info(f'User {request.user.username} accessed the '
+                        f'dashboard for queue "{queue.name}" with ID {queue.pk}.')
             return super().get(request, *args, **kwargs)
+        logger.warning(f'User {request.user.username} attempted to access the dashboard '
+                       f'for queue "{queue.name}" (ID: {queue.pk}) without ownership.')
         messages.error(request, 'You are not the owner of this queue.')
         return redirect('queue:index')
 
