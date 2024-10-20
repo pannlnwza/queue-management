@@ -273,17 +273,6 @@ class EditQueueView(LoginRequiredMixin, generic.UpdateView):
                 messages.error(self.request, str(e))
         return super().post(request, *args, **kwargs)
 
-    def delete_participant(self, participant_id):
-        """Delete a participant from the queue."""
-        print(participant_id)
-        try:
-            participant = Participant.objects.get(id=participant_id,
-                                                  queue=self.object)
-            participant.delete()
-            messages.success(self.request, "Participant removed successfully.")
-        except Participant.DoesNotExist:
-            messages.error(self.request, "Participant not found.")
-        return redirect('queue:manage_queues')
 
     def queue_status_handler(self):
         """Close the queue."""
