@@ -234,6 +234,7 @@ class EditQueueView(LoginRequiredMixin, generic.UpdateView):
         return super().dispatch(request, *args, **kwargs)
 
     def get_success_url(self):
+        """redirect user back to manage queues page, if the edit was saved successfully."""
         return reverse('queue:manage_queues')
 
     def get_context_data(self, **kwargs):
