@@ -18,6 +18,6 @@ class QueueForm(forms.ModelForm):
             'description': forms.Textarea(
                 attrs={'class': 'form-control', 'placeholder': 'Enter Description', 'rows': 4}),
             'estimated_wait_time': forms.NumberInput(attrs={'class': 'form-control',
-                                                            'placeholder': 'Enter Estimated Wait Time (min)'}),
+                                                            'placeholder': 'Enter Estimated Wait Time (minutes)'}),
         }
 
