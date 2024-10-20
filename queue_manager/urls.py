@@ -9,4 +9,5 @@ urlpatterns = [
     path('join/', join_queue, name='join'),
     path('manage/', ManageQueuesView.as_view(), name='manage_queues'),
     path('queue/<int:pk>/edit/', EditQueueView.as_view(), name='edit_queue'),
+    path('delete/<int:participant_id>', delete_participant, name='delete'),
 ]

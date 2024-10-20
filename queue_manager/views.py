@@ -221,6 +221,18 @@ class EditQueueView(LoginRequiredMixin, generic.UpdateView):
     form_class = QueueForm
     template_name = 'queue_manager/edit_queue.html'
 
+    def dispatch(self, request, *args, **kwargs):
+        """
+        Check if the user is the creator of the queue before allowing access.
+        """
+        queue = self.get_object()
+        if queue.created_by != request.user:
+            messages.error(self.request, "You do not have permission to edit this queue.")
+            logger.warning(
+                f"Unauthorized attempt to access edit queue page for queue: {queue.name} by user: {request.user}")
+            return redirect('queue:manage_queues')
+        return super().dispatch(request, *args, **kwargs)
+
     def get_success_url(self):
         return reverse('queue:manage_queues')
 
@@ -243,7 +255,6 @@ class EditQueueView(LoginRequiredMixin, generic.UpdateView):
         :param request: The HTTP request object containing data for the queue and participants.
         :returns: Redirects to the success URL after processing.
         """
-
         self.object = self.get_object()
         if request.POST.get('action') == 'delete_participant':
             participant_id = request.POST.get('participant_id')
@@ -291,6 +302,37 @@ def get_client_ip(request):
     return ip
 
 
+@login_required
+def delete_participant(request, participant_id):
+    """Delete a participant from a specific queue if the requester is the queue creator."""
+    try:
+        participant = Participant.objects.get(id=participant_id)
+    except Participant.DoesNotExist:
+        messages.error(request, f"Participant with ID {participant_id} does not exist.")
+        logger.error(f"Participant id: {participant_id} does not exist.")
+        return redirect('queue:index')
+    queue = participant.queue
+
+    if queue.created_by != request.user:
+        messages.error(request, "You are not authorized to delete participants from this queue.")
+        logger.warning(
+            f"Unauthorized delete attempt by user {request.user} "
+            f"for participant {participant_id} in queue {queue.id}.")
+        return redirect('queue:index')
+    try:
+        participant.delete()
+        messages.success(request, f"Participant {participant.user.username} removed successfully.")
+        logger.info(
+            f"Participant {participant.user.username} successfully deleted from queue {queue.id} "
+            f"by user {request.user}.")
+    except Exception as e:
+        messages.error(request, f"Error removing participant: {e}")
+        logger.error(
+            f"Failed to delete participant {participant_id} from queue {queue.id} "
+            f"by user {request.user}: {e}")
+    return redirect('queue:dashboard', pk=queue.id)
+
+
 @receiver(user_logged_in)
 def user_login(request, user, **kwargs):
     """Log a message when a user logs in."""
@@ -311,3 +353,4 @@ def user_login_failed(credentials, request, **kwargs):
     ip = get_client_ip(request)
     logger.warning(f"Failed login attempt for user "
                    f"{credentials.get('username')} from {ip}")
+
