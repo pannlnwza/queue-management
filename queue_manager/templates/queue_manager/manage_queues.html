@@ -98,7 +98,7 @@
                                     {% endif %}
                                 </div>
                                 <div class="card-detail">Description: {{ queue.description }}</div>
-                                <a href="{% url 'queue:edit_queue' queue.pk %}" class="edit-button">Edit</a>
+                                <a href="{% url 'queue:dashboard' queue.pk %}" class="edit-button">Dashboard</a>
                             </div>
                         </li>
                     {% endfor %}

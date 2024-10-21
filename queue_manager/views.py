@@ -1,5 +1,5 @@
 import logging
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404, Http404
 from django.views import generic
 from queue_manager.models import *
 from django.contrib.auth import login, authenticate
@@ -130,28 +130,27 @@ def join_queue(request):
             logger.info(
                 f'Queue found: {queue.name} for user {request.user.username}')
             # Check if the user is already a participant in the queue
-            if not queue.is_closed:
-                if not queue.participant_set.filter(user=request.user).exists():
-                    last_position = queue.participant_set.count()
-                    new_position = last_position + 1
-                    # Create a new Participant entry
-                    Participant.objects.create(
-                        user=request.user,
-                        queue=queue,
-                        position=new_position
-                    )
-                    messages.success(request,
-                                     "You have successfully joined the queue.")
-                    logger.info(
-                        f'User {request.user.username} joined queue {queue.name} at position {new_position}.')
-                else:
-                    messages.info(request, "You are already in this queue.")
-                    logger.warning(
-                        f'User {request.user.username} attempted to join queue {queue.name} again.')
-            else:
+            if queue.is_closed:
                 messages.success(request, "The queue is closed.")
                 logger.info(
                     f'User {request.user.username} attempted to join queue {queue.name} that has been closed.')
+            elif not queue.participant_set.filter(user=request.user).exists():
+                last_position = queue.participant_set.count()
+                new_position = last_position + 1
+                # Create a new Participant entry
+                Participant.objects.create(
+                    user=request.user,
+                    queue=queue,
+                    position=new_position
+                )
+                messages.success(request,
+                                 "You have successfully joined the queue.")
+                logger.info(
+                    f'User {request.user.username} joined queue {queue.name} at position {new_position}.')
+            else:
+                messages.info(request, "You are already in this queue.")
+                logger.warning(
+                    f'User {request.user.username} attempted to join queue {queue.name} again.')
         except Queue.DoesNotExist:
             messages.error(request, "Invalid queue code.")
             logger.error(
@@ -181,7 +180,6 @@ class QueueListView(generic.ListView):
         :returns: A queryset of all queues available in the system.
         """
         return Queue.objects.all()
-
 
 class ManageQueuesView(LoginRequiredMixin, generic.ListView):
     """
@@ -257,9 +255,6 @@ class EditQueueView(LoginRequiredMixin, generic.UpdateView):
         :returns: Redirects to the success URL after processing.
         """
         self.object = self.get_object()
-        if request.POST.get('action') == 'delete_participant':
-            participant_id = request.POST.get('participant_id')
-            return self.delete_participant(participant_id)
         if request.POST.get('action') == 'queue_status':
             return self.queue_status_handler()
         if request.POST.get('action') == 'edit_queue':
@@ -280,16 +275,36 @@ class EditQueueView(LoginRequiredMixin, generic.UpdateView):
         self.object.save()
         messages.success(self.request, "Queue status updated successfully.")
         return redirect('queue:manage_queues')
+    
+class QueueDashboardView(generic.DetailView):
+    model = Queue
+    template_name = 'queue_manager/general_dashboard.html'
+    context_object_name = 'queue'
 
+    def get(self, request, *args, **kwargs):
+        try:
+            queue = get_object_or_404(Queue, pk=kwargs.get('pk'))
+        except Http404:
+            logger.warning(f'User {request.user.username} attempted '
+                           f'to access a non-existent queue with ID {kwargs.get("pk")}.')
+            messages.error(request, 'Queue does not exist.')
+            return redirect('queue:index')
+        if queue.created_by == request.user:
+            logger.info(f'User {request.user.username} accessed the '
+                        f'dashboard for queue "{queue.name}" with ID {queue.pk}.')
+            return super().get(request, *args, **kwargs)
+        logger.warning(f'User {request.user.username} attempted to access the dashboard '
+                       f'for queue "{queue.name}" (ID: {queue.pk}) without ownership.')
+        messages.error(request, 'You are not the owner of this queue.')
+        return redirect('queue:index')
 
 def get_client_ip(request):
     """Retrieve the client's IP address from the request."""
-    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
-    if x_forwarded_for:
-        ip = x_forwarded_for.split(',')[0]
-    else:
-        ip = request.META.get('REMOTE_ADDR')
-    return ip
+    return (
+        x_forwarded_for.split(',')[0]
+        if (x_forwarded_for := request.META.get('HTTP_X_FORWARDED_FOR'))
+        else request.META.get('REMOTE_ADDR')
+    )
 
 
 @login_required

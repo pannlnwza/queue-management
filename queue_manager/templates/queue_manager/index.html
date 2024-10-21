@@ -8,11 +8,6 @@
             margin: 0;
             padding: 0;
         }
-        body {
-            font-family: Arial, sans-serif;
-            line-height: 1.6;
-            background-color: #f0f2f5;
-        }
         header {
             background-color: #1e2a3a;
             color: white;
@@ -101,7 +96,7 @@
             <form class="join-form" method="POST" action="{% url 'queue:join' %}">
                 {% csrf_token %}
                 <input type="text" class="join-input" placeholder="Enter queue code" name="queue_code">
-                <button type="submit" class="join-btn">Join Queue</button>
+                <button type="submit" class="btn join-btn">Join Queue</button>
             </form>
         </div>
     </main>
