@@ -37,7 +37,7 @@
         }
         .queue-stats {
             display: grid;
-            grid-template-columns: 1fr 1fr;
+            grid-template-columns: 1fr 1fr 1fr;
             gap: 1rem;
         }
         .stat-label {
@@ -84,6 +84,10 @@
                         <div>
                             <div class="stat-label">Queue Length</div>
                             <div class="stat-value">{{ queue.participant_set.count }}</div>
+                        </div>
+                        <div>
+                            <div class="stat-label">Status</div>
+                            <div class="stat-value">{{ queue.get_status_display }}</div>
                         </div>
                     </div>
                 {% endfor %}
