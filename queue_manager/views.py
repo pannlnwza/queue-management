@@ -136,9 +136,13 @@ def join_queue(request):
                 f'Queue found: {queue.name} for user {request.user.username}')
             # Check if the user is already a participant in the queue
             if queue.is_closed:
-                messages.success(request, "The queue is closed.")
+                messages.error(request, "The queue is closed.")
                 logger.info(
                     f'User {request.user.username} attempted to join queue {queue.name} that has been closed.')
+            elif queue.is_full():
+                messages.error(request, "Cannot join the queue. It is full.")
+                logger.warning(
+                    f'User {request.user.username} attempted to join queue {queue.name}, but it is full.')
             elif not queue.participant_set.filter(user=request.user).exists():
                 last_position = queue.participant_set.count()
                 new_position = last_position + 1

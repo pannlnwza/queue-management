@@ -67,6 +67,9 @@ class Queue(models.Model):
         today = timezone.now().date()
         return self.participant_set.filter(created_at__date=today).count()
 
+    def is_full(self):
+        """Check if the queue is full."""
+        return self.participant_set.count() >= self.capacity
 
     def edit(self, name: str = None, description: str = None, is_closed: bool = None, status: str = None) -> None:
         """
@@ -107,12 +110,14 @@ class Queue(models.Model):
         participant_count = self.participant_set.count()
         if self.capacity > 0:
             percentage_full = (participant_count / self.capacity) * 100
-            if percentage_full >= 70:
-                return "Busy"
+            if percentage_full == 100:
+                return "Full"
+            elif percentage_full >= 70:
+                return "Very busy"
             elif percentage_full >= 40:
-                return "Not Too Busy"
+                return "Moderate Busy"
             else:
-                return "Little Busy"
+                return "Light Busy"
 
     def __str__(self) -> str:
         """
