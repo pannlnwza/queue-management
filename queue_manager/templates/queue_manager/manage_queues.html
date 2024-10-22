@@ -1,1 +1,111 @@
-manage
+{% extends 'base.html' %}
+
+{% block extra_head %}
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            background-color: #f0f2f5;
+        }
+        header {
+            background-color: #1e2a3a;
+            color: white;
+            padding: 1rem;
+        }
+        main {
+            padding: 1rem;
+            width: 90%;
+            margin: auto;
+        }
+        .card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 1rem;
+            padding: 1rem;
+        }
+        .card-title {
+            font-size: 1.1rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+        .card-detail {
+            font-size: 1rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+            margin-left: 0.5rem;
+        }
+        .edit-button {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .edit-button:hover {
+            background-color: #0056b3;
+        }
+        .status-badge-red {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            background-color: darkred;
+            color: white;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            margin-left: 0.5rem;
+        }.status-badge-green {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            background-color: green;
+            color: white;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            margin-left: 0.5rem;
+        }
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        li {
+            margin-bottom: 1rem;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+    <main>
+        <div class="card">
+            <div class="card-title">Your Queues</div>
+            {% if queues %}
+                <ul>
+                    {% for queue in queues %}
+                        <li>
+                            <div class="card">
+                                <div class="card-title">
+                                    {{ queue.name }} - Code: {{ queue.code }}
+                                    {% if queue.is_closed %}
+                                        <span class="status-badge-red">Closed</span>
+                                    {% else %}
+                                        <span class="status-badge-green">Open</span>
+                                    {% endif %}
+                                </div>
+                                <div class="card-detail">Description: {{ queue.description }}</div>
+                                <a href="{% url 'queue:edit_queue' queue.pk %}" class="edit-button">Edit</a>
+                            </div>
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p>You have not created any queues.</p>
+            {% endif %}
+        </div>
+    </main>
+{% endblock %}

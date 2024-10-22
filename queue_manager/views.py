@@ -5,11 +5,12 @@ from queue_manager.models import *
 from django.contrib.auth import login, authenticate
 from django.contrib.auth.forms import UserCreationForm
 from .forms import QueueForm
-from django.urls import reverse_lazy
+from django.urls import reverse_lazy, reverse
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.signals import user_logged_in, user_logged_out, user_login_failed
+from django.contrib.auth.signals import user_logged_in, user_logged_out, \
+    user_login_failed
 from django.dispatch import receiver
 
 logger = logging.getLogger('queue')
@@ -57,8 +58,7 @@ class IndexView(generic.ListView):
         """
         if self.request.user.is_authenticated:
             return Queue.objects.filter(participant__user=self.request.user)
-        else:
-            return Queue.objects.none()
+        return Queue.objects.none()
 
     def get_context_data(self, **kwargs):
         """
@@ -70,7 +70,8 @@ class IndexView(generic.ListView):
         context = super().get_context_data(**kwargs)
         # Get the user's participant objects to include their positions
         if self.request.user.is_authenticated:
-            user_participants = Participant.objects.filter(user=self.request.user)
+            user_participants = Participant.objects.filter(
+                user=self.request.user)
             # Create a dictionary to hold queue positions
             queue_positions = {
                 participant.queue.id: participant.position for participant in
@@ -121,29 +122,40 @@ def join_queue(request):
     if request.method == 'POST':
         # Get the queue code from the submitted form and convert it to uppercase
         code = request.POST.get('queue_code', '').upper()
-        logger.debug(f'User {request.user.username} attempted to join queue with code: {code}')
+        logger.debug(
+            f'User {request.user.username} attempted to join queue with code: {code}')
         try:
             # Attempt to retrieve the queue based on the provided code
             queue = Queue.objects.get(code=code)
-            logger.info(f'Queue found: {queue.name} for user {request.user.username}')
+            logger.info(
+                f'Queue found: {queue.name} for user {request.user.username}')
             # Check if the user is already a participant in the queue
-            if not queue.participant_set.filter(user=request.user).exists():
-                last_position = queue.participant_set.count()
-                new_position = last_position + 1
-                # Create a new Participant entry
-                Participant.objects.create(
-                    user=request.user,
-                    queue=queue,
-                    position=new_position
-                )
-                messages.success(request, "You have successfully joined the queue.")
-                logger.info(f'User {request.user.username} joined queue {queue.name} at position {new_position}.')
+            if not queue.is_closed:
+                if not queue.participant_set.filter(user=request.user).exists():
+                    last_position = queue.participant_set.count()
+                    new_position = last_position + 1
+                    # Create a new Participant entry
+                    Participant.objects.create(
+                        user=request.user,
+                        queue=queue,
+                        position=new_position
+                    )
+                    messages.success(request,
+                                     "You have successfully joined the queue.")
+                    logger.info(
+                        f'User {request.user.username} joined queue {queue.name} at position {new_position}.')
+                else:
+                    messages.info(request, "You are already in this queue.")
+                    logger.warning(
+                        f'User {request.user.username} attempted to join queue {queue.name} again.')
             else:
-                messages.info(request, "You are already in this queue.")
-                logger.warning(f'User {request.user.username} attempted to join queue {queue.name} again.')
+                messages.success(request, "The queue is closed.")
+                logger.info(
+                    f'User {request.user.username} attempted to join queue {queue.name} that has been closed.')
         except Queue.DoesNotExist:
             messages.error(request, "Invalid queue code.")
-            logger.error(f'User {request.user.username} attempted to join with an invalid queue code: {code}')
+            logger.error(
+                f'User {request.user.username} attempted to join with an invalid queue code: {code}')
     # Redirect to the index page after processing the request
     return redirect('queue:index')
 
@@ -236,6 +248,105 @@ def delete_participant(request, participant_id):
     """Delete a participant from a specific queue if the requester is the queue creator."""
     return redirect('queue:index')
 
+class ManageQueuesView(LoginRequiredMixin, generic.ListView):
+    """
+    Manage queues.
+
+    Allows authenticated users to view, edit, and delete their queues.
+    Lists all user-associated queues and provides action options.
+
+    :param model: The model representing the queues.
+    :param template_name: Template for displaying the queue list.
+    :param context_object_name: Variable name for queues in the template.
+    """
+    model = Queue
+    template_name = 'queue_manager/manage_queues.html'
+    context_object_name = 'queues'
+
+    def get_queryset(self):
+        """
+        Retrieve the queues created by the logged-in user.
+        :returns: A queryset of queues created by the current user.
+        """
+        return Queue.objects.filter(created_by=self.request.user)
+
+
+class EditQueueView(LoginRequiredMixin, generic.UpdateView):
+    """
+    Edit an existing queue.
+
+    Allows authenticated users to change the queue's name, delete participants,
+    or close the queue.
+
+    :param model: The model to use for editing the queue.
+    :param form_class: The form class for queue editing.
+    :param template_name: The name of the template to render.
+    """
+    model = Queue
+    form_class = QueueForm
+    template_name = 'queue_manager/edit_queue.html'
+
+    def dispatch(self, request, *args, **kwargs):
+        """
+        Check if the user is the creator of the queue before allowing access.
+        """
+        queue = self.get_object()
+        if queue.created_by != request.user:
+            messages.error(self.request, "You do not have permission to edit this queue.")
+            logger.warning(
+                f"Unauthorized attempt to access edit queue page for queue: {queue.name} by user: {request.user}")
+            return redirect('queue:manage_queues')
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_success_url(self):
+        """redirect user back to manage queues page, if the edit was saved successfully."""
+        return reverse('queue:manage_queues')
+
+    def get_context_data(self, **kwargs):
+        """
+        Add additional context data to the template.
+
+        :param kwargs: Additional keyword arguments passed to the method.
+        :returns: The updated context dictionary.
+        """
+        context = super().get_context_data(**kwargs)
+        queue = self.object
+        context['participants'] = queue.participant_set.all()
+        return context
+
+    def post(self, request, *args, **kwargs):
+        """
+        Handle POST requests to update the queue and manage participants.
+
+        :param request: The HTTP request object containing data for the queue and participants.
+        :returns: Redirects to the success URL after processing.
+        """
+        self.object = self.get_object()
+        if request.POST.get('action') == 'delete_participant':
+            participant_id = request.POST.get('participant_id')
+            return self.delete_participant(participant_id)
+        if request.POST.get('action') == 'queue_status':
+            return self.queue_status_handler()
+        if request.POST.get('action') == 'edit_queue':
+            name = request.POST.get('name')
+            description = request.POST.get('description')
+            is_closed = request.POST.get('is_closed') == 'true'
+            try:
+                self.object.edit(name=name, description=description, is_closed=is_closed)
+                messages.success(self.request, "Queue updated successfully.")
+            except ValueError as e:
+                messages.error(self.request, str(e))
+        return super().post(request, *args, **kwargs)
+
+
+    def queue_status_handler(self):
+        """Close the queue."""
+        self.object.is_closed = not self.object.is_closed
+        self.object.save()
+        messages.success(self.request, "Queue status updated successfully.")
+        return redirect('queue:manage_queues')
+
+
 def get_client_ip(request):
     """Retrieve the client's IP address from the request."""
     x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
@@ -244,6 +355,37 @@ def get_client_ip(request):
     else:
         ip = request.META.get('REMOTE_ADDR')
     return ip
+
+
+@login_required
+def delete_participant(request, participant_id):
+    """Delete a participant from a specific queue if the requester is the queue creator."""
+    try:
+        participant = Participant.objects.get(id=participant_id)
+    except Participant.DoesNotExist:
+        messages.error(request, f"Participant with ID {participant_id} does not exist.")
+        logger.error(f"Participant id: {participant_id} does not exist.")
+        return redirect('queue:index')
+    queue = participant.queue
+
+    if queue.created_by != request.user:
+        messages.error(request, "You are not authorized to delete participants from this queue.")
+        logger.warning(
+            f"Unauthorized delete attempt by user {request.user} "
+            f"for participant {participant_id} in queue {queue.id}.")
+        return redirect('queue:index')
+    try:
+        participant.delete()
+        messages.success(request, f"Participant {participant.user.username} removed successfully.")
+        logger.info(
+            f"Participant {participant.user.username} successfully deleted from queue {queue.id} "
+            f"by user {request.user}.")
+    except Exception as e:
+        messages.error(request, f"Error removing participant: {e}")
+        logger.error(
+            f"Failed to delete participant {participant_id} from queue {queue.id} "
+            f"by user {request.user}: {e}")
+    return redirect('queue:dashboard', pk=queue.id)
 
 
 @receiver(user_logged_in)
@@ -266,3 +408,4 @@ def user_login_failed(credentials, request, **kwargs):
     ip = get_client_ip(request)
     logger.warning(f"Failed login attempt for user "
                    f"{credentials.get('username')} from {ip}")
+

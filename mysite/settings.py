@@ -33,6 +33,8 @@ ALLOWED_HOSTS = config('ALLOWED_HOSTS',
 
 # Application definition
 
+CRISPY_TEMPLATE_PACK = 'bootstrap5'
+
 INSTALLED_APPS = [
     'queue_manager.apps.QueueManagerConfig',
     'django.contrib.admin',
@@ -70,6 +72,7 @@ TEMPLATES = [
         },
     },
 ]
+
 
 WSGI_APPLICATION = 'mysite.wsgi.application'
 
