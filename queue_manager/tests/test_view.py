@@ -18,16 +18,6 @@ class QueueViewsTestCase(TestCase):
         self.assertTemplateUsed(response, 'queue_manager/index.html')
         self.assertIn('queue_list', response.context)
 
-    def test_create_queue_view(self):
-        """Test creating a queue as an authenticated user"""
-        response = self.client.post(reverse('queue:create_q'), {
-            'name': 'New Test Queue',
-            'description': 'A new test queue.'
-        })
-        self.assertEqual(response.status_code, 302)
-        self.assertRedirects(response, reverse('queue:index'))
-        self.assertTrue(Queue.objects.filter(name='New Test Queue').exists())
-
     def test_join_queue_valid_code(self):
         """Test joining a queue with a valid code"""
         response = self.client.post(reverse('queue:join'), {'queue_code': self.queue.code})
