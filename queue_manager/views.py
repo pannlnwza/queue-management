@@ -181,6 +181,7 @@ class QueueListView(generic.ListView):
         """
         return Queue.objects.all()
 
+      
 class ManageQueuesView(LoginRequiredMixin, generic.ListView):
     """
     Manage queues.

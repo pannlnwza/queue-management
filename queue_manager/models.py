@@ -1,5 +1,6 @@
 import string
 import random
+from django.utils import timezone
 from django.db import models
 from django.contrib.auth.models import User
 
@@ -56,6 +57,15 @@ class Queue(models.Model):
         :returns: The participant object with the lowest position in the queue.
         """
         return self.participant_set.order_by('position').first()
+
+    def get_participants_today(self) -> int:
+        """
+        Get the total number of participants added to the queue today.
+        :return: Number of participants added today.
+        """
+        today = timezone.now().date()
+        return self.participant_set.filter(created_at__date=today).count()
+
 
     def edit(self, name: str = None, description: str = None, is_closed: bool = None, status: str = None) -> None:
         """
