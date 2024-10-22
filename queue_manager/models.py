@@ -103,21 +103,19 @@ class Queue(models.Model):
         compared to its capacity.
 
         Returns:
-            str: "Busy" if the queue is 70% full or more,
-                 "Not Too Busy" if it is between 40% and 70% full,
+            str: "Very Busy" if the queue is 70% full or more,
+                 "Moderate Busy" if it is between 40% and 70% full,
                  "Little Busy" if it is less than 40% full.
         """
         participant_count = self.participant_set.count()
         if self.capacity > 0:
             percentage_full = (participant_count / self.capacity) * 100
-            if percentage_full == 100:
-                return "Full"
-            elif percentage_full >= 70:
+            if percentage_full >= 70:
                 return "Very busy"
             elif percentage_full >= 40:
                 return "Moderate Busy"
             else:
-                return "Light Busy"
+                return "Not Busy"
 
     def __str__(self) -> str:
         """
