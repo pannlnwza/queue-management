@@ -82,6 +82,14 @@
                             <div class="stat-label">Status</div>
                             <div class="stat-value">{{ queue.get_status_display }}</div>
                         </div>
+                        <div>
+                            <div class="stat-label">Estimated Wait Time</div>
+                            <div class="stat-value">{{ estimated_wait_time|get_item:queue.id }} minutes</div>
+                        </div>
+                        <div>
+                            <div class="stat-label">Queue Status</div>
+                            <div class="stat-value">{{ queue.queue_status }}</div>
+                        </div>
                     </div>
                     </div>
                 {% endfor %}
