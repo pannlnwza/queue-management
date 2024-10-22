@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load custom_filters %}
+{% load static %}
 
 {% block extra_head %}
     <style>
@@ -8,48 +9,57 @@
             margin: 0;
             padding: 0;
         }
+
         header {
             background-color: #1e2a3a;
             color: white;
             padding: 1rem;
         }
+
         main {
             padding: 1rem;
             width: 90%;
             margin: auto;
         }
+
         .card {
             background: white;
             border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
             margin-bottom: 1rem;
             padding: 1rem;
         }
+
         .card-title {
             font-size: 1.1rem;
             font-weight: bold;
             margin-bottom: 0.5rem;
         }
+
         .queue-stats {
             display: grid;
             grid-template-columns: 1fr 1fr 1fr;
             gap: 1rem;
         }
+
         .stat-label {
             color: #666;
             font-size: 0.9rem;
         }
+
         .stat-value {
             color: black;
             font-size: 1.5rem;
             font-weight: bold;
         }
+
         .join-input {
             flex-grow: 1;
             padding: 0.5rem;
             border: 1px solid #ddd;
             border-radius: 4px;
         }
+
         .join-btn {
             background-color: var(--primary-color);
             color: white;
@@ -65,29 +75,34 @@
     <main>
         <div class="card">
             <div class="card-title">Current Queues</div>
-            {% if queue_list %}
-                {% for queue in queue_list %}
-                    <div class="card">
-                    <h3>{{ queue.name }}</h3>
-                    <div class="queue-stats">
-                        <div>
-                            <div class="stat-label">Your Position</div>
-                            <div class="stat-value">{{ queue_positions|get_item:queue.id }}</div>
+            <div id="queues-container">
+                {% if queue_list %}
+                    {% for queue in queue_list %}
+                        <div class="card queue-card" id="queue-{{ queue.id }}">
+                            <h3>{{ queue.name }}</h3>
+                            <div class="queue-stats">
+                                <div>
+                                    <div class="stat-label">Your Position</div>
+                                    <div class="stat-value position"
+                                         id="position-{{ queue.id }}">{{ queue_positions|get_item:queue.id }}</div>
+                                </div>
+                                <div>
+                                    <div class="stat-label">Queue Length</div>
+                                    <div class="stat-value participant-count"
+                                         id="length-{{ queue.id }}">{{ queue.participant_set.count }}</div>
+                                </div>
+                                <div>
+                                    <div class="stat-label">Status</div>
+                                    <div class="stat-value status"
+                                         id="status-{{ queue.id }}">{{ queue.get_status_display }}</div>
+                                </div>
+                            </div>
                         </div>
-                        <div>
-                            <div class="stat-label">Queue Length</div>
-                            <div class="stat-value">{{ queue.participant_set.count }}</div>
-                        </div>
-                        <div>
-                            <div class="stat-label">Status</div>
-                            <div class="stat-value">{{ queue.get_status_display }}</div>
-                        </div>
-                    </div>
-                    </div>
-                {% endfor %}
-            {% else %}
-                <div class="card">You are not in a queue.</div>
-            {% endif %}
+                    {% endfor %}
+                {% else %}
+                    <div class="card">You are not in a queue.</div>
+                {% endif %}
+            </div>
         </div>
 
         <div class="card d-md-inline-flex">
@@ -99,4 +114,9 @@
             </form>
         </div>
     </main>
+    <script src="{% static 'queue_manager/fetchQueueData.js' %}"></script>
+    <script src="{% static 'queue_manager/updateQueueStats.js' %}"></script>
+    <script>
+        setInterval(fetchQueueData, 5000);
+    </script>
 {% endblock %}
