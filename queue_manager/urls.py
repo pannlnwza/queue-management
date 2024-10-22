@@ -1,4 +1,6 @@
 from django.urls import path
+
+from queue_manager.services.data import *
 from queue_manager.views import *
 
 app_name = 'queue'
@@ -11,5 +13,5 @@ urlpatterns = [
     path('delete/<int:participant_id>/', delete_participant, name='delete'),
     path('manage/', ManageQueuesView.as_view(), name='manage_queues'),
     path('queue/<int:pk>/edit/', EditQueueView.as_view(), name='edit_queue'),
+    path('get_queue_data/', get_queue_data, name='get_queue_data'),
 ]
-
