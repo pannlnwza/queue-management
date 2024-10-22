@@ -3,13 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     {% block title %}<title>Queue Management</title>{% endblock %}
     <style>
         :root {
             --primary-color: #153e72;
-            --primary-dark: #2563eb;
             --text-primary: #1e293b;
             --text-secondary: #64748b;
+            --body-bg: #f0f2f5;
         }
 
         * {
@@ -19,8 +21,8 @@
         }
 
         body {
-            font-family: 'Inter', sans-serif;
             line-height: 1.6;
+            background-color: var(--body-bg);
         }
 
         .navbar {
@@ -32,42 +34,10 @@
             box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
         }
 
-        .nav-left-group {
-            display: flex;
-            align-items: center;
-            flex-grow: 1;
-        }
-
-        .nav-brand {
+        .navbar-brand {
             font-size: 1.25rem;
-            font-weight: 700;
+            font-weight: bold;
             color: var(--text-primary);
-            text-decoration: none;
-            margin-right: 2.5rem;
-        }
-
-        .nav-center {
-            display: flex;
-            gap: 1.5rem;
-        }
-
-        .nav-item {
-            color: var(--text-secondary);
-            text-decoration: none;
-            font-weight: 500;
-            font-size: 0.9375rem;
-            transition: color 0.2s;
-            white-space: nowrap;
-        }
-
-        .nav-item:hover {
-            color: var(--text-primary);
-        }
-
-        .nav-right {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
         }
 
         .btn {
@@ -78,95 +48,12 @@
             text-decoration: none;
             transition: all 0.2s;
             white-space: nowrap;
-        }
-
-        .btn-outline {
-            border: 1px solid var(--text-secondary);
-            color: var(--text-secondary);
-        }
-
-        .btn-outline:hover {
-            border-color: var(--text-primary);
-            color: var(--text-primary);
+            color: white !important;
         }
 
         .btn-primary {
             background-color: var(--primary-color);
-            color: white;
             border: none;
-        }
-
-
-        .dropdown-toggle {
-            cursor: pointer;
-            color: var(--text-primary);
-            font-weight: 500;
-            font-size: 0.9375rem;
-            padding: 0.5rem 1rem;
-            border-radius: 3rem;
-            background-color: white;
-            border: 1px solid white;
-            white-space: nowrap;
-        }
-
-
-        .dropdown {
-            position: relative;
-            display: inline-block;
-        }
-
-        .dropdown-toggle {
-            cursor: pointer;
-            color: var(--text-primary);
-            font-weight: 500;
-            font-size: 0.9375rem;
-            padding: 0.5rem 1rem;
-            border-radius: 3rem;
-            background-color: white;
-            border: 1px solid white;
-            white-space: nowrap;
-        }
-
-        .dropdown-menu {
-            display: none;
-            position: absolute;
-            background-color: white;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            border-radius: 5px;
-            margin-top: 0.5rem;
-            min-width: 10rem;
-            right: 0;
-            z-index: 1000;
-        }
-
-        .logout-link {
-            font-family: 'Inter', sans-serif;
-            padding: 0.5rem 1rem;
-            width: 100%;
-            cursor: pointer;
-            border: solid white;
-        }
-
-        .dropdown:focus-within .dropdown-menu,
-        .dropdown:hover .dropdown-menu {
-            display: block;
-        }
-
-        .dropdown-menu a {
-            color: var(--text-secondary);
-            padding: 0.5rem 1rem;
-            text-decoration: none;
-            display: block;
-            font-size: 0.9375rem;
-        }
-
-        .dropdown-item {
-            background: white;
-        }
-
-        .dropdown-menu a:hover {
-            background-color: var(--primary-color);
-            color: white;
         }
 
         .messages {
@@ -196,41 +83,56 @@
             background-color: #f8d7da;
             color: #721c24;
         }
+        .user-button {
+            border: white;
+            background-color: white;
+        }
+        .btn:focus {
+            outline: none !important;
+            box-shadow: none !important;
+        }
     </style>
     {% block extra_head %}{% endblock %}
 </head>
 <body>
-    <nav class="navbar">
-        <div class="nav-left-group">
-            <div><a href="/" class="nav-brand">Queue Management</a></div>
-            <div class="nav-center">
-                <a href="{% url 'queue:queues' %}" class="nav-item">Browse Queues</a>
-                <a href="{% url 'queue:create_q' %}" class="nav-item">Create Queue</a>
-                {% if user.is_authenticated %}
-                    <a href="{% url 'queue:manage_queues' %}" class="nav-item">Manage Queues</a>
-                    <a href="{% url 'queue:index' %}" class="nav-item">Dashboard</a>
-                {% endif %}
+<nav class="navbar navbar-expand-lg navbar-light">
+        <div class="container-fluid">
+            <a href="/" class="navbar-brand mb-0 h1">Queue Management</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <div class="navbar-nav me-auto">
+                    <a href="{% url 'queue:queues' %}" class="nav-link">Browse Queues</a>
+                    <a href="{% url 'queue:create_q' %}" class="nav-link">Create Queue</a>
+                    {% if user.is_authenticated %}
+                        <a href="{% url 'queue:manage_queues' %}" class="nav-link">Manage Queues</a>
+                    {% endif %}
+                </div>
+                <div class="d-flex">
+                    {% if user.is_authenticated %}
+                        <div class="dropdown">
+                            <button class="user-button dropdown dropdown-toggle mt-2 me-1" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
+                                {{ user.username }}
+                            </button>
+                            <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                                {# <li><a class="dropdown-item" href="{% url 'queue:index' %}">Profile</a></li>#} {# will be added later #}
+                                <li>
+                                    <form action="{% url 'logout' %}" method="post" style="display: inline;">
+                                        {% csrf_token %}
+                                        <button type="submit" class="dropdown-item">Log out</button>
+                                    </form>
+                                </li>
+                            </ul>
+                        </div>
+                    {% else %}
+                        <a href="{% url 'login' %}" class="btn btn-primary">Log in</a>
+                    {% endif %}
+                    <a href="https://github.com/pannlnwza/queue-management/issues/new" class="btn btn-primary ms-2">Report Issues</a>
+                </div>
             </div>
         </div>
-        <div class="nav-right">
-            {% if user.is_authenticated %}
-                <div class="dropdown">
-                    <button class="dropdown-toggle" tabindex="0">{{ user.username }}</button>
-                    <div class="dropdown-menu">
-                        <a href="{% url 'queue:index' %}" class="dropdown-item">Profile</a>
-                        <form action="{% url 'logout' %}" method="post" style="display: inline;">
-                            {% csrf_token %}
-                            <button type="submit" class="dropdown-item logout-link">Log out</button>
-                        </form>
-                    </div>
-                </div>
-            {% else %}
-                <a href="{% url 'login' %}" class="btn btn-outline">Log in</a>
-            {% endif %}
-            <a href="{% url 'queue:index' %}" class="btn btn-primary">Contact us</a>
-        </div>
     </nav>
-
 {% if messages %}
     <ul class="messages">
         {% for message in messages %}
@@ -239,5 +141,6 @@
     </ul>
 {% endif %}
     {% block content %} {% endblock %}
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
 </body>
 </html>

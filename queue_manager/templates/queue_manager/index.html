@@ -8,11 +8,6 @@
             margin: 0;
             padding: 0;
         }
-        body {
-            font-family: Arial, sans-serif;
-            line-height: 1.6;
-            background-color: #f0f2f5;
-        }
         header {
             background-color: #1e2a3a;
             color: white;
@@ -49,10 +44,6 @@
             font-size: 1.5rem;
             font-weight: bold;
         }
-        .join-form {
-            display: flex;
-            gap: 0.5rem;
-        }
         .join-input {
             flex-grow: 1;
             padding: 0.5rem;
@@ -65,6 +56,7 @@
             border: none;
             padding: 0.5rem 1rem;
             border-radius: 4px;
+            display: inline-flex;
         }
     </style>
 {% endblock %}
@@ -75,6 +67,7 @@
             <div class="card-title">Current Queues</div>
             {% if queue_list %}
                 {% for queue in queue_list %}
+                    <div class="card">
                     <h3>{{ queue.name }}</h3>
                     <div class="queue-stats">
                         <div>
@@ -90,18 +83,19 @@
                             <div class="stat-value">{{ queue.get_status_display }}</div>
                         </div>
                     </div>
+                    </div>
                 {% endfor %}
             {% else %}
                 <div class="card">You are not in a queue.</div>
             {% endif %}
         </div>
 
-        <div class="card">
+        <div class="card d-md-inline-flex">
             <div class="card-title">Join Queue by Code</div>
             <form class="join-form" method="POST" action="{% url 'queue:join' %}">
                 {% csrf_token %}
                 <input type="text" class="join-input" placeholder="Enter queue code" name="queue_code">
-                <button type="submit" class="join-btn">Join Queue</button>
+                <button type="submit" class="btn join-btn">Join Queue</button>
             </form>
         </div>
     </main>
