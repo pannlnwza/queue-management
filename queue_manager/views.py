@@ -12,6 +12,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.signals import user_logged_in, user_logged_out, \
     user_login_failed
 from django.dispatch import receiver
+from datetime import datetime, timedelta
 
 logger = logging.getLogger('queue')
 
@@ -81,8 +82,14 @@ class IndexView(generic.ListView):
                 participant.queue.id: participant.calculate_estimated_wait_time() for participant in
                 user_participants
             }
+            expected_service_time = {
+                participant.queue.id: datetime.now() + timedelta(
+                    minutes=participant.calculate_estimated_wait_time())
+                for participant in user_participants
+            }
             context['queue_positions'] = queue_positions
             context['estimated_wait_time'] = estimated_time
+            context['expected_service_time'] = expected_service_time
         return context
 
 
