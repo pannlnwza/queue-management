@@ -10,7 +10,7 @@ class QueueViewsTestCase(TestCase):
         self.user = User.objects.create_user(username='testuser', password='password')
         self.client.login(username='testuser', password='password')
         self.user2 = User.objects.create_user(username='user2', password='password')
-        self.queue = Queue.objects.create(name='Test Queue', code='TEST123', created_by=self.user)
+        self.queue = Queue.objects.create(name='Test Queue', code='TEST123', capacity=10,created_by=self.user)
 
     def test_index_view_authenticated(self):
         """Test accessing the index view as an authenticated user"""
