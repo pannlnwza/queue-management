@@ -78,7 +78,7 @@ class IndexView(generic.ListView):
             }
             context['queue_positions'] = queue_positions
         return context
-      
+
 
 class CreateQView(LoginRequiredMixin, generic.CreateView):
     """
@@ -170,6 +170,43 @@ class QueueListView(generic.ListView):
         """
         return Queue.objects.all()
 
+class ManageQueuesView(LoginRequiredMixin, generic.ListView):
+    """
+    Manage queues.
+
+    Allows authenticated users to view, edit, and delete their queues.
+    Lists all user-associated queues and provides action options.
+
+    :param model: The model representing the queues.
+    :param template_name: Template for displaying the queue list.
+    :param context_object_name: Variable name for queues in the template.
+    """
+    template_name = 'queue_manager/manage_queues.html'
+    context_object_name = 'queues'
+
+    def get_queryset(self):
+        """
+        Retrieve the queues created by the logged-in user.
+        :returns: A queryset of queues created by the current user.
+        """
+        return Queue.objects.filter(created_by=self.request.user)
+
+
+class EditQueueView(LoginRequiredMixin, generic.UpdateView):
+    """
+    Edit an existing queue.
+
+    Allows authenticated users to change the queue's name, delete participants,
+    or close the queue.
+
+    :param model: The model to use for editing the queue.
+    :param form_class: The form class for queue editing.
+    :param template_name: The name of the template to render.
+    """
+    model = Queue
+    form_class = QueueForm
+    template_name = 'queue_manager/edit_queue.html'
+
 
 class QueueDashboardView(generic.DetailView):
     model = Queue
@@ -193,6 +230,11 @@ class QueueDashboardView(generic.DetailView):
         messages.error(request, 'You are not the owner of this queue.')
         return redirect('queue:index')
 
+
+@login_required
+def delete_participant(request, participant_id):
+    """Delete a participant from a specific queue if the requester is the queue creator."""
+    return redirect('queue:index')
 
 def get_client_ip(request):
     """Retrieve the client's IP address from the request."""

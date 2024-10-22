@@ -53,7 +53,7 @@
                 {{ queue.status|title }}
             </span>
         </p>
-        <a class="btn btn-primary" href="{% url 'queue:edit_queue' %}" role="button">Edit</a>
+        <a class="btn btn-primary" href="{% url 'queue:edit_queue' queue.id %}" role="button">Edit</a>
 
         <div class="row mt-4">
             <div class="col-md-3">
