@@ -12,6 +12,7 @@ class Queue(models.Model):
     estimated_wait_time = models.PositiveIntegerField(default=0)
     created_by = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    is_closed = models.BooleanField(default=False)
 
     def save(self, *args, **kwargs) -> None:
         """
@@ -48,6 +49,26 @@ class Queue(models.Model):
         :returns: The participant object with the lowest position in the queue.
         """
         return self.participant_set.order_by('position').first()
+
+    def edit(self, name:str = None, description: str = None, is_closed: bool = None) -> None:
+        """
+        Edit the queue's name, description, or closed status.
+
+        :param name: The new name for the queue (optional).
+        :param description: The new description for the queue (optional).
+        :param is_closed: The new closed status (optional).
+        :raises ValueError: If any of the provided data is invalid.
+        """
+        if name is not None:
+            if len(name) < 1 or len(name) > 255:
+                raise ValueError("The name must be between 1 and 255 characters.")
+            self.name = name
+        if description is not None:
+            self.description = description
+
+        if is_closed is not None:
+            self.is_closed = is_closed
+        self.save()
 
     def __str__(self) -> str:
         """
