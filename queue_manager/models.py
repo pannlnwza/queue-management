@@ -93,6 +93,27 @@ class Queue(models.Model):
 
         self.save()
 
+    @property
+    def queue_status(self):
+        """
+        Calculate the status of the queue based on the percentage of participants
+        compared to its capacity.
+
+        Returns:
+            str: "Busy" if the queue is 70% full or more,
+                 "Not Too Busy" if it is between 40% and 70% full,
+                 "Little Busy" if it is less than 40% full.
+        """
+        participant_count = self.participant_set.count()
+        if self.capacity > 0:
+            percentage_full = (participant_count / self.capacity) * 100
+            if percentage_full >= 70:
+                return "Busy"
+            elif percentage_full >= 40:
+                return "Not Too Busy"
+            else:
+                return "Little Busy"
+
     def __str__(self) -> str:
         """
         Return a string representation of the queue.
@@ -149,6 +170,15 @@ class Participant(models.Model):
             raise ValueError("Position cannot be negative.")
         self.position = new_position
         self.save()
+
+    def calculate_estimated_wait_time(self):
+        """
+        Calculate the estimated wait time for this participant in the queue.
+
+        :returns: The estimated wait time in minutes.
+        """
+        average_service_time_per_participant = self.queue.estimated_wait_time
+        return average_service_time_per_participant * self.position
 
     def __str__(self) -> str:
         """
