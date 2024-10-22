@@ -4,6 +4,7 @@ from django.contrib.auth.models import User
 from queue_manager.models import Queue, Participant
 from django.contrib.messages import get_messages
 
+
 class QueueViewsTestCase(TestCase):
     def setUp(self):
         self.user = User.objects.create_user(username='testuser', password='password')

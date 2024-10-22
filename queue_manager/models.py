@@ -66,6 +66,7 @@ class Queue(models.Model):
         today = timezone.now().date()
         return self.participant_set.filter(created_at__date=today).count()
 
+
     def edit(self, name: str = None, description: str = None, is_closed: bool = None, status: str = None) -> None:
         """
         Edit the queue's name, description, or closed status.
