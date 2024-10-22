@@ -21,6 +21,7 @@ class Queue(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     is_closed = models.BooleanField(default=False)
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='open')
+    capacity = models.PositiveIntegerField()
 
     def save(self, *args, **kwargs) -> None:
         """
