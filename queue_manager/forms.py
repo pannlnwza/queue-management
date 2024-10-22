@@ -23,10 +23,14 @@ class QueueForm(forms.ModelForm):
                                                             'placeholder': 'Enter Estimated Wait Time (minutes)'}),
         }
 
-    name = forms.CharField(required=True, error_messages={
-        'required': 'Please enter a name for the queue.'})
-    estimated_wait_time = forms.IntegerField(required=True, error_messages={
-        'required': 'Please enter an estimated wait time.'})
-    capacity = forms.IntegerField(required=True, error_messages={
-        'required': 'Please enter a capacity for the queue.'})
-    description = forms.CharField(required=False)
+    error_messages = {
+        'name': {
+            'required': 'Please enter a name for the queue.',
+        },
+        'capacity': {
+            'required': 'Please enter a capacity for the queue.',
+        },
+        'estimated_wait_time': {
+            'required': 'Please enter an estimated wait time.',
+        }
+    }
