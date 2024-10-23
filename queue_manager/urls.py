@@ -1,6 +1,6 @@
 from django.urls import path
 
-from queue_manager.services.data import *
+from queue_manager.services.queue_stream import *
 from queue_manager.views import *
 
 app_name = 'queue'
@@ -10,9 +10,9 @@ urlpatterns = [
     path('queues/', QueueListView.as_view(), name='queues'),
     path('join/', join_queue, name='join'),
     path('dashboard/<int:pk>/', QueueDashboardView.as_view(), name='dashboard'),
-    path('delete/<int:participant_id>/', delete_participant, name='delete'),
+    path('queue/delete/<int:participant_id>/', delete_participant, name='delete'),
     path('manage/', ManageQueuesView.as_view(), name='manage_queues'),
     path('queue/<int:pk>/edit/', EditQueueView.as_view(), name='edit_queue'),
-    path('get_queue_data/', get_queue_data, name='get_queue_data'),
-    path('get_dashboard_data/<int:queue_id>/', get_dashboard_queue_data, name='get_dashboard_data'),
+    path('api/queue-stream/', queue_stream, name='queue_stream'),
+    path('api/queue-dashboard-stream/<int:queue_id>/', queue_dashboard_stream, name='queue_dashboard_stream'),
 ]
