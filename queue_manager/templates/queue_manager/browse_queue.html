@@ -25,6 +25,13 @@
             font-weight: bold;
             margin-bottom: 0.5rem;
         }
+        .card img {
+            max-width: 75%;
+            height: auto;
+            padding: 20px;
+            display: block;
+            margin: 0 auto;
+        }
     </style>
 {% endblock %}
 
@@ -53,6 +60,7 @@
                 <div class="card-header">
                     <h5>General Queues</h5>
                 </div>
+                <img src="{% static 'queue_manager/images/general.jpg' %}" alt="Description of Image" />
                 <div class="card-body text-center">
                     <p>Explore general queues.</p>
                     <a href="{% url 'queue:general_queues' %}" class="btn btn-primary">View General Queues</a>
@@ -65,6 +73,7 @@
                 <div class="card-header">
                     <h5>Hospital Queues</h5>
                 </div>
+                <img src="{% static 'queue_manager/images/hospital.jpg' %}" alt="Description of Image" />
                 <div class="card-body text-center">
                     <p>Access hospital queues.</p>
                     <a href="{% url 'queue:hospital_queues' %}" class="btn btn-primary">View Hospital Queues</a>
