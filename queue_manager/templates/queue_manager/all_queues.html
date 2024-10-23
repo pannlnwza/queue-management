@@ -24,22 +24,6 @@
             font-weight: bold;
             margin-bottom: 0.5rem;
         }
-        .queue-item {
-            display: flex;
-            align-items: center;
-            margin-bottom: 0.5rem;
-        }
-        .queue-code {
-            margin-right: 10px;
-        }
-        .copy-button {
-            background-color: var(--primary-color);
-            color: white;
-            border: none;
-            padding: 0.5rem 1rem;
-            border-radius: 4px;
-            display: inline-flex;
-        }
     </style>
 {% endblock %}
 
@@ -51,10 +35,7 @@
                 <ul>
                     {% for queue in queues %}
                         {% if not queue.is_closed %}
-                        <li class="queue-item">
-                        <span class="queue-code">{{ queue.name }} - Code: {{ queue.code }}</span>
-                        <button class="copy-button" onclick="copyCode('{{queue.code}}')"> Copy code</button>
-                        </li>
+                        <li>{{ queue.name }} - Code: {{ queue.code }}</li>
                         {% endif %}
                     {% endfor %}
                 </ul>
@@ -64,16 +45,4 @@
         </div>
     </main>
 
-    <script>
-        function copyCode(code) {
-            const tempInput = document.createElement('input');
-            tempInput.value = code;
-            document.body.appendChild(tempInput);
-            tempInput.select();
-            tempInput.setSelectionRange(0, 99999); // For mobile devices
-            document.execCommand('copy');
-            document.body.removeChild(tempInput);
-            alert('Queue code ' + code + ' copied to clipboard');
-        }
-    </script>
 {% endblock %}
