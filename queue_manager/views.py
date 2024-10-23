@@ -269,14 +269,14 @@ class EditQueueView(LoginRequiredMixin, generic.UpdateView):
                 messages.error(self.request, str(e))
         return super().post(request, *args, **kwargs)
 
-
     def queue_status_handler(self):
         """Close the queue."""
         self.object.is_closed = not self.object.is_closed
         self.object.save()
         messages.success(self.request, "Queue status updated successfully.")
         return redirect('queue:manage_queues')
-    
+
+
 class QueueDashboardView(generic.DetailView):
     model = Queue
     template_name = 'queue_manager/general_dashboard.html'
@@ -299,14 +299,6 @@ class QueueDashboardView(generic.DetailView):
         messages.error(request, 'You are not the owner of this queue.')
         return redirect('queue:index')
 
-def get_client_ip(request):
-    """Retrieve the client's IP address from the request."""
-    return (
-        x_forwarded_for.split(',')[0]
-        if (x_forwarded_for := request.META.get('HTTP_X_FORWARDED_FOR'))
-        else request.META.get('REMOTE_ADDR')
-    )
-
 
 @login_required
 def delete_participant(request, participant_id):
@@ -326,7 +318,14 @@ def delete_participant(request, participant_id):
             f"for participant {participant_id} in queue {queue.id}.")
         return redirect('queue:index')
     try:
+        removed_position = participant.position
         participant.delete()
+
+        remaining_participants = queue.participant_set.filter(position__gt=removed_position).order_by('position')
+        for p in remaining_participants:
+            p.position -= 1
+            p.save()
+
         messages.success(request, f"Participant {participant.user.username} removed successfully.")
         logger.info(
             f"Participant {participant.user.username} successfully deleted from queue {queue.id} "
@@ -338,6 +337,14 @@ def delete_participant(request, participant_id):
             f"by user {request.user}: {e}")
     return redirect('queue:dashboard', pk=queue.id)
 
+
+def get_client_ip(request):
+    """Retrieve the client's IP address from the request."""
+    return (
+        x_forwarded_for.split(',')[0]
+        if (x_forwarded_for := request.META.get('HTTP_X_FORWARDED_FOR'))
+        else request.META.get('REMOTE_ADDR')
+    )
 
 @receiver(user_logged_in)
 def user_login(request, user, **kwargs):

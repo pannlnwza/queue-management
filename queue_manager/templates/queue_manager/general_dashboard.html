@@ -104,7 +104,7 @@
                 <tbody>
                 {% for participant in queue.participant_set.all %}
                     <tr>
-                        <td>{{ forloop.counter }}</td>
+                        <td>{{ participant.position }}</td>
                         <td>{{ participant.user.username }}</td>
                         <td>{{ participant.joined_at }}</td>
                         <td>{{ queue.estimated_wait_time }} min</td>
