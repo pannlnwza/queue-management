@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block extra_head %}
     <style>
@@ -32,7 +33,7 @@
             margin-bottom: 20px;
         }
 
-        .card-value {
+        .stat-value {
             font-size: 2em;
             font-weight: bold;
             color: #007bff;
@@ -59,35 +60,22 @@
             <div class="col-md-3">
                 <div class="card">
                     <h6>Current Queue Length</h6>
-                    <div class="card-value">{{ queue.get_participants.count }}</div>
+                    <div class="stat-value current-queue-length">{{ queue.get_participants.count }}</div>
                 </div>
             </div>
             <div class="col-md-3">
                 <div class="card">
                     <h6>Estimated Wait Time</h6>
-                    <div class="card-value">{{ queue.estimated_wait_time }} min</div>
+                    <div class="stat-value estimated-wait-time">{{ queue.estimated_wait_time }} min</div>
                 </div>
             </div>
-{#            <div class="col-md-3">#}
-{#                <div class="card">#}
-{#                    <h6>Participants Today</h6>#}
-{#                    <div class="card-value">{{ queue.participants_today }}</div>#}
-{#                </div>#}
-{#            </div>#}
-{#            <div class="col-md-3">#}
-{#                <div class="card">#}
-{#                    <h6>Peak Participant Count</h6>#}
-{#                    <div class="card-value">{{ queue.peak_participant_count }}</div>#}
-{#                </div>#}
-{#            </div>#}
+            <div class="col-md-3">
+                <div class="card">
+                    <h6>Participants Today</h6>
+                    <div class="stat-value participants-today">{{ queue.get_participants_today }}</div>
+                </div>
+            </div>
         </div>
-
-        {#        <div class="mt-4">#}
-        {#            <h5>Queue Length Over Time (Today)</h5>#}
-        {#            <div id="queueLengthChart" style="height: 300px; background-color: white">#}
-        {#                chart#}
-        {#            </div>#}
-        {#        </div>#}
 
         <div class="mt-4">
             <h5>Current Queue</h5>
@@ -108,12 +96,7 @@
                         <td>{{ participant.user.username }}</td>
                         <td>{{ participant.joined_at }}</td>
                         <td>{{ queue.estimated_wait_time }} min</td>
-                        {# will change to estimated wait time for each participant later #}
                         <td>
-                            {#<a href="#" class="text-primary ms-2 me-3" title="Notify User">#}
-                            {# will be added later #}
-                            {#<i class="bi bi-alarm-fill"></i>#}
-                            {#</a>#}
                             <a href="{% url 'queue:delete' participant.id %}" class="text-danger ms-3"
                                title="Remove Participant"
                                onclick="return confirm('Are you sure you want to remove this participant?');">
@@ -121,7 +104,6 @@
                             </a>
                         </td>
                     </tr>
-
                 {% empty %}
                     <tr>
                         <td colspan="5" class="text-center">No participants in the queue</td>
@@ -131,4 +113,13 @@
             </table>
         </div>
     </div>
+
+    <script src="{% static 'queue_manager/dashboard/fetchDashboardData.js' %}"></script>
+    <script src="{% static 'queue_manager/dashboard/updateDashboardStats.js' %}"></script>
+    <script>
+        const queueId = {{ queue.id }}; 
+        setInterval(() => {
+        fetchDashboardData(queueId);
+        }, 5000); 
+    </script>
 {% endblock %}

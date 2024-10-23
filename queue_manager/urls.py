@@ -14,4 +14,5 @@ urlpatterns = [
     path('manage/', ManageQueuesView.as_view(), name='manage_queues'),
     path('queue/<int:pk>/edit/', EditQueueView.as_view(), name='edit_queue'),
     path('get_queue_data/', get_queue_data, name='get_queue_data'),
+    path('get_dashboard_data/<int:queue_id>/', get_dashboard_queue_data, name='get_dashboard_data'),
 ]
