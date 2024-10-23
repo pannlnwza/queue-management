@@ -1,0 +1,76 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block extra_head %}
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f2f5;
+        }
+        main {
+            padding: 1rem;
+            width: 90%;
+            margin: auto;
+        }
+        .card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin: auto;
+            padding: 2rem;
+
+        }
+        .card-title {
+            font-size: 1.1rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+    </style>
+{% endblock %}
+
+{% block title %}<title>Browse Queues</title>{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="mb-4">Browse Queues</h2>
+
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5>Restaurant Queues</h5>
+                </div>
+                <img src="{% static 'queue_manager/images/restaurant.jpg' %}" alt="Description of Image" />
+                <div class="card-body text-center">
+                    <p>Find all available restaurant queues.</p>
+                    <a href="{% url 'queue:restaurant_queues' %}" class="btn btn-primary">View Restaurant Queues</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5>General Queues</h5>
+                </div>
+                <div class="card-body text-center">
+                    <p>Explore general queues.</p>
+                    <a href="{% url 'queue:general_queues' %}" class="btn btn-primary">View General Queues</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5>Hospital Queues</h5>
+                </div>
+                <div class="card-body text-center">
+                    <p>Access hospital queues.</p>
+                    <a href="{% url 'queue:hospital_queues' %}" class="btn btn-primary">View Hospital Queues</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
