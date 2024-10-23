@@ -1,6 +1,4 @@
 from django.contrib import admin
-
-from django.contrib import admin
 from queue_manager.models import Queue, UserProfile, Participant
 
 
