@@ -13,6 +13,11 @@ class Queue(models.Model):
         ('full', 'Full'),
         ('closed', 'Closed')
     ]
+    CATEGORY_CHOICES = [
+        ('restaurant', 'Restaurant'),
+        ('general', 'General'),
+        ('hospital', 'Hospital'),
+    ]
     name = models.CharField(max_length=255)
     description = models.TextField()
     code = models.CharField(max_length=6, unique=True, editable=False)
@@ -21,6 +26,7 @@ class Queue(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     is_closed = models.BooleanField(default=False)
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='open')
+    category = models.CharField(max_length=20, choices=CATEGORY_CHOICES)
 
     def save(self, *args, **kwargs) -> None:
         """
