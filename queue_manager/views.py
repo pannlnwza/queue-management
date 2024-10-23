@@ -159,29 +159,40 @@ def join_queue(request):
     return redirect('queue:index')
 
 
-class QueueListView(generic.ListView):
-    """
-    List all queues.
-
-    Displays all available queues to the user.
-
-    :param model: The model to use for retrieving the queues.
-    :param template_name: The name of the template to render.
-    :param context_object_name: The name of the context variable to hold the list of queues.
-    """
+class BrowseQueueView(generic.ListView):
     model = Queue
-    template_name = 'queue_manager/all_queues.html'
+    template_name = 'queue_manager/browse_queue.html'
     context_object_name = 'queues'
 
+
+class BaseQueueView(generic.ListView):
+    model = Queue
+    template_name = 'queue_manager/list_queues.html'
+    context_object_name = 'queues'
+    queue_category = None
+
     def get_queryset(self):
-        """
-        Retrieve all queues.
+        return Queue.objects.filter(category=self.queue_category)
 
-        :returns: A queryset of all queues available in the system.
-        """
-        return Queue.objects.all()
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['queue_type'] = self.queue_category
+        context['queues'] = self.get_queryset()
+        return context
 
-      
+
+class RestaurantQueueView(BaseQueueView):
+    queue_category = 'restaurant'
+
+
+class GeneralQueueView(BaseQueueView):
+    queue_category = 'general'
+
+
+class HospitalQueueView(BaseQueueView):
+    queue_category = 'hospital'
+
+
 class ManageQueuesView(LoginRequiredMixin, generic.ListView):
     """
     Manage queues.
@@ -226,7 +237,8 @@ class EditQueueView(LoginRequiredMixin, generic.UpdateView):
         """
         queue = self.get_object()
         if queue.created_by != request.user:
-            messages.error(self.request, "You do not have permission to edit this queue.")
+            messages.error(self.request,
+                           "You do not have permission to edit this queue.")
             logger.warning(
                 f"Unauthorized attempt to access edit queue page for queue: {queue.name} by user: {request.user}")
             return redirect('queue:manage_queues')
@@ -263,12 +275,12 @@ class EditQueueView(LoginRequiredMixin, generic.UpdateView):
             description = request.POST.get('description')
             is_closed = request.POST.get('is_closed') == 'true'
             try:
-                self.object.edit(name=name, description=description, is_closed=is_closed)
+                self.object.edit(name=name, description=description,
+                                 is_closed=is_closed)
                 messages.success(self.request, "Queue updated successfully.")
             except ValueError as e:
                 messages.error(self.request, str(e))
         return super().post(request, *args, **kwargs)
-
 
     def queue_status_handler(self):
         """Close the queue."""
@@ -276,7 +288,8 @@ class EditQueueView(LoginRequiredMixin, generic.UpdateView):
         self.object.save()
         messages.success(self.request, "Queue status updated successfully.")
         return redirect('queue:manage_queues')
-    
+
+
 class QueueDashboardView(generic.DetailView):
     model = Queue
     template_name = 'queue_manager/general_dashboard.html'
@@ -294,10 +307,12 @@ class QueueDashboardView(generic.DetailView):
             logger.info(f'User {request.user.username} accessed the '
                         f'dashboard for queue "{queue.name}" with ID {queue.pk}.')
             return super().get(request, *args, **kwargs)
-        logger.warning(f'User {request.user.username} attempted to access the dashboard '
-                       f'for queue "{queue.name}" (ID: {queue.pk}) without ownership.')
+        logger.warning(
+            f'User {request.user.username} attempted to access the dashboard '
+            f'for queue "{queue.name}" (ID: {queue.pk}) without ownership.')
         messages.error(request, 'You are not the owner of this queue.')
         return redirect('queue:index')
+
 
 def get_client_ip(request):
     """Retrieve the client's IP address from the request."""
@@ -314,20 +329,23 @@ def delete_participant(request, participant_id):
     try:
         participant = Participant.objects.get(id=participant_id)
     except Participant.DoesNotExist:
-        messages.error(request, f"Participant with ID {participant_id} does not exist.")
+        messages.error(request,
+                       f"Participant with ID {participant_id} does not exist.")
         logger.error(f"Participant id: {participant_id} does not exist.")
         return redirect('queue:index')
     queue = participant.queue
 
     if queue.created_by != request.user:
-        messages.error(request, "You are not authorized to delete participants from this queue.")
+        messages.error(request,
+                       "You are not authorized to delete participants from this queue.")
         logger.warning(
             f"Unauthorized delete attempt by user {request.user} "
             f"for participant {participant_id} in queue {queue.id}.")
         return redirect('queue:index')
     try:
         participant.delete()
-        messages.success(request, f"Participant {participant.user.username} removed successfully.")
+        messages.success(request,
+                         f"Participant {participant.user.username} removed successfully.")
         logger.info(
             f"Participant {participant.user.username} successfully deleted from queue {queue.id} "
             f"by user {request.user}.")
@@ -359,4 +377,3 @@ def user_login_failed(credentials, request, **kwargs):
     ip = get_client_ip(request)
     logger.warning(f"Failed login attempt for user "
                    f"{credentials.get('username')} from {ip}")
-
