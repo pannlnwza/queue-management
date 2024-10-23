@@ -114,9 +114,23 @@
             </form>
         </div>
     </main>
-    <script src="{% static 'queue_manager/index/fetchQueueData.js' %}"></script>
-    <script src="{% static 'queue_manager/index/updateQueueStats.js' %}"></script>
-    <script>
-        setInterval(fetchQueueData, 5000);
-    </script>
+<script>
+    const eventSource = new EventSource('/api/queue-stream/');
+
+    eventSource.onmessage = function(event) {
+        const data = JSON.parse(event.data);
+
+        data.forEach(queue => {
+            document.getElementById(`length-${queue.id}`).innerText = queue.participant_count;
+            document.getElementById(`status-${queue.id}`).innerText = queue.status;
+            document.getElementById(`position-${queue.id}`).innerText = queue.position;
+        });
+    };
+
+    eventSource.onerror = function(event) {
+        console.error('Error with SSE:', event);
+        eventSource.close();
+    };
+</script>
+
 {% endblock %}

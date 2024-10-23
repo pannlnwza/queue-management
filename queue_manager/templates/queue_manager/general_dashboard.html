@@ -90,36 +90,48 @@
                 </tr>
                 </thead>
                 <tbody>
-                {% for participant in queue.participant_set.all %}
-                    <tr>
-                        <td>{{ forloop.counter }}</td>
-                        <td>{{ participant.user.username }}</td>
-                        <td>{{ participant.joined_at }}</td>
-                        <td>{{ queue.estimated_wait_time }} min</td>
-                        <td>
-                            <a href="{% url 'queue:delete' participant.id %}" class="text-danger ms-3"
-                               title="Remove Participant"
-                               onclick="return confirm('Are you sure you want to remove this participant?');">
-                                <i class="bi bi-x-circle-fill"></i>
-                            </a>
-                        </td>
-                    </tr>
-                {% empty %}
-                    <tr>
-                        <td colspan="5" class="text-center">No participants in the queue</td>
-                    </tr>
-                {% endfor %}
                 </tbody>
             </table>
         </div>
     </div>
 
-    <script src="{% static 'queue_manager/dashboard/fetchDashboardData.js' %}"></script>
-    <script src="{% static 'queue_manager/dashboard/updateDashboardStats.js' %}"></script>
-    <script>
-        const queueId = {{ queue.id }}; 
-        setInterval(() => {
-        fetchDashboardData(queueId);
-        }, 5000); 
-    </script>
+<script>
+    const queueId = {{ queue.id }};
+    const eventSource = new EventSource(`/api/queue-dashboard-stream/${queueId}/`);
+
+    eventSource.onmessage = function(event) {
+        const data = JSON.parse(event.data);
+        
+        document.querySelector('.current-queue-length').innerText = data.current_queue_length;
+        document.querySelector('.estimated-wait-time').innerText = data.estimated_wait_time + ' min';
+        document.querySelector('.participants-today').innerText = data.participants_today;
+        
+        // Optional: Update the table of participants if needed
+        const tbody = document.querySelector('tbody');
+        tbody.innerHTML = ''; // Clear existing rows
+
+        data.participants.forEach((participant, index) => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${index + 1}</td>
+                <td>${participant.username}</td>
+                <td>${participant.joined_at}</td>
+                <td>${participant.estimated_wait_time} min</td>
+                <td>
+                    <a href="/queue/delete/${participant.id}/" class="text-danger ms-3"
+                       title="Remove Participant"
+                       onclick="return confirm('Are you sure you want to remove this participant?');">
+                        <i class="bi bi-x-circle-fill"></i>
+                    </a>
+                </td>
+            `;
+            tbody.appendChild(row);
+        });
+    };
+
+    eventSource.onerror = function(event) {
+        console.error('Error with SSE:', event);
+        eventSource.close();
+    };
+</script>
 {% endblock %}
