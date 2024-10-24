@@ -58,10 +58,12 @@
         }
         .status-badge {
             display: inline-block;
-            padding: 0.25rem 0.5rem;
+            padding: 0.5rem 1rem;
             border-radius: 5px;
-            font-size: 0.85rem;
-            margin-bottom: 0.75rem;
+            font-size: 1rem;
+            margin-top: 1rem;
+            margin-bottom: 2rem;
+            text-align: center;
         }
         .status-badge-green {
             background-color: #d4edda;
@@ -76,6 +78,7 @@
             color: #888;
             margin-top: 1rem;
             padding: 1rem 0;
+            text-align: center; /* Center align no queues message */
         }
         .queue-block.closed {
             background-color: #fff;
@@ -94,10 +97,12 @@
             <div class="card-title">{{ queue_type }} Queues</div>
 
             <div>
-                <span class="status-badge status-badge-green">Open Queues</span>
+                <div style="text-align: center;">
+                    <span class="status-badge status-badge-green">Open queues</span>
+                </div>
                 {% if queues %}
                     {% for queue in queues %}
-                        {% if queue.is_closed == False %}
+                        {% if not queue.is_closed %}
                             <div class="queue-block open">
                                 <div class="queue-title">{{ queue.name }}</div>
                                 <div class="queue-info">{{ queue.description }}</div>
@@ -113,27 +118,33 @@
                         {% endif %}
                     {% endfor %}
                 {% else %}
-                    <div class="no-queues" style="text-align: left;">No open queues available.</div>
+                    <div class="no-queues">No open queues available.</div>
                 {% endif %}
             </div>
 
             <div>
-                <span class="status-badge status-badge-red">Closed Queues</span>
+                <div style="text-align: center;">
+                    <span class="status-badge status-badge-red">Closed Queues</span>
+                </div>
                 {% if queues %}
                     {% for queue in queues %}
-                        {% if queue.is_closed == True %}
+                        {% if queue.is_closed %}
                             <div class="queue-block closed">
                                 <div class="queue-title">{{ queue.name }}</div>
-                                <div class="queue-info">Code: <strong>{{ queue.code }}</strong></div>
+                                <div class="queue-info">{{ queue.description }}</div>
                                 <div class="queue-info">
-                                    People who were in the queue:
-                                    {{ queue.number_of_people }} people
+                                    Currently in queue:
+                                    {% if queue.get_number_of_participants == 1 %}
+                                        1 person
+                                    {% else %}
+                                        {{ queue.get_number_of_participants }} people
+                                    {% endif %}
                                 </div>
                             </div>
                         {% endif %}
                     {% endfor %}
                 {% else %}
-                    <div class="no-queues" style="text-align: left;">No closed queues available.</div>
+                    <div class="no-queues">No closed queues available.</div>
                 {% endif %}
             </div>
         </div>
