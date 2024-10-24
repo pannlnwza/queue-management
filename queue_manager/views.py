@@ -162,7 +162,6 @@ def join_queue(request):
 class BrowseQueueView(generic.ListView):
     model = Queue
     template_name = 'queue_manager/browse_queue.html'
-    context_object_name = 'queues'
 
 
 class BaseQueueView(generic.ListView):
@@ -191,6 +190,14 @@ class GeneralQueueView(BaseQueueView):
 
 class HospitalQueueView(BaseQueueView):
     queue_category = 'hospital'
+
+
+class BankQueueView(BaseQueueView):
+    queue_category = 'bank'
+
+
+class ServiceCenterQueueView(BaseQueueView):
+    queue_category = 'service center'
 
 
 class ManageQueuesView(LoginRequiredMixin, generic.ListView):

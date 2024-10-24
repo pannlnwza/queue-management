@@ -17,6 +17,8 @@ class Queue(models.Model):
         ('restaurant', 'Restaurant'),
         ('general', 'General'),
         ('hospital', 'Hospital'),
+        ('bank', 'Bank'),
+        ('service center', 'Service center')
     ]
     name = models.CharField(max_length=255)
     description = models.TextField()
