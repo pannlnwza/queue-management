@@ -10,9 +10,13 @@
             padding: 2rem;
             width: 80%;
             margin: auto;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
         .card {
             background: white;
+            width: 1000px;
             border-radius: 8px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
             margin: auto;
@@ -35,6 +39,8 @@
             padding: 0.75rem;
             margin-bottom: 1rem;
             transition: background-color 0.3s ease, border-color 0.3s ease;
+            display: flex;
+            align-items: center;
         }
         .queue-block.open {
             background-color: #fafafa;
@@ -43,18 +49,21 @@
             background-color: #f0f0f0;
             border-color: #ccc;
         }
+        .queue-logo {
+            width: 100px;
+            height: auto;
+            margin-right: 1rem;
+        }
         .queue-title {
             font-size: 1.2rem;
             font-weight: bold;
             margin-bottom: 0.25rem;
             color: #333;
-            padding-left: 0.5rem;
         }
         .queue-info {
             font-size: 0.85rem;
             color: #555;
             margin-bottom: 0.25rem;
-            padding-left: 0.5rem;
         }
         .status-badge {
             display: inline-block;
@@ -76,9 +85,7 @@
         .no-queues {
             font-size: 1rem;
             color: #888;
-            margin-top: 1rem;
-            padding: 1rem 0;
-            text-align: center; /* Center align no queues message */
+            text-align: center;
         }
         .queue-block.closed {
             background-color: #fff;
@@ -95,24 +102,26 @@
     <main>
         <div class="card">
             <div class="card-title">{{ queue_type }} Queues</div>
-
             <div>
                 <div style="text-align: center;">
-                    <span class="status-badge status-badge-green">Open queues</span>
+                    <span class="status-badge status-badge-green">Open Queues</span>
                 </div>
                 {% if queues %}
                     {% for queue in queues %}
                         {% if not queue.is_closed %}
                             <div class="queue-block open">
-                                <div class="queue-title">{{ queue.name }}</div>
-                                <div class="queue-info">{{ queue.description }}</div>
-                                <div class="queue-info">
-                                    Currently in queue:
-                                    {% if queue.get_number_of_participants == 1 %}
-                                        1 person
-                                    {% else %}
-                                        {{ queue.get_number_of_participants }} people
-                                    {% endif %}
+                                <img src="{{ queue.logo.url }}" alt="{{ queue.name }} logo" class="queue-logo">
+                                <div>
+                                    <div class="queue-title">{{ queue.name }}</div>
+                                    <div class="queue-info">{{ queue.description }}</div>
+                                    <div class="queue-info">
+                                        Currently in queue:
+                                        {% if queue.get_number_of_participants == 1 %}
+                                            1 person
+                                        {% else %}
+                                            {{ queue.get_number_of_participants }} people
+                                        {% endif %}
+                                    </div>
                                 </div>
                             </div>
                         {% endif %}
