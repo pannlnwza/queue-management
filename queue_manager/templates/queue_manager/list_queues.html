@@ -14,9 +14,14 @@
         .card {
             background: white;
             border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
             margin: auto;
             padding: 2rem;
+        }
+        .card-title {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 1rem;
         }
         .queue-block {
             border: 1px solid #ccc;
@@ -33,6 +38,26 @@
             font-size: 0.9rem;
             color: #000;
         }
+        .status-badge-red {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            background-color: #f8d7da;
+            color: black;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            margin-left: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        .status-badge-green {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            background-color: #d4edda;
+            color: black;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            margin-left: 0.5rem;
+            margin-bottom: 1rem;
+        }
     </style>
 {% endblock %}
 
@@ -40,9 +65,11 @@
     <main>
         <div class="card">
             <div class="card-title">{{ queue_type }} Queues</div>
-            Open queues:
-            {% if queues %}
-                {% for queue in queues %}
+
+            <div>
+                <span class="status-badge-green">Open</span>
+                {% if queues %}
+                    {% for queue in queues %}
                         {% if queue.is_closed == False %}
                             <div class="queue-block">
                                 <div class="queue-title">{{ queue.name }}</div>
@@ -50,13 +77,16 @@
                                 <div class="queue-info">People in Queue: {{ queue.number_of_people }}</div>
                             </div>
                         {% endif %}
-                {% endfor %}
-            {% else %}
-                <p>No queues available.</p>
-            {% endif %}
-            Closed queues:
-            {% if queues %}
-                {% for queue in queues %}
+                    {% endfor %}
+                {% else %}
+                    <p>No queues available.</p>
+                {% endif %}
+            </div>
+
+            <div>
+                <span class="status-badge-red">Closed</span>
+                {% if queues %}
+                    {% for queue in queues %}
                         {% if queue.is_closed == True %}
                             <div class="queue-block">
                                 <div class="queue-title">{{ queue.name }}</div>
@@ -64,10 +94,11 @@
                                 <div class="queue-info">People in Queue: {{ queue.number_of_people }}</div>
                             </div>
                         {% endif %}
-                {% endfor %}
-            {% else %}
-                <p>No queues available.</p>
-            {% endif %}
+                    {% endfor %}
+                {% else %}
+                    <p>No queues available.</p>
+                {% endif %}
+            </div>
         </div>
     </main>
 {% endblock %}
