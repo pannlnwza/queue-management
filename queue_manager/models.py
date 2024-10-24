@@ -59,6 +59,13 @@ class Queue(models.Model):
         """
         return self.participant_set.all()
 
+    def get_number_of_participants(self) -> int:
+        """
+        Return a queryset of all participants in this queue.
+        :returns: A queryset containing all participants of the queue.
+        """
+        return len(self.participant_set.all())
+
     def get_first_participant(self) -> 'Participant':
         """
         Get the participant next in line (i.e., with the lowest position).
