@@ -14,5 +14,7 @@ urlpatterns = [
     path('queues/restaurant/', RestaurantQueueView.as_view(), name='restaurant_queues'),
     path('queues/general/', GeneralQueueView.as_view(), name='general_queues'),
     path('queues/hospital/', HospitalQueueView.as_view(), name='hospital_queues'),
+    path('queues/bank/', BankQueueView.as_view(), name='bank_queues'),
+    path('queues/service_center/', ServiceCenterQueueView.as_view(), name='service_center_queues'),
 ]
 
