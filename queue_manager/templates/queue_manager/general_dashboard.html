@@ -114,7 +114,7 @@
                             {# will be added later #}
                             {#<i class="bi bi-alarm-fill"></i>#}
                             {#</a>#}
-                            <a href="{% url 'queue:delete' participant.id %}" class="text-danger ms-3"
+                            <a href="{% url 'queue:delete_participant' participant.id %}" class="text-danger ms-3"
                                title="Remove Participant"
                                onclick="return confirm('Are you sure you want to remove this participant?');">
                                 <i class="bi bi-x-circle-fill"></i>
@@ -130,5 +130,11 @@
                 </tbody>
             </table>
         </div>
+    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+    <a class="btn btn-danger me-md-2 mb-3" type="button" href="{% url 'queue:delete_queue' queue.id %}"
+        title="Delete Queue"
+        onclick="return confirm('Are you sure you want to delete this queue?');">Delete This Queue</a>
     </div>
+    </div>
+
 {% endblock %}

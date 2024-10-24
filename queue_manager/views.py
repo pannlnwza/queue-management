@@ -338,6 +338,33 @@ def delete_participant(request, participant_id):
     return redirect('queue:dashboard', pk=queue.id)
 
 
+@login_required
+def delete_queue(request, queue_id):
+    try:
+        queue = Queue.objects.get(pk=queue_id)
+    except Queue.DoesNotExist:
+        messages.error(request, f"Queue with ID {queue_id} does not exist.")
+        logger.error(f"Queue id: {queue_id} does not exist.")
+        return redirect('queue:index')
+    if queue.created_by != request.user:
+        messages.error(request,"You're not authorized to delete this queue.")
+        logger.warning(
+            f"Unauthorized queue delete attempt by user {request.user} "
+            f"for queue: {queue.name} queue_id: {queue.id}.")
+        return redirect('queue:index')
+    try:
+        queue.delete()
+        messages.success(request, f"Queue {queue.name} has been deleted successfully.")
+        logger.info(
+            f"{request.user} successfully deleted queue: {queue.name} id: {queue.id}.")
+    except Exception as e:
+        messages.error(request, f"Error deleting queue: {e}")
+        logger.error(
+            f"Failed to delete queue: {queue.name} id: {queue.id} "
+            f"by user {request.user}: {e}")
+    return redirect('queue:manage_queues')
+
+
 def get_client_ip(request):
     """Retrieve the client's IP address from the request."""
     return (
