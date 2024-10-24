@@ -72,7 +72,7 @@
     <main>
         <div class="card">
             <div class="card-title">Create a New Queue</div>
-            <form method="POST">
+            <form method="POST" enctype="multipart/form-data">
                 {% csrf_token %}
                 {{ form.as_p }}
                 <label class="hint">Please estimate your wait time initially, an accurate calculation will be provided automatically later.</label>

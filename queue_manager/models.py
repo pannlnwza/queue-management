@@ -29,6 +29,7 @@ class Queue(models.Model):
     is_closed = models.BooleanField(default=False)
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='open')
     category = models.CharField(max_length=20, choices=CATEGORY_CHOICES)
+    logo = models.ImageField(upload_to='queue_logos/', blank=True, null=True)
 
     def save(self, *args, **kwargs) -> None:
         """
