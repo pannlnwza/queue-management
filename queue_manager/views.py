@@ -131,7 +131,7 @@ def join_queue(request):
                 f'Queue found: {queue.name} for user {request.user.username}')
             # Check if the user is already a participant in the queue
             if queue.is_closed:
-                messages.success(request, "The queue is closed.")
+                messages.error(request, "The queue is closed.")
                 logger.info(
                     f'User {request.user.username} attempted to join queue {queue.name} that has been closed.')
             elif not queue.participant_set.filter(user=request.user).exists():
@@ -276,7 +276,7 @@ class EditQueueView(LoginRequiredMixin, generic.UpdateView):
         self.object.save()
         messages.success(self.request, "Queue status updated successfully.")
         return redirect('queue:manage_queues')
-    
+
 class QueueDashboardView(generic.DetailView):
     model = Queue
     template_name = 'queue_manager/general_dashboard.html'
