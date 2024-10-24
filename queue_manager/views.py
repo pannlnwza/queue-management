@@ -176,7 +176,7 @@ class BaseQueueView(generic.ListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['queue_type'] = self.queue_category
+        context['queue_type'] = self.queue_category.capitalize()
         context['queues'] = self.get_queryset()
         return context
 

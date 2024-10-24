@@ -18,10 +18,20 @@
             margin: auto;
             padding: 2rem;
         }
-        .card-title {
-            font-size: 1.1rem;
+        .queue-block {
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+        .queue-title {
+            font-size: 1.2rem;
             font-weight: bold;
             margin-bottom: 0.5rem;
+        }
+        .queue-info {
+            font-size: 0.9rem;
+            color: #000;
         }
     </style>
 {% endblock %}
@@ -30,12 +40,31 @@
     <main>
         <div class="card">
             <div class="card-title">{{ queue_type }} Queues</div>
+            Open queues:
             {% if queues %}
-                <ul>
-                    {% for queue in queues %}
-                        <li>{{ queue.name }} - Code: {{ queue.code }}</li>
-                    {% endfor %}
-                </ul>
+                {% for queue in queues %}
+                        {% if queue.is_closed == False %}
+                            <div class="queue-block">
+                                <div class="queue-title">{{ queue.name }}</div>
+                                <div class="queue-info">Code: {{ queue.code }}</div>
+                                <div class="queue-info">People in Queue: {{ queue.number_of_people }}</div>
+                            </div>
+                        {% endif %}
+                {% endfor %}
+            {% else %}
+                <p>No queues available.</p>
+            {% endif %}
+            Closed queues:
+            {% if queues %}
+                {% for queue in queues %}
+                        {% if queue.is_closed == True %}
+                            <div class="queue-block">
+                                <div class="queue-title">{{ queue.name }}</div>
+                                <div class="queue-info">Code: {{ queue.code }}</div>
+                                <div class="queue-info">People in Queue: {{ queue.number_of_people }}</div>
+                            </div>
+                        {% endif %}
+                {% endfor %}
             {% else %}
                 <p>No queues available.</p>
             {% endif %}
