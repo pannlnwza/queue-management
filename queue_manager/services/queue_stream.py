@@ -59,6 +59,7 @@ def queue_dashboard_stream(request, queue_id):
                     {
                         'id': participant.id,
                         'username': participant.user.username,
+                        'position': participant.position,
                         'joined_at': participant.joined_at.strftime('%Y-%m-%d %H:%M:%S'),
                         'estimated_wait_time': queue.estimated_wait_time
                     }

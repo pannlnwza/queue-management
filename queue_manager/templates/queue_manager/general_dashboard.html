@@ -120,7 +120,7 @@
             data.participants.forEach((participant, index) => {
                 const row = document.createElement('tr');
                 row.innerHTML = `
-                    <td>${index + 1}</td>
+                    <td>${participant.position}</td>
                     <td>${participant.username}</td>
                     <td>${participant.joined_at}</td>
                     <td>${participant.estimated_wait_time} min</td>
