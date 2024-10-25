@@ -7,11 +7,16 @@ from django.contrib.auth.models import User
 
 class Queue(models.Model):
     """Represents a queue created by a user."""
-    STATUS_CHOICES = [
+    STATUS_QUEUE = [
         ('open', 'Open'),
         ('busy', 'Busy'),
         ('full', 'Full'),
         ('closed', 'Closed')
+    ]
+    STATUS_USER = [
+        ('active', 'Active'),
+        ('completed', 'Completed'),
+        ('canceled', 'Canceled'),
     ]
     name = models.CharField(max_length=255)
     description = models.TextField()
@@ -20,7 +25,7 @@ class Queue(models.Model):
     created_by = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     is_closed = models.BooleanField(default=False)
-    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='open')
+    status_queue = models.CharField(max_length=10, choices=STATUS_QUEUE, default='open')
 
     def save(self, *args, **kwargs) -> None:
         """
@@ -86,8 +91,8 @@ class Queue(models.Model):
         if is_closed is not None:
             self.is_closed = is_closed
 
-        if status is not None and status in dict(self.STATUS_CHOICES):
-            self.status = status
+        if status is not None and status in dict(self.STATUS_QUEUE):
+            self.status_queue = status
 
         self.save()
 
@@ -155,10 +160,3 @@ class Participant(models.Model):
         :returns: The username of the user associated with the participant.
         """
         return self.user.username
-
-
-# class QueueHistory(models.Model):
-#     user = models.ForeignKey(User, on_delete=models.CASCADE)
-#     queue = models.ForeignKey(Queue, on_delete=models.CASCADE)
-#     joined_at = models.DateTimeField(auto_now_add=True)
-#     status = models.CharField()

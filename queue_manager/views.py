@@ -140,7 +140,7 @@ def join_queue(request):
                     f'User {request.user.username} attempted to join queue {queue.name} that has been closed.')
             elif request.user == queue.created_by:
                 messages.error(request, "You cannot join your own queue.")
-                logger.warning(f"Queue creator({request.user.username}) attempts to join his own queue {queue.name}.")
+                logger.warning(f"Queue creator {request.user.username} attempts to join his own queue {queue.name}.")
             elif not queue.participant_set.filter(user=request.user).exists():
                 last_position = queue.participant_set.count()
                 new_position = last_position + 1
@@ -307,10 +307,24 @@ class QueueDashboardView(generic.DetailView):
         return redirect('queue:index')
 
 
-# class QueueHistoryView(LoginRequiredMixin, generic.ListView):
-#     model = QueueHistory
-#     template_name = 'queue_manager/history_queue.html'
-#     context_object_name = 'history'
+class QueueHistoryView(generic.ListView):
+    template_name = 'queue_manager/history.html'
+    context_object_name = 'history_queues'
+
+    def get_queryset(self):
+        user = self.request.user
+        # Get queues where the user is either the creator or a participant
+        created_queues = Queue.objects.filter(creator=user)
+        joined_queues = Queue.objects.filter(participants__user=user)
+
+        # Combine the two querysets (removing duplicates)
+        return created_queues.union(joined_queues).order_by('-last_updated')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['created_queues'] = Queue.objects.filter(creator=self.request.user)
+        context['joined_queues'] = Queue.objects.filter(participants__user=self.request.user)
+        return context
 
 
 def get_client_ip(request):
