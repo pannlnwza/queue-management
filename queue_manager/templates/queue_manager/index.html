@@ -46,7 +46,7 @@
             font-size: 0.8em;
             color: white;
         }
-        
+
         .status-normal {
             background-color: green;
         }
@@ -92,8 +92,6 @@
                 {% endif %}
             </div>
         </div>
-        </div>
-
         <div class="card d-inline-block">
             <h4 class="card-title">Join Queue by Code</h4>
             <form class="join-form" method="POST" action="{% url 'queue:join' %}">
@@ -103,7 +101,6 @@
                     <button type="submit" class="btn btn-primary">Join Queue</button>
                 </div>
             </form>
-        </div>
         </div>
     </main>
     <script>
