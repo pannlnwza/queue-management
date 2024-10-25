@@ -133,14 +133,52 @@
             </div>
         </div>
     </nav>
-{% if messages %}
-    <ul class="messages">
-        {% for message in messages %}
-            <li class="{{ message.tags }}">{{ message }}</li>
-        {% endfor %}
-    </ul>
-{% endif %}
-    {% block content %} {% endblock %}
+
+<div class="toast-container position-fixed bottom-0 end-0 p-3" id="toast-container" data-bs-autohide="false">
+    </div>
+
+{% block content %} {% endblock %}
+
+<script>
+        const notificationSource = new EventSource('/api/notification-stream/');
+
+        function showToast(message) {
+            const toastId = `toast-${Date.now()}`;
+            const toast = `
+                <div id="${toastId}" class="toast" role="alert" aria-live="assertive" aria-atomic="true" data-bs-autohide="false" data-bs-delay="3000">
+                    <div class="toast-header">
+                        <strong class="me-auto">Notification</strong>
+                        <small>Just now</small>
+                        <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+                    </div>
+                    <div class="toast-body">
+                        ${message}
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('toast-container').insertAdjacentHTML('beforeend', toast);
+            const toastElement = document.getElementById(toastId);
+            const bsToast = new bootstrap.Toast(toastElement);
+            bsToast.show();
+            toastElement.addEventListener('hidden.bs.toast', function () {
+                toastElement.remove();
+            });
+        }
+
+        notificationSource.onmessage = function(event) {
+            const notifications = JSON.parse(event.data);
+
+            notifications.forEach(notification => {
+                showToast(notification.message);
+            });
+        };
+
+        notificationSource.onerror = function(event) {
+            console.error('Error with SSE:', event);
+            notificationSource.close();
+        };
+    </script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
 </body>
 </html>
