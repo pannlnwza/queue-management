@@ -23,4 +23,3 @@ class QueueForm(forms.ModelForm):
             'logo': forms.ClearableFileInput(
                 attrs={'class': 'form-control', 'accept': 'image/*'})
         }
-

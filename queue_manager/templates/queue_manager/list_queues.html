@@ -54,10 +54,14 @@
             height: auto;
             margin-right: 1rem;
         }
+        .queue-header {
+            display: flex;
+            align-items: center;
+            width: 100%;
+        }
         .queue-title {
             font-size: 1.2rem;
             font-weight: bold;
-            margin-bottom: 0.25rem;
             color: #333;
         }
         .queue-info {
@@ -95,6 +99,14 @@
             background-color: #fff;
             border-color: #ddd;
         }
+        .queue-status {
+            color: #155724;
+            font-size: 1rem;
+            background-color: #d4edda;
+            padding: 0.2rem 0.5rem;
+            border-radius: 16px;
+            margin-left: 0.5rem;
+        }
     </style>
 {% endblock %}
 
@@ -112,7 +124,10 @@
                             <div class="queue-block open">
                                 <img src="{{ queue.logo.url }}" alt="{{ queue.name }} logo" class="queue-logo">
                                 <div>
-                                    <div class="queue-title">{{ queue.name }}</div>
+                                    <div class="queue-header">
+                                        <div class="queue-title">{{ queue.name }}</div>
+                                        <div class="queue-status">{{ queue.status }}</div>
+                                    </div>
                                     <div class="queue-info">{{ queue.description }}</div>
                                     <div class="queue-info">
                                         Currently in queue:
@@ -139,7 +154,10 @@
                     {% for queue in queues %}
                         {% if queue.is_closed %}
                             <div class="queue-block closed">
-                                <div class="queue-title">{{ queue.name }}</div>
+                                <div class="queue-header">
+                                    <div class="queue-title">{{ queue.name }}</div>
+                                    <div class="queue-status">{{ queue.status }}</div>
+                                </div>
                                 <div class="queue-info">{{ queue.description }}</div>
                                 <div class="queue-info">
                                     Currently in queue:
@@ -159,3 +177,4 @@
         </div>
     </main>
 {% endblock %}
+    
