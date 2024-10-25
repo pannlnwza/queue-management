@@ -1,3 +1,4 @@
+import datetime
 import string
 import random
 from django.utils import timezone
@@ -145,14 +146,18 @@ class UserProfile(models.Model):
 
 class Participant(models.Model):
     """Represents a participant in a queue."""
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    user = models.OneToOneField(User, on_delete=models.CASCADE, null=True)
     queue = models.ForeignKey(Queue, on_delete=models.CASCADE)
-    joined_at = models.DateTimeField(auto_now_add=True)
+    joined_at = models.DateTimeField(null=True)
     position = models.PositiveIntegerField()
-    ticket_code = models.CharField(max_length=6, unique=True, editable=False)
+    queue_code = models.CharField(max_length=6, unique=True, editable=False)
 
     class Meta:
         unique_together = ('user', 'queue')
+
+    def insert_user(self, user):
+        self.user = user
+        self.joined_at = datetime.datetime.now()
 
     def update_position(self, new_position: int) -> None:
         """
@@ -177,17 +182,17 @@ class Participant(models.Model):
 
     def save(self,*args, **kwargs):
         """Generate a unique ticket code for the participant if not already."""
-        if not self.ticket_code:
-            self.ticket_code = self.generate_unique_ticket_code()
-        super().save(*args, *kwargs)
+        if not self.pk:
+            self.queue_code = self.generate_unique_queue_code()
+        super().save(*args, **kwargs)
 
     @staticmethod
-    def generate_unique_ticket_code(length=6):
+    def generate_unique_queue_code(length=6):
         """Generate a unique code for each participant"""
         characters = string.ascii_uppercase + string.digits
         while True:
             code = ''.join(random.choices(characters, k=length))
-            if not Participant.objects.filter(ticket_code=code).exists():
+            if not Participant.objects.filter(queue_code=code).exists():
                 return code
 
     def __str__(self) -> str:

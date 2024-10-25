@@ -53,7 +53,10 @@
                 {{ queue.status|title }}
             </span>
         </p>
-        <a class="btn btn-primary" href="{% url 'queue:edit_queue' queue.id %}" role="button">Edit</a>
+        <a class="btn btn-primary me-md-2 mb-3" href="{% url 'queue:edit_queue' queue.id %}" role="button">Edit</a>
+            <a class="btn btn-danger me-md-2 mb-3" type="button" href="{% url 'queue:delete_queue' queue.id %}"
+                title="Delete Queue"
+                onclick="return confirm('Are you sure you want to delete this queue?');">Delete This Queue</a>
 
         <div class="row mt-4">
             <div class="col-md-3">
@@ -68,38 +71,20 @@
                     <div class="card-value">{{ queue.estimated_wait_time }} min</div>
                 </div>
             </div>
-{#            <div class="col-md-3">#}
-{#                <div class="card">#}
-{#                    <h6>Participants Today</h6>#}
-{#                    <div class="card-value">{{ queue.participants_today }}</div>#}
-{#                </div>#}
-{#            </div>#}
-{#            <div class="col-md-3">#}
-{#                <div class="card">#}
-{#                    <h6>Peak Participant Count</h6>#}
-{#                    <div class="card-value">{{ queue.peak_participant_count }}</div>#}
-{#                </div>#}
-{#            </div>#}
         </div>
-
-        {#        <div class="mt-4">#}
-        {#            <h5>Queue Length Over Time (Today)</h5>#}
-        {#            <div id="queueLengthChart" style="height: 300px; background-color: white">#}
-        {#                chart#}
-        {#            </div>#}
-        {#        </div>#}
 
         <div class="mt-4">
             <h5>Current Queue</h5>
-            <table class="table table-striped">
+            <table class="table table-striped text-center">
                 <thead>
-                <tr>
-                    <th>Position</th>
-                    <th>Participant ID</th>
-                    <th>Check-in Time</th>
-                    <th>Estimated Wait Time</th>
-                    <th>Actions</th>
-                </tr>
+                    <tr>
+                        <th>Position</th>
+                        <th>Participant Name</th>
+                        <th>Check-in Time</th>
+                        <th>Estimated Wait Time</th>
+                        <th>Queue Code</th>
+                        <th>Actions</th>
+                    </tr>
                 </thead>
                 <tbody>
                 {% for participant in queue.participant_set.all %}
@@ -108,20 +93,15 @@
                         <td>{{ participant.user.username }}</td>
                         <td>{{ participant.joined_at }}</td>
                         <td>{{ queue.estimated_wait_time }} min</td>
-                        {# will change to estimated wait time for each participant later #}
+                        <td>{{ participant.queue_code }}</td>
                         <td>
-                            {#<a href="#" class="text-primary ms-2 me-3" title="Notify User">#}
-                            {# will be added later #}
-                            {#<i class="bi bi-alarm-fill"></i>#}
-                            {#</a>#}
-                            <a href="{% url 'queue:delete_participant' participant.id %}" class="text-danger ms-3"
+                            <a href="{% url 'queue:delete_participant' participant.id %}" class="text-danger"
                                title="Remove Participant"
-                               onclick="return confirm('Are you sure you want to remove this participant?');">
+                               onclick="return confirm('Are you sure you want to remove this participant? Code: {{ participant.queue_code }}');">
                                 <i class="bi bi-x-circle-fill"></i>
                             </a>
                         </td>
                     </tr>
-
                 {% empty %}
                     <tr>
                         <td colspan="5" class="text-center">No participants in the queue</td>
@@ -130,11 +110,8 @@
                 </tbody>
             </table>
         </div>
-    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-    <a class="btn btn-danger me-md-2 mb-3" type="button" href="{% url 'queue:delete_queue' queue.id %}"
-        title="Delete Queue"
-        onclick="return confirm('Are you sure you want to delete this queue?');">Delete This Queue</a>
+        <div>
+            <a href="{% url 'queue:add_participant_slot' queue.id %}"  class="btn btn-secondary me-md-2 mb-3">Add Participant Slot</a>
+        </div>
     </div>
-    </div>
-
 {% endblock %}
