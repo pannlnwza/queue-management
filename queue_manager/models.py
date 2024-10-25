@@ -93,9 +93,11 @@ class Queue(models.Model):
             return self.logo.url
         default_logos = {
             'restaurant': static(
-                'queue_manager/images/restaurant_default_logo.jpg'),
+                'queue_manager/images/restaurant_default_logo.png'),
             'bank': static('queue_manager/images/bank_default_logo.jpg'),
-
+            'general': static('queue_manager/images/general_default_logo.png'),
+            'hospital': static('queue_manager/images/hospital_default_logo.jpg'),
+            'service center': static('queue_manager/images/service_center_default_logo.png')
         }
         return default_logos.get(str(self.category))
 
