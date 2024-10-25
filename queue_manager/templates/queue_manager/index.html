@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load custom_filters %}
+{% load static %}
 
 {% block extra_head %}
     <style>
@@ -8,97 +9,129 @@
             margin: 0;
             padding: 0;
         }
-        header {
-            background-color: #1e2a3a;
-            color: white;
-            padding: 1rem;
-        }
+
         main {
             padding: 1rem;
             width: 90%;
             margin: auto;
         }
+
         .card {
             background: white;
             border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
             margin-bottom: 1rem;
             padding: 1rem;
         }
+
         .card-title {
             font-size: 1.1rem;
             font-weight: bold;
             margin-bottom: 0.5rem;
         }
-        .queue-stats {
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
-            gap: 1rem;
-        }
+
         .stat-label {
             color: #666;
             font-size: 0.9rem;
         }
+
         .stat-value {
             color: black;
             font-size: 1.5rem;
             font-weight: bold;
         }
-        .join-input {
-            flex-grow: 1;
-            padding: 0.5rem;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-        }
-        .join-btn {
-            background-color: var(--primary-color);
+
+        .status {
+            border-radius: 12px;
+            font-size: 0.8em;
             color: white;
-            border: none;
-            padding: 0.5rem 1rem;
-            border-radius: 4px;
-            display: inline-flex;
         }
+
+        .status-normal {
+            background-color: green;
+        }
+
+        .status-busy {
+            background-color: orange;
+        }
+
+        .status-full {
+            background-color: red;
+        }
+
     </style>
 {% endblock %}
 
 {% block content %}
-    <main>
+    <main class="container py-4">
+
         <div class="card">
             <div class="card-title">Current Queues</div>
-            {% if queue_list %}
-                {% for queue in queue_list %}
-                    <div class="card">
-                    <h3>{{ queue.name }}</h3>
-                    <div class="queue-stats">
-                        <div>
-                            <div class="stat-label">Your Position</div>
-                            <div class="stat-value">{{ queue_positions|get_item:queue.id }}</div>
+            <div id="queues-container">
+                {% if queue_list %}
+                    {% for queue in queue_list %}
+                        <div class="card queue-card mb-3" id="queue-{{ queue.id }}">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h5 class="mb-0">{{ queue.name }}</h5>
+                                <div class="status ms-1 px-1 py-auto" id="status-{{ queue.id }}">wqd</div>
+                            </div>
+                            <div class="row mt-2">
+                                <div class="col">
+                                    <div class="stat-label">Your Position</div>
+                                    <div class="stat-value position" id="position-{{ queue.id }}"></div>
+                                </div>
+                                <div class="col">
+                                    <div class="stat-label">Queue Length</div>
+                                    <div class="stat-value participant-count" id="length-{{ queue.id }}"></div>
+                                </div>
+                            </div>
                         </div>
-                        <div>
-                            <div class="stat-label">Queue Length</div>
-                            <div class="stat-value">{{ queue.participant_set.count }}</div>
-                        </div>
-                        <div>
-                            <div class="stat-label">Status</div>
-                            <div class="stat-value">{{ queue.get_status_display }}</div>
-                        </div>
-                    </div>
-                    </div>
-                {% endfor %}
-            {% else %}
-                <div class="card">You are not in a queue.</div>
-            {% endif %}
+                    {% endfor %}
+                {% else %}
+                    <div class="alert alert-info">You are not in a queue.</div>
+                {% endif %}
+            </div>
         </div>
-
-        <div class="card d-md-inline-flex">
-            <div class="card-title">Join Queue by Code</div>
+        <div class="card d-inline-block">
+            <h4 class="card-title">Join Queue by Code</h4>
             <form class="join-form" method="POST" action="{% url 'queue:join' %}">
                 {% csrf_token %}
-                <label>
-                    <input type="text" class="join-input" placeholder="Enter queue code" name="queue_code">
-                </label>
-                <button type="submit" class="btn join-btn">Join Queue</button>
+                <div class="input-group">
+                    <input type="text" class="form-control" placeholder="Enter queue code" name="queue_code">
+                    <button type="submit" class="btn btn-primary">Join Queue</button>
+                </div>
             </form>
         </div>
     </main>
+    <script>
+        const eventSource = new EventSource('/api/queue-stream/');
+
+        eventSource.onmessage = function (event) {
+            const data = JSON.parse(event.data);
+
+            data.forEach(queue => {
+                const statusElement = document.getElementById(`status-${queue.id}`);
+                const status = queue.status.toLowerCase();
+                statusElement.innerText = queue.status;
+                statusElement.classList.remove('status-normal', 'status-busy', 'status-full');
+
+                if (status === 'normal') {
+                    statusElement.classList.add('status-normal');
+                } else if (status === 'busy') {
+                    statusElement.classList.add('status-busy');
+                } else if (status === 'full') {
+                    statusElement.classList.add('status-full');
+                }
+
+                document.getElementById(`length-${queue.id}`).innerText = queue.participant_count;
+                document.getElementById(`position-${queue.id}`).innerText = queue.position;
+            });
+        };
+
+        eventSource.onerror = function (event) {
+            console.error('Error with SSE:', event);
+            eventSource.close();
+        };
+    </script>
+
 {% endblock %}
