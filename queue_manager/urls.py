@@ -1,6 +1,8 @@
 from django.urls import path
 
 from queue_manager.services.queue_stream import *
+from queue_manager.services.notification_stream import notification_stream
+from queue_manager.services.queue_stream import queue_stream
 from queue_manager.views import *
 
 app_name = 'queue'
@@ -16,4 +18,6 @@ urlpatterns = [
     path('manage/', ManageQueuesView.as_view(), name='manage_queues'),
     path('queue/<int:pk>/edit/', EditQueueView.as_view(), name='edit_queue'),
     path('queue/<int:queue_id>/delete/', delete_queue, name='delete_queue'),
+    path('notify/<int:participant_id>/', notify_participant, name='notify_participant'),
+    path('api/notification-stream/', notification_stream, name='notification_stream'),
 ]
