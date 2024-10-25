@@ -21,8 +21,8 @@ class Queue(models.Model):
         ('bank', 'Bank'),
         ('service center', 'Service center')
     ]
-    name = models.CharField(max_length=50)
-    description = models.CharField(max_length=10)
+    name = models.CharField(max_length=255)
+    description = models.TextField(max_length=100)
     code = models.CharField(max_length=6, unique=True, editable=False)
     estimated_wait_time = models.PositiveIntegerField(default=0)
     created_by = models.ForeignKey(User, on_delete=models.CASCADE, null=True,
@@ -144,7 +144,7 @@ class Queue(models.Model):
         if self.capacity > 0:
             percentage_full = (participant_count / self.capacity) * 100
             if percentage_full >= 70:
-                return "Very busy"
+                return "Very Busy"
             elif percentage_full >= 40:
                 return "Moderate Busy"
             else:
