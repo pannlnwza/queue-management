@@ -43,7 +43,7 @@
 
 {% block content %}
     <div class="container mt-4">
-        <h2>{{ queue.name }}</h2>
+        <h2 class="queue-name">{{ queue.name }}</h2>
         <p>Status:
             <span class="status-badge 
                 {% if queue.status == 'open' %}status-active
@@ -105,6 +105,7 @@
     eventSource.onmessage = function(event) {
         const data = JSON.parse(event.data);
         
+        document.querySelector('.queue-name').innerText = data.name;
         document.querySelector('.current-queue-length').innerText = data.current_queue_length;
         document.querySelector('.estimated-wait-time').innerText = data.estimated_wait_time + ' min';
         document.querySelector('.participants-today').innerText = data.participants_today;
