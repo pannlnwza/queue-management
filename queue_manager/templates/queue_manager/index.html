@@ -64,8 +64,10 @@
 {% block content %}
     <main>
         <div class="card">
-            <div class="card-title">Current Queues</div>
-            <a href="{% url 'queue:history'%}" class="button">History</a>
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <div class="card-title">Current Queues</div>
+                <a href="{% url 'queue:history' %}" class="btn join-btn">History</a>
+            </div>
             {% if queue_list %}
                 {% for queue in queue_list %}
                     <div class="card">
