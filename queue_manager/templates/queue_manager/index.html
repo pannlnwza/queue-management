@@ -109,7 +109,9 @@
             <div class="card-title">Join Queue by Code</div>
             <form class="join-form" method="POST" action="{% url 'queue:join' %}">
                 {% csrf_token %}
-                <input type="text" class="join-input" placeholder="Enter queue code" name="queue_code">
+                <label>
+                    <input type="text" class="join-input" placeholder="Enter queue code" name="queue_code">
+                </label>
                 <button type="submit" class="btn join-btn">Join Queue</button>
             </form>
         </div>
