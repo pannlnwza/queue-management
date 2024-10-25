@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block extra_head %}
     <style>
@@ -122,7 +123,7 @@
                     {% for queue in queues %}
                         {% if not queue.is_closed %}
                             <div class="queue-block open">
-                                <img src="{{ queue.logo.url }}" alt="{{ queue.name }} logo" class="queue-logo">
+                                <img src="{{ queue.get_logo_url }}" alt="{{ queue.name }} logo" class="queue-logo">
                                 <div>
                                     <div class="queue-header">
                                         <div class="queue-title">{{ queue.name }}</div>
