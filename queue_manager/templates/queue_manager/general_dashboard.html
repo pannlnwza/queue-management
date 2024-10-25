@@ -86,13 +86,14 @@
                     <th>Participant ID</th>
                     <th>Check-in Time</th>
                     <th>Estimated Wait Time</th>
-                    <th>Actions</th>
+                    <th>Notify</th>
+                    <th>Delete</th>
                 </tr>
                 </thead>
                 <tbody>
                 </tbody>
                 <tr class="no-participants" style="display: none;">
-                    <td colspan="5" class="text-center">No participants in the queue.</td>
+                    <td colspan="6" class="text-center">No participants in the queue.</td>
                 </tr>
             </table>
         </div>
@@ -129,6 +130,13 @@
                     <td>${participant.username}</td>
                     <td>${participant.joined_at}</td>
                     <td>${participant.estimated_wait_time} min</td>
+                    <td>
+                        <a href="#" class="text-primary ms-3"
+                           title="Notify Participant"
+                           onclick="return confirm('Are you sure you want to notify this participant?');">
+                           <i class="bi bi-alarm-fill"></i>
+                        </a>
+                    </td>
                     <td>
                         <a href="/queue/delete/${participant.id}/" class="text-danger ms-3"
                            title="Remove Participant"
