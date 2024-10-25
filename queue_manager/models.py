@@ -15,22 +15,13 @@ class Queue(models.Model):
     ]
     name = models.CharField(max_length=255)
     description = models.TextField()
-    code = models.CharField(max_length=6, unique=True, editable=False)
+    # code = models.CharField(max_length=6, unique=True, editable=False)
     estimated_wait_time = models.PositiveIntegerField(default=0)
     created_by = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     is_closed = models.BooleanField(default=False)
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='open')
     capacity = models.PositiveIntegerField(null=False, blank=False)
-
-    def save(self, *args, **kwargs) -> None:
-        """
-        Save the queue instance, generating a unique code if not provided.
-        :raises ValueError: If generating a unique code fails.
-        """
-        if not self.code:
-            self.code = self.generate_unique_code()
-        super().save(*args, **kwargs)
 
     def update_estimated_wait_time(self, average_time_per_participant: int) -> None:
         """Update the estimated wait time based on the number of participants.
@@ -124,18 +115,18 @@ class Queue(models.Model):
         """
         return self.name
 
-    @staticmethod
-    def generate_unique_code(length: int = 6) -> str:
-        """
-        Generate a unique code consisting of uppercase letters and digits.
-        :param length: The length of the code to be generated (default is 6).
-        :returns: A unique code that does not exist in the Queue table.
-        """
-        characters = string.ascii_uppercase + string.digits
-        while True:
-            code = ''.join(random.choices(characters, k=length))
-            if not Queue.objects.filter(code=code).exists():
-                return code
+    # @staticmethod
+    # def generate_unique_code(length: int = 6) -> str:
+    #     """
+    #     Generate a unique code consisting of uppercase letters and digits.
+    #     :param length: The length of the code to be generated (default is 6).
+    #     :returns: A unique code that does not exist in the Queue table.
+    #     """
+    #     characters = string.ascii_uppercase + string.digits
+    #     while True:
+    #         code = ''.join(random.choices(characters, k=length))
+    #         if not Queue.objects.filter(code=code).exists():
+    #             return code
 
 
 class UserProfile(models.Model):
@@ -158,6 +149,7 @@ class Participant(models.Model):
     queue = models.ForeignKey(Queue, on_delete=models.CASCADE)
     joined_at = models.DateTimeField(auto_now_add=True)
     position = models.PositiveIntegerField()
+    ticket_code = models.CharField(max_length=6, unique=True, editable=False)
 
     class Meta:
         unique_together = ('user', 'queue')
@@ -182,6 +174,21 @@ class Participant(models.Model):
         """
         average_service_time_per_participant = self.queue.estimated_wait_time
         return average_service_time_per_participant * self.position
+
+    def save(self,*args, **kwargs):
+        """Generate a unique ticket code for the participant if not already."""
+        if not self.ticket_code:
+            self.ticket_code = self.generate_unique_ticket_code()
+        super().save(*args, *kwargs)
+
+    @staticmethod
+    def generate_unique_ticket_code(length=6):
+        """Generate a unique code for each participant"""
+        characters = string.ascii_uppercase + string.digits
+        while True:
+            code = ''.join(random.choices(characters, k=length))
+            if not Participant.objects.filter(ticket_code=code).exists():
+                return code
 
     def __str__(self) -> str:
         """

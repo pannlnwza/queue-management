@@ -318,6 +318,18 @@ class QueueDashboardView(generic.DetailView):
         messages.error(request, 'You are not the owner of this queue.')
         return redirect('queue:index')
 
+    # @login_required
+    # def generate_tickets(self, request, queue_id):
+    #     try:
+    #         queue = get_object_or_404(Queue, id=queue_id)
+    #     if request.user != queue.created_by:
+    #         messages.error(request, "Only the queue creator can generate tickets.")
+    #         logger.warning(f"User {request.user} attempted to generate tickets for queue: {queue.name}.")
+    #         return redirect('queue:index')
+
+
+
+
 
 @login_required
 def delete_participant(request, participant_id):
