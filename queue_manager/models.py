@@ -153,3 +153,12 @@ class Participant(models.Model):
         :returns: The username of the user associated with the participant.
         """
         return self.user.username
+
+class Notification(models.Model):
+    participant = models.ForeignKey(Participant, on_delete=models.CASCADE)
+    message = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    is_read = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"Notification for {self.participant}: {self.message}"
