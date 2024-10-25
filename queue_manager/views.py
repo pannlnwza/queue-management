@@ -307,23 +307,21 @@ class QueueDashboardView(generic.DetailView):
         return redirect('queue:index')
 
 
-class QueueHistoryView(generic.ListView):
-    template_name = 'queue_manager/history.html'
+class QueueHistoryView(LoginRequiredMixin, generic.ListView):
+    template_name = 'queue_manager/queue_history.html'
     context_object_name = 'history_queues'
 
     def get_queryset(self):
         user = self.request.user
-        # Get queues where the user is either the creator or a participant
-        created_queues = Queue.objects.filter(creator=user)
-        joined_queues = Queue.objects.filter(participants__user=user)
+        created_queues = Queue.objects.filter(created_by=user)
+        joined_queues = Queue.objects.filter(participant__user=user)
 
-        # Combine the two querysets (removing duplicates)
-        return created_queues.union(joined_queues).order_by('-last_updated')
+        return created_queues.union(joined_queues).order_by('-created_at')
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['created_queues'] = Queue.objects.filter(creator=self.request.user)
-        context['joined_queues'] = Queue.objects.filter(participants__user=self.request.user)
+        context['created_queues'] = Queue.objects.filter(created_by=self.request.user)
+        context['joined_queues'] = Queue.objects.filter(participant__user=self.request.user)
         return context
 
 
@@ -354,11 +352,20 @@ def delete_participant(request, participant_id):
             f"for participant {participant_id} in queue {queue.id}.")
         return redirect('queue:index')
     try:
-        participant.delete()
-        messages.success(request, f"Participant {participant.user.username} removed successfully.")
+        # participant.delete()
+        # messages.success(request, f"Participant {participant.user.username} removed successfully.")
+        # logger.info(
+        #     f"Participant {participant.user.username} successfully deleted from queue {queue.id} "
+        #     f"by user {request.user}.")
+        # Update the participant's status to 'completed'
+        participant.status_user = 'completed'
+        participant.save()
+
+        messages.success(request, f"Participant {participant.user.username} marked as 'completed' successfully.")
         logger.info(
-            f"Participant {participant.user.username} successfully deleted from queue {queue.id} "
-            f"by user {request.user}.")
+            f"Participant {participant.user.username} successfully marked as 'completed' in queue {queue.id} "
+            f"by user {request.user}."
+        )
     except Exception as e:
         messages.error(request, f"Error removing participant: {e}")
         logger.error(

@@ -13,11 +13,7 @@ class Queue(models.Model):
         ('full', 'Full'),
         ('closed', 'Closed')
     ]
-    STATUS_USER = [
-        ('active', 'Active'),
-        ('completed', 'Completed'),
-        ('canceled', 'Canceled'),
-    ]
+
     name = models.CharField(max_length=255)
     description = models.TextField()
     code = models.CharField(max_length=6, unique=True, editable=False)
@@ -25,7 +21,7 @@ class Queue(models.Model):
     created_by = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     is_closed = models.BooleanField(default=False)
-    status_queue = models.CharField(max_length=10, choices=STATUS_QUEUE, default='open')
+    status = models.CharField(max_length=10, choices=STATUS_QUEUE, default='open')
 
     def save(self, *args, **kwargs) -> None:
         """
@@ -92,7 +88,7 @@ class Queue(models.Model):
             self.is_closed = is_closed
 
         if status is not None and status in dict(self.STATUS_QUEUE):
-            self.status_queue = status
+            self.status = status
 
         self.save()
 
@@ -122,7 +118,6 @@ class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     user_type = models.CharField(max_length=20, choices=[('creator', 'Queue Creator'), ('participant', 'Participant')])
     phone_no = models.CharField(max_length=15)
-    # history = models.
 
     def __str__(self) -> str:
         """
@@ -134,10 +129,17 @@ class UserProfile(models.Model):
 
 class Participant(models.Model):
     """Represents a participant in a queue."""
+    STATUS_USER = [
+        ('active', 'Active'),
+        ('completed', 'Completed'),
+        ('canceled', 'Canceled'),
+    ]
+
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     queue = models.ForeignKey(Queue, on_delete=models.CASCADE)
     joined_at = models.DateTimeField(auto_now_add=True)
     position = models.PositiveIntegerField()
+    status_user = models.CharField(max_length=10, choices=STATUS_USER, default='active')
 
     class Meta:
         unique_together = ('user', 'queue')

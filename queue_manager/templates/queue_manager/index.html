@@ -65,7 +65,7 @@
     <main>
         <div class="card">
             <div class="card-title">Current Queues</div>
-            <div class="join-btn">History</div>
+            <a href="{% url 'queue:history'%}" class="button">History</a>
             {% if queue_list %}
                 {% for queue in queue_list %}
                     <div class="card">
