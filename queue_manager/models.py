@@ -154,7 +154,7 @@ class UserProfile(models.Model):
 
 class Participant(models.Model):
     """Represents a participant in a queue."""
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
     queue = models.ForeignKey(Queue, on_delete=models.CASCADE)
     joined_at = models.DateTimeField(auto_now_add=True)
     position = models.PositiveIntegerField()

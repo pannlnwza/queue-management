@@ -132,6 +132,11 @@ def join_queue(request):
     :raises Queue.DoesNotExist: If the queue code does not exist.
     """
     if request.method == 'POST':
+        if Participant.objects.filter(user=request.user).exists():
+            messages.error(request, "You are already in a queue and cannot join another.")
+            logger.warning(f'User {request.user.username} attempted to join another queue while already in one.')
+            return redirect('queue:index')
+
         # Get the queue code from the submitted form and convert it to uppercase
         code = request.POST.get('queue_code', '').upper()
         logger.debug(
