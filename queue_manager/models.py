@@ -8,10 +8,9 @@ from django.contrib.auth.models import User
 class Queue(models.Model):
     """Represents a queue created by a user."""
     STATUS_CHOICES = [
-        ('open', 'Open'),
+        ('normal', 'Normal'),
         ('busy', 'Busy'),
         ('full', 'Full'),
-        ('closed', 'Closed')
     ]
     name = models.CharField(max_length=255)
     description = models.TextField()

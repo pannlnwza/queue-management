@@ -68,11 +68,9 @@ class IndexView(generic.ListView):
         :returns: The updated context dictionary with user's queue positions.
         """
         context = super().get_context_data(**kwargs)
-        # Get the user's participant objects to include their positions
         if self.request.user.is_authenticated:
             user_participants = Participant.objects.filter(
                 user=self.request.user)
-            # Create a dictionary to hold queue positions
             queue_positions = {
                 participant.queue.id: participant.position for participant in
                 user_participants
