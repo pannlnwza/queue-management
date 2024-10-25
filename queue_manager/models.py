@@ -21,8 +21,8 @@ class Queue(models.Model):
         ('bank', 'Bank'),
         ('service center', 'Service center')
     ]
-    name = models.CharField(max_length=255)
-    description = models.TextField()
+    name = models.CharField(max_length=50)
+    description = models.CharField(max_length=10)
     code = models.CharField(max_length=6, unique=True, editable=False)
     estimated_wait_time = models.PositiveIntegerField(default=0)
     created_by = models.ForeignKey(User, on_delete=models.CASCADE, null=True,
@@ -33,6 +33,7 @@ class Queue(models.Model):
                               default='open')
     category = models.CharField(max_length=20, choices=CATEGORY_CHOICES)
     logo = models.ImageField(upload_to='queue_logos/', blank=True, null=True)
+    capacity = models.PositiveIntegerField(null=False)
 
     def save(self, *args, **kwargs) -> None:
         """
@@ -70,7 +71,7 @@ class Queue(models.Model):
         Return a queryset of all participants in this queue.
         :returns: A queryset containing all participants of the queue.
         """
-        return len(self.participant_set.all())
+        return self.participant_set.count()
 
     def get_first_participant(self) -> 'Participant':
         """
@@ -127,6 +128,27 @@ class Queue(models.Model):
             self.status = status
 
         self.save()
+
+    @property
+    def queue_status(self):
+        """
+        Calculate the status of the queue based on the percentage of participants
+        compared to its capacity.
+
+        Returns:
+            str: "Very Busy" if the queue is 70% full or more,
+                 "Moderate Busy" if it is between 40% and 70% full,
+                 "Little Busy" if it is less than 40% full.
+        """
+        participant_count = self.get_number_of_participants()
+        if self.capacity > 0:
+            percentage_full = (participant_count / self.capacity) * 100
+            if percentage_full >= 70:
+                return "Very busy"
+            elif percentage_full >= 40:
+                return "Moderate Busy"
+            else:
+                return "Not Busy"
 
     def __str__(self) -> str:
         """

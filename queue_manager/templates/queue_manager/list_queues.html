@@ -101,12 +101,25 @@
             border-color: #ddd;
         }
         .queue-status {
-            color: #155724;
+            color: black;
             font-size: 1rem;
-            background-color: #d4edda;
             padding: 0.2rem 0.5rem;
             border-radius: 16px;
             margin-left: 0.5rem;
+        }
+        .bg-green {
+        background-color: green;
+        color: white;
+        }
+
+        .bg-yellow {
+            background-color: yellow;
+            color: black;
+        }
+
+        .bg-orange {
+            background-color: orange;
+            color: black;
         }
     </style>
 {% endblock %}
@@ -127,9 +140,17 @@
                                 <div>
                                     <div class="queue-header">
                                         <div class="queue-title">{{ queue.name }}</div>
-                                        <div class="queue-status">{{ queue.status }}</div>
+                                        <div class="queue-status
+                                        {% if queue.queue_status == 'Very Busy' %} bg-orange
+                                           {% elif queue.queue_status == 'Moderate Busy' %} bg-yellow
+                                           {% elif queue.queue_status == 'Not Busy' %} bg-green
+                                        {% endif %}">
+                                        {{ queue.queue_status }}
+                                        </div>
                                     </div>
                                     <div class="queue-info">{{ queue.description }}</div>
+                                    <div class="queue-info">Capacity: {{ queue.capacity }}</div>
+                                    {{ queue.code }}
                                     <div class="queue-info">
                                         Currently in queue:
                                         {% if queue.get_number_of_participants == 1 %}
