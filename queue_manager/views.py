@@ -362,6 +362,18 @@ def delete_queue(request, queue_id):
             f"by user {request.user}: {e}")
     return redirect('queue:manage_queues')
 
+@login_required
+def notify_next_in_line(request, participant_id):
+    message = "You are the next in line!"
+    participant = get_object_or_404(Participant, id=participant_id)
+    Notification.objects.create(participant, message)
+
+
+@login_required
+def notify_participant(request, participant_id):
+    pass
+
+
 
 def get_client_ip(request):
     """Retrieve the client's IP address from the request."""
