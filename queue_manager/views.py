@@ -107,6 +107,10 @@ class CreateQView(LoginRequiredMixin, generic.CreateView):
         form.instance.created_by = self.request.user
         return super().form_valid(form)
 
+    def form_invalid(self, form):
+        messages.error(self.request, "You cannot join your own queue.")
+        return self.render_to_response(self.get_context_data(form=form))
+
 
 @login_required
 def join_queue(request):
@@ -134,6 +138,9 @@ def join_queue(request):
                 messages.error(request, "The queue is closed.")
                 logger.info(
                     f'User {request.user.username} attempted to join queue {queue.name} that has been closed.')
+            elif request.user == queue.created_by:
+                messages.error(request, "You cannot join your own queue.")
+                logger.warning(f"Queue creator({request.user.username}) attempts to join his own queue {queue.name}.")
             elif not queue.participant_set.filter(user=request.user).exists():
                 last_position = queue.participant_set.count()
                 new_position = last_position + 1
@@ -269,13 +276,13 @@ class EditQueueView(LoginRequiredMixin, generic.UpdateView):
                 messages.error(self.request, str(e))
         return super().post(request, *args, **kwargs)
 
-
     def queue_status_handler(self):
         """Close the queue."""
         self.object.is_closed = not self.object.is_closed
         self.object.save()
         messages.success(self.request, "Queue status updated successfully.")
         return redirect('queue:manage_queues')
+
 
 class QueueDashboardView(generic.DetailView):
     model = Queue
@@ -298,6 +305,13 @@ class QueueDashboardView(generic.DetailView):
                        f'for queue "{queue.name}" (ID: {queue.pk}) without ownership.')
         messages.error(request, 'You are not the owner of this queue.')
         return redirect('queue:index')
+
+
+# class QueueHistoryView(LoginRequiredMixin, generic.ListView):
+#     model = QueueHistory
+#     template_name = 'queue_manager/history_queue.html'
+#     context_object_name = 'history'
+
 
 def get_client_ip(request):
     """Retrieve the client's IP address from the request."""

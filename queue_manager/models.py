@@ -118,6 +118,7 @@ class UserProfile(models.Model):
     user_type = models.CharField(max_length=20, choices=[('creator', 'Queue Creator'), ('participant', 'Participant')])
     phone_no = models.CharField(max_length=15)
     # history = models.
+
     def __str__(self) -> str:
         """
         Return a string representation of the user profile.
@@ -154,3 +155,10 @@ class Participant(models.Model):
         :returns: The username of the user associated with the participant.
         """
         return self.user.username
+
+
+# class QueueHistory(models.Model):
+#     user = models.ForeignKey(User, on_delete=models.CASCADE)
+#     queue = models.ForeignKey(Queue, on_delete=models.CASCADE)
+#     joined_at = models.DateTimeField(auto_now_add=True)
+#     status = models.CharField()
