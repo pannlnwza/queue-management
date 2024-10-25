@@ -13,7 +13,7 @@ class QueueModelTest(TestCase):
         Set up the test case by creating a test user and a test queue.
         """
         self.user = User.objects.create(username='creator')
-        self.queue = Queue.objects.create(name='Test Queue', created_by=self.user)
+        self.queue = Queue.objects.create(name='Test Queue', created_by=self.user, capacity=10)
 
     def test_queue_creation(self):
         """
@@ -48,7 +48,7 @@ class ParticipantModelTest(TestCase):
         Set up the test case by creating a test user, a test queue, and a participant.
         """
         self.user = User.objects.create(username='participant')
-        self.queue = Queue.objects.create(name='Test Queue')
+        self.queue = Queue.objects.create(name='Test Queue', capacity=10)
         self.participant = Participant.objects.create(user=self.user, queue=self.queue, position=1)
 
     def test_participant_creation(self):

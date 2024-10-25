@@ -14,7 +14,7 @@ class JoinQueueViewTests(TestCase):
         Set up the test case by creating a test user and a test queue.
         """
         self.user = User.objects.create_user(username='testuser', password='testpassword')
-        self.queue = Queue.objects.create(name='Test Queue', description='A test queue')
+        self.queue = Queue.objects.create(name='Test Queue', description='A test queue', capacity=10)
 
     def test_join_queue_success(self):
         """

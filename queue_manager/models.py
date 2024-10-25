@@ -21,6 +21,7 @@ class Queue(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     is_closed = models.BooleanField(default=False)
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='open')
+    capacity = models.PositiveIntegerField(null=False, blank=False)
 
     def save(self, *args, **kwargs) -> None:
         """
@@ -66,6 +67,10 @@ class Queue(models.Model):
         today = timezone.now().date()
         return self.participant_set.filter(created_at__date=today).count()
 
+    def is_full(self):
+        """Check if the queue is full."""
+        return self.participant_set.count() >= self.capacity
+
     def edit(self, name: str = None, description: str = None, is_closed: bool = None, status: str = None) -> None:
         """
         Edit the queue's name, description, or closed status.
@@ -90,6 +95,27 @@ class Queue(models.Model):
             self.status = status
 
         self.save()
+
+    @property
+    def queue_status(self):
+        """
+        Calculate the status of the queue based on the percentage of participants
+        compared to its capacity.
+
+        Returns:
+            str: "Very Busy" if the queue is 70% full or more,
+                 "Moderate Busy" if it is between 40% and 70% full,
+                 "Little Busy" if it is less than 40% full.
+        """
+        participant_count = self.participant_set.count()
+        if self.capacity > 0:
+            percentage_full = (participant_count / self.capacity) * 100
+            if percentage_full >= 70:
+                return "Very busy"
+            elif percentage_full >= 40:
+                return "Moderate Busy"
+            else:
+                return "Not Busy"
 
     def __str__(self) -> str:
         """
@@ -147,6 +173,15 @@ class Participant(models.Model):
             raise ValueError("Position cannot be negative.")
         self.position = new_position
         self.save()
+
+    def calculate_estimated_wait_time(self):
+        """
+        Calculate the estimated wait time for this participant in the queue.
+
+        :returns: The estimated wait time in minutes.
+        """
+        average_service_time_per_participant = self.queue.estimated_wait_time
+        return average_service_time_per_participant * self.position
 
     def __str__(self) -> str:
         """

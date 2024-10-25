@@ -12,6 +12,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.signals import user_logged_in, user_logged_out, \
     user_login_failed
 from django.dispatch import receiver
+from datetime import datetime, timedelta
 
 logger = logging.getLogger('queue')
 
@@ -77,7 +78,18 @@ class IndexView(generic.ListView):
                 participant.queue.id: participant.position for participant in
                 user_participants
             }
+            estimated_time = {
+                participant.queue.id: participant.calculate_estimated_wait_time() for participant in
+                user_participants
+            }
+            expected_service_time = {
+                participant.queue.id: datetime.now() + timedelta(
+                    minutes=participant.calculate_estimated_wait_time())
+                for participant in user_participants
+            }
             context['queue_positions'] = queue_positions
+            context['estimated_wait_time'] = estimated_time
+            context['expected_service_time'] = expected_service_time
         return context
 
 
@@ -131,7 +143,7 @@ def join_queue(request):
                 f'Queue found: {queue.name} for user {request.user.username}')
             # Check if the user is already a participant in the queue
             if queue.is_closed:
-                messages.success(request, "The queue is closed.")
+                messages.error(request, "The queue is closed.")
                 logger.info(
                     f'User {request.user.username} attempted to join queue {queue.name} that has been closed.')
             elif not queue.participant_set.filter(user=request.user).exists():
@@ -181,7 +193,6 @@ class QueueListView(generic.ListView):
         """
         return Queue.objects.all()
 
-      
 class ManageQueuesView(LoginRequiredMixin, generic.ListView):
     """
     Manage queues.
@@ -226,7 +237,8 @@ class EditQueueView(LoginRequiredMixin, generic.UpdateView):
         """
         queue = self.get_object()
         if queue.created_by != request.user:
-            messages.error(self.request, "You do not have permission to edit this queue.")
+            messages.error(self.request,
+                           "You do not have permission to edit this queue.")
             logger.warning(
                 f"Unauthorized attempt to access edit queue page for queue: {queue.name} by user: {request.user}")
             return redirect('queue:manage_queues')
@@ -263,7 +275,8 @@ class EditQueueView(LoginRequiredMixin, generic.UpdateView):
             description = request.POST.get('description')
             is_closed = request.POST.get('is_closed') == 'true'
             try:
-                self.object.edit(name=name, description=description, is_closed=is_closed)
+                self.object.edit(name=name, description=description,
+                                 is_closed=is_closed)
                 messages.success(self.request, "Queue updated successfully.")
             except ValueError as e:
                 messages.error(self.request, str(e))
@@ -294,8 +307,9 @@ class QueueDashboardView(generic.DetailView):
             logger.info(f'User {request.user.username} accessed the '
                         f'dashboard for queue "{queue.name}" with ID {queue.pk}.')
             return super().get(request, *args, **kwargs)
-        logger.warning(f'User {request.user.username} attempted to access the dashboard '
-                       f'for queue "{queue.name}" (ID: {queue.pk}) without ownership.')
+        logger.warning(
+            f'User {request.user.username} attempted to access the dashboard '
+            f'for queue "{queue.name}" (ID: {queue.pk}) without ownership.')
         messages.error(request, 'You are not the owner of this queue.')
         return redirect('queue:index')
 
@@ -306,13 +320,15 @@ def delete_participant(request, participant_id):
     try:
         participant = Participant.objects.get(id=participant_id)
     except Participant.DoesNotExist:
-        messages.error(request, f"Participant with ID {participant_id} does not exist.")
+        messages.error(request,
+                       f"Participant with ID {participant_id} does not exist.")
         logger.error(f"Participant id: {participant_id} does not exist.")
         return redirect('queue:index')
     queue = participant.queue
 
     if queue.created_by != request.user:
-        messages.error(request, "You are not authorized to delete participants from this queue.")
+        messages.error(request,
+                       "You are not authorized to delete participants from this queue.")
         logger.warning(
             f"Unauthorized delete attempt by user {request.user} "
             f"for participant {participant_id} in queue {queue.id}.")
@@ -327,6 +343,7 @@ def delete_participant(request, participant_id):
             p.save()
 
         messages.success(request, f"Participant {participant.user.username} removed successfully.")
+
         logger.info(
             f"Participant {participant.user.username} successfully deleted from queue {queue.id} "
             f"by user {request.user}.")
@@ -393,4 +410,3 @@ def user_login_failed(credentials, request, **kwargs):
     ip = get_client_ip(request)
     logger.warning(f"Failed login attempt for user "
                    f"{credentials.get('username')} from {ip}")
-
