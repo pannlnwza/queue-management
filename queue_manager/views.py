@@ -324,7 +324,8 @@ class QueueHistoryView(LoginRequiredMixin, generic.ListView):
         context['created_queues'] = Queue.objects.filter(created_by=user)
         # Get joined queues with participant information
         context['joined_queues'] = Queue.objects.filter(participant__user=user).annotate(
-            participant_status=models.F('participant__status_user')
+            participant_status=models.F('participant__status_user'),
+            participant_joined_at=models.F('participant__joined_at')
         )
         return context
 

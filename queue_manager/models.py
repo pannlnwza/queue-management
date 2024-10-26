@@ -142,7 +142,15 @@ class Participant(models.Model):
     status_user = models.CharField(max_length=10, choices=STATUS_USER, default='active')
 
     class Meta:
-        unique_together = ('user', 'queue')
+        # unique_together = ('user', 'queue')
+        # Add a new constraint that only prevents duplicate active participants
+        constraints = [
+            models.UniqueConstraint(
+                fields=['user', 'queue'],
+                condition=models.Q(status_user='active'),
+                name='unique_active_participant'
+            )
+        ]
 
     def update_position(self, new_position: int) -> None:
         """

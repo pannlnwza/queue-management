@@ -57,12 +57,11 @@
             {% for queue in joined_queues %}
                 <div class="list-group-item">
                     <h3 class="mb-1">{{ queue.name }}</h3>
-                    <p class="mb-1">Code: {{ queue.code }}</p>
-                    <p class="mb-1">Created by: {{ queue.created_by.username }}</p>
-                    <p class="mb-1">Status: {{ queue.participant_status }}</p>
                     {% if queue.description %}
                         <p class="mb-1">Description: {{ queue.description }}</p>
                     {% endif %}
+                    <p class="mb-1">Joined at: {{ queue.participant_joined_at }}</p>
+                    <p class="mb-1">Status: {{ queue.participant_status }}</p>
                 </div>
             {% endfor %}
             </div>
