@@ -20,7 +20,6 @@
             width: 1000px;
             border-radius: 8px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            margin: auto;
             padding: 1.5rem;
             transition: box-shadow 0.3s ease;
         }
@@ -39,9 +38,9 @@
             border-radius: 8px;
             padding: 1rem;
             margin-bottom: 1rem;
-            transition: background-color 0.3s ease, border-color 0.3s ease;
             display: flex;
             align-items: center;
+            transition: background-color 0.3s ease, box-shadow 0.3s ease;
         }
         .queue-block.open {
             background-color: #fafafa;
@@ -79,6 +78,7 @@
             margin-top: 1rem;
             margin-bottom: 2rem;
             text-align: center;
+            font-weight: bold;
         }
         .status-badge-green {
             background-color: #d4edda;
@@ -94,22 +94,23 @@
             text-align: center;
         }
         .queue-block.closed {
-            background-color: #fff;
+            background-color: #f7f7f7;
             border-color: #ddd;
+            opacity: 0.8;
         }
         .queue-block.closed:hover {
-            background-color: #fff;
-            border-color: #ddd;
+            background-color: #f0f0f0;
+            border-color: #ccc;
+            box-shadow: none;
         }
         .queue-status {
-            color: black;
+            color: white;
             font-size: 0.9rem;
             padding: 0.2rem 0.5rem;
             border-radius: 16px;
             margin-left: 0.5rem;
         }
         .status-bg {
-            color: white;
             font-weight: bold;
         }
         .status-bg-green {
@@ -148,7 +149,7 @@
                                            {% elif queue.queue_status == 'Moderate Busy' %} status-bg-yellow
                                            {% elif queue.queue_status == 'Not Busy' %} status-bg-green
                                         {% endif %}">
-                                        {{ queue.queue_status }}
+                                            {{ queue.queue_status }}
                                         </div>
                                     </div>
                                     <div class="queue-info">{{ queue.description }}</div>
@@ -203,4 +204,3 @@
         </div>
     </main>
 {% endblock %}
-    
