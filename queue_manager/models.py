@@ -67,8 +67,12 @@ class Queue(models.Model):
         today = timezone.now().date()
         return self.participant_set.filter(created_at__date=today).count()
 
+    def get_active_participants(self):
+        """Get all active participants in the queue."""
+        return self.participant_set.filter(status_user='active')
+
     def get_active_count(self):
-        return (self.participant_set.filter(status_user='active')).count()
+        return self.get_active_participants().count()
 
     def edit(self, name: str = None, description: str = None, is_closed: bool = None, status: str = None) -> None:
         """

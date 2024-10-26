@@ -102,32 +102,29 @@
                 </tr>
                 </thead>
                 <tbody>
-                {% if participant.status_user == 'active'%}
-                    {% for participant in queue.participant_set.all %}
+                {% with active_participants=queue.get_active_participants %}
+                    {% if active_participants %}
+                        {% for participant in active_participants %}
+                            <tr>
+                                <td>{{ forloop.counter }}</td>
+                                <td>{{ participant.user.username }}</td>
+                                <td>{{ participant.joined_at }}</td>
+                                <td>{{ queue.estimated_wait_time }} min</td>
+                                <td>
+                                    <a href="{% url 'queue:delete' participant.id %}" class="text-danger ms-3"
+                                       title="Remove Participant"
+                                       onclick="return confirm('Are you sure you want to remove this participant?');">
+                                        <i class="bi bi-x-circle-fill"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    {% else %}
                         <tr>
-                            <td>{{ forloop.counter }}</td>
-                            <td>{{ participant.user.username }}</td>
-                            <td>{{ participant.joined_at }}</td>
-                            <td>{{ queue.estimated_wait_time }} min</td>
-                            {# will change to estimated wait time for each participant later #}
-                            <td>
-                                {#<a href="#" class="text-primary ms-2 me-3" title="Notify User">#}
-                                {# will be added later #}
-                                {#<i class="bi bi-alarm-fill"></i>#}
-                                {#</a>#}
-                                <a href="{% url 'queue:delete' participant.id %}" class="text-danger ms-3"
-                                   title="Remove Participant"
-                                   onclick="return confirm('Are you sure you want to remove this participant?');">
-                                    <i class="bi bi-x-circle-fill"></i>
-                                </a>
-                            </td>
+                            <td colspan="5" class="text-center">No participants in the queue</td>
                         </tr>
-                    {% endfor %}
-                {% else %}
-                <tr>
-                    <td colspan="5" class="text-center">No participants in the queue</td>
-                </tr>
-                {% endif %}
+                    {% endif %}
+                {% endwith %}
                 </tbody>
             </table>
         </div>
