@@ -191,4 +191,4 @@ class Participant(models.Model):
         Return a string representation of the participant.
         :returns: The username of the user associated with the participant.
         """
-        return self.user.username
+        return self.user.username if self.user else "-"
