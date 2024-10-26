@@ -3,6 +3,7 @@ import random
 from django.utils import timezone
 from django.db import models
 from django.contrib.auth.models import User
+from django.templatetags.static import static
 
 
 class Queue(models.Model):
@@ -12,24 +13,36 @@ class Queue(models.Model):
         ('busy', 'Busy'),
         ('full', 'Full'),
     ]
+    CATEGORY_CHOICES = [
+        ('restaurant', 'Restaurant'),
+        ('general', 'General'),
+        ('hospital', 'Hospital'),
+        ('bank', 'Bank'),
+        ('service center', 'Service center')
+    ]
     name = models.CharField(max_length=255)
-    description = models.TextField()
-    # code = models.CharField(max_length=6, unique=True, editable=False)
+    description = models.TextField(max_length=100)
     estimated_wait_time = models.PositiveIntegerField(default=0)
-    created_by = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
+    created_by = models.ForeignKey(User, on_delete=models.CASCADE, null=True,
+                                   blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     is_closed = models.BooleanField(default=False)
-    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='open')
-    capacity = models.PositiveIntegerField(null=False, blank=False)
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES,
+                              default='open')
+    category = models.CharField(max_length=20, choices=CATEGORY_CHOICES)
+    logo = models.ImageField(upload_to='queue_logos/', blank=True, null=True)
+    capacity = models.PositiveIntegerField(null=False)
 
-    def update_estimated_wait_time(self, average_time_per_participant: int) -> None:
+    def update_estimated_wait_time(self,
+                                   average_time_per_participant: int) -> None:
         """Update the estimated wait time based on the number of participants.
 
         :param average_time_per_participant: Average time per participant in minutes.
         :raises ValueError: If the average time per participant is negative.
         """
         if average_time_per_participant < 0:
-            raise ValueError("Average time per participant cannot be negative.")
+            raise ValueError(
+                "Average time per participant cannot be negative.")
 
         num_participants = self.participant_set.count()
         self.estimated_wait_time = num_participants * average_time_per_participant
@@ -41,6 +54,13 @@ class Queue(models.Model):
         :returns: A queryset containing all participants of the queue.
         """
         return self.participant_set.all()
+
+    def get_number_of_participants(self) -> int:
+        """
+        Return a queryset of all participants in this queue.
+        :returns: A queryset containing all participants of the queue.
+        """
+        return self.participant_set.count()
 
     def get_first_participant(self) -> 'Participant':
         """
@@ -57,11 +77,26 @@ class Queue(models.Model):
         today = timezone.now().date()
         return self.participant_set.filter(joined_at__date=today).count()
 
+    def get_logo_url(self):
+        """Get a logo url for queue."""
+        if self.logo:
+            return self.logo.url
+        default_logos = {
+            'restaurant': static(
+                'queue_manager/images/restaurant_default_logo.png'),
+            'bank': static('queue_manager/images/bank_default_logo.jpg'),
+            'general': static('queue_manager/images/general_default_logo.png'),
+            'hospital': static('queue_manager/images/hospital_default_logo.jpg'),
+            'service center': static('queue_manager/images/service_center_default_logo.png')
+        }
+        return default_logos.get(str(self.category))
+
     def is_full(self):
         """Check if the queue is full."""
         return self.participant_set.count() >= self.capacity
 
-    def edit(self, name: str = None, description: str = None, is_closed: bool = None, status: str = None) -> None:
+    def edit(self, name: str = None, description: str = None,
+             is_closed: bool = None, status: str = None) -> None:
         """
         Edit the queue's name, description, or closed status.
 
@@ -73,7 +108,8 @@ class Queue(models.Model):
         """
         if name is not None:
             if len(name) < 1 or len(name) > 255:
-                raise ValueError("The name must be between 1 and 255 characters.")
+                raise ValueError(
+                    "The name must be between 1 and 255 characters.")
             self.name = name
         if description is not None:
             self.description = description
@@ -97,11 +133,11 @@ class Queue(models.Model):
                  "Moderate Busy" if it is between 40% and 70% full,
                  "Little Busy" if it is less than 40% full.
         """
-        participant_count = self.participant_set.count()
+        participant_count = self.get_number_of_participants()
         if self.capacity > 0:
             percentage_full = (participant_count / self.capacity) * 100
             if percentage_full >= 70:
-                return "Very busy"
+                return "Very Busy"
             elif percentage_full >= 40:
                 return "Moderate Busy"
             else:
@@ -118,7 +154,9 @@ class Queue(models.Model):
 class UserProfile(models.Model):
     """Represents a user profile in the system."""
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-    user_type = models.CharField(max_length=20, choices=[('creator', 'Queue Creator'), ('participant', 'Participant')])
+    user_type = models.CharField(max_length=20,
+                                 choices=[('creator', 'Queue Creator'),
+                                          ('participant', 'Participant')])
     phone_no = models.CharField(max_length=15)
 
     def __str__(self) -> str:
