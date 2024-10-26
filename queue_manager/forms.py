@@ -28,15 +28,3 @@ class QueueForm(forms.ModelForm):
             'logo': forms.ClearableFileInput(
                 attrs={'class': 'form-control', 'accept': 'image/*'})
         }
-
-    error_messages = {
-        'name': {
-            'required': 'Please enter a name for the queue.',
-        },
-        'capacity': {
-            'required': 'Please enter a capacity for the queue.',
-        },
-        'estimated_wait_time': {
-            'required': 'Please enter an estimated wait time.',
-        }
-    }

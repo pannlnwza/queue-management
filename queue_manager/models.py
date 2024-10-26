@@ -34,15 +34,6 @@ class Queue(models.Model):
     logo = models.ImageField(upload_to='queue_logos/', blank=True, null=True)
     capacity = models.PositiveIntegerField(null=False)
 
-    def save(self, *args, **kwargs) -> None:
-        """
-        Save the queue instance, generating a unique code if not provided.
-        :raises ValueError: If generating a unique code fails.
-        """
-        if not self.code:
-            self.code = self.generate_unique_code()
-        super().save(*args, **kwargs)
-
     def update_estimated_wait_time(self,
                                    average_time_per_participant: int) -> None:
         """Update the estimated wait time based on the number of participants.
@@ -143,11 +134,11 @@ class Queue(models.Model):
                  "Moderate Busy" if it is between 40% and 70% full,
                  "Little Busy" if it is less than 40% full.
         """
-        participant_count = self.participant_set.count()
+        participant_count = self.get_number_of_participants()
         if self.capacity > 0:
             percentage_full = (participant_count / self.capacity) * 100
             if percentage_full >= 70:
-                return "Very busy"
+                return "Very Busy"
             elif percentage_full >= 40:
                 return "Moderate Busy"
             else:
