@@ -115,7 +115,7 @@
                                 <div class="stat-value">{{ queue.get_status_display }}</div>
                             </div>
                             {% if queue.id in active_queues %}
-                                <div class="leave-queue-btn">
+                                <div class="leave-queue-btn {% if not is_editing %}d-none{% endif %}">
                                     <form method="POST" action="{% url 'queue:leave_queue' queue.id %}" class="d-inline"
                                           onsubmit="return confirm('Are you sure you want to leave this queue? This action cannot be undone.');">
                                         {% csrf_token %}
@@ -145,23 +145,25 @@
     </main>
 
     <script>
-        function toggleEditMode() {
-            const leaveButtons = document.querySelectorAll('.leave-queue-btn');
-            const editBtn = document.querySelector('.edit-btn');
+    function toggleEditMode() {
+        const leaveButtons = document.querySelectorAll('.leave-queue-btn');
+        const editBtn = document.querySelector('.edit-btn');
 
-            let isEditing = editBtn.textContent === 'Done';
+        // Check if we are currently in editing mode
+        let isEditing = editBtn.textContent === 'Done';
 
-            leaveButtons.forEach(btn => {
-                if (isEditing) {
-                    btn.classList.add('d-none'); // Hide if currently editing
-                } else {
-                    btn.classList.remove('d-none'); // Show if not editing
-                }
-            });
+        leaveButtons.forEach(btn => {
+            if (isEditing) {
+                btn.classList.add('d-none'); // Hide buttons when editing
+            } else {
+                btn.classList.remove('d-none'); // Show buttons when not editing
+            }
+        });
 
-            editBtn.textContent = isEditing ? 'Edit' : 'Done';
-            editBtn.style.backgroundColor = isEditing ? '#6c757d' : '#28a745';
-        }
+        // Toggle the button text and style
+        editBtn.textContent = isEditing ? 'Edit' : 'Done';
+        editBtn.style.backgroundColor = isEditing ? '#6c757d' : '#28a745';
+    }
     </script>
 {% endblock %}
 
