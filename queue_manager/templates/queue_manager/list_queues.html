@@ -30,7 +30,7 @@
         .card-title {
             font-size: 1.6rem;
             font-weight: bold;
-            margin-bottom: 1rem;
+            margin-top: 1.2rem;
             text-align: center;
             color: #333;
         }
@@ -149,8 +149,6 @@
                                         </div>
                                     </div>
                                     <div class="queue-info">{{ queue.description }}</div>
-<!--                                    <div class="queue-info">Capacity: {{ queue.capacity }}</div>-->
-<!--                                    {{ queue.code }}-->
                                     <div class="queue-info">
                                         Currently in queue:
                                         {% if queue.get_number_of_participants == 1 %}

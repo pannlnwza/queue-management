@@ -13,6 +13,10 @@ class QueueForm(forms.ModelForm):
     class Meta:
         model = Queue
         fields = ['name', 'logo', 'description', 'capacity', 'category', 'estimated_wait_time']
+        labels = {
+            'logo': 'Logo (Optional)',
+            'estimated_wait_time': 'Estimated wait time (minutes)'
+        }
         widgets = {
             'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter Queue Name (Max Length: 50)'}),
             'description': forms.Textarea(
