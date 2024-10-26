@@ -9,10 +9,9 @@ from django.contrib.auth.models import User
 class Queue(models.Model):
     """Represents a queue created by a user."""
     STATUS_CHOICES = [
-        ('open', 'Open'),
+        ('normal', 'Normal'),
         ('busy', 'Busy'),
         ('full', 'Full'),
-        ('closed', 'Closed')
     ]
     name = models.CharField(max_length=255)
     description = models.TextField()
@@ -57,7 +56,7 @@ class Queue(models.Model):
         :return: Number of participants added today.
         """
         today = timezone.now().date()
-        return self.participant_set.filter(created_at__date=today).count()
+        return self.participant_set.filter(joined_at__date=today).count()
 
     def is_full(self):
         """Check if the queue is full."""

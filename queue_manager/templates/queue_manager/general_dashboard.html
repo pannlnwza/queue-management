@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block extra_head %}
     <style>
@@ -8,19 +9,19 @@
             font-size: 0.8em;
             color: white;
         }
-        
+
         .status-active {
             background-color: green;
         }
-        
+
         .status-busy {
             background-color: orange;
         }
-        
+
         .status-full {
-            background-color: red; 
+            background-color: red;
         }
-        
+
         .status-closed {
             background-color: gray;
         }
@@ -32,7 +33,7 @@
             margin-bottom: 20px;
         }
 
-        .card-value {
+        .stat-value {
             font-size: 2em;
             font-weight: bold;
             color: #007bff;
@@ -42,7 +43,7 @@
 
 {% block content %}
     <div class="container mt-4">
-        <h2>{{ queue.name }}</h2>
+        <h2 class="queue-name">{{ queue.name }}</h2>
         <p>Status:
             <span class="status-badge 
                 {% if queue.status == 'open' %}status-active
@@ -62,13 +63,19 @@
             <div class="col-md-3">
                 <div class="card">
                     <h6>Current Queue Length</h6>
-                    <div class="card-value">{{ queue.get_participants.count }}</div>
+                    <div class="stat-value current-queue-length"></div>
                 </div>
             </div>
             <div class="col-md-3">
                 <div class="card">
                     <h6>Estimated Wait Time</h6>
-                    <div class="card-value">{{ queue.estimated_wait_time }} min</div>
+                    <div class="stat-value estimated-wait-time"></div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card">
+                    <h6>Participants Today</h6>
+                    <div class="stat-value participants-today"></div>
                 </div>
             </div>
         </div>
@@ -107,11 +114,68 @@
                         <td colspan="5" class="text-center">No participants in the queue</td>
                     </tr>
                 {% endfor %}
+
                 </tbody>
+                <tr class="no-participants" style="display: none;">
+                    <td colspan="5" class="text-center">No participants in the queue.</td>
+                </tr>
             </table>
         </div>
         <div>
             <a href="{% url 'queue:add_participant_slot' queue.id %}"  class="btn btn-secondary me-md-2 mb-3">Add Participant Slot</a>
         </div>
     </div>
+
+        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+            <a class="btn btn-danger me-md-2 mb-3" type="button" href="{% url 'queue:delete_queue' queue.id %}"
+               title="Delete Queue"
+               onclick="return confirm('Are you sure you want to delete this queue?');">Delete This Queue</a>
+        </div>
+    </div>
+
+    <script>
+        const queueId = {{ queue.id }};
+        const eventSource = new EventSource(`/api/queue-dashboard-stream/${queueId}/`);
+
+        eventSource.onmessage = function (event) {
+            const data = JSON.parse(event.data);
+
+            document.querySelector('.queue-name').innerText = data.name;
+            document.querySelector('.current-queue-length').innerText = data.current_queue_length;
+            document.querySelector('.estimated-wait-time').innerText = data.estimated_wait_time + ' min';
+            document.querySelector('.participants-today').innerText = data.participants_today;
+
+            const tbody = document.querySelector('tbody');
+            tbody.innerHTML = '';
+
+            if (data.participants.length === 0) {
+                document.querySelector('.no-participants').style.display = 'table-row';
+            } else {
+                document.querySelector('.no-participants').style.display = 'none';
+                data.participants.forEach((participant) => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                    <td>${participant.position}</td>
+                    <td>${participant.username}</td>
+                    <td>${participant.joined_at}</td>
+                    <td>${participant.estimated_wait_time} min</td>
+                    <td>
+                        <a href="/queue/delete/${participant.id}/" class="text-danger ms-3"
+                           title="Remove Participant"
+                           onclick="return confirm('Are you sure you want to remove this participant?');">
+                            <i class="bi bi-x-circle-fill"></i>
+                        </a>
+                    </td>
+                `;
+                    tbody.appendChild(row);
+                });
+            }
+        };
+
+        eventSource.onerror = function (event) {
+            console.error('Error with SSE:', event);
+            eventSource.close();
+        };
+    </script>
 {% endblock %}
+
