@@ -12,12 +12,25 @@ class QueueForm(forms.ModelForm):
 
     class Meta:
         model = Queue
-        fields = ['name', 'description', 'estimated_wait_time']
+        fields = ['name', 'description', 'capacity', 'estimated_wait_time']
         widgets = {
             'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter Queue Name'}),
             'description': forms.Textarea(
                 attrs={'class': 'form-control', 'placeholder': 'Enter Description', 'rows': 4}),
+            'capacity': forms.NumberInput(attrs={'class': 'form-control',
+                                                 'placeholder': 'Enter Queue Capacity'}),
             'estimated_wait_time': forms.NumberInput(attrs={'class': 'form-control',
                                                             'placeholder': 'Enter Estimated Wait Time (minutes)'}),
         }
 
+    error_messages = {
+        'name': {
+            'required': 'Please enter a name for the queue.',
+        },
+        'capacity': {
+            'required': 'Please enter a capacity for the queue.',
+        },
+        'estimated_wait_time': {
+            'required': 'Please enter an estimated wait time.',
+        }
+    }

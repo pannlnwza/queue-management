@@ -10,6 +10,7 @@ class QueueFormTest(TestCase):
         form_data = {
             'name': 'Test Queue',
             'description': 'This is a test queue description.',
+            'capacity': 10,
             'estimated_wait_time': 10
         }
         form = QueueForm(data=form_data)
@@ -20,6 +21,7 @@ class QueueFormTest(TestCase):
         form_data = {
             'name': '',
             'description': '',
+            'capacity': 10,
             'estimated_wait_time': 'Ten',
         }
         form = QueueForm(data=form_data)

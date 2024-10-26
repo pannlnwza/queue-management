@@ -18,6 +18,7 @@ urlpatterns = [
     path('manage/', ManageQueuesView.as_view(), name='manage_queues'),
     path('queue/<int:pk>/edit/', EditQueueView.as_view(), name='edit_queue'),
     path('queue/<int:queue_id>/delete/', delete_queue, name='delete_queue'),
+    path('queue/<int:queue_id>/add-participant/', add_participant_slot, name='add_participant_slot'),
     path('notify/<int:participant_id>/', notify_participant, name='notify_participant'),
     path('api/notification-stream/', notification_stream, name='notification_stream'),
 ]
