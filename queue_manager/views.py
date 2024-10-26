@@ -57,7 +57,8 @@ class IndexView(generic.ListView):
         :returns: A queryset of queues the user is participating in, or an empty queryset if not authenticated.
         """
         if self.request.user.is_authenticated:
-            return Queue.objects.filter(participant__user=self.request.user)
+            return Queue.objects.filter(participant__user=self.request.user,
+                                        participant__status_user='active')
         return Queue.objects.none()
 
     def get_context_data(self, **kwargs):
@@ -71,12 +72,24 @@ class IndexView(generic.ListView):
         # Get the user's participant objects to include their positions
         if self.request.user.is_authenticated:
             user_participants = Participant.objects.filter(
-                user=self.request.user)
+                user=self.request.user,
+                status_user='active'
+            )
             # Create a dictionary to hold queue positions
-            queue_positions = {
-                participant.queue.id: participant.position for participant in
-                user_participants
-            }
+            # queue_positions = {
+            #     participant.queue.id: participant.position for participant in
+            #     user_participants
+            # }
+            queue_positions = {}
+            for participant in user_participants:
+                # Calculate position based on active participants only
+                position = Participant.objects.filter(
+                    queue=participant.queue,
+                    status_user='active',
+                    joined_at__lte=participant.joined_at
+                ).count()
+                queue_positions[participant.queue.id] = position
+
             context['queue_positions'] = queue_positions
         return context
 
