@@ -1,4 +1,3 @@
-import datetime
 import string
 import random
 from django.utils import timezone
@@ -143,7 +142,7 @@ class Participant(models.Model):
 
     def insert_user(self, user):
         self.user = user
-        self.joined_at = datetime.datetime.now()
+        self.joined_at = timezone.localtime(timezone.now())
 
     def update_position(self, new_position: int) -> None:
         """
@@ -191,4 +190,4 @@ class Participant(models.Model):
         Return a string representation of the participant.
         :returns: The username of the user associated with the participant.
         """
-        return self.user.username
+        return self.user.username if self.user else "-"

@@ -1,15 +1,13 @@
+import json
 import logging
 import time
 
 from django.contrib.auth.decorators import login_required
-from django.http import JsonResponse, StreamingHttpResponse
-
-import json
-
+from django.http import StreamingHttpResponse
 from django.shortcuts import get_object_or_404
+from django.utils import timezone
 
 from queue_manager.models import Queue
-
 
 logger = logging.getLogger('queue')
 
@@ -17,6 +15,7 @@ logger = logging.getLogger('queue')
 @login_required
 def queue_stream(request):
     """Stream queue data updates to the client."""
+
     def event_stream():
         last_data = None
         while True:
@@ -43,6 +42,7 @@ def queue_stream(request):
                 yield f"data: {json.dumps({'error': 'Internal server error'})}\n\n"
                 break
             time.sleep(1)  # check for changes every second
+
     return StreamingHttpResponse(event_stream(), content_type='text/event-stream')
 
 
@@ -58,10 +58,12 @@ def queue_dashboard_stream(request, queue_id):
                 participants = [
                     {
                         'id': participant.id,
-                        'username': participant.user.username,
+                        'username': participant.user.username if participant.user else "-",
                         'position': participant.position,
-                        'joined_at': participant.joined_at.strftime('%Y-%m-%d %H:%M:%S'),
-                        'estimated_wait_time': queue.estimated_wait_time
+                        'joined_at': timezone.localtime(participant.joined_at).strftime(
+                            '%d-%m-%Y %H:%M:%S') if participant.joined_at else "-",
+                        'estimated_wait_time': queue.estimated_wait_time,
+                        'queue_code': participant.queue_code
                     }
                     for participant in queue.participant_set.all()
                 ]
