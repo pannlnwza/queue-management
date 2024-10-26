@@ -1,3 +1,4 @@
+import datetime
 import string
 import random
 from django.utils import timezone
@@ -9,10 +10,9 @@ from django.templatetags.static import static
 class Queue(models.Model):
     """Represents a queue created by a user."""
     STATUS_CHOICES = [
-        ('open', 'Open'),
+        ('normal', 'Normal'),
         ('busy', 'Busy'),
         ('full', 'Full'),
-        ('closed', 'Closed')
     ]
     CATEGORY_CHOICES = [
         ('restaurant', 'Restaurant'),
@@ -23,7 +23,6 @@ class Queue(models.Model):
     ]
     name = models.CharField(max_length=255)
     description = models.TextField(max_length=100)
-    code = models.CharField(max_length=6, unique=True, editable=False)
     estimated_wait_time = models.PositiveIntegerField(default=0)
     created_by = models.ForeignKey(User, on_delete=models.CASCADE, null=True,
                                    blank=True)
@@ -86,7 +85,7 @@ class Queue(models.Model):
         :return: Number of participants added today.
         """
         today = timezone.now().date()
-        return self.participant_set.filter(created_at__date=today).count()
+        return self.participant_set.filter(joined_at__date=today).count()
 
     def get_logo_url(self):
         """Get a logo url for queue."""
@@ -101,6 +100,10 @@ class Queue(models.Model):
             'service center': static('queue_manager/images/service_center_default_logo.png')
         }
         return default_logos.get(str(self.category))
+
+    def is_full(self):
+        """Check if the queue is full."""
+        return self.participant_set.count() >= self.capacity
 
     def edit(self, name: str = None, description: str = None,
              is_closed: bool = None, status: str = None) -> None:
@@ -140,11 +143,11 @@ class Queue(models.Model):
                  "Moderate Busy" if it is between 40% and 70% full,
                  "Little Busy" if it is less than 40% full.
         """
-        participant_count = self.get_number_of_participants()
+        participant_count = self.participant_set.count()
         if self.capacity > 0:
             percentage_full = (participant_count / self.capacity) * 100
             if percentage_full >= 70:
-                return "Very Busy"
+                return "Very busy"
             elif percentage_full >= 40:
                 return "Moderate Busy"
             else:
@@ -156,19 +159,6 @@ class Queue(models.Model):
         :returns: The name of the queue.
         """
         return self.name
-
-    @staticmethod
-    def generate_unique_code(length: int = 6) -> str:
-        """
-        Generate a unique code consisting of uppercase letters and digits.
-        :param length: The length of the code to be generated (default is 6).
-        :returns: A unique code that does not exist in the Queue table.
-        """
-        characters = string.ascii_uppercase + string.digits
-        while True:
-            code = ''.join(random.choices(characters, k=length))
-            if not Queue.objects.filter(code=code).exists():
-                return code
 
 
 class UserProfile(models.Model):
@@ -189,13 +179,18 @@ class UserProfile(models.Model):
 
 class Participant(models.Model):
     """Represents a participant in a queue."""
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.OneToOneField(User, on_delete=models.CASCADE, null=True)
     queue = models.ForeignKey(Queue, on_delete=models.CASCADE)
-    joined_at = models.DateTimeField(auto_now_add=True)
-    position = models.PositiveIntegerField()
+    joined_at = models.DateTimeField(null=True)
+    position = models.PositiveIntegerField(null=True)
+    queue_code = models.CharField(max_length=6, unique=True, editable=False)
 
     class Meta:
         unique_together = ('user', 'queue')
+
+    def insert_user(self, user):
+        self.user = user
+        self.joined_at = datetime.datetime.now()
 
     def update_position(self, new_position: int) -> None:
         """
@@ -208,6 +203,35 @@ class Participant(models.Model):
             raise ValueError("Position cannot be negative.")
         self.position = new_position
         self.save()
+
+    def update_to_last_position(self):
+        last_position = self.queue.participant_set.count()
+        self.position = last_position + 1
+        self.save()
+
+    def calculate_estimated_wait_time(self):
+        """
+        Calculate the estimated wait time for this participant in the queue.
+
+        :returns: The estimated wait time in minutes.
+        """
+        average_service_time_per_participant = self.queue.estimated_wait_time
+        return average_service_time_per_participant * self.position
+
+    def save(self,*args, **kwargs):
+        """Generate a unique ticket code for the participant if not already."""
+        if not self.pk:
+            self.queue_code = self.generate_unique_queue_code()
+        super().save(*args, **kwargs)
+
+    @staticmethod
+    def generate_unique_queue_code(length=6):
+        """Generate a unique code for each participant"""
+        characters = string.ascii_uppercase + string.digits
+        while True:
+            code = ''.join(random.choices(characters, k=length))
+            if not Participant.objects.filter(queue_code=code).exists():
+                return code
 
     def __str__(self) -> str:
         """

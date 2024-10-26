@@ -12,15 +12,14 @@ class QueueForm(forms.ModelForm):
 
     class Meta:
         model = Queue
-        fields = ['name', 'logo', 'description', 'capacity', 'category', 'estimated_wait_time']
+        fields = ['name', 'logo', 'description', 'category', 'capacity', 'estimated_wait_time']
         labels = {
             'logo': 'Logo (Optional)',
             'estimated_wait_time': 'Estimated wait time (minutes)'
         }
         widgets = {
             'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter Queue Name (Max Length: 50)'}),
-            'description': forms.Textarea(
-                attrs={'class': 'form-control', 'placeholder': 'Enter Description (Max Length: 100)', 'rows': 4}),
+            'description': forms.Textarea(attrs={'class': 'form-control', 'placeholder': 'Enter Description (Max Length: 100)', 'rows': 4}),
             'category': forms.Select(choices=Queue.CATEGORY_CHOICES),
             'capacity': forms.NumberInput(attrs={'class': 'form-control',
                                                  'placeholder': 'Enter Capacity'}),
@@ -29,3 +28,15 @@ class QueueForm(forms.ModelForm):
             'logo': forms.ClearableFileInput(
                 attrs={'class': 'form-control', 'accept': 'image/*'})
         }
+
+    error_messages = {
+        'name': {
+            'required': 'Please enter a name for the queue.',
+        },
+        'capacity': {
+            'required': 'Please enter a capacity for the queue.',
+        },
+        'estimated_wait_time': {
+            'required': 'Please enter an estimated wait time.',
+        }
+    }

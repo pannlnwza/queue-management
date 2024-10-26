@@ -8,7 +8,6 @@
             padding: 0;
         }
         body {
-            font-family: Arial, sans-serif;
             line-height: 1.6;
             background-color: #f0f2f5;
         }
@@ -50,24 +49,22 @@
             text-decoration: none;
             display: inline-block;
         }
-        .edit-button:hover {
-            background-color: #0056b3;
-        }
+
         .status-badge-red {
+            padding: 2px 8px;
             display: inline-block;
-            padding: 0.25rem 0.5rem;
             background-color: darkred;
             color: white;
-            border-radius: 4px;
-            font-size: 0.9rem;
+            border-radius: 12px;
+            font-size: 0.8rem;
             margin-left: 0.5rem;
         }.status-badge-green {
+            padding: 2px 8px;
             display: inline-block;
-            padding: 0.25rem 0.5rem;
             background-color: green;
             color: white;
-            border-radius: 4px;
-            font-size: 0.9rem;
+            border-radius: 12px;
+            font-size: 0.8rem;
             margin-left: 0.5rem;
         }
         ul {
@@ -98,7 +95,9 @@
                                     {% endif %}
                                 </div>
                                 <div class="card-detail">Description: {{ queue.description }}</div>
-                                <a href="{% url 'queue:dashboard' queue.pk %}" class="edit-button">Dashboard</a>
+                                <div>
+                                <a href="{% url 'queue:dashboard' queue.pk %}" class="btn btn-primary">Dashboard</a>
+                                </div>
                             </div>
                         </li>
                     {% endfor %}
