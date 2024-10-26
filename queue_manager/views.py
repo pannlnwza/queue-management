@@ -81,16 +81,19 @@ class IndexView(generic.ListView):
             #     user_participants
             # }
             queue_positions = {}
+            active_queues = set()  # Track active queues for the user
+
             for participant in user_participants:
-                # Calculate position based on active participants only
                 position = Participant.objects.filter(
                     queue=participant.queue,
                     status_user='active',
                     joined_at__lte=participant.joined_at
                 ).count()
                 queue_positions[participant.queue.id] = position
+                active_queues.add(participant.queue.id)  # Store active queue IDs
 
             context['queue_positions'] = queue_positions
+            context['active_queues'] = active_queues
         return context
 
 
@@ -398,6 +401,22 @@ def delete_participant(request, participant_id):
             f"Failed to delete participant {participant_id} from queue {queue.id} "
             f"by user {request.user}: {e}")
     return redirect('queue:dashboard', pk=queue.id)
+
+
+@login_required
+def leave_queue(request, participant_id):
+    # Get the participant based on the participant_id
+    participant = get_object_or_404(Participant, id=participant_id)
+
+    # Ensure that the user is the owner of the participant record
+    if participant.user == request.user:
+        participant.status_user = 'canceled'
+        participant.save()
+        # Redirect to the index page after successfully leaving the queue
+        return redirect('queue:index')
+    else:
+        # Return an error or redirect if the user does not own this participant
+        return redirect('queue:index')
 
 
 @receiver(user_logged_in)
