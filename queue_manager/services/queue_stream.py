@@ -30,7 +30,7 @@ def queue_stream(request):
                         'name': queue.name,
                         'position': user_position,
                         'participant_count': queue.participant_set.count(),
-                        'status': queue.get_status_display(),
+                        'status': queue.status.title(),
                     })
 
                 if queue_data != last_data:

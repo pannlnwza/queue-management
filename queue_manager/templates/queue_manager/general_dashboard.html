@@ -63,7 +63,7 @@
             <div class="col-md-3">
                 <div class="card">
                     <h6>Current Queue Length</h6>
-                    <div class="stat-value current-queue-length">{{ queue.current_length }}</div>
+                    <div class="stat-value current-queue-length">{{ queue.get_participants.count }}</div>
                 </div>
             </div>
             <div class="col-md-3">
@@ -75,7 +75,7 @@
             <div class="col-md-3">
                 <div class="card">
                     <h6>Participants Today</h6>
-                    <div class="stat-value participants-today">{{ queue.participants_today }}</div>
+                    <div class="stat-value participants-today">{{ queue.get_participants_today }}</div>
                 </div>
             </div>
         </div>
@@ -84,43 +84,50 @@
             <h5>Current Queue</h5>
             <table class="table table-striped text-center">
                 <thead>
-                    <tr>
-                        <th>Position</th>
-                        <th>Participant Name</th>
-                        <th>Check-in Time</th>
-                        <th>Estimated Wait Time</th>
-                        <th>Queue Code</th>
-                        <th>Notify</th>
-                        <th>Delete</th>
-                    </tr>
+                <tr>
+                    <th>Position</th>
+                    <th>Participant Name</th>
+                    <th>Check-in Time</th>
+                    <th>Estimated Wait Time</th>
+                    <th>Queue Code</th>
+                    <th>Notify</th>
+                    <th>Delete</th>
+                </tr>
                 </thead>
                 <tbody>
-                    {% for participant in queue.participant_set.all %}
-                        <tr>
-                            <td>{{ participant.position }}</td>
-                            <td>
-                                {% if participant.user %}
-                                    {{ participant.user.username }}
-                                {% else %}
-                                    -
-                                {% endif %}
-                            </td>
-                            <td>{{ participant.joined_at|date:"Y-m-d H:i" }}</td>
-                            <td>{{ queue.estimated_wait_time }} min</td>
-                            <td>{{ participant.queue_code }}</td>
-                            <td>
-                                <a href="{% url 'queue:delete_participant' participant.id %}" class="text-danger"
-                                   title="Remove Participant"
-                                   onclick="return confirm('Are you sure you want to remove this participant? Code: {{ participant.queue_code }}');">
-                                    <i class="bi bi-x-circle-fill"></i>
-                                </a>
-                            </td>
-                        </tr>
-                    {% empty %}
-                        <tr>
-                            <td colspan="6" class="text-center">No participants in the queue</td>
-                        </tr>
-                    {% endfor %}
+                {% for participant in queue.participant_set.all %}
+                    <tr>
+                        <td>{{ participant.position }}</td>
+                        <td>
+                            {% if participant.user %}
+                                {{ participant.user.username }}
+                            {% else %}
+                                -
+                            {% endif %}
+                        </td>
+                        <td>{{ participant.joined_at|date:"Y-m-d H:i" }}</td>
+                        <td>{{ queue.estimated_wait_time }} min</td>
+                        <td>{{ participant.queue_code }}</td>
+                        <td>
+                            <a href="#" class="text-primary"
+                               title="Notify Participant"
+                               onclick="return confirm('Are you sure you want to notify this participant?');">
+                                <i class="bi bi-alarm-fill"></i>
+                            </a>
+                        </td>
+                        <td>
+                            <a href="{% url 'queue:delete_participant' participant.id %}" class="text-danger"
+                               title="Remove Participant"
+                               onclick="return confirm('Are you sure you want to remove this participant? Code: {{ participant.queue_code }}');">
+                                <i class="bi bi-x-circle-fill"></i>
+                            </a>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center">No participants in the queue</td>
+                    </tr>
+                {% endfor %}
                 </tbody>
                 <tr class="no-participants" style="display: none;">
                     <td colspan="7" class="text-center">No participants in the queue.</td>
@@ -129,7 +136,8 @@
         </div>
 
         <div>
-            <a href="{% url 'queue:add_participant_slot' queue.id %}"  class="btn btn-secondary me-md-2 mb-3">Add Participant Slot</a>
+            <a href="{% url 'queue:add_participant_slot' queue.id %}" class="btn btn-secondary me-md-2 mb-3">Add
+                Participant Slot</a>
         </div>
     </div>
 
