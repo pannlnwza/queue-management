@@ -4,11 +4,11 @@ from queue_manager.models import Queue, UserProfile, Participant
 
 @admin.register(Queue)
 class QueueAdmin(admin.ModelAdmin):
-    list_display = ('name', 'code', 'created_by', 'status', 'is_closed', 'estimated_wait_time', 'created_at')
-    search_fields = ('name', 'code', 'created_by__username')
+    list_display = ('name', 'created_by', 'status', 'is_closed', 'estimated_wait_time', 'created_at')
+    search_fields = ('name', 'created_by__username')
     list_filter = ('status', 'is_closed', 'created_at')
     ordering = ('-created_at',)
-    readonly_fields = ('code', 'created_at')
+    readonly_field = 'created_at'
     fieldsets = (
         (None, {
             'fields': ('name', 'description', 'created_by', 'is_closed', 'status')
