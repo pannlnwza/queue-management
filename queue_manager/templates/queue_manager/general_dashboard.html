@@ -55,27 +55,27 @@
             </span>
         </p>
         <a class="btn btn-primary me-md-2 mb-3" href="{% url 'queue:edit_queue' queue.id %}" role="button">Edit</a>
-            <a class="btn btn-danger me-md-2 mb-3" type="button" href="{% url 'queue:delete_queue' queue.id %}"
-                title="Delete Queue"
-                onclick="return confirm('Are you sure you want to delete this queue?');">Delete This Queue</a>
+        <a class="btn btn-danger me-md-2 mb-3" href="{% url 'queue:delete_queue' queue.id %}"
+           title="Delete Queue"
+           onclick="return confirm('Are you sure you want to delete this queue?');">Delete This Queue</a>
 
         <div class="row mt-4">
             <div class="col-md-3">
                 <div class="card">
                     <h6>Current Queue Length</h6>
-                    <div class="stat-value current-queue-length"></div>
+                    <div class="stat-value current-queue-length">{{ queue.current_length }}</div>
                 </div>
             </div>
             <div class="col-md-3">
                 <div class="card">
                     <h6>Estimated Wait Time</h6>
-                    <div class="stat-value estimated-wait-time"></div>
+                    <div class="stat-value estimated-wait-time">{{ queue.estimated_wait_time }} min</div>
                 </div>
             </div>
             <div class="col-md-3">
                 <div class="card">
                     <h6>Participants Today</h6>
-                    <div class="stat-value participants-today"></div>
+                    <div class="stat-value participants-today">{{ queue.participants_today }}</div>
                 </div>
             </div>
         </div>
@@ -94,88 +94,87 @@
                     </tr>
                 </thead>
                 <tbody>
-                {% for participant in queue.participant_set.all %}
-                    <tr>
-                        <td>{{ participant.position }}</td>
-                        <td>{{ participant.user.username }}</td>
-                        <td>{{ participant.joined_at }}</td>
-                        <td>{{ queue.estimated_wait_time }} min</td>
-                        <td>{{ participant.queue_code }}</td>
-                        <td>
-                            <a href="{% url 'queue:delete_participant' participant.id %}" class="text-danger"
-                               title="Remove Participant"
-                               onclick="return confirm('Are you sure you want to remove this participant? Code: {{ participant.queue_code }}');">
-                                <i class="bi bi-x-circle-fill"></i>
-                            </a>
-                        </td>
-                    </tr>
-                {% empty %}
-                    <tr>
-                        <td colspan="5" class="text-center">No participants in the queue</td>
-                    </tr>
-                {% endfor %}
-
+                    {% for participant in queue.participant_set.all %}
+                        <tr>
+                            <td>{{ participant.position }}</td>
+                            <td>
+                                {% if participant.user %}
+                                    {{ participant.user.username }}
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </td>
+                            <td>{{ participant.joined_at|date:"Y-m-d H:i" }}</td>
+                            <td>{{ queue.estimated_wait_time }} min</td>
+                            <td>{{ participant.queue_code }}</td>
+                            <td>
+                                <a href="{% url 'queue:delete_participant' participant.id %}" class="text-danger"
+                                   title="Remove Participant"
+                                   onclick="return confirm('Are you sure you want to remove this participant? Code: {{ participant.queue_code }}');">
+                                    <i class="bi bi-x-circle-fill"></i>
+                                </a>
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="6" class="text-center">No participants in the queue</td>
+                        </tr>
+                    {% endfor %}
                 </tbody>
                 <tr class="no-participants" style="display: none;">
-                    <td colspan="5" class="text-center">No participants in the queue.</td>
+                    <td colspan="6" class="text-center">No participants in the queue.</td>
                 </tr>
             </table>
         </div>
+
         <div>
             <a href="{% url 'queue:add_participant_slot' queue.id %}"  class="btn btn-secondary me-md-2 mb-3">Add Participant Slot</a>
         </div>
     </div>
 
-        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-            <a class="btn btn-danger me-md-2 mb-3" type="button" href="{% url 'queue:delete_queue' queue.id %}"
-               title="Delete Queue"
-               onclick="return confirm('Are you sure you want to delete this queue?');">Delete This Queue</a>
-        </div>
-    </div>
+    <script>
+        const queueId = {{ queue.id }};
+        const eventSource = new EventSource(`/api/queue-dashboard-stream/${queueId}/`);
 
-<!--    <script>-->
-<!--        const queueId = {{ queue.id }};-->
-<!--        const eventSource = new EventSource(`/api/queue-dashboard-stream/${queueId}/`);-->
+        eventSource.onmessage = function (event) {
+            const data = JSON.parse(event.data);
 
-<!--        eventSource.onmessage = function (event) {-->
-<!--            const data = JSON.parse(event.data);-->
+            document.querySelector('.queue-name').innerText = data.name;
+            document.querySelector('.current-queue-length').innerText = data.current_queue_length;
+            document.querySelector('.estimated-wait-time').innerText = data.estimated_wait_time + ' min';
+            document.querySelector('.participants-today').innerText = data.participants_today;
 
-<!--            document.querySelector('.queue-name').innerText = data.name;-->
-<!--            document.querySelector('.current-queue-length').innerText = data.current_queue_length;-->
-<!--            document.querySelector('.estimated-wait-time').innerText = data.estimated_wait_time + ' min';-->
-<!--            document.querySelector('.participants-today').innerText = data.participants_today;-->
+            const tbody = document.querySelector('tbody');
+            tbody.innerHTML = '';
 
-<!--            const tbody = document.querySelector('tbody');-->
-<!--            tbody.innerHTML = '';-->
+            if (data.participants.length === 0) {
+                document.querySelector('.no-participants').style.display = 'table-row';
+            } else {
+                document.querySelector('.no-participants').style.display = 'none';
+                data.participants.forEach((participant) => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                    <td>${participant.position}</td>
+                    <td>${participant.username}</td>
+                    <td>${participant.joined_at}</td>
+                    <td>${participant.estimated_wait_time} min</td>
+                    <td>${participant.queue_code}</td>
+                    <td>
+                        <a href="/queue/delete/${participant.id}/" class="text-danger"
+                           title="Remove Participant"
+                           onclick="return confirm('Are you sure you want to remove this participant?');">
+                            <i class="bi bi-x-circle-fill"></i>
+                        </a>
+                    </td>
+                `;
+                    tbody.appendChild(row);
+                });
+            }
+        };
 
-<!--            if (data.participants.length === 0) {-->
-<!--                document.querySelector('.no-participants').style.display = 'table-row';-->
-<!--            } else {-->
-<!--                document.querySelector('.no-participants').style.display = 'none';-->
-<!--                data.participants.forEach((participant) => {-->
-<!--                    const row = document.createElement('tr');-->
-<!--                    row.innerHTML = `-->
-<!--                    <td>${participant.position}</td>-->
-<!--                    <td>${participant.username}</td>-->
-<!--                    <td>${participant.joined_at}</td>-->
-<!--                    <td>${participant.estimated_wait_time} min</td>-->
-<!--                    <td>-->
-<!--                        <a href="/queue/delete/${participant.id}/" class="text-danger ms-3"-->
-<!--                           title="Remove Participant"-->
-<!--                           onclick="return confirm('Are you sure you want to remove this participant?');">-->
-<!--                            <i class="bi bi-x-circle-fill"></i>-->
-<!--                        </a>-->
-<!--                    </td>-->
-<!--                `;-->
-<!--                    tbody.appendChild(row);-->
-<!--                });-->
-<!--            }-->
-<!--        };-->
-
-<!--        eventSource.onerror = function (event) {-->
-<!--            console.error('Error with SSE:', event);-->
-<!--            eventSource.close();-->
-<!--        };-->
-<!--    </script>-->
+        eventSource.onerror = function (event) {
+            console.error('Error with SSE:', event);
+            eventSource.close();
+        };
+    </script>
 {% endblock %}
-
