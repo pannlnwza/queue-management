@@ -302,6 +302,14 @@ class QueueDashboardView(generic.DetailView):
     template_name = 'queue_manager/general_dashboard.html'
     context_object_name = 'queue'
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        # Add count of active participants
+        context['active_count'] = self.object.participant_set.filter(
+            status_user='active'
+        ).count()
+        return context
+
     def get(self, request, *args, **kwargs):
         try:
             queue = get_object_or_404(Queue, pk=kwargs.get('pk'))

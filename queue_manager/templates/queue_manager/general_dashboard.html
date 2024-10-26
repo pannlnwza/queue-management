@@ -59,7 +59,7 @@
             <div class="col-md-3">
                 <div class="card">
                     <h6>Current Queue Length</h6>
-                    <div class="card-value">{{ queue.get_participants.count }}</div>
+                    <div class="card-value">{{ queue.get_active_count}}</div>
                 </div>
             </div>
             <div class="col-md-3">
@@ -102,8 +102,8 @@
                 </tr>
                 </thead>
                 <tbody>
-                {% for participant in queue.participant_set.all %}
-                    {% if participant.status_user == 'active'%}
+                {% if participant.status_user == 'active'%}
+                    {% for participant in queue.participant_set.all %}
                         <tr>
                             <td>{{ forloop.counter }}</td>
                             <td>{{ participant.user.username }}</td>
@@ -122,12 +122,12 @@
                                 </a>
                             </td>
                         </tr>
-                    {% endif %}
-                    {% empty %}
-                        <tr>
-                            <td colspan="5" class="text-center">No participants in the queue</td>
-                        </tr>
-                {% endfor %}
+                    {% endfor %}
+                {% else %}
+                <tr>
+                    <td colspan="5" class="text-center">No participants in the queue</td>
+                </tr>
+                {% endif %}
                 </tbody>
             </table>
         </div>
