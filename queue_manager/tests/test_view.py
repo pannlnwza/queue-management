@@ -10,7 +10,9 @@ class QueueViewsTestCase(TestCase):
         self.user = User.objects.create_user(username='testuser', password='password')
         self.client.login(username='testuser', password='password')
         self.user2 = User.objects.create_user(username='user2', password='password')
-        self.queue = Queue.objects.create(name='Test Queue', code='TEST123', capacity=10,created_by=self.user)
+        self.queue = Queue.objects.create(name='Test Queue', capacity=10, created_by=self.user)
+        self.participant_slot_1 = Participant.objects.create(queue=self.queue)
+        self.participant_slot_1.update_to_last_position()
 
     def test_index_view_authenticated(self):
         """Test accessing the index view as an authenticated user"""
@@ -21,7 +23,7 @@ class QueueViewsTestCase(TestCase):
 
     def test_join_queue_valid_code(self):
         """Test joining a queue with a valid code"""
-        response = self.client.post(reverse('queue:join'), {'queue_code': self.queue.code})
+        response = self.client.post(reverse('queue:join'), {'queue_code': self.participant_slot_1.queue_code})
         self.assertEqual(response.status_code, 302)
         self.assertRedirects(response, reverse('queue:index'))
         self.assertTrue(Participant.objects.filter(user=self.user, queue=self.queue).exists())
@@ -32,7 +34,7 @@ class QueueViewsTestCase(TestCase):
         messages = list(get_messages(response.wsgi_request))
         self.assertEqual(response.status_code, 302)
         self.assertRedirects(response, reverse('queue:index'))
-        self.assertIn('Invalid queue code.', [message.message for message in messages])
+        self.assertIn('Invalid queue code. Please try again.', [message.message for message in messages])
 
     def test_queue_dashboard_view_owner(self):
         """Test accessing the dashboard view as the owner of the queue"""

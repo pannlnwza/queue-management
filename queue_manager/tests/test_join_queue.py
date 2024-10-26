@@ -15,19 +15,22 @@ class JoinQueueViewTests(TestCase):
         """
         self.user = User.objects.create_user(username='testuser', password='testpassword')
         self.queue = Queue.objects.create(name='Test Queue', description='A test queue', capacity=10)
+        self.participant_slot_1 = Participant.objects.create(queue=self.queue)
+        self.participant_slot_1.update_to_last_position()
 
     def test_join_queue_success(self):
         """
         Test that a user can successfully join a queue.
         """
         self.client.login(username='testuser', password='testpassword')
-        response = self.client.post(reverse('queue:join'), {'queue_code': self.queue.code})
+        response = self.client.post(reverse('queue:join'), {'queue_code': self.participant_slot_1.queue_code})
 
         participant_exists = Participant.objects.filter(user=self.user, queue=self.queue).exists()
         self.assertTrue(participant_exists)
 
         messages_list = list(response.wsgi_request._messages)
-        self.assertEqual(str(messages_list[0]), "You have successfully joined the queue.")
+        self.assertEqual(str(messages_list[0]), f"You have successfully joined the queue with code "
+                                                f"{self.participant_slot_1.queue_code}.")
         self.assertRedirects(response, reverse('queue:index'))
 
     def test_join_queue_already_in_queue(self):
@@ -35,9 +38,9 @@ class JoinQueueViewTests(TestCase):
         Test that a user who is already in a queue receives the correct message.
         """
         self.client.login(username='testuser', password='testpassword')
-        self.client.post(reverse('queue:join'), {'queue_code': self.queue.code})
+        self.client.post(reverse('queue:join'), {'queue_code': self.participant_slot_1.queue_code})
 
-        response = self.client.post(reverse('queue:join'), {'queue_code': self.queue.code})
+        response = self.client.post(reverse('queue:join'), {'queue_code': self.participant_slot_1.queue_code})
         participant_count = Participant.objects.filter(user=self.user, queue=self.queue).count()
         self.assertEqual(participant_count, 1)
 
@@ -54,5 +57,5 @@ class JoinQueueViewTests(TestCase):
         self.assertFalse(participant_exists)
 
         messages_list = list(response.wsgi_request._messages)
-        self.assertEqual(str(messages_list[0]), "Invalid queue code.")
+        self.assertEqual(str(messages_list[0]), "Invalid queue code. Please try again.")
         self.assertRedirects(response, reverse('queue:index'))

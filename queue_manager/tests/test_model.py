@@ -21,14 +21,6 @@ class QueueModelTest(TestCase):
         """
         self.assertEqual(self.queue.name, 'Test Queue')
 
-    def test_generate_unique_code(self):
-        """
-        Test that a unique queue code is generated.
-        """
-        code = Queue.generate_unique_code()
-        self.assertEqual(len(code), 6)
-        self.assertTrue(code.isalnum())
-
     def test_update_estimated_wait_time(self):
         """
         Test the estimated wait time update method.

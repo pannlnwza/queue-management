@@ -116,19 +116,6 @@ class Queue(models.Model):
         """
         return self.name
 
-    # @staticmethod
-    # def generate_unique_code(length: int = 6) -> str:
-    #     """
-    #     Generate a unique code consisting of uppercase letters and digits.
-    #     :param length: The length of the code to be generated (default is 6).
-    #     :returns: A unique code that does not exist in the Queue table.
-    #     """
-    #     characters = string.ascii_uppercase + string.digits
-    #     while True:
-    #         code = ''.join(random.choices(characters, k=length))
-    #         if not Queue.objects.filter(code=code).exists():
-    #             return code
-
 
 class UserProfile(models.Model):
     """Represents a user profile in the system."""
@@ -149,7 +136,7 @@ class Participant(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, null=True)
     queue = models.ForeignKey(Queue, on_delete=models.CASCADE)
     joined_at = models.DateTimeField(null=True)
-    position = models.PositiveIntegerField()
+    position = models.PositiveIntegerField(null=True)
     queue_code = models.CharField(max_length=6, unique=True, editable=False)
 
     class Meta:
@@ -169,6 +156,11 @@ class Participant(models.Model):
         if new_position < 0:
             raise ValueError("Position cannot be negative.")
         self.position = new_position
+        self.save()
+
+    def update_to_last_position(self):
+        last_position = self.queue.participant_set.count()
+        self.position = last_position + 1
         self.save()
 
     def calculate_estimated_wait_time(self):

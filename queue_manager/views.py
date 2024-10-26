@@ -139,7 +139,7 @@ def join_queue(request):
             else:
                 participant_slot.insert_user(user=request.user)
                 participant_slot.save()
-                messages.success(request, f"You have joined the queue with code {queue_code}.")
+                messages.success(request, f"You have successfully joined the queue with code {queue_code}.")
         except Participant.DoesNotExist:
             messages.error(request, "Invalid queue code. Please try again.")
             return redirect('queue:index')
