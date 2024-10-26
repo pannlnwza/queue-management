@@ -58,10 +58,11 @@ def queue_dashboard_stream(request, queue_id):
                 participants = [
                     {
                         'id': participant.id,
-                        'username': participant.user.username,
+                        'username': participant.user.username if participant.user else "-",
                         'position': participant.position,
-                        'joined_at': participant.joined_at.strftime('%Y-%m-%d %H:%M:%S'),
-                        'estimated_wait_time': queue.estimated_wait_time
+                        'joined_at': participant.joined_at.strftime('%Y-%m-%d %H:%M:%S') if participant.joined_at else "N/A",
+                        'estimated_wait_time': queue.estimated_wait_time,
+                        'queue_code': participant.queue_code
                     }
                     for participant in queue.participant_set.all()
                 ]
