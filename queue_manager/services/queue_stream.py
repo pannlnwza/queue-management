@@ -1,6 +1,6 @@
 import logging
-import time
 
+from django.utils import timezone
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse, StreamingHttpResponse
 
@@ -60,7 +60,7 @@ def queue_dashboard_stream(request, queue_id):
                         'id': participant.id,
                         'username': participant.user.username if participant.user else "-",
                         'position': participant.position,
-                        'joined_at': participant.joined_at.strftime('%Y-%m-%d %H:%M:%S') if participant.joined_at else "N/A",
+                        'joined_at': timezone.localtime(participant.joined_at).strftime('%d-%m-%Y %H:%M:%S') if participant.joined_at else "-",
                         'estimated_wait_time': queue.estimated_wait_time,
                         'queue_code': participant.queue_code
                     }

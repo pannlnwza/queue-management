@@ -142,7 +142,7 @@ class Participant(models.Model):
 
     def insert_user(self, user):
         self.user = user
-        self.joined_at = timezone.now()
+        self.joined_at = timezone.localtime(timezone.now())
 
     def update_position(self, new_position: int) -> None:
         """
