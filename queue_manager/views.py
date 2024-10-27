@@ -135,6 +135,12 @@ def join_queue(request):
                 messages.error(request, "The queue is closed.")
                 logger.info(
                     f'User {request.user.username} attempted to join queue {queue.name} that has been closed.')
+            elif participant_slot.user:
+                messages.error(request, "Sorry, this slot is already filled by another participant. Are you sure"
+                                        " that you have the right code?")
+                logger.info(
+                    f'User {request.user.username} attempted to join queue {queue.name}, but the participant slot is '
+                    f'already occupied.')
             else:
                 participant_slot.insert_user(user=request.user)
                 participant_slot.save()
