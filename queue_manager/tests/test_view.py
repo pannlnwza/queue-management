@@ -1,8 +1,10 @@
+
 from django.test import TestCase
 from django.urls import reverse
 from django.contrib.auth.models import User
 from queue_manager.models import Queue, Participant
 from django.contrib.messages import get_messages
+
 
 
 class QueueViewsTestCase(TestCase):
@@ -61,3 +63,4 @@ class QueueViewsTestCase(TestCase):
         self.assertEqual(response.status_code, 302)
         self.assertRedirects(response, reverse('queue:index'))
         self.assertIn('Queue does not exist.', [message.message for message in messages])
+

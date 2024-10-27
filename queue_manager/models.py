@@ -239,10 +239,5 @@ class Notification(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     is_read = models.BooleanField(default=False)
 
-    def save(self, *args, **kwargs):
-        if not self.queue.participant_set.filter(id=self.participant.id).exists():
-            raise ValueError("The participant is not part of the specified queue.")
-        super().save(*args, **kwargs)
-
     def __str__(self):
         return f"Notification for {self.participant}: {self.message}"
