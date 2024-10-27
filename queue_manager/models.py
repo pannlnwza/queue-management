@@ -247,8 +247,7 @@ class QueueHistory(models.Model):
     """Represents the history of actions taken on a queue."""
 
     ACTION_CHOICES = [
-        ('joined', 'Joined'),
-        ('left', 'Left'),
+        ('Active', 'Active'),
         ('completed', 'Completed'),
         ('canceled', 'Canceled'),
     ]
