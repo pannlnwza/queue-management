@@ -368,13 +368,22 @@ def delete_participant(request, participant_id):
         return redirect('queue:index')
     queue = participant.queue
 
-    if queue.created_by != request.user:
+    if queue.created_by == request.user:
+        action = 'completed'  # Queue creator deletes participant
+        success_message = f"Participant with code {participant.queue_code} removed successfully."
+        log_message = f"Participant with code {participant.queue_code} successfully deleted from queue {queue.id} by user {request.user}."
+    elif participant.user == request.user:
+        action = 'canceled'  # Participant removes themselves from the queue
+        success_message = "You have successfully left the queue."
+        log_message = f"User {request.user} canceled participation in queue {queue.id}."
+    else:
         messages.error(request,
                        "You are not authorized to delete participants from this queue.")
         logger.warning(
             f"Unauthorized delete attempt by user {request.user} "
             f"for participant {participant_id} in queue {queue.id}.")
         return redirect('queue:index')
+    
     try:
         QueueHistory.objects.create(
             user=participant.user,
@@ -393,11 +402,10 @@ def delete_participant(request, participant_id):
         for p in remaining_participants:
             p.position -= 1
             p.save()
-        messages.success(request,
-                         f"Participant with code {participant.queue_code} removed successfully.")
-        logger.info(
-            f"Participant with code {participant.queue_code} successfully deleted from queue {queue.id} "
-            f"by user {request.user}.")
+
+        messages.success(request, success_message)
+        logger.info(log_message)
+
     except Exception as e:
         messages.error(request, f"Error removing participant: {e}")
         logger.error(
