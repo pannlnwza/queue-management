@@ -1,10 +1,10 @@
 from django.contrib import admin
-from queue_manager.models import Queue, UserProfile, Participant
+from queue_manager.models import Queue, UserProfile, Participant, Notification
 
 
 @admin.register(Queue)
 class QueueAdmin(admin.ModelAdmin):
-    list_display = ('name', 'created_by', 'status', 'is_closed', 'estimated_wait_time', 'created_at')
+    list_display = ('name', 'created_by', 'status', 'is_closed', 'estimated_wait_time_per_turn', 'created_at')
     search_fields = ('name', 'created_by__username')
     list_filter = ('status', 'is_closed', 'created_at')
     ordering = ('-created_at',)
@@ -15,7 +15,7 @@ class QueueAdmin(admin.ModelAdmin):
         }),
         ('Advanced options', {
             'classes': ('collapse',),
-            'fields': ('estimated_wait_time',),
+            'fields': ('estimated_wait_time_per_turn',),
         }),
     )
 
@@ -35,3 +35,5 @@ class ParticipantAdmin(admin.ModelAdmin):
     list_filter = ('queue', 'joined_at')
     ordering = ('-joined_at',)
     readonly_fields = ('joined_at',)
+
+admin.site.register(Notification)

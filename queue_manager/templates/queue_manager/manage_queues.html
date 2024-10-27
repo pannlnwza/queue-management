@@ -35,21 +35,9 @@
         }
         .card-detail {
             font-size: 1rem;
-            font-weight: bold;
             margin-bottom: 0.5rem;
             margin-left: 0.5rem;
         }
-        .edit-button {
-            background-color: var(--primary-color);
-            color: white;
-            padding: 0.5rem 1rem;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            text-decoration: none;
-            display: inline-block;
-        }
-
         .status-badge-red {
             padding: 2px 8px;
             display: inline-block;
@@ -78,7 +66,7 @@
 {% endblock %}
 
 {% block content %}
-    <main>
+    <div class="container py-4">
         <div class="card">
             <div class="card-title">Your Queues</div>
             {% if queues %}
@@ -87,14 +75,14 @@
                         <li>
                             <div class="card">
                                 <div class="card-title">
-                                    {{ queue.name }} - Code: {{ queue.code }}
+                                    {{ queue.name }}
                                     {% if queue.is_closed %}
                                         <span class="status-badge-red">Closed</span>
                                     {% else %}
                                         <span class="status-badge-green">Open</span>
                                     {% endif %}
                                 </div>
-                                <div class="card-detail">Description: {{ queue.description }}</div>
+                                <h5 class="card-detail">Description: {{ queue.description }}</h5>
                                 <div>
                                 <a href="{% url 'queue:dashboard' queue.pk %}" class="btn btn-primary">Dashboard</a>
                                 </div>
@@ -106,5 +94,5 @@
                 <p>You have not created any queues.</p>
             {% endif %}
         </div>
-    </main>
+    </div>
 {% endblock %}

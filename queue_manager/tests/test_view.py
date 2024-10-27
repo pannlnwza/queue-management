@@ -70,3 +70,4 @@ class QueueViewsTestCase(TestCase):
         self.assertEqual(response.status_code, 302)
         self.assertRedirects(response, reverse('queue:index'))
         self.assertIn('Queue does not exist.', [message.message for message in messages])
+

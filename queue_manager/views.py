@@ -1,4 +1,6 @@
 import logging
+
+from django.http import JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404, Http404
 from django.views import generic
 from queue_manager.models import *
@@ -76,19 +78,20 @@ class IndexView(generic.ListView):
                 participant.queue.id: participant.position for participant in
                 user_participants
             }
-            estimated_time = {
+            estimated_wait_time = {
                 participant.queue.id: participant.calculate_estimated_wait_time()
-                for participant in
-                user_participants
+                for participant in user_participants
             }
             expected_service_time = {
                 participant.queue.id: datetime.now() + timedelta(
                     minutes=participant.calculate_estimated_wait_time())
                 for participant in user_participants
             }
+            notification = Notification.objects.filter(participant__user=self.request.user).order_by('-created_at')
             context['queue_positions'] = queue_positions
-            context['estimated_wait_time'] = estimated_time
+            context['estimated_wait_time'] = estimated_wait_time
             context['expected_service_time'] = expected_service_time
+            context['notification'] = notification
         return context
 
 
@@ -327,7 +330,9 @@ def add_participant_slot(request, queue_id):
             f'{request.user} tried to add participants when the queue was already full.')
         return redirect('queue:dashboard', queue_id)
     last_position = queue.participant_set.count()
-    Participant.objects.create(position=last_position + 1, queue=queue)
+    Participant.objects.create(
+        position=last_position + 1,
+        queue=queue)
     return redirect('queue:dashboard', queue_id)
 
 
@@ -397,6 +402,41 @@ def delete_queue(request, queue_id):
             f"Failed to delete queue: {queue.name} id: {queue.id} "
             f"by user {request.user}: {e}")
     return redirect('queue:manage_queues')
+
+
+@login_required
+def notify_participant(request, queue_id, participant_id):
+    participant = get_object_or_404(Participant, id=participant_id)
+    if participant.user is None:
+        messages.error(request, "There is no participant for this position.")
+        return redirect('queue:dashboard', queue_id)
+    queue = get_object_or_404(Queue, id=queue_id)
+    message = f"Your turn for {queue.name} is ready! Please proceed to the counter."
+    Notification.objects.create(
+        queue=queue,
+        participant=participant,
+        message=message
+    )
+    time_taken = timezone.now() - participant.joined_at
+    time_taken_minutes = int(time_taken.total_seconds() // 60)
+    queue.update_estimated_wait_time_per_turn(time_taken_minutes)
+
+    messages.success(request, f"You notified the participant {participant.user.username}.")
+    return redirect('queue:dashboard', queue_id)
+
+@login_required
+def mark_notification_as_read(request, notification_id):
+    if request.method == 'POST':
+        try:
+            notification = Notification.objects.get(id=notification_id)
+            notification.is_read = True  # Adjust according to your model's field
+            notification.save()
+            return JsonResponse({'status': 'success'})
+        except Notification.DoesNotExist:
+            return JsonResponse({'status': 'error', 'message': 'Notification not found'}, status=404)
+
+    return JsonResponse({'status': 'error', 'message': 'Invalid request'}, status=400)
+
 
 
 def get_client_ip(request):

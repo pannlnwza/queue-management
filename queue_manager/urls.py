@@ -1,6 +1,6 @@
 from django.urls import path
 
-from queue_manager.services.queue_stream import *
+from queue_manager.services.data_stream import data_stream, queue_dashboard_stream
 from queue_manager.views import *
 
 app_name = 'queue'
@@ -10,7 +10,7 @@ urlpatterns = [
     path('queues/', BrowseQueueView.as_view(), name='queues'),
     path('join/', join_queue, name='join'),
     path('dashboard/<int:pk>/', QueueDashboardView.as_view(), name='dashboard'),
-    path('api/queue-stream/', queue_stream, name='queue_stream'),
+    path('api/data-stream/', data_stream, name='data_stream'),
     path('api/queue-dashboard-stream/<int:queue_id>/', queue_dashboard_stream, name='queue_dashboard_stream'),
     path('queue/delete/<int:participant_id>/', delete_participant, name='delete_participant'),
     path('manage/', ManageQueuesView.as_view(), name='manage_queues'),
@@ -22,4 +22,7 @@ urlpatterns = [
     path('queues/service_center/', ServiceCenterQueueView.as_view(), name='service_center_queues'),
     path('queue/<int:queue_id>/delete/', delete_queue, name='delete_queue'),
     path('queue/<int:queue_id>/add-participant/', add_participant_slot, name='add_participant_slot'),
+    path('notify/<int:participant_id>/', notify_participant, name='notify_participant'),
+    path('notify-participant/<int:queue_id>/<int:participant_id>/', notify_participant, name='notify_participant'),
+    path('mark-as-read/<int:notification_id>/', mark_notification_as_read, name='mark_notification_as_read'),
 ]
