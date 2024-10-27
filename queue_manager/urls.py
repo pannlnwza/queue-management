@@ -12,6 +12,6 @@ urlpatterns = [
     path('manage/', ManageQueuesView.as_view(), name='manage_queues'),
     path('queue/<int:pk>/edit/', EditQueueView.as_view(), name='edit_queue'),
     path('history/', QueueHistoryView.as_view(), name='history'),
-    path('leave/<int:participant_id>/', leave_queue, name='leave_queue'),
+    # path('leave/<int:participant_id>/', leave_queue, name='leave_queue'),
 ]
 

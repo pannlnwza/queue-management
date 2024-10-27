@@ -204,7 +204,7 @@ class QueueListView(generic.ListView):
         """
         return Queue.objects.all()
 
-      
+
 class ManageQueuesView(LoginRequiredMixin, generic.ListView):
     """
     Manage queues.
@@ -365,58 +365,45 @@ def get_client_ip(request):
 
 @login_required
 def delete_participant(request, participant_id):
-    """Delete a participant from a specific queue if the requester is the queue creator."""
+    """Delete a participant from a specific queue if the requester is the queue creator or the participant."""
     try:
+        # Fetch the participant object by ID
         participant = Participant.objects.get(id=participant_id)
     except Participant.DoesNotExist:
+        # Handle the case where the participant does not exist
         messages.error(request, f"Participant with ID {participant_id} does not exist.")
-        logger.error(f"Participant id: {participant_id} does not exist.")
+        logger.error(f"Participant with ID {participant_id} does not exist.")
         return redirect('queue:index')
+
     queue = participant.queue
 
-    if queue.created_by != request.user:
-        messages.error(request, "You are not authorized to delete participants from this queue.")
-        logger.warning(
-            f"Unauthorized delete attempt by user {request.user} "
-            f"for participant {participant_id} in queue {queue.id}.")
-        return redirect('queue:index')
-    try:
-        # participant.delete()
-        # messages.success(request, f"Participant {participant.user.username} removed successfully.")
-        # logger.info(
-        #     f"Participant {participant.user.username} successfully deleted from queue {queue.id} "
-        #     f"by user {request.user}.")
-        # Update the participant's status to 'completed'
-        participant.status_user = 'completed'
-        participant.save()
-
-        messages.success(request, f"Participant {participant.user.username} marked as 'completed' successfully.")
-        logger.info(
-            f"Participant {participant.user.username} successfully marked as 'completed' in queue {queue.id} "
-            f"by user {request.user}."
-        )
-    except Exception as e:
-        messages.error(request, f"Error removing participant: {e}")
-        logger.error(
-            f"Failed to delete participant {participant_id} from queue {queue.id} "
-            f"by user {request.user}: {e}")
-    return redirect('queue:dashboard', pk=queue.id)
-
-
-@login_required
-def leave_queue(request, participant_id):
-    # Get the participant based on the participant_id
-    participant = get_object_or_404(Participant, id=participant_id)
-
-    # Ensure that the user is the owner of the participant record
+    # Case 1: The participant is canceling their own participation
     if participant.user == request.user:
         participant.status_user = 'canceled'
         participant.save()
-        # Redirect to the index page after successfully leaving the queue
+        messages.success(request, "You have successfully left the queue.")
+        logger.info(f"User {request.user} canceled participation in queue {queue.id}.")
         return redirect('queue:index')
+
+    # Case 2: Queue creator is managing the queue and marking the participant as completed
+    if queue.created_by == request.user:
+        try:
+            participant.status_user = 'completed'
+            participant.save()
+
+            messages.success(request, f"Participant {participant.user.username} marked as 'completed' successfully.")
+            logger.info(
+                f"Participant {participant.user.username} marked as 'completed' by queue creator {request.user} in queue {queue.id}.")
+        except Exception as e:
+            messages.error(request, f"Error updating participant status: {e}")
+            logger.error(f"Failed to update participant {participant_id} in queue {queue.id} by user {request.user}: {e}")
     else:
-        # Return an error or redirect if the user does not own this participant
-        return redirect('queue:index')
+        # Unauthorized attempt by a non-creator trying to manage a queue
+        messages.error(request, "You are not authorized to manage participants in this queue.")
+        logger.warning(
+            f"Unauthorized delete attempt by user {request.user} for participant {participant_id} in queue {queue.id}.")
+
+    return redirect('queue:dashboard', pk=queue.id)
 
 
 @receiver(user_logged_in)
