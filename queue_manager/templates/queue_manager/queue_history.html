@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+
+{% block extra_head %}
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            background-color: #f0f2f5;
+        }
+        header {
+            background-color: #1e2a3a;
+            color: white;
+            padding: 1rem;
+        }
+        main {
+            padding: 1rem;
+            width: 90%;
+            margin: auto;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1>Queue History</h1>
+    <div>
+    {% if joined_queues %}
+        <div class="list-group">
+        {% for queue in joined_queues %}
+            {% if queue.participant_status != 'active' %}
+            <div class="list-group-item ">
+                <h3 class="mb-1">{{ queue.name }}</h3>
+                {% if queue.description %}
+                    <p class="mb-1">Description: {{ queue.description }}</p>
+                {% endif %}
+                <p class="mb-1">Joined at: {{ queue.participant_joined_at }}</p>
+                <p class="mb-1">Status: {{ queue.participant_status }}</p>
+            </div>
+            {% endif %}
+        {% endfor %}
+        </div>
+    {% else %}
+        <p>You don't have any queue history.</p>
+    {% endif %}
+    </div>
+</div>
+{% endblock %}
