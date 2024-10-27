@@ -19,7 +19,7 @@ class Queue(models.Model):
     created_by = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     is_closed = models.BooleanField(default=False)
-    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='open')
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='normal')
     capacity = models.PositiveIntegerField(null=False, blank=False)
 
     def update_estimated_wait_time(self, average_time_per_participant: int) -> None:
@@ -193,10 +193,16 @@ class Participant(models.Model):
         return self.user.username if self.user else "-"
 
 class Notification(models.Model):
+    queue = models.ForeignKey(Queue, on_delete=models.CASCADE)
     participant = models.ForeignKey(Participant, on_delete=models.CASCADE)
     message = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
     is_read = models.BooleanField(default=False)
+
+    def save(self, *args, **kwargs):
+        if not self.queue.participant_set.filter(id=self.participant.id).exists():
+            raise ValueError("The participant is not part of the specified queue.")
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return f"Notification for {self.participant}: {self.message}"
