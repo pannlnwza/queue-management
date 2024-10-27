@@ -139,6 +139,7 @@ def join_queue(request):
     :returns: Redirects to the queue index page after processing.
     :raises Queue.DoesNotExist: If the queue code does not exist.
     """
+
     if request.method == 'POST':
         # Get the queue code from the submitted form and convert it to uppercase
         code = request.POST.get('queue_code', '').upper()
@@ -147,6 +148,7 @@ def join_queue(request):
         try:
             # Attempt to retrieve the queue based on the provided code
             queue = Queue.objects.get(code=code)
+            participant = queue.participant_set.filter(user=request.user).first()
             logger.info(
                 f'Queue found: {queue.name} for user {request.user.username}')
             # Check if the user is already a participant in the queue
@@ -170,6 +172,17 @@ def join_queue(request):
                                  "You have successfully joined the queue.")
                 logger.info(
                     f'User {request.user.username} joined queue {queue.name} at position {new_position}.')
+
+            elif participant.status_user in ['canceled', 'completed']:
+                # Rejoin the queue by updating the participant's status and position
+                last_position = queue.participant_set.count()
+                participant.status_user = 'active'
+                participant.position = last_position + 1
+                participant.save()
+
+                messages.success(request, "You have rejoined the queue.")
+                logger.info(
+                    f'User {request.user.username} rejoined queue {queue.name} at position {participant.position}.')
             else:
                 messages.info(request, "You are already in this queue.")
                 logger.warning(
