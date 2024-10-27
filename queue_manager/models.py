@@ -241,3 +241,22 @@ class Notification(models.Model):
 
     def __str__(self):
         return f"Notification for {self.participant}: {self.message}"
+
+
+class QueueHistory(models.Model):
+    """Represents the history of actions taken on a queue."""
+
+    ACTION_CHOICES = [
+        ('joined', 'Joined'),
+        ('left', 'Left'),
+        ('completed', 'Completed'),
+        ('canceled', 'Canceled'),
+    ]
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    queue = models.ForeignKey(Queue, on_delete=models.CASCADE)
+    action = models.CharField(max_length=10, choices=ACTION_CHOICES)
+    timestamp = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.user.username} {self.action} queue {self.queue.name} on {self.timestamp}"
