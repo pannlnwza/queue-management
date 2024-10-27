@@ -78,7 +78,7 @@
 {% endblock %}
 
 {% block content %}
-    <main>
+    <div class="container py-4">
         <div class="card">
             <div class="card-title">Your Queues</div>
             {% if queues %}
@@ -87,7 +87,7 @@
                         <li>
                             <div class="card">
                                 <div class="card-title">
-                                    {{ queue.name }} - Code: {{ queue.code }}
+                                    {{ queue.name }}
                                     {% if queue.is_closed %}
                                         <span class="status-badge-red">Closed</span>
                                     {% else %}
@@ -106,5 +106,5 @@
                 <p>You have not created any queues.</p>
             {% endif %}
         </div>
-    </main>
+    </div>
 {% endblock %}
