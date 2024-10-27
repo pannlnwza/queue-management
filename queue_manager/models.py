@@ -247,15 +247,19 @@ class QueueHistory(models.Model):
     """Represents the history of actions taken on a queue."""
 
     ACTION_CHOICES = [
-        ('Active', 'Active'),
+        ('active', 'Active'),
         ('completed', 'Completed'),
         ('canceled', 'Canceled'),
     ]
 
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     queue = models.ForeignKey(Queue, on_delete=models.CASCADE)
-    action = models.CharField(max_length=10, choices=ACTION_CHOICES)
+    queue_description = models.TextField(max_length=100)
+    action = models.CharField(max_length=10, choices=ACTION_CHOICES, default='Active')
     joined_at = models.DateTimeField(auto_now_add=True)
+
+    def get_queryset(self):
+        return QueueHistory.objects.filter(user=self.request.user).order_by('-joined_at')
 
     def __str__(self):
         return f"{self.user.username} {self.action} queue {self.queue.name} joined_at {self.joined_at}"

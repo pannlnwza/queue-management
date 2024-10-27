@@ -376,6 +376,16 @@ def delete_participant(request, participant_id):
             f"for participant {participant_id} in queue {queue.id}.")
         return redirect('queue:index')
     try:
+        QueueHistory.objects.create(
+            user=participant.user,
+            queue=queue,
+            queue_description=queue.description,
+            action='completed',
+            joined_at=participant.joined_at
+        )
+        logger.info(f"QueueHistory created for user {request.user.username}, "
+                    f"queue {queue.name}, action 'completed' at {participant.joined_at}")
+
         removed_position = participant.position
         participant.delete()
         remaining_participants = queue.participant_set.filter(
