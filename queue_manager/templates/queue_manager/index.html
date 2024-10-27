@@ -61,6 +61,15 @@
         .card {
             position: relative;
         }
+        .button-group {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+        .edit-btn {
+            background-color: #6c757d;
+            color: white;
+        }
 
     </style>
 {% endblock %}
@@ -71,8 +80,11 @@
         <div class="card">
             <div class="card-header d-flex justify-content-between align-items-center">
                 <div class="card-title">Current Queues</div>
-                <a href="{% url 'queue:history' %}" class="btn btn-primary">History</a>
-            </div>
+                    <div class="button-group">
+                        <button onclick="toggleEditMode()" class="btn edit-btn me-2">Edit</button>
+                        <a href="{% url 'queue:history' %}" class="btn btn-primary">History</a>
+                    </div>
+                </div>
             <div id="queues-container">
                 {% if queue_list %}
                     {% for queue in queue_list %}
