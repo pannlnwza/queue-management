@@ -16,6 +16,7 @@ omit =
     */__init__.py
     # django's migration files
     */migrations/*
+    */services/*
 
 # explicitly include the main app
 include =
