@@ -82,6 +82,9 @@ class IndexView(generic.ListView):
                 participant.queue.id: participant.calculate_estimated_wait_time()
                 for participant in user_participants
             }
+            active_participants = {
+                participant.queue.id: participant.id for participant in user_participants
+            }
             expected_service_time = {
                 participant.queue.id: datetime.now() + timedelta(
                     minutes=participant.calculate_estimated_wait_time())
@@ -92,6 +95,7 @@ class IndexView(generic.ListView):
             context['estimated_wait_time'] = estimated_wait_time
             context['expected_service_time'] = expected_service_time
             context['notification'] = notification
+            context['active_participants'] = active_participants
         return context
 
 
@@ -383,13 +387,13 @@ def delete_participant(request, participant_id):
             f"Unauthorized delete attempt by user {request.user} "
             f"for participant {participant_id} in queue {queue.id}.")
         return redirect('queue:index')
-    
+
     try:
         QueueHistory.objects.create(
             user=participant.user,
             queue=queue,
             queue_description=queue.description,
-            action='completed',
+            action=action,
             joined_at=participant.joined_at
         )
         logger.info(f"QueueHistory created for user {request.user.username}, "
