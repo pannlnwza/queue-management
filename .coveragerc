@@ -1,0 +1,29 @@
+[run]
+branch = True
+
+# Ignore files that are not relevant to coverage
+omit =
+    # system libraries
+    /usr/*
+    /usr/local/*
+    .local/*
+    # virtual environment
+    env/*
+    # django's script
+    manage.py
+    # django's configuration file
+    mysite/*
+    */__init__.py
+    # django's migration files
+    */migrations/*
+
+# explicitly include the main app
+include =
+    queue_manager/*
+
+# Exclude specific lines from the coverage report
+[report]
+exclude_lines =
+    def __str__
+    def __repr__
+fail_under = 80
