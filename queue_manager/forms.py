@@ -12,10 +12,9 @@ class QueueForm(forms.ModelForm):
 
     class Meta:
         model = Queue
-        fields = ['name', 'logo', 'description', 'category', 'capacity', 'estimated_wait_time']
+        fields = ['name', 'logo', 'description', 'category', 'capacity',]
         labels = {
             'logo': 'Logo (Optional)',
-            'estimated_wait_time': 'Estimated wait time (minutes)'
         }
         widgets = {
             'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter Queue Name (Max Length: 50)'}),
@@ -23,8 +22,6 @@ class QueueForm(forms.ModelForm):
             'category': forms.Select(choices=Queue.CATEGORY_CHOICES),
             'capacity': forms.NumberInput(attrs={'class': 'form-control',
                                                  'placeholder': 'Enter Capacity'}),
-            'estimated_wait_time': forms.NumberInput(attrs={'class': 'form-control',
-                                                            'placeholder': 'Enter Estimated Wait Time (minutes)'}),
             'logo': forms.ClearableFileInput(
                 attrs={'class': 'form-control', 'accept': 'image/*'})
         }
