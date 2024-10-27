@@ -1,6 +1,7 @@
 # Queue Management
 [![Django CI](https://github.com/pannlnwza/queue-management/actions/workflows/django.yml/badge.svg)](https://github.com/pannlnwza/queue-management/actions/workflows/django.yml)
 [![Style Checking](https://github.com/pannlnwza/queue-management/actions/workflows/style-checking.yml/badge.svg)](https://github.com/pannlnwza/queue-management/actions/workflows/style-checking.yml)
+[![codecov](https://codecov.io/gh/pannlnwza/queue-management/graph/badge.svg?token=VVJLMUQKQG)](https://codecov.io/gh/pannlnwza/queue-management)
 
 A Django application that allows users to create, join, and manage queues.
 
