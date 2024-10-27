@@ -318,6 +318,26 @@ class QueueDashboardView(generic.DetailView):
         return redirect('queue:index')
 
 
+class QueueHistoryView(LoginRequiredMixin, generic.ListView):
+    template_name = 'queue_manager/queue_history.html'
+    context_object_name = 'history_queues'
+
+    def get_queryset(self):
+        """
+        Return the history of queues for the logged-in user.
+        """
+        return QueueHistory.objects.filter(user=self.request.user).order_by('-joined_at')
+
+    def get_context_data(self, **kwargs):
+        """
+        Add additional context if needed.
+        """
+        context = super().get_context_data(**kwargs)
+        context['title'] = 'Your Queue History'  # You can customize this title as needed
+        return context
+
+
+
 @login_required
 def add_participant_slot(request, queue_id):
     """Staff adds a participant to the queue and generates a queue code."""
