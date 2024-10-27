@@ -10,7 +10,7 @@
             color: white;
         }
 
-        .status-active {
+        .status-normal {
             background-color: green;
         }
 
@@ -46,7 +46,7 @@
         <h2 class="queue-name">{{ queue.name }}</h2>
         <p>Status:
             <span class="status-badge 
-                {% if queue.status == 'open' %}status-active
+                {% if queue.status == 'normal' %}status-normal
                 {% elif queue.status == 'busy' %}status-busy
                 {% elif queue.status == 'full' %}status-full
                 {% else %}status-closed
