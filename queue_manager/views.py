@@ -12,6 +12,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.signals import user_logged_in, user_logged_out, \
     user_login_failed
 from django.dispatch import receiver
+from django.db.models import Q
 
 logger = logging.getLogger('queue')
 
@@ -75,11 +76,6 @@ class IndexView(generic.ListView):
                 user=self.request.user,
                 status_user='active'
             )
-            # Create a dictionary to hold queue positions
-            # queue_positions = {
-            #     participant.queue.id: participant.position for participant in
-            #     user_participants
-            # }
             queue_positions = {}
             active_queues = set()  # Track active queues for the user
 
@@ -94,6 +90,7 @@ class IndexView(generic.ListView):
 
             context['queue_positions'] = queue_positions
             context['active_queues'] = active_queues
+            context['active_participants'] = {participant.queue.id: participant.id for participant in user_participants}
         return context
 
 
@@ -174,15 +171,19 @@ def join_queue(request):
                     f'User {request.user.username} joined queue {queue.name} at position {new_position}.')
 
             elif participant.status_user in ['canceled', 'completed']:
-                # Rejoin the queue by updating the participant's status and position
                 last_position = queue.participant_set.count()
-                participant.status_user = 'active'
-                participant.position = last_position + 1
-                participant.save()
+                new_position = last_position + 1
 
-                messages.success(request, "You have rejoined the queue.")
-                logger.info(
-                    f'User {request.user.username} rejoined queue {queue.name} at position {participant.position}.')
+                Participant.objects.create(
+                    user=request.user,
+                    queue=queue,
+                    position=new_position,
+                    joined_at=timezone.now(),  # Update joined_at to current time
+                    status_user='active'  # Set the status to active again
+                )
+                messages.success(request, "You have successfully rejoined the queue.")
+                logger.info(f"User {request.user.username} rejoined queue {queue.name} at position {new_position}.")
+
             else:
                 messages.info(request, "You are already in this queue.")
                 logger.warning(
@@ -361,16 +362,13 @@ class QueueHistoryView(LoginRequiredMixin, generic.ListView):
 
         context['created_queues'] = Queue.objects.filter(created_by=user)
         context['joined_queues'] = Queue.objects.filter(
-            participant__user=user
-        ).exclude(
-            participant__status_user='active'  # Exclude active participants
+            Q(participant__user=user) & ~Q(participant__status_user='active')
         ).annotate(
             participant_status=models.F('participant__status_user'),
             participant_joined_at=models.F('participant__joined_at')
+        ).order_by(
+            '-participant__joined_at'
         )
-
-        # Check if user has ever participated in any queue (for message logic)
-        context['user_has_history'] = Participant.objects.filter(user=user).exists()
 
         return context
 

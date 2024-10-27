@@ -116,17 +116,13 @@
                             </div>
                             {% if queue.id in active_queues %}
                                 <div class="leave-queue-btn {% if not is_editing %}d-none{% endif %}">
-                                    {% for participant in queue.participant_set.all %}
-                                        {% if participant.user == request.user %}
-                                            <form method="POST" action="{% url 'queue:delete' participant.id %}" class="d-inline"
-                                                  onsubmit="return confirm('Are you sure you want to leave this queue?');">
-                                                {% csrf_token %}
-                                                <button type="submit" class="btn btn-danger">
-                                                    Leave Queue
-                                                </button>
-                                            </form>
-                                        {% endif %}
-                                    {% endfor %}
+                                    <form method="POST" action="{% url 'queue:delete' active_participants|get_item:queue.id %}" class="d-inline"
+                                          onsubmit="return confirm('Are you sure you want to leave this queue?');">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-danger">
+                                            Leave Queue
+                                        </button>
+                                    </form>
                                 </div>
                             {% endif %}
                         </div>
