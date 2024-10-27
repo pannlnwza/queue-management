@@ -1,10 +1,14 @@
-import unittest
-
 from django.test import TestCase
 from queue_manager.forms import QueueForm
+from django.contrib.auth.models import User
+from django.urls import reverse
+from queue_manager.models import Queue
 
 
 class QueueFormTest(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(username='testuser', password='password')
+        self.client.login(username='testuser', password='password')
     def test_queue_form_valid_data(self):
         """Test that the form is valid with correct data."""
         form_data = {
@@ -36,3 +40,16 @@ class QueueFormTest(TestCase):
         self.assertEqual(form.fields['name'].widget.attrs['placeholder'], 'Enter Queue Name (Max Length: 50)')
         self.assertEqual(form.fields['description'].widget.attrs['class'], 'form-control')
         self.assertEqual(form.fields['description'].widget.attrs['rows'], 4)
+
+    def test_form_valid_sets_created_by(self):
+        form_data = {
+            'name': 'Test Queue',
+            'description': 'A test description',
+            'capacity': 5,
+            'estimated_wait_time': 10,
+            'category': 'restaurant',
+        }
+        response = self.client.post(reverse('queue:create_q'), form_data)
+        self.assertEqual(response.status_code, 302)
+        queue = Queue.objects.get(name='Test Queue')
+        self.assertEqual(queue.created_by, self.user)

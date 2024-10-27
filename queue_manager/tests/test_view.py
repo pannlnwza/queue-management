@@ -1,8 +1,9 @@
-from django.test import TestCase
+from django.test import TestCase, RequestFactory
 from django.urls import reverse
 from django.contrib.auth.models import User
 from queue_manager.models import Queue, Participant
 from django.contrib.messages import get_messages
+from queue_manager.views import IndexView
 
 
 class QueueViewsTestCase(TestCase):
@@ -13,6 +14,7 @@ class QueueViewsTestCase(TestCase):
         self.queue = Queue.objects.create(name='Test Queue', capacity=10, created_by=self.user)
         self.participant_slot_1 = Participant.objects.create(queue=self.queue)
         self.participant_slot_1.update_to_last_position()
+        self.factory = RequestFactory()
 
     def test_index_view_authenticated(self):
         """Test accessing the index view as an authenticated user"""
@@ -20,6 +22,13 @@ class QueueViewsTestCase(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'queue_manager/index.html')
         self.assertIn('queue_list', response.context)
+
+    def test_index_view_unauthenticated(self):
+        """Test accessing the index view as an unauthenticated user"""
+        response = self.client.get(reverse('queue:index'))
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'queue_manager/index.html')
+        self.assertQuerySetEqual(response.context['queue_list'], [])
 
     def test_join_queue_valid_code(self):
         """Test joining a queue with a valid code"""
