@@ -148,50 +148,61 @@ def join_queue(request):
             participant = queue.participant_set.filter(user=request.user).first()
             logger.info(
                 f'Queue found: {queue.name} for user {request.user.username}')
-            # Check if the user is already a participant in the queue
+
+            # Check queue conditions
             if queue.is_closed:
                 messages.error(request, "The queue is closed.")
                 logger.info(
                     f'User {request.user.username} attempted to join queue {queue.name} that has been closed.')
-            elif request.user == queue.created_by:
+                return redirect('queue:index')
+
+            if request.user == queue.created_by:
                 messages.error(request, "You cannot join your own queue.")
                 logger.warning(f"Queue creator {request.user.username} attempts to join his own queue {queue.name}.")
-            elif not queue.participant_set.filter(user=request.user).exists():
+                return redirect('queue:index')
+
+            # Handle participant cases
+            if not participant:
+                # New participant - never joined before
                 last_position = queue.participant_set.count()
                 new_position = last_position + 1
-                # Create a new Participant entry
                 Participant.objects.create(
                     user=request.user,
                     queue=queue,
                     position=new_position
                 )
-                messages.success(request,
-                                 "You have successfully joined the queue.")
+                messages.success(request, "You have successfully joined the queue.")
                 logger.info(
                     f'User {request.user.username} joined queue {queue.name} at position {new_position}.')
 
             elif participant.status_user in ['canceled', 'completed']:
+                # Existing participant with canceled/completed status - update their record
                 last_position = queue.participant_set.count()
                 new_position = last_position + 1
 
-                Participant.objects.create(
-                    user=request.user,
-                    queue=queue,
-                    position=new_position,
-                    joined_at=timezone.now(),  # Update joined_at to current time
-                    status_user='active'  # Set the status to active again
-                )
+                participant.position = new_position
+                participant.joined_at = timezone.now()
+                participant.status_user = 'active'
+                participant.save()
+
                 messages.success(request, "You have successfully rejoined the queue.")
                 logger.info(f"User {request.user.username} rejoined queue {queue.name} at position {new_position}.")
 
             else:
+                # Active participant trying to join again
                 messages.info(request, "You are already in this queue.")
                 logger.warning(
                     f'User {request.user.username} attempted to join queue {queue.name} again.')
+
         except Queue.DoesNotExist:
             messages.error(request, "Invalid queue code.")
             logger.error(
                 f'User {request.user.username} attempted to join with an invalid queue code: {code}')
+        except Exception as e:
+            messages.error(request, "An error occurred while joining the queue. Please try again.")
+            logger.error(
+                f'Error occurred while user {request.user.username} was joining queue {code}: {str(e)}')
+
     # Redirect to the index page after processing the request
     return redirect('queue:index')
 
