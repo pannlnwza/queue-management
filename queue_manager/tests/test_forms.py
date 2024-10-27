@@ -9,6 +9,7 @@ class QueueFormTest(TestCase):
     def setUp(self):
         self.user = User.objects.create_user(username='testuser', password='password')
         self.client.login(username='testuser', password='password')
+
     def test_queue_form_valid_data(self):
         """Test that the form is valid with correct data."""
         form_data = {

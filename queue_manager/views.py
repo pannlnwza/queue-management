@@ -262,6 +262,7 @@ class EditQueueView(LoginRequiredMixin, generic.UpdateView):
         :returns: Redirects to the success URL after processing.
         """
         self.object = self.get_object()
+
         if request.POST.get('action') == 'queue_status':
             return self.queue_status_handler()
         if request.POST.get('action') == 'edit_queue':
