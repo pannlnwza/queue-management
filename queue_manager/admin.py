@@ -1,5 +1,5 @@
 from django.contrib import admin
-from queue_manager.models import Queue, UserProfile, Participant
+from queue_manager.models import Queue, UserProfile, Participant, Notification
 
 
 @admin.register(Queue)
@@ -35,3 +35,5 @@ class ParticipantAdmin(admin.ModelAdmin):
     list_filter = ('queue', 'joined_at')
     ordering = ('-joined_at',)
     readonly_fields = ('joined_at',)
+
+admin.site.register(Notification)
