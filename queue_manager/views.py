@@ -13,7 +13,6 @@ from django.contrib.auth.signals import user_logged_in, user_logged_out, \
     user_login_failed
 from django.dispatch import receiver
 from datetime import datetime, timedelta
-from django.http import JsonResponse
 
 logger = logging.getLogger('queue')
 
@@ -78,7 +77,8 @@ class IndexView(generic.ListView):
                 user_participants
             }
             estimated_time = {
-                participant.queue.id: participant.calculate_estimated_wait_time() for participant in
+                participant.queue.id: participant.calculate_estimated_wait_time()
+                for participant in
                 user_participants
             }
             expected_service_time = {
@@ -126,48 +126,67 @@ def join_queue(request):
     """Customer joins queue using their ticket code."""
     if request.method == 'POST':
         queue_code = request.POST.get('queue_code')
-
         try:
             participant_slot = Participant.objects.get(queue_code=queue_code)
             queue = participant_slot.queue
             if Participant.objects.filter(user=request.user).exists():
                 messages.error(request, f"You're already in a queue.")
-                logger.info(f"User: {request.user} attempted to join queue: {queue.name} when they're already in one.")
+                logger.info(
+                    f"User: {request.user} attempted to join queue: {queue.name} when they're already in one.")
             elif queue.is_closed:
                 messages.error(request, "The queue is closed.")
-                logger.info(f'User {request.user.username} attempted to join queue {queue.name} that has been closed.')
+                logger.info(
+                    f'User {request.user.username} attempted to join queue {queue.name} that has been closed.')
             else:
                 participant_slot.insert_user(user=request.user)
                 participant_slot.save()
-                messages.success(request, f"You have successfully joined the queue with code {queue_code}.")
+                messages.success(request,
+                                 f"You have successfully joined the queue with code {queue_code}.")
         except Participant.DoesNotExist:
             messages.error(request, "Invalid queue code. Please try again.")
             return redirect('queue:index')
-
     return redirect('queue:index')
 
 
-class QueueListView(generic.ListView):
-    """
-    List all queues.
-
-    Displays all available queues to the user.
-
-    :param model: The model to use for retrieving the queues.
-    :param template_name: The name of the template to render.
-    :param context_object_name: The name of the context variable to hold the list of queues.
-    """
+class BrowseQueueView(generic.ListView):
     model = Queue
-    template_name = 'queue_manager/all_queues.html'
+    template_name = 'queue_manager/browse_queue.html'
+
+
+class BaseQueueView(generic.ListView):
+    model = Queue
+    template_name = 'queue_manager/list_queues.html'
     context_object_name = 'queues'
+    queue_category = None
 
     def get_queryset(self):
-        """
-        Retrieve all queues.
+        return Queue.objects.filter(category=self.queue_category)
 
-        :returns: A queryset of all queues available in the system.
-        """
-        return Queue.objects.all()
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['queue_type'] = self.queue_category.capitalize()
+        context['queues'] = self.get_queryset()
+        return context
+
+
+class RestaurantQueueView(BaseQueueView):
+    queue_category = 'restaurant'
+
+
+class GeneralQueueView(BaseQueueView):
+    queue_category = 'general'
+
+
+class HospitalQueueView(BaseQueueView):
+    queue_category = 'hospital'
+
+
+class BankQueueView(BaseQueueView):
+    queue_category = 'bank'
+
+
+class ServiceCenterQueueView(BaseQueueView):
+    queue_category = 'service center'
 
 
 class ManageQueuesView(LoginRequiredMixin, generic.ListView):
@@ -297,11 +316,13 @@ def add_participant_slot(request, queue_id):
     queue = get_object_or_404(Queue, id=queue_id)
 
     if queue.is_full():
-        messages.error(request ,f'Queue has exceeded the limit capacity ({queue.capacity}).')
-        logger.info(f'{request.user} tried to add participants when the queue was already full.')
+        messages.error(request,
+                       f'Queue has exceeded the limit capacity ({queue.capacity}).')
+        logger.info(
+            f'{request.user} tried to add participants when the queue was already full.')
         return redirect('queue:dashboard', queue_id)
     last_position = queue.participant_set.count()
-    Participant.objects.create(position=last_position+1, queue=queue)
+    Participant.objects.create(position=last_position + 1, queue=queue)
     return redirect('queue:dashboard', queue_id)
 
 
@@ -327,13 +348,13 @@ def delete_participant(request, participant_id):
     try:
         removed_position = participant.position
         participant.delete()
-
-        remaining_participants = queue.participant_set.filter(position__gt=removed_position).order_by('position')
+        remaining_participants = queue.participant_set.filter(
+            position__gt=removed_position).order_by('position')
         for p in remaining_participants:
             p.position -= 1
             p.save()
-
-        messages.success(request, f"Participant with code {participant.queue_code} removed successfully.")
+        messages.success(request,
+                         f"Participant with code {participant.queue_code} removed successfully.")
         logger.info(
             f"Participant with code {participant.queue_code} successfully deleted from queue {queue.id} "
             f"by user {request.user}.")
@@ -354,14 +375,15 @@ def delete_queue(request, queue_id):
         logger.error(f"Queue id: {queue_id} does not exist.")
         return redirect('queue:index')
     if queue.created_by != request.user:
-        messages.error(request,"You're not authorized to delete this queue.")
+        messages.error(request, "You're not authorized to delete this queue.")
         logger.warning(
             f"Unauthorized queue delete attempt by user {request.user} "
             f"for queue: {queue.name} queue_id: {queue.id}.")
         return redirect('queue:index')
     try:
         queue.delete()
-        messages.success(request, f"Queue {queue.name} has been deleted successfully.")
+        messages.success(request,
+                         f"Queue {queue.name} has been deleted successfully.")
         logger.info(
             f"{request.user} successfully deleted queue: {queue.name} id: {queue.id}.")
     except Exception as e:
@@ -410,6 +432,7 @@ def get_client_ip(request):
         if (x_forwarded_for := request.META.get('HTTP_X_FORWARDED_FOR'))
         else request.META.get('REMOTE_ADDR')
     )
+
 
 @receiver(user_logged_in)
 def user_login(request, user, **kwargs):
