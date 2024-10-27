@@ -358,12 +358,20 @@ class QueueHistoryView(LoginRequiredMixin, generic.ListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         user = self.request.user
+
         context['created_queues'] = Queue.objects.filter(created_by=user)
-        # Get joined queues with participant information
-        context['joined_queues'] = Queue.objects.filter(participant__user=user).annotate(
+        context['joined_queues'] = Queue.objects.filter(
+            participant__user=user
+        ).exclude(
+            participant__status_user='active'  # Exclude active participants
+        ).annotate(
             participant_status=models.F('participant__status_user'),
             participant_joined_at=models.F('participant__joined_at')
         )
+
+        # Check if user has ever participated in any queue (for message logic)
+        context['user_has_history'] = Participant.objects.filter(user=user).exists()
+
         return context
 
 

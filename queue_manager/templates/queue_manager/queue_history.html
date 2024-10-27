@@ -28,34 +28,13 @@
 {% block content %}
 <div class="container mt-4">
     <h1>Queue History</h1>
-
-    <div class="mb-4">
-        <h3>Queues You Created</h3>
-        {% if created_queues %}
-            <div class="list-group">
-            {% for queue in created_queues %}
-                <div class="list-group-item">
-                    <h5 class="mb-1">{{ queue.name }}</h5>
-                    <p class="mb-1">Code: {{ queue.code }}</p>
-                    <p class="mb-1">Created: {{ queue.created_at }}</p>
-                    <p class="mb-1">Status: {{ queue.status }}</p>
-                    {% if queue.description %}
-                        <p class="mb-1">Description: {{ queue.description }}</p>
-                    {% endif %}
-                </div>
-            {% endfor %}
-            </div>
-        {% else %}
-            <p>You haven't created any queues yet.</p>
-        {% endif %}
-    </div>
-
     <div>
         <h4>Queues You Joined</h4>
         {% if joined_queues %}
             <div class="list-group">
             {% for queue in joined_queues %}
-                <div class="list-group-item">
+                {% if queue.participant_status != 'active' %}
+                <div class="list-group-item ">
                     <h3 class="mb-1">{{ queue.name }}</h3>
                     {% if queue.description %}
                         <p class="mb-1">Description: {{ queue.description }}</p>
@@ -63,10 +42,13 @@
                     <p class="mb-1">Joined at: {{ queue.participant_joined_at }}</p>
                     <p class="mb-1">Status: {{ queue.participant_status }}</p>
                 </div>
+                {% endif %}
             {% endfor %}
             </div>
         {% else %}
-            <p>You haven't joined any queues yet.</p>
+            {% if user_has_history %}
+                <p>You don't have any queue history.</p>
+            {% endif %}
         {% endif %}
     </div>
 </div>
