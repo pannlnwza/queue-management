@@ -73,18 +73,25 @@
                         <div class="card queue-card mb-3" id="queue-{{ queue.id }}">
                             <div class="d-flex align-items-center">
                                 <h5 class="mb-0">{{ queue.name }}</h5>
-                                <div class="status ms-2 px-1 py-auto" id="status-{{ queue.id }}">{{ queue.status }}</div>
+                                <div class="status ms-2 px-1 py-auto"
+                                     id="status-{{ queue.id }}">{{ queue.status }}</div>
                             </div>
                             <div class="row mt-2">
                                 <div class="col">
                                     <div class="stat-label">Your Position</div>
-                                    <div class="stat-value position" id="position-{{ queue.id }}"></div>
+                                    <div class="stat-value position" id="position-{{ queue.id }}">{{ queue_positions|get_item:queue.id }}</div>
                                 </div>
                                 <div class="col">
                                     <div class="stat-label">Queue Length</div>
-                                    <div class="stat-value participant-count" id="length-{{ queue.id }}"></div>
+                                    <div class="stat-value participant-count" id="length-{{ queue.id }}">{{ queue.participant_set.count }}</div>
                                 </div>
                             </div>
+                            <div class="row mt-2">
+                            <div class="col">
+                                <div class="stat-label">Estimated Wait Time</div>
+                                <div class="stat-value estimated" id="estimated-{{ queue.id }}">{{ estimated_wait_time|get_item:queue.id }} minute</div>
+                            </div>
+                        </div>
                         </div>
                     {% endfor %}
                 {% else %}
@@ -102,22 +109,22 @@
                 </div>
             </form>
         </div>
-    
-<div class="modal" id="notificationModal">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title">Your Turn Is Ready!</h5>
-      </div>
-      <div class="modal-body">
-        <p id="modalMessage"></p>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-primary" id="modalOkButton">OK</button>
-      </div>
-    </div>
-  </div>
-</div>
+
+        <div class="modal" id="notificationModal">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Your Turn Is Ready!</h5>
+                    </div>
+                    <div class="modal-body">
+                        <p id="modalMessage"></p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-primary" id="modalOkButton">OK</button>
+                    </div>
+                </div>
+            </div>
+        </div>
 
     </main>
     <script src="{% static 'queue_manager/js/queueDataStream.js' %}"></script>

@@ -1,5 +1,7 @@
+import math
 import string
 import random
+
 from django.utils import timezone
 from django.db import models
 from django.contrib.auth.models import User
@@ -22,7 +24,7 @@ class Queue(models.Model):
     ]
     name = models.CharField(max_length=255)
     description = models.TextField(max_length=100)
-    estimated_wait_time = models.PositiveIntegerField(default=0)
+    estimated_wait_time_per_turn = models.PositiveIntegerField(default=0)
     created_by = models.ForeignKey(User, on_delete=models.CASCADE, null=True,
                                    blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -32,21 +34,22 @@ class Queue(models.Model):
     category = models.CharField(max_length=20, choices=CATEGORY_CHOICES)
     logo = models.ImageField(upload_to='queue_logos/', blank=True, null=True)
     capacity = models.PositiveIntegerField(null=False)
+    completed_participants_count = models.PositiveIntegerField(default=0)
 
-    def update_estimated_wait_time(self,
-                                   average_time_per_participant: int) -> None:
-        """Update the estimated wait time based on the number of participants.
+    def update_estimated_wait_time_per_turn(self, time_taken: int) -> None:
+        """Update the estimated wait time per turn based on the time taken for the notified participant.
 
-        :param average_time_per_participant: Average time per participant in minutes.
-        :raises ValueError: If the average time per participant is negative.
+        :param time_taken: Time taken for the participant to finish their turn in minutes.
         """
-        if average_time_per_participant < 0:
-            raise ValueError(
-                "Average time per participant cannot be negative.")
+        if self.completed_participants_count > 0:
+            self.estimated_wait_time_per_turn = math.ceil((self.estimated_wait_time_per_turn * self.completed_participants_count) + time_taken) / (self.completed_participants_count + 1)
+        else:
+            self.estimated_wait_time_per_turn = time_taken
 
-        num_participants = self.participant_set.count()
-        self.estimated_wait_time = num_participants * average_time_per_participant
+        # Increment the count of completed participants
+        self.completed_participants_count += 1
         self.save()
+        print(self.estimated_wait_time_per_turn)
 
     def get_participants(self) -> models.QuerySet:
         """
@@ -205,8 +208,7 @@ class Participant(models.Model):
 
         :returns: The estimated wait time in minutes.
         """
-        average_service_time_per_participant = self.queue.estimated_wait_time
-        return average_service_time_per_participant * self.position
+        return self.queue.estimated_wait_time_per_turn * self.position
 
     def save(self,*args, **kwargs):
         """Generate a unique ticket code for the participant if not already."""

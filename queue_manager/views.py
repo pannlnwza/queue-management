@@ -1,4 +1,6 @@
 import logging
+
+from django.http import JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404, Http404
 from django.views import generic
 from queue_manager.models import *
@@ -76,10 +78,9 @@ class IndexView(generic.ListView):
                 participant.queue.id: participant.position for participant in
                 user_participants
             }
-            estimated_time = {
+            estimated_wait_time = {
                 participant.queue.id: participant.calculate_estimated_wait_time()
-                for participant in
-                user_participants
+                for participant in user_participants
             }
             expected_service_time = {
                 participant.queue.id: datetime.now() + timedelta(
@@ -88,7 +89,7 @@ class IndexView(generic.ListView):
             }
             notification = Notification.objects.filter(participant__user=self.request.user).order_by('-created_at')
             context['queue_positions'] = queue_positions
-            context['estimated_wait_time'] = estimated_time
+            context['estimated_wait_time'] = estimated_wait_time
             context['expected_service_time'] = expected_service_time
             context['notification'] = notification
         return context
@@ -322,7 +323,9 @@ def add_participant_slot(request, queue_id):
             f'{request.user} tried to add participants when the queue was already full.')
         return redirect('queue:dashboard', queue_id)
     last_position = queue.participant_set.count()
-    Participant.objects.create(position=last_position + 1, queue=queue)
+    Participant.objects.create(
+        position=last_position + 1,
+        queue=queue)
     return redirect('queue:dashboard', queue_id)
 
 
@@ -407,6 +410,10 @@ def notify_participant(request, queue_id, participant_id):
         participant=participant,
         message=message
     )
+    time_taken = timezone.now() - participant.joined_at
+    time_taken_minutes = int(time_taken.total_seconds() // 60)
+    queue.update_estimated_wait_time_per_turn(time_taken_minutes)
+
     messages.success(request, f"You notified the participant {participant.user.username}.")
     return redirect('queue:dashboard', queue_id)
 

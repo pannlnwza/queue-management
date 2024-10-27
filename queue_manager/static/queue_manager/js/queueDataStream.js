@@ -19,9 +19,9 @@ combinedEventSource.onmessage = function (event) {
 
         document.getElementById(`length-${queue.id}`).innerText = queue.participant_count;
         document.getElementById(`position-${queue.id}`).innerText = queue.position;
+        document.getElementById(`estimated-${queue.id}`).innerText = queue.estimated_wait_time + ' minute';
     });
 
-    // Handle notifications
     data.notifications.forEach(notification => {
         openNotificationModal(notification);
     });

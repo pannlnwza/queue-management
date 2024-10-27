@@ -43,6 +43,7 @@ def data_stream(request):
                         'id': queue.id,
                         'name': queue.name,
                         'position': queue.participant_set.filter(user=request.user).first().position,
+                        'estimated_wait_time': queue.participant_set.filter(user=request.user).first().calculate_estimated_wait_time(),
                         'participant_count': queue.participant_set.count(),
                         'status': queue.status.title(),
                     })
@@ -85,7 +86,7 @@ def queue_dashboard_stream(request, queue_id):
                         'position': participant.position,
                         'joined_at': timezone.localtime(participant.joined_at).strftime(
                             '%d-%m-%Y %H:%M:%S') if participant.joined_at else "-",
-                        'estimated_wait_time': queue.estimated_wait_time,
+                        'estimated_wait_time': participant.calculate_estimated_wait_time(),
                         'queue_code': participant.queue_code
                     }
                     for participant in queue.participant_set.all()
@@ -95,9 +96,10 @@ def queue_dashboard_stream(request, queue_id):
                     'id': queue.id,
                     'name': queue.name,
                     'current_queue_length': queue.participant_set.count(),
-                    'estimated_wait_time': queue.estimated_wait_time,
+                    'estimated_wait_time_per_turn': queue.estimated_wait_time_per_turn,
                     'participants_today': queue.get_participants_today(),
                     'participants': participants,
+                    'completed_participants': queue.completed_participants_count
                 }
 
                 if queue_data != last_data:
