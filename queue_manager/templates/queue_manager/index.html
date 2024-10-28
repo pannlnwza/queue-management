@@ -58,7 +58,21 @@
         .status-full {
             background-color: red;
         }
-
+        .card {
+            position: relative;
+        }
+        .button-group {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+        .edit-btn {
+            background-color: #6c757d;
+            color: white;
+        }
+        .d-none {
+            display: none;
+        }
     </style>
 {% endblock %}
 
@@ -66,15 +80,20 @@
     <main class="container py-4">
 
         <div class="card">
-            <div class="card-title">Current Queues</div>
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <div class="card-title">Current Queues</div>
+                    <div class="button-group">
+                        <button onclick="toggleEditMode()" class="btn edit-btn me-2">Edit</button>
+                        <a href="{% url 'queue:history' %}" class="btn btn-primary">History</a>
+                    </div>
+                </div>
             <div id="queues-container">
                 {% if queue_list %}
                     {% for queue in queue_list %}
-                        <div class="card queue-card mb-3" id="queue-{{ queue.id }}">
+                        <div class="card queue-card mb-3 position-relative" id="queue-{{ queue.id }}">
                             <div class="d-flex align-items-center">
                                 <h5 class="mb-0">{{ queue.name }}</h5>
-                                <div class="status ms-2 px-1 py-auto"
-                                     id="status-{{ queue.id }}">{{ queue.status }}</div>
+                                <div class="status ms-2 px-1 py-auto" id="status-{{ queue.id }}">{{ queue.status }}</div>
                             </div>
                             <div class="row mt-2">
                                 <div class="col">
@@ -87,11 +106,23 @@
                                 </div>
                             </div>
                             <div class="row mt-2">
-                            <div class="col">
-                                <div class="stat-label">Estimated Wait Time</div>
-                                <div class="stat-value estimated" id="estimated-{{ queue.id }}">{{ estimated_wait_time|get_item:queue.id }} minute</div>
+                                <div class="col">
+                                    <div class="stat-label">Estimated Wait Time</div>
+                                    <div class="stat-value estimated" id="estimated-{{ queue.id }}">{{ estimated_wait_time|get_item:queue.id }} minute</div>
+                                </div>
                             </div>
-                        </div>
+                            {% if queue.id in active_participants %}
+                                <div class="position-absolute" style="top: 10px; right: 10px;">
+                                    <div class="leave-queue-btn" style="display: none;">
+                                        <form method="POST" action="{% url 'queue:delete_participant' active_participants|get_item:queue.id %}" class="d-inline" onsubmit="return confirm('Are you sure you want to leave this queue?');">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn btn-danger btn-sm">
+                                                Leave Queue
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                            {% endif %}
                         </div>
                     {% endfor %}
                 {% else %}

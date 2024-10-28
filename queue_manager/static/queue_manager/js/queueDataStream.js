@@ -77,3 +77,26 @@ function getCsrfToken() {
 
 window.onload = function() {
 };
+
+function toggleEditMode() {
+    const leaveButtons = document.querySelectorAll('.leave-queue-btn'); // Select all leave buttons
+    const editBtn = document.querySelector('.edit-btn');
+
+    // Check if we are currently in editing mode
+    let isEditing = editBtn.textContent === 'Done';
+
+    // Toggle display of leave buttons based on editing mode
+    leaveButtons.forEach(btn => {
+        if (isEditing) {
+            btn.style.display = 'none'; // Hide buttons when editing
+        } else {
+            btn.style.display = 'block'; // Show buttons when not editing
+        }
+    });
+
+    // Toggle the button text and style
+    editBtn.textContent = isEditing ? 'Edit' : 'Done';
+    editBtn.style.backgroundColor = isEditing ? '#6c757d' : '#28a745';
+}
+
+

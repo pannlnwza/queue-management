@@ -25,4 +25,5 @@ urlpatterns = [
     path('notify/<int:participant_id>/', notify_participant, name='notify_participant'),
     path('notify-participant/<int:queue_id>/<int:participant_id>/', notify_participant, name='notify_participant'),
     path('mark-as-read/<int:notification_id>/', mark_notification_as_read, name='mark_notification_as_read'),
+    path('history/', QueueHistoryView.as_view(), name='history'),
 ]

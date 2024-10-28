@@ -82,6 +82,9 @@ class IndexView(generic.ListView):
                 participant.queue.id: participant.calculate_estimated_wait_time()
                 for participant in user_participants
             }
+            active_participants = {
+                participant.queue.id: participant.id for participant in user_participants
+            }
             expected_service_time = {
                 participant.queue.id: datetime.now() + timedelta(
                     minutes=participant.calculate_estimated_wait_time())
@@ -92,6 +95,7 @@ class IndexView(generic.ListView):
             context['estimated_wait_time'] = estimated_wait_time
             context['expected_service_time'] = expected_service_time
             context['notification'] = notification
+            context['active_participants'] = active_participants
         return context
 
 
@@ -307,15 +311,36 @@ class QueueDashboardView(generic.DetailView):
                            f'to access a non-existent queue with ID {kwargs.get("pk")}.')
             messages.error(request, 'Queue does not exist.')
             return redirect('queue:index')
-        if queue.created_by == request.user:
-            logger.info(f'User {request.user.username} accessed the '
-                        f'dashboard for queue "{queue.name}" with ID {queue.pk}.')
-            return super().get(request, *args, **kwargs)
-        logger.warning(
-            f'User {request.user.username} attempted to access the dashboard '
-            f'for queue "{queue.name}" (ID: {queue.pk}) without ownership.')
-        messages.error(request, 'You are not the owner of this queue.')
-        return redirect('queue:index')
+        if queue.created_by != request.user:
+            logger.warning(
+                f'User {request.user.username} attempted to access the dashboard '
+                f'for queue "{queue.name}" (ID: {queue.pk}) without ownership.')
+            messages.error(request, 'You are not the owner of this queue.')
+            return redirect('queue:index')
+
+        logger.info(f'User {request.user.username} accessed the '
+                    f'dashboard for queue "{queue.name}" with ID {queue.pk}.')
+        return super().get(request, *args, **kwargs)
+
+
+class QueueHistoryView(LoginRequiredMixin, generic.ListView):
+    template_name = 'queue_manager/queue_history.html'
+    context_object_name = 'history_queues'
+
+    def get_queryset(self):
+        """
+        Return the history of queues for the logged-in user.
+        """
+        return QueueHistory.objects.filter(user=self.request.user).order_by('-joined_at')
+
+    def get_context_data(self, **kwargs):
+        """
+        Add additional context if needed.
+        """
+        context = super().get_context_data(**kwargs)
+        context['title'] = 'Your Queue History'  # You can customize this title as needed
+        return context
+
 
 
 @login_required
@@ -338,42 +363,57 @@ def add_participant_slot(request, queue_id):
 
 @login_required
 def delete_participant(request, participant_id):
-    """Delete a participant from a specific queue if the requester is the queue creator."""
+    """Delete a participant from a specific queue if the requester is the queue creator or the participant themselves."""
     try:
         participant = Participant.objects.get(id=participant_id)
     except Participant.DoesNotExist:
-        messages.error(request,
-                       f"Participant with ID {participant_id} does not exist.")
+        messages.error(request, f"Participant with ID {participant_id} does not exist.")
         logger.error(f"Participant id: {participant_id} does not exist.")
         return redirect('queue:index')
+
     queue = participant.queue
 
-    if queue.created_by != request.user:
-        messages.error(request,
-                       "You are not authorized to delete participants from this queue.")
+    if queue.created_by == request.user:
+        action = 'completed'
+        success_message = f"Participant with code {participant.queue_code} removed successfully."
+        log_message = f"Participant with code {participant.queue_code} successfully deleted from queue {queue.id} by user {request.user}."
+
+    elif participant.user == request.user:
+        action = 'canceled'
+        success_message = "You have successfully left the queue."
+        log_message = f"User {request.user} canceled participation in queue {queue.id}."
+
+    else:
+        messages.error(request, "You are not authorized to delete participants from this queue.")
         logger.warning(
-            f"Unauthorized delete attempt by user {request.user} "
-            f"for participant {participant_id} in queue {queue.id}.")
+            f'Unauthorized delete attempt by user {request.user} '
+            f'for participant {participant_id} in queue {queue.id}.')
         return redirect('queue:index')
+
     try:
+        QueueHistory.objects.create(
+            user=participant.user,
+            queue=queue,
+            queue_description=queue.description,
+            action=action,
+            joined_at=participant.joined_at
+        )
+
         removed_position = participant.position
         participant.delete()
-        remaining_participants = queue.participant_set.filter(
-            position__gt=removed_position).order_by('position')
+        remaining_participants = queue.participant_set.filter(position__gt=removed_position).order_by('position')
         for p in remaining_participants:
             p.position -= 1
             p.save()
-        messages.success(request,
-                         f"Participant with code {participant.queue_code} removed successfully.")
-        logger.info(
-            f"Participant with code {participant.queue_code} successfully deleted from queue {queue.id} "
-            f"by user {request.user}.")
+
+        messages.success(request, success_message)
+        logger.info(log_message)
+
     except Exception as e:
         messages.error(request, f"Error removing participant: {e}")
-        logger.error(
-            f"Failed to delete participant {participant_id} from queue {queue.id} "
-            f"by user {request.user}: {e}")
-    return redirect('queue:dashboard', pk=queue.id)
+        logger.error(f"Failed to delete participant {participant_id} from queue {queue.id} by user {request.user}: {e}")
+
+    return redirect('queue:index')
 
 
 @login_required
