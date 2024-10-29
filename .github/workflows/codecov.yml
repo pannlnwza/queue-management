@@ -35,7 +35,8 @@ jobs:
 
       - name: Make migrations
         run: |
-          python manage.py makemigrations queue_manager
+          python manage.py makemigrations manager
+          python manage.py makemigrations participant
           python manage.py migrate
 
       - name: Run tests and collect coverage
