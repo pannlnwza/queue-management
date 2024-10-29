@@ -46,7 +46,7 @@
 
 6. Run migrations
    ```shell
-   python manage.py makemigrations queue_manager
+   python manage.py makemigrations
    python manage.py migrate
    ```
 

@@ -39,7 +39,7 @@ jobs:
           python manage.py migrate
 
       - name: Run tests and collect coverage
-        run: coverage run manage.py test queue_manager
+        run: coverage run manage.py test participant
 
       - name: Generate coverage report
         run: coverage xml
