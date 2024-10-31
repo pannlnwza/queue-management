@@ -27,6 +27,9 @@ class Participant(models.Model):
     service_started_at = models.DateTimeField(null=True, blank=True)
     service_completed_at = models.DateTimeField(null=True, blank=True)
 
+    class Meta:
+        unique_together = ('queue', 'position')
+
     def save(self, *args, **kwargs):
         """Generate a unique ticket code for the participant if not already."""
         if not self.pk:

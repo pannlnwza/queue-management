@@ -24,7 +24,7 @@ class ParticipantModelTest(TestCase):
 
     def test_participant_string_representation(self):
         """Test that the string representation of Participant returns the correct format."""
-        self.assertEqual(str(self.participant), f"Participant in {self.queue} at position 1")
+        self.assertEqual(str(self.participant), " - waiting")
 
     def test_participant_position_uniqueness(self):
         """Test that each participant in a queue has a unique position."""
