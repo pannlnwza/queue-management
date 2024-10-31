@@ -8,20 +8,23 @@ from django.utils import timezone
 
 class Participant(models.Model):
     """Represents a participant in a queue."""
+
     PARTICIPANT_STATE = [
-        ('waiting', 'Waiting'),
-        ('serving', 'Serving'),
-        ('completed', 'Completed'),
+        ("waiting", "Waiting"),
+        ("serving", "Serving"),
+        ("completed", "Completed"),
     ]
 
     name = models.CharField(max_length=30)
     email = models.EmailField(max_length=50, null=True, blank=True)
-    queue = models.ForeignKey('manager.Queue', on_delete=models.CASCADE)
+    queue = models.ForeignKey("manager.Queue", on_delete=models.CASCADE)
     joined_at = models.DateTimeField(default=timezone.localtime)
     position = models.PositiveIntegerField(null=True)
     note = models.TextField(max_length=150, null=True, blank=True)
     code = models.CharField(max_length=6, unique=True, editable=False)
-    state = models.CharField(max_length=10, choices=PARTICIPANT_STATE, default='waiting')
+    state = models.CharField(
+        max_length=10, choices=PARTICIPANT_STATE, default="waiting"
+    )
     service_started_at = models.DateTimeField(null=True, blank=True)
     service_completed_at = models.DateTimeField(null=True, blank=True)
 
@@ -36,7 +39,7 @@ class Participant(models.Model):
         """Generate a unique code for each participant."""
         characters = string.ascii_uppercase + string.digits
         while True:
-            code = ''.join(random.choices(characters, k=length))
+            code = "".join(random.choices(characters, k=length))
             if not Participant.objects.filter(code=code).exists():
                 return code
 
@@ -53,33 +56,40 @@ class Participant(models.Model):
 
     def start_service(self):
         """Mark the participant as serving."""
-        if self.state == 'waiting':
-            self.state = 'serving'
+        if self.state == "waiting":
+            self.state = "serving"
             self.service_started_at = timezone.localtime()
             self.save()
 
     def complete_service(self):
         """Mark the participant as completed."""
-        if self.state == 'serving':
-            self.state = 'completed'
+        if self.state == "serving":
+            self.state = "completed"
             self.service_completed_at = timezone.localtime()
             self.save()
 
     def get_wait_time(self):
         """Calculate the wait time for the participant."""
-        if self.state == 'waiting':
+        if self.state == "waiting":
             return int((timezone.localtime() - self.joined_at).total_seconds() / 60)
-        elif self.state == 'serving' and self.service_started_at:
+        elif self.state == "serving" and self.service_started_at:
             return int((self.service_started_at - self.joined_at).total_seconds() / 60)
         return 0
 
     def get_service_duration(self):
         """Calculate the duration of service for the participant."""
-        if self.state == 'serving' and self.service_started_at:
-            return int((timezone.localtime() - self.service_started_at).total_seconds() / 60)
-        elif self.state == 'completed':
+        if self.state == "serving" and self.service_started_at:
+            return int(
+                (timezone.localtime() - self.service_started_at).total_seconds() / 60
+            )
+        elif self.state == "completed":
             if self.service_started_at and self.service_completed_at:
-                return int((self.service_completed_at - self.service_started_at).total_seconds() / 60)
+                return int(
+                    (
+                        self.service_completed_at - self.service_started_at
+                    ).total_seconds()
+                    / 60
+                )
         return 0
 
     def __str__(self) -> str:
@@ -88,7 +98,7 @@ class Participant(models.Model):
 
 
 class Notification(models.Model):
-    queue = models.ForeignKey('manager.Queue', on_delete=models.CASCADE)
+    queue = models.ForeignKey("manager.Queue", on_delete=models.CASCADE)
     participant = models.ForeignKey(Participant, on_delete=models.CASCADE)
     message = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
@@ -96,4 +106,3 @@ class Notification(models.Model):
 
     def __str__(self):
         return f"Notification for {self.participant}: {self.message}"
-
