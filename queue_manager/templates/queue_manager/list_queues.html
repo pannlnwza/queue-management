@@ -256,15 +256,32 @@
             const openQueues = document.querySelectorAll('#openQueues .queue-block');
             const closedQueues = document.querySelectorAll('#closedQueues .queue-block');
 
+            let openCount = 0;
+            let closedCount = 0;
+
             openQueues.forEach(queue => {
                 const queueStatus = queue.getAttribute('data-status');
-                queue.style.display = (statusFilter === '' || queueStatus === statusFilter) ? '' : 'none';
+                if (statusFilter === '' || queueStatus === statusFilter) {
+                    queue.style.display = '';
+                    openCount++;
+                } else {
+                    queue.style.display = 'none';
+                }
             });
 
             closedQueues.forEach(queue => {
                 const queueStatus = queue.getAttribute('data-status');
-                queue.style.display = (statusFilter === '' || queueStatus === statusFilter) ? '' : 'none';
+                if (statusFilter === '' || queueStatus === statusFilter) {
+                    queue.style.display = '';
+                    closedCount++;
+                } else {
+                    queue.style.display = 'none';
+                }
             });
+
+            document.getElementById('noOpenQueuesMessage').style.display = openCount === 0 ? '' : 'none';
+            document.getElementById('noClosedQueuesMessage').style.display = closedCount === 0 ? '' : 'none';
         }
+
     </script>
 {% endblock %}
