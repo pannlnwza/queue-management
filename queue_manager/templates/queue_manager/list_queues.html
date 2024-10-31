@@ -135,7 +135,16 @@
     <main>
         <div class="card">
             <div class="card-title">{{ queue_type }} Queues</div>
-            <input type="text" id="searchBar" class="search-input" placeholder="Search for queues..." onkeyup="searchQueues()" style="width: 100%; padding: 0.5rem; margin-bottom: 1rem;">
+            <input type="text" id="searchBar" class="search-input" placeholder="Search for queues..." onkeyup="searchQueues()" style="width: 80%; padding: 0.5rem; margin-bottom: 1rem;">
+            <div style="display: flex; align-items: center;">
+                <select id="statusFilter" class="search-input" onchange="filterQueues()">
+                    <option value="">All</option>
+                    <option value="Very Busy">Very Busy</option>
+                    <option value="Moderate Busy">Moderate Busy</option>
+                    <option value="Not Busy">Not Busy</option>
+                </select>
+            </div>
+
             <div>
                 <div style="text-align: center;">
                     <span class="status-badge status-badge-green">Open Queues</span>
@@ -230,18 +239,19 @@
             });
         }
 
-        function filterQueues(status) {
+        function filterQueues() {
+            const statusFilter = document.getElementById('statusFilter').value;
             const openQueues = document.querySelectorAll('#openQueues .queue-block');
             const closedQueues = document.querySelectorAll('#closedQueues .queue-block');
 
             openQueues.forEach(queue => {
                 const queueStatus = queue.getAttribute('data-status');
-                queue.style.display = (status === '' || queueStatus === status) ? '' : 'none';
+                queue.style.display = (statusFilter === '' || queueStatus === statusFilter) ? '' : 'none';
             });
 
             closedQueues.forEach(queue => {
                 const queueStatus = queue.getAttribute('data-status');
-                queue.style.display = (status === '' || queueStatus === status) ? '' : 'none';
+                queue.style.display = (statusFilter === '' || queueStatus === statusFilter) ? '' : 'none';
             });
         }
     </script>
