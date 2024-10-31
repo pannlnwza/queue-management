@@ -40,7 +40,13 @@ class BaseQueueView(generic.ListView):
         context = super().get_context_data(**kwargs)
         context['queue_type'] = self.queue_category.capitalize()
         context['queues'] = self.get_queryset()
+        context['open_queues'], context['closed_queues'] = self.filter_queues()
         return context
+
+    def filter_queues(self):
+        open_queues = self.get_queryset().filter(is_closed=False)
+        closed_queues = self.get_queryset().filter(is_closed=True)
+        return open_queues, closed_queues
 
 
 class RestaurantQueueView(BaseQueueView):
