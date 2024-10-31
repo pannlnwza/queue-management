@@ -7,7 +7,7 @@ from django.http import JsonResponse
 from django.shortcuts import render, redirect
 from django.views import generic
 
-from participant.models import Participant, Notification, QueueHistory
+from participant.models import Participant, Notification
 from manager.models import Queue
 from manager.views import logger
 
