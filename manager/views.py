@@ -5,15 +5,20 @@ from django.contrib.auth import authenticate, login, user_logged_in, user_logged
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.core.exceptions import PermissionDenied
 from django.dispatch import receiver
-from django.http import Http404
+from django.http import Http404, JsonResponse, HttpResponse
 from django.shortcuts import render, redirect, get_object_or_404
+from django.template.loader import render_to_string
 from django.urls import reverse_lazy, reverse
 from django.utils import timezone
 from django.views import generic
+from django.apps import apps
+from django.views.decorators.http import require_http_methods
 
 from manager.forms import QueueForm
-from participant.models import Participant, Notification, QueueHistory
+from manager.utils.participant_handler import ParticipantHandlerFactory
+from participant.models import Participant, Notification, RestaurantParticipant
 from manager.models import Queue
 
 
@@ -288,6 +293,87 @@ def delete_participant(request, participant_id):
 
     return redirect('participant:index')
 
+
+class ManageWaitlist(generic.TemplateView):
+    template_name = 'manager/queue_waitlist.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        queue_id = self.kwargs.get('queue_id')
+        queue = get_object_or_404(Queue, id=queue_id)
+
+        if queue.created_by != self.request.user:
+            raise PermissionDenied("You do not have permission to manage this queue.")
+
+        handler = ParticipantHandlerFactory.get_handler(queue.category)
+
+        context['waiting_list'] = queue.participant_set.filter(state='waiting')
+        context['serving_list'] = queue.participant_set.filter(state='serving')
+        context['completed_list'] = queue.participant_set.filter(state='completed')
+
+        context['queue'] = queue
+        context['handler'] = handler
+        return context
+
+
+def serve_participant(request, participant_id):
+    participant = get_object_or_404(Participant, id=participant_id)
+    queue_category = participant.queue.category
+    handler = ParticipantHandlerFactory.get_handler(queue_category)
+
+    try:
+        if participant.state != 'waiting':
+            return JsonResponse({
+                'error': f'{participant.name} cannot be served because they are currently in state: {participant.state}.'
+            }, status=400)
+
+        handler.assign_to_resource(participant)
+        participant.start_service()
+        participant.save()
+
+        # Fetch updated lists
+        waiting_list = Participant.objects.filter(state='waiting').values()  # Get all waiting participants as dictionaries
+        serving_list = Participant.objects.filter(state='serving').values()  # Get all serving participants as dictionaries
+
+        return JsonResponse({
+            'waiting_list': list(waiting_list),
+            'serving_list': list(serving_list)
+        })
+
+    except Exception as e:
+        return JsonResponse({
+            'error': f'Error: {str(e)}'
+        }, status=500)
+
+
+def complete_participant(request, participant_id):
+    participant = get_object_or_404(Participant, id=participant_id)
+    queue_category = participant.queue.category
+    handler = ParticipantHandlerFactory.get_handler(queue_category)
+
+    try:
+        if participant.state != 'serving':
+            return JsonResponse({
+                'error': f'{participant.name} cannot be marked as completed because they are currently in state: {participant.state}.'
+            }, status=400)
+
+
+        handler.complete_service(participant)
+        participant.complete_service()
+        participant.save()
+
+        serving_list = Participant.objects.filter(state='serving').values()
+        completed_list = Participant.objects.filter(state='completed').values()
+
+        return JsonResponse({
+            'serving_list': list(serving_list),
+            'completed_list': list(completed_list)
+        })
+
+    except Exception as e:
+        return JsonResponse({
+            'error': f'Error: {str(e)}'
+        }, status=500)
 
 def signup(request):
     """
