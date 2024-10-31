@@ -144,7 +144,7 @@
                     <div id="openQueues">
                         {% for queue in queues %}
                             {% if not queue.is_closed %}
-                                <div class="queue-block open queue-item">
+                                <div class="queue-block open queue-item" data-status="{{ queue.queue_status }}">
                                     <img src="{{ queue.get_logo_url }}" alt="{{ queue.name }} logo" class="queue-logo">
                                     <div style="margin-left: 0.5rem;">
                                         <div class="queue-header">
@@ -184,7 +184,7 @@
                     <div id="closedQueues">
                         {% for queue in queues %}
                             {% if queue.is_closed %}
-                                <div class="queue-block closed queue-item">
+                                <div class="queue-block closed queue-item" data-status="Closed">
                                     <img src="{{ queue.get_logo_url }}" alt="{{ queue.name }} logo" class="queue-logo">
                                     <div style="margin-left: 0.5rem;">
                                         <div class="queue-header">
@@ -218,13 +218,30 @@
             const filter = input.value.toLowerCase();
             const openQueues = document.querySelectorAll('#openQueues .queue-block');
             const closedQueues = document.querySelectorAll('#closedQueues .queue-block');
+
             openQueues.forEach(queue => {
                 const title = queue.querySelector('.queue-title').textContent.toLowerCase();
                 queue.style.display = title.includes(filter) ? '' : 'none';
             });
+
             closedQueues.forEach(queue => {
                 const title = queue.querySelector('.queue-title').textContent.toLowerCase();
                 queue.style.display = title.includes(filter) ? '' : 'none';
+            });
+        }
+
+        function filterQueues(status) {
+            const openQueues = document.querySelectorAll('#openQueues .queue-block');
+            const closedQueues = document.querySelectorAll('#closedQueues .queue-block');
+
+            openQueues.forEach(queue => {
+                const queueStatus = queue.getAttribute('data-status');
+                queue.style.display = (status === '' || queueStatus === status) ? '' : 'none';
+            });
+
+            closedQueues.forEach(queue => {
+                const queueStatus = queue.getAttribute('data-status');
+                queue.style.display = (status === '' || queueStatus === status) ? '' : 'none';
             });
         }
     </script>
