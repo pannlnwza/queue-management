@@ -1,11 +1,12 @@
 from django.urls import path
 from participant.views import mark_notification_as_read, RestaurantQueueView, GeneralQueueView, HospitalQueueView, \
-    BankQueueView, ServiceCenterQueueView, QueueHistoryView, BrowseQueueView, join_queue, IndexView
+    BankQueueView, ServiceCenterQueueView, QueueHistoryView, BrowseQueueView, join_queue, IndexView, HomePageView
 from participant.utils.data_stream import data_stream
 
 app_name = 'participant'
 urlpatterns = [
-    path('', IndexView.as_view(), name='index'),
+    path('', IndexView.as_view(), name='home'),
+    path('index/', IndexView.as_view(), name='index'),
     path('queues/', BrowseQueueView.as_view(), name='queues'),
     path('join/', join_queue, name='join'),
     path('api/data-stream/', data_stream, name='data_stream'),
