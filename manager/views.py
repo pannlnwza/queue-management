@@ -13,7 +13,7 @@ from django.utils import timezone
 from django.views import generic
 
 from manager.forms import QueueForm
-from participant.models import Participant, Notification, QueueHistory
+from participant.models import Participant, Notification
 from manager.models import Queue
 
 

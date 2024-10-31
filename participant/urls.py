@@ -1,6 +1,6 @@
 from django.urls import path
 from participant.views import mark_notification_as_read, RestaurantQueueView, GeneralQueueView, HospitalQueueView, \
-    BankQueueView, ServiceCenterQueueView, QueueHistoryView, BrowseQueueView, join_queue, IndexView
+    BankQueueView, ServiceCenterQueueView, BrowseQueueView, join_queue, IndexView
 from participant.utils.data_stream import data_stream
 
 app_name = 'participant'
@@ -15,5 +15,4 @@ urlpatterns = [
     path('queues/bank/', BankQueueView.as_view(), name='bank_queues'),
     path('queues/service_center/', ServiceCenterQueueView.as_view(), name='service_center_queues'),
     path('mark-as-read/<int:notification_id>/', mark_notification_as_read, name='mark_notification_as_read'),
-    path('history/', QueueHistoryView.as_view(), name='history'),
 ]
