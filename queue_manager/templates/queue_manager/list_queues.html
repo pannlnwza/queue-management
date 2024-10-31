@@ -71,7 +71,7 @@
             padding: 0.5rem 1rem;
             border-radius: 5px;
             font-size: 1rem;
-            margin-top: 1rem;
+            margin-top: 2rem;
             margin-bottom: 2rem;
             text-align: center;
             font-weight: bold;
@@ -149,37 +149,36 @@
                 <div style="text-align: center;">
                     <span class="status-badge status-badge-green">Open Queues</span>
                 </div>
-                {% if queues %}
-                    <div id="openQueues">
-                        {% for queue in queues %}
-                            {% if not queue.is_closed %}
-                                <div class="queue-block open queue-item" data-status="{{ queue.queue_status }}">
-                                    <img src="{{ queue.get_logo_url }}" alt="{{ queue.name }} logo" class="queue-logo">
-                                    <div style="margin-left: 0.5rem;">
-                                        <div class="queue-header">
-                                            <div class="queue-title">{{ queue.name }}</div>
-                                            <div class="queue-status status-bg
-                                                {% if queue.queue_status == 'Very Busy' %} status-bg-red
-                                               {% elif queue.queue_status == 'Moderate Busy' %} status-bg-yellow
-                                               {% elif queue.queue_status == 'Not Busy' %} status-bg-green
+                {% if open_queues %}
+                <div id="openQueues">
+                    {% for queue in open_queues %}
+                            <div class="queue-block open queue-item" data-status="{{ queue.queue_status }}">
+                                <img src="{{ queue.get_logo_url }}" alt="{{ queue.name }} logo" class="queue-logo">
+                                <div style="margin-left: 0.5rem;">
+                                    <div class="queue-header">
+                                        <div class="queue-title">{{ queue.name }}</div>
+                                        <div class="queue-status status-bg
+                                            {% if queue.queue_status == 'Very Busy' %} status-bg-red
+                                            {% elif queue.queue_status == 'Moderate Busy' %} status-bg-yellow
+                                            {% elif queue.queue_status == 'Not Busy' %} status-bg-green
                                             {% endif %}">
-                                                {{ queue.queue_status }}
-                                            </div>
-                                        </div>
-                                        <div class="queue-info">{{ queue.description }}</div>
-                                        <div class="queue-info">
-                                            Currently in queue:
-                                            {% if queue.get_number_of_participants == 1 %}
-                                                1 person
-                                            {% else %}
-                                                {{ queue.get_number_of_participants }} people
-                                            {% endif %}
+                                            {{ queue.queue_status }}
                                         </div>
                                     </div>
+                                    <div class="queue-info">{{ queue.description }}</div>
+                                    <div class="queue-info">
+                                        Currently in queue:
+                                        {% if queue.get_number_of_participants == 1 %}
+                                            1 person
+                                        {% else %}
+                                            {{ queue.get_number_of_participants }} people
+                                        {% endif %}
+                                    </div>
                                 </div>
-                            {% endif %}
-                        {% endfor %}
-                    </div>
+                            </div>
+                    {% endfor %}
+                    <div id="noOpenQueuesMessage" class="no-queues" style="display: none;">No open queues available.</div>
+                </div>
                 {% else %}
                     <div class="no-queues">No open queues available.</div>
                 {% endif %}
@@ -189,31 +188,30 @@
                 <div style="text-align: center;">
                     <span class="status-badge status-badge-red">Closed Queues</span>
                 </div>
-                {% if queues %}
-                    <div id="closedQueues">
-                        {% for queue in queues %}
-                            {% if queue.is_closed %}
-                                <div class="queue-block closed queue-item" data-status="Closed">
-                                    <img src="{{ queue.get_logo_url }}" alt="{{ queue.name }} logo" class="queue-logo">
-                                    <div style="margin-left: 0.5rem;">
-                                        <div class="queue-header">
-                                            <div class="queue-title">{{ queue.name }}</div>
-                                            <div class="queue-status status-bg status-bg-dark-red">Closed</div>
-                                        </div>
-                                        <div class="queue-info">{{ queue.description }}</div>
-                                        <div class="queue-info">
-                                            Currently in queue:
-                                            {% if queue.get_number_of_participants == 1 %}
-                                                1 person
-                                            {% else %}
-                                                {{ queue.get_number_of_participants }} people
-                                            {% endif %}
-                                        </div>
+                {% if closed_queues %}
+                <div id="closedQueues">
+                    {% for queue in closed_queues %}
+                            <div class="queue-block closed queue-item" data-status="Closed">
+                                <img src="{{ queue.get_logo_url }}" alt="{{ queue.name }} logo" class="queue-logo">
+                                <div style="margin-left: 0.5rem;">
+                                    <div class="queue-header">
+                                        <div class="queue-title">{{ queue.name }}</div>
+                                        <div class="queue-status status-bg status-bg-dark-red">Closed</div>
+                                    </div>
+                                    <div class="queue-info">{{ queue.description }}</div>
+                                    <div class="queue-info">
+                                        Currently in queue:
+                                        {% if queue.get_number_of_participants == 1 %}
+                                            1 person
+                                        {% else %}
+                                            {{ queue.get_number_of_participants }} people
+                                        {% endif %}
                                     </div>
                                 </div>
-                            {% endif %}
-                        {% endfor %}
-                    </div>
+                            </div>
+                    {% endfor %}
+                    <div id="noClosedQueuesMessage" class="no-queues" style="display: none;">No closed queues available.</div>
+                </div>
                 {% else %}
                     <div class="no-queues">No closed queues available.</div>
                 {% endif %}
@@ -223,20 +221,34 @@
 
     <script>
         function searchQueues() {
-            const input = document.getElementById('searchBar');
-            const filter = input.value.toLowerCase();
+            const input = document.getElementById('searchBar').value.toLowerCase();
             const openQueues = document.querySelectorAll('#openQueues .queue-block');
             const closedQueues = document.querySelectorAll('#closedQueues .queue-block');
+            let openCount = 0;
+            let closedCount = 0;
 
             openQueues.forEach(queue => {
                 const title = queue.querySelector('.queue-title').textContent.toLowerCase();
-                queue.style.display = title.includes(filter) ? '' : 'none';
+                if (title.includes(input)) {
+                    queue.style.display = '';
+                    openCount++;
+                } else {
+                    queue.style.display = 'none';
+                }
             });
 
             closedQueues.forEach(queue => {
                 const title = queue.querySelector('.queue-title').textContent.toLowerCase();
-                queue.style.display = title.includes(filter) ? '' : 'none';
+                if (title.includes(input)) {
+                    queue.style.display = '';
+                    closedCount++;
+                } else {
+                    queue.style.display = 'none';
+                }
             });
+
+            document.getElementById('noOpenQueuesMessage').style.display = openCount === 0 ? '' : 'none';
+            document.getElementById('noClosedQueuesMessage').style.display = closedCount === 0 ? '' : 'none';
         }
 
         function filterQueues() {
