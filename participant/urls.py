@@ -5,7 +5,7 @@ from participant.utils.data_stream import data_stream
 
 app_name = 'participant'
 urlpatterns = [
-    path('', IndexView.as_view(), name='home'),
+    path('', HomePageView.as_view(), name='home'),
     path('index/', IndexView.as_view(), name='index'),
     path('queues/', BrowseQueueView.as_view(), name='queues'),
     path('join/', join_queue, name='join'),

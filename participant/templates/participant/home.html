@@ -1,5 +1,41 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block extra_head %}
-	
+{% endblock %}
+
+{% block content %}
+    <div class="flex items-center justify-center h-screen space-x-10">
+        <div>
+            <a href="{% url 'manager:create_q' %}" class="block">
+                <div class="card bg-neutral-100 w-96 shadow-xl hover:shadow-2xl transition-shadow duration-200 ease-in-out text-black">
+                    <div class="card-body">
+                        <h2 class="card-title">I'm a business owner/staff.</h2>
+                        <p>I want to create my own queue.</p>
+                    </div>
+                    <figure>
+                        <img
+                          src="{% static 'participant/images/restaurant.jpg' %}"
+                          alt="Business" />
+                    </figure>
+                </div>
+            </a>
+        </div>
+
+        <div>
+            <a href="{% url 'participant:queues' %}" class="block">
+                <div class="card bg-neutral-100 w-96 shadow-xl hover:shadow-2xl transition-shadow duration-200 ease-in-out text-black">
+                    <div class="card-body">
+                        <h2 class="card-title">I'm a customer.</h2>
+                        <p>I want to join queues.</p>
+                    </div>
+                    <figure>
+                        <img
+                          src="https://img.daisyui.com/images/stock/photo-1606107557195-0e29a4b5b4aa.webp"
+                          alt="Shoes" />
+                    </figure>
+                </div>
+            </a>
+        </div>
+    </div>
 {% endblock %}
