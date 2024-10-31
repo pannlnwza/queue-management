@@ -27,4 +27,3 @@ include =
 exclude_lines =
     def __str__
     def __repr__
-fail_under = 75
