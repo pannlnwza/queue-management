@@ -128,6 +128,7 @@
     <main>
         <div class="card">
             <div class="card-title">{{ queue_type }} Queues</div>
+            <input type="text" id="searchBar" class="search-input" placeholder="Search for queues..." onkeyup="searchQueues()" style="width: 80%; padding: 0.5rem; margin-bottom: 1rem;">
             <div>
                 <div style="text-align: center;">
                     <span class="status-badge status-badge-green">Open Queues</span>
@@ -197,4 +198,37 @@
             </div>
         </div>
     </main>
+
+    <script>
+        function searchQueues() {
+            const input = document.getElementById('searchBar').value.toLowerCase();
+            const openQueues = document.querySelectorAll('#openQueues .queue-block');
+            const closedQueues = document.querySelectorAll('#closedQueues .queue-block');
+            let openCount = 0;
+            let closedCount = 0;
+
+            openQueues.forEach(queue => {
+                const title = queue.querySelector('.queue-title').textContent.toLowerCase();
+                if (title.includes(input)) {
+                    queue.style.display = '';
+                    openCount++;
+                } else {
+                    queue.style.display = 'none';
+                }
+            });
+
+            closedQueues.forEach(queue => {
+                const title = queue.querySelector('.queue-title').textContent.toLowerCase();
+                if (title.includes(input)) {
+                    queue.style.display = '';
+                    closedCount++;
+                } else {
+                    queue.style.display = 'none';
+                }
+            });
+
+            document.getElementById('noOpenQueuesMessage').style.display = openCount === 0 ? '' : 'none';
+            document.getElementById('noClosedQueuesMessage').style.display = closedCount === 0 ? '' : 'none';
+        }
+    </script>
 {% endblock %}
