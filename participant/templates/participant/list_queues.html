@@ -144,6 +144,7 @@
                     <option value="Not Busy">Not Busy</option>
                 </select>
             </div>
+
             <div>
                 <div style="text-align: center;">
                     <span class="status-badge status-badge-green">Open Queues</span>
@@ -176,6 +177,7 @@
                                 </div>
                             </div>
                     {% endfor %}
+                    <div id="noOpenQueuesMessage" class="no-queues" style="display: none;">No open queues available.</div>
                 </div>
                 {% else %}
                     <div class="no-queues">No open queues available.</div>
@@ -187,8 +189,9 @@
                     <span class="status-badge status-badge-red">Closed Queues</span>
                 </div>
                 {% if closed_queues %}
+                <div id="closedQueues">
                     {% for queue in closed_queues %}
-                            <div class="queue-block closed">
+                            <div class="queue-block closed queue-item" data-status="Closed">
                                 <img src="{{ queue.get_logo_url }}" alt="{{ queue.name }} logo" class="queue-logo">
                                 <div style="margin-left: 0.5rem;">
                                     <div class="queue-header">
@@ -207,6 +210,8 @@
                                 </div>
                             </div>
                     {% endfor %}
+                    <div id="noClosedQueuesMessage" class="no-queues" style="display: none;">No closed queues available.</div>
+                </div>
                 {% else %}
                     <div class="no-queues">No closed queues available.</div>
                 {% endif %}
@@ -277,5 +282,6 @@
             document.getElementById('noOpenQueuesMessage').style.display = openCount === 0 ? '' : 'none';
             document.getElementById('noClosedQueuesMessage').style.display = closedCount === 0 ? '' : 'none';
         }
+
     </script>
 {% endblock %}
