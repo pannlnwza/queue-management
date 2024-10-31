@@ -129,6 +129,14 @@
         <div class="card">
             <div class="card-title">{{ queue_type }} Queues</div>
             <input type="text" id="searchBar" class="search-input" placeholder="Search for queues..." onkeyup="searchQueues()" style="width: 80%; padding: 0.5rem; margin-bottom: 1rem;">
+            <div style="display: flex; align-items: center;">
+                <select id="statusFilter" class="search-input" onchange="filterQueues()">
+                    <option value="">All</option>
+                    <option value="Very Busy">Very Busy</option>
+                    <option value="Moderate Busy">Moderate Busy</option>
+                    <option value="Not Busy">Not Busy</option>
+                </select>
+            </div>
             <div>
                 <div style="text-align: center;">
                     <span class="status-badge status-badge-green">Open Queues</span>
@@ -220,6 +228,38 @@
             closedQueues.forEach(queue => {
                 const title = queue.querySelector('.queue-title').textContent.toLowerCase();
                 if (title.includes(input)) {
+                    queue.style.display = '';
+                    closedCount++;
+                } else {
+                    queue.style.display = 'none';
+                }
+            });
+
+            document.getElementById('noOpenQueuesMessage').style.display = openCount === 0 ? '' : 'none';
+            document.getElementById('noClosedQueuesMessage').style.display = closedCount === 0 ? '' : 'none';
+        }
+
+        function filterQueues() {
+            const statusFilter = document.getElementById('statusFilter').value;
+            const openQueues = document.querySelectorAll('#openQueues .queue-block');
+            const closedQueues = document.querySelectorAll('#closedQueues .queue-block');
+
+            let openCount = 0;
+            let closedCount = 0;
+
+            openQueues.forEach(queue => {
+                const queueStatus = queue.getAttribute('data-status');
+                if (statusFilter === '' || queueStatus === statusFilter) {
+                    queue.style.display = '';
+                    openCount++;
+                } else {
+                    queue.style.display = 'none';
+                }
+            });
+
+            closedQueues.forEach(queue => {
+                const queueStatus = queue.getAttribute('data-status');
+                if (statusFilter === '' || queueStatus === statusFilter) {
                     queue.style.display = '';
                     closedCount++;
                 } else {
