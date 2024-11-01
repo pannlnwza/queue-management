@@ -1,3 +1,4 @@
+import json
 import logging
 
 from django.contrib import messages
@@ -257,8 +258,56 @@ def delete_participant(request, participant_id):
     return JsonResponse({'message': 'Participant deleted.'})
 
 
+@require_http_methods(["POST"])
+def edit_participant(request, participant_id):
+    participant = get_object_or_404(Participant, id=participant_id)
+    queue = participant.queue
+    if queue.created_by != request.user:
+        raise PermissionDenied("You do not have permission to manage this queue.")
+
+    handler = ParticipantHandlerFactory.get_handler(queue.category)
+    queue = handler.get_queue_object(queue.id)
+    participant = handler.get_participant_set(queue.id).get(id=participant_id)
+
+    # Parse the JSON payload
+    data = json.loads(request.body)
+
+    name = data.get('name', participant.name)
+    # phone = data.get('phone', participant.phone)
+    party_size = data.get('party_size', participant.party_size)
+    notes = data.get('notes', participant.note)
+    seating_preference = data.get('seating_preference', participant.seating_preference)
+    table_id = data.get('table')
+
+    if table_id:
+        table = get_object_or_404(queue.tables.all(), id=table_id)
+        if table.capacity >= int(party_size):
+            participant.table = table
+            table.status = 'busy'
+            table.save()
+
+    participant.name = name
+    # participant.phone = phone
+    participant.party_size = party_size
+    participant.note = notes
+    participant.seating_preference = seating_preference
+    participant.save()
+
+    return JsonResponse({
+        'status': 'success',
+        'message': 'Participant information updated successfully',
+        'participant': {
+            'id': participant.id,
+            'name': participant.name,
+            # 'phone': participant.phone,
+            'party_size': participant.party_size,
+            'notes': participant.note,
+            'table': participant.table.name if participant.table else None,
+            'seating_preference': participant.seating_preference,
+        }
+    })
 class ManageWaitlist(generic.TemplateView):
-    template_name = 'manager/queue_waitlist.html'
+    template_name = 'manager/manage_queue/manage_restaurant.html'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -270,11 +319,10 @@ class ManageWaitlist(generic.TemplateView):
 
         handler = ParticipantHandlerFactory.get_handler(queue.category)
         queue = handler.get_queue_object(queue_id)
-        participant_set = handler.get_participants(queue_id)
 
-        context['waiting_list'] = participant_set.filter(state='waiting')
-        context['serving_list'] = participant_set.filter(state='serving')
-        context['completed_list'] = participant_set.filter(state='completed')
+        context['waiting_list'] = queue.participant_set.filter(state='waiting')
+        context['serving_list'] = queue.participant_set.filter(state='serving')
+        context['completed_list'] = queue.participant_set.filter(state='completed')
         context['queue'] = queue
         for item in handler.add_context_attributes(queue):
             for key, value in item.items():

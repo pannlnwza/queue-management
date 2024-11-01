@@ -599,31 +599,15 @@ function openEditDrawer(element) {
     }
 
     const tableSelect = document.getElementById('edit_table');
-    tableSelect.option = participantTable || '';
+    tableSelect.value = participantTable || '';  // Corrected to use value
 
     const seatingSelect = document.getElementById('edit_seating');
-    seatingSelect.option = participantSeating; // Default value if not provided
+    seatingSelect.value = participantSeating || '';  // Corrected to use value
 
     document.getElementById('editDrawer').checked = true;
 }
 
-document.getElementById('editForm').addEventListener('submit', (e) => {
-    e.preventDefault();
-    const updatedData = {
-        id: document.getElementById('participant_id').value,
-        name: document.getElementById('edit_name').value,
-        phone: document.getElementById('edit_phone').value,
-        notes: document.getElementById('edit_notes').value,
-        party_size: document.querySelector('input[name="party_size"]:checked').value,
-        table: document.getElementById('edit_table').value,
-        seating_preference: document.getElementById('edit_seating').value
-    };
-    // Send the updated data to the server
-    updateParticipant(updatedData);
-    document.getElementById('editDrawer').checked = false;
-});
-
-
+// Single event listener for form submission
 document.getElementById('editForm').addEventListener('submit', (e) => {
     e.preventDefault();
 
@@ -638,9 +622,34 @@ document.getElementById('editForm').addEventListener('submit', (e) => {
     };
 
     updateParticipant(updatedData);
-
-    document.getElementById('editDrawer').checked = false;
 });
+
+function updateParticipant(data) {
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;  // Dynamically get CSRF token
+
+    fetch(`/manager/edit_participant/${data.id}/`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrfToken // Use dynamic CSRF token
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => {
+        if (response.ok) {
+            console.log("Participant updated successfully!");
+            alert("Participant updated successfully!"); // User feedback
+            location.reload();
+        } else {
+            console.error("Failed to update participant.");
+            alert("Failed to update participant."); // User feedback
+        }
+    })
+    .catch(error => {
+        console.error("Error:", error);
+        alert("An error occurred while updating the participant."); // User feedback
+    });
+}
 
 function deleteParticipant(id) {
     fetch(`/manager/delete_participant/${id}/`, {
@@ -652,7 +661,7 @@ function deleteParticipant(id) {
     .then(response => {
         if (response.ok) {
             console.log("Participant deleted successfully!");
-            location.reload(); // Reload the page to see changes
+            location.reload();
         } else {
             console.error("Failed to delete participant.");
         }
@@ -661,30 +670,6 @@ function deleteParticipant(id) {
         console.error("Error:", error);
     });
 }
-
-function updateParticipant(data) {
-    fetch(`/api/update_participant/${data.id}/`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': '{{ csrf_token }}'
-        },
-        body: JSON.stringify(data)
-    })
-    .then(response => {
-        if (response.ok) {
-            // Handle successful response (e.g., refresh the list or show a success message)
-            console.log("Participant updated successfully!");
-            location.reload(); // Reload the page to see changes
-        } else {
-            // Handle error
-            console.error("Failed to update participant.");
-        }
-    })
-    .catch(error => {
-        console.error("Error:", error);
-    });
-}
-
 </script>
+
 {% endblock %}
