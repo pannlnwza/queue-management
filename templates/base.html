@@ -110,23 +110,14 @@
             <span class="navbar-toggler-icon"></span>
         </button>
         <div class="collapse navbar-collapse" id="navbarNav">
-            <div class="navbar-nav me-auto">
-                <a href="{% url 'queue:queues' %}" class="nav-link">Browse Queues</a>
-                <a href="{% url 'queue:create_q' %}" class="nav-link">Create Queue</a>
-                {% if user.is_authenticated %}
-                    <a href="{% url 'queue:manage_queues' %}" class="nav-link">Manage Queues</a>
-                {% endif %}
-            </div>
-            <div class="d-flex">
+            <div class="d-flex ms-auto">
                 {% if user.is_authenticated %}
                     <div class="dropdown">
-                        <button class="user-button dropdown dropdown-toggle mt-2 me-1" type="button"
+                        <button class="user-button dropdown-toggle mt-2 me-1" type="button"
                                 id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
                             {{ user.username }}
                         </button>
                         <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                            {# <li><a class="dropdown-item" href="{% url 'queue:index' %}">Profile</a></li>#}
-                            {# will be added later #}
                             <li>
                                 <form action="{% url 'logout' %}" method="post" style="display: inline;">
                                     {% csrf_token %}
@@ -144,6 +135,7 @@
         </div>
     </div>
 </nav>
+
 
 {% if messages %}
     <ul class="messages">
