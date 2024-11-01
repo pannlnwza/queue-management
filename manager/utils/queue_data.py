@@ -4,17 +4,19 @@ from django.shortcuts import get_object_or_404
 import json
 import time
 from manager.models import RestaurantQueue
-from participant.models import RestaurantParticipant
+from participant.models import Participant, RestaurantParticipant
+
 
 @login_required
 def get_restaurant_queue_data(request, queue_id):
+    Participant.remove_old_completed_participants()
     queue = get_object_or_404(RestaurantQueue, id=queue_id)
-
     waiting_participants = RestaurantParticipant.objects.filter(queue=queue, state='waiting')
     serving_participants = RestaurantParticipant.objects.filter(queue=queue, state='serving')
     completed_participants = RestaurantParticipant.objects.filter(queue=queue, state='completed')
 
     data = {
+
         'waiting_list': [
             {
                 'id': participant.id,
@@ -34,7 +36,7 @@ def get_restaurant_queue_data(request, queue_id):
                 'notes': participant.note,
                 'waited': participant.get_wait_time(),
                 'service_duration': participant.get_service_duration(),
-                'served': participant.service_started_at.strftime('%d/%m/%Y %H:%M') if participant.service_started_at else None,
+                'served': participant.service_started_at.strftime('%d %b. %Y %H:%M') if participant.service_started_at else None,
                 'table': participant.table.name if participant.table else None,
                 'seating_preference': participant.seating_preference,
             } for participant in serving_participants
@@ -47,8 +49,8 @@ def get_restaurant_queue_data(request, queue_id):
                 'notes': participant.note,
                 'waited': participant.get_wait_time(),
                 'service_duration': participant.get_service_duration(),
-                'served': participant.service_started_at.strftime('%d/%m/%Y %H:%M') if participant.service_started_at else None,
-                'completed': participant.service_completed_at.strftime('%d/%m/%Y %H:%M') if participant.service_completed_at else None,
+                'served': participant.service_started_at.strftime('%d %b. %Y %H:%M') if participant.service_started_at else None,
+                'completed': participant.service_completed_at.strftime('%d %b. %Y %H:%M') if participant.service_completed_at else None,
                 'table': participant.table_served if participant.table_served else None,
                 'seating_preference': participant.seating_preference,
             } for participant in completed_participants
