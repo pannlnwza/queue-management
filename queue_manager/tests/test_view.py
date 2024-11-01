@@ -20,14 +20,14 @@ class QueueViewsTestCase(TestCase):
         """Test accessing the index view as an authenticated user"""
         response = self.client.get(reverse('queue:index'))
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'queue_manager/index.html')
+        self.assertTemplateUsed(response, 'queue_manager/home.html')
         self.assertIn('queue_list', response.context)
 
     def test_index_view_unauthenticated(self):
         """Test accessing the index view as an unauthenticated user"""
         response = self.client.get(reverse('queue:index'))
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'queue_manager/index.html')
+        self.assertTemplateUsed(response, 'queue_manager/home.html')
         self.assertQuerySetEqual(response.context['queue_list'], [])
 
     def test_join_queue_valid_code(self):

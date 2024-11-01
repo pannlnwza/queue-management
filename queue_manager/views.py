@@ -51,7 +51,7 @@ class IndexView(generic.ListView):
     :param template_name: The name of the template to render.
     :param context_object_name: The name of the context variable to hold the queue list.
     """
-    template_name = 'queue_manager/index.html'
+    template_name = 'queue_manager/home.html'
     context_object_name = 'queue_list'
 
     def get_queryset(self):
