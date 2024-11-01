@@ -12,7 +12,7 @@ class QueueForm(forms.ModelForm):
 
     class Meta:
         model = Queue
-        fields = ['name', 'logo', 'description', 'category', 'capacity',]
+        fields = ['name', 'logo', 'description', 'category', ]
         labels = {
             'logo': 'Logo (Optional)',
         }
@@ -20,8 +20,6 @@ class QueueForm(forms.ModelForm):
             'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter Queue Name (Max Length: 50)'}),
             'description': forms.Textarea(attrs={'class': 'form-control', 'placeholder': 'Enter Description (Max Length: 100)', 'rows': 4}),
             'category': forms.Select(choices=Queue.CATEGORY_CHOICES),
-            'capacity': forms.NumberInput(attrs={'class': 'form-control',
-                                                 'placeholder': 'Enter Capacity'}),
             'logo': forms.ClearableFileInput(
                 attrs={'class': 'form-control', 'accept': 'image/*'})
         }
