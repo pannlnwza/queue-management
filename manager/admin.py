@@ -1,3 +1,7 @@
 from django.contrib import admin
+from manager.models import Queue
+from participant.models import Participant
 
-# Register your models here.
+admin.site.register(Queue)
+admin.site.register(Participant)
+

@@ -17,6 +17,7 @@ from manager.views import logger
 class HomePageView(generic.TemplateView):
     template_name = 'participant/home.html'
 
+
 @login_required
 def mark_notification_as_read(request, notification_id):
     if request.method == "POST":
@@ -114,7 +115,7 @@ class BrowseQueueView(generic.ListView):
 #         return redirect("participant:index")
 #     return redirect("participant:index")
 
-def join_queue(request):
+def join_queue(request, participant_code):
     pass
 
 
