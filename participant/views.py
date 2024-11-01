@@ -13,6 +13,10 @@ from manager.views import logger
 
 
 # Create your views here.
+
+class HomePageView(generic.TemplateView):
+    template_name = 'participant/home.html'
+
 @login_required
 def mark_notification_as_read(request, notification_id):
     if request.method == "POST":
