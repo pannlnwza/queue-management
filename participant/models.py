@@ -26,6 +26,7 @@ class Participant(models.Model):
     state = models.CharField(max_length=10, choices=PARTICIPANT_STATE, default='waiting')
     service_started_at = models.DateTimeField(null=True, blank=True)
     service_completed_at = models.DateTimeField(null=True, blank=True)
+    visits = models.PositiveIntegerField(default=1)
 
     def save(self, *args, **kwargs):
         """Generate a unique ticket code for the participant if not already."""
