@@ -63,15 +63,15 @@
 
 {% block content %}
     <main>
-        <a href="{% url 'queue:create_q' %}" class="card">
+        <a href="{% url 'manager:create_q' %}" class="card">
             <h5>I’m a Business</h5>
             <p>Start managing your customer queues efficiently by creating a queue.</p>
-            <img src="{% static 'queue_manager/images/business.png' %}" alt="Create Queue Icon">
+            <img src="{% static 'participant/images/business.png' %}" alt="Create Queue Icon">
         </a>
-        <a href="{% url 'queue:queues' %}" class="card">
+        <a href="{% url 'participant:queues' %}" class="card">
             <h5>Browse Queues</h5>
             <p>Browse available queues if you're looking to join one.</p>
-            <img src="{% static 'queue_manager/images/browse.png' %}" alt="Browse Queue Icon">
+            <img src="{% static 'participant/images/browse.png' %}" alt="Browse Queue Icon">
         </a>
     </main>
 {% endblock %}
