@@ -330,7 +330,7 @@ class ManageWaitlist(generic.TemplateView):
                 context[key] = value
         return context
 
-
+@login_required
 def serve_participant(request, participant_id):
     participant = get_object_or_404(Participant, id=participant_id)
     queue_category = participant.queue.category
@@ -361,6 +361,7 @@ def serve_participant(request, participant_id):
         }, status=500)
 
 
+@login_required
 def complete_participant(request, participant_id):
     participant = get_object_or_404(Participant, id=participant_id)
     queue_category = participant.queue.category
@@ -389,6 +390,26 @@ def complete_participant(request, participant_id):
         return JsonResponse({
             'error': f'Error: {str(e)}'
         }, status=500)
+
+
+class ParticipantListView(generic.ListView):
+    template_name = 'manager/participant_list.html'
+    context_object_name = 'participant_list'
+
+    def get_queryset(self):
+        queue_id = self.kwargs.get('queue_id')
+        queue = get_object_or_404(Queue, id=queue_id)
+        handler = ParticipantHandlerFactory.get_handler(queue.category)
+        queue = handler.get_queue_object(queue_id)
+        return handler.get_participant_set(queue.id)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        queue_id = self.kwargs.get('queue_id')
+        queue = get_object_or_404(Queue, id=queue_id)
+        handler = ParticipantHandlerFactory.get_handler(queue.category)
+        context['queue'] = handler.get_queue_object(queue_id)
+        return context
 
 def signup(request):
     """
