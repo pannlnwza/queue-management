@@ -18,6 +18,7 @@ from django.apps import apps
 from django.views.decorators.http import require_http_methods
 
 from manager.forms import QueueForm
+from participant.models import Participant, Notification
 from manager.utils.participant_handler import ParticipantHandlerFactory
 from participant.models import Participant, Notification, RestaurantParticipant
 from manager.models import Queue
