@@ -4,7 +4,7 @@
 
 {% block extra_head %}
     <style>
-        * {
+        {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
@@ -33,7 +33,7 @@
         .card h5 {
             font-size: 1.8rem;
             font-weight: bold;
-            color: var(--primary-color);
+            color: black;
             margin-bottom: 1rem;
         }
 
@@ -54,11 +54,17 @@
         }
 
         .btn-primary {
-            background-color: var(--primary-color);
+            background-color: btn-primary;
             border: none;
+            color: white;
             width: 100%;
             padding: 0.75rem;
             font-size: 1rem;
+            transition: background-color 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            background-color: #0056b3;
         }
     </style>
 {% endblock %}
