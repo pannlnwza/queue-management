@@ -238,60 +238,23 @@ def delete_queue(request, queue_id):
             f"by user {request.user}: {e}")
     return redirect('manager:manage_queues')
 
-
 @login_required
 def delete_participant(request, participant_id):
-    """Delete a participant from a specific queue if the requester is the queue creator or the participant themselves."""
-    try:
-        participant = Participant.objects.get(id=participant_id)
-    except Participant.DoesNotExist:
-        messages.error(request, f"Participant with ID {participant_id} does not exist.")
-        logger.error(f"Participant id: {participant_id} does not exist.")
-        return redirect('participant:index')
-
-    queue = participant.queue
-
-    if queue.created_by == request.user:
-        action = 'completed'
-        success_message = f"Participant with code {participant.queue_code} removed successfully."
-        log_message = f"Participant with code {participant.queue_code} successfully deleted from queue {queue.id} by user {request.user}."
-
-    elif participant.user == request.user:
-        action = 'canceled'
-        success_message = "You have successfully left the queue."
-        log_message = f"User {request.user} canceled participation in queue {queue.id}."
-
-    else:
-        messages.error(request, "You are not authorized to delete participants from this queue.")
-        logger.warning(
-            f'Unauthorized delete attempt by user {request.user} '
-            f'for participant {participant_id} in queue {queue.id}.')
-        return redirect('participant:index')
-
-    try:
-        QueueHistory.objects.create(
-            user=participant.user,
-            queue=queue,
-            queue_description=queue.description,
-            action=action,
-            joined_at=participant.joined_at
-        )
-
-        removed_position = participant.position
+    if request.method != 'DELETE':
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
+    participant = get_object_or_404(RestaurantParticipant, id=participant_id)
+    if participant.state == 'waiting':
+        queue = participant.queue
+        waiting_participants = RestaurantParticipant.objects.filter(queue=queue, state='waiting').order_by('position')
         participant.delete()
-        remaining_participants = queue.participant_set.filter(position__gt=removed_position).order_by('position')
-        for p in remaining_participants:
-            p.position -= 1
-            p.save()
 
-        messages.success(request, success_message)
-        logger.info(log_message)
-
-    except Exception as e:
-        messages.error(request, f"Error removing participant: {e}")
-        logger.error(f"Failed to delete participant {participant_id} from queue {queue.id} by user {request.user}: {e}")
-
-    return redirect('participant:index')
+        for idx, p in enumerate(waiting_participants):
+            if p.position > participant.position:
+                p.position = idx + 1
+                p.save()
+        return JsonResponse({'message': 'Participant is deleted and positions are updated.'})
+    participant.delete()
+    return JsonResponse({'message': 'Participant deleted.'})
 
 
 class ManageWaitlist(generic.TemplateView):
@@ -306,13 +269,16 @@ class ManageWaitlist(generic.TemplateView):
             raise PermissionDenied("You do not have permission to manage this queue.")
 
         handler = ParticipantHandlerFactory.get_handler(queue.category)
+        queue = handler.get_queue_object(queue_id)
+        participant_set = handler.get_participants(queue_id)
 
-        context['waiting_list'] = queue.participant_set.filter(state='waiting')
-        context['serving_list'] = queue.participant_set.filter(state='serving')
-        context['completed_list'] = queue.participant_set.filter(state='completed')
-
+        context['waiting_list'] = participant_set.filter(state='waiting')
+        context['serving_list'] = participant_set.filter(state='serving')
+        context['completed_list'] = participant_set.filter(state='completed')
         context['queue'] = queue
-        context['handler'] = handler
+        for item in handler.add_context_attributes(queue):
+            for key, value in item.items():
+                context[key] = value
         return context
 
 
@@ -327,13 +293,13 @@ def serve_participant(request, participant_id):
                 'error': f'{participant.name} cannot be served because they are currently in state: {participant.state}.'
             }, status=400)
 
+        participant.queue.update_estimated_wait_time_per_turn(participant.get_wait_time())
         handler.assign_to_resource(participant)
         participant.start_service()
         participant.save()
 
-        # Fetch updated lists
-        waiting_list = Participant.objects.filter(state='waiting').values()  # Get all waiting participants as dictionaries
-        serving_list = Participant.objects.filter(state='serving').values()  # Get all serving participants as dictionaries
+        waiting_list = Participant.objects.filter(state='waiting').values()
+        serving_list = Participant.objects.filter(state='serving').values()
 
         return JsonResponse({
             'waiting_list': list(waiting_list),
