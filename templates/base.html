@@ -40,6 +40,20 @@
             min-height: calc(100vh - 70px);
             padding: 20px;
         }
+        .dropdown {
+            position: relative;
+        }
+        .dropdown-content {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            z-index: 1;
+            max-height: 200px;
+            overflow-y: auto;
+            background-color: white; /* Optional: match background */
+            border: 1px solid #ddd; /* Optional: border for better visibility */
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2); /* Optional: add shadow */
+        }
     </style>
     {% block extra_head %}{% endblock %}
 </head>
@@ -51,29 +65,21 @@
                 aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
         </button>
-        <div class="collapse navbar-collapse" id="navbarNav">
-            <div class="d-flex nav-right ms-auto">
-                {% if user.is_authenticated %}
-                    <div class="dropdown">
-                        <button class="user-button dropdown dropdown-toggle mt-2 me-1" type="button"
-                                id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
-                            {{ user.username }}
-                        </button>
-                        <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                            <li>
-                                <form action="{% url 'logout' %}" method="post" style="display: inline;">
-                                    {% csrf_token %}
-                                    <button type="submit" class="dropdown-item">Log out</button>
-                                </form>
-                            </li>
-                        </ul>
-                    </div>
-                {% else %}
-                    <span>Have an account?</span>
-                    <a href="{% url 'login' %}" class="nav-link">Log in</a>
-                {% endif %}
-                <a href="https://github.com/pannlnwza/queue-management/issues/new" target="_blank" class="nav-link">Report Issues</a>
-            </div>
+        <div class="d-flex nav-right ms-auto">
+            {% if user.is_authenticated %}
+                <details class="dropdown ">
+                    <summary class="btn m-1">{{ user.username }}</summary>
+                    <ul class="menu dropdown-content bg-base-100 rounded-box z-[1] w-52 p-2 shadow">
+                        <li><form action="{% url 'logout' %}" method="post" style="display: inline;">
+                            {% csrf_token %}
+                            <button type="submit" class="dropdown-item">Log out</button>
+                            </form></li>
+                    </ul>
+                </details>
+            {% else %}
+                <span>Have an account?</span>
+                <a href="{% url 'login' %}" class="nav-link">Log in</a>
+            {% endif %}
         </div>
     </div>
 </nav>
