@@ -264,14 +264,6 @@ def delete_participant(request, participant_id):
         return redirect('participant:index')
 
     try:
-        QueueHistory.objects.create(
-            user=participant.user,
-            queue=queue,
-            queue_description=queue.description,
-            action=action,
-            joined_at=participant.joined_at
-        )
-
         removed_position = participant.position
         participant.delete()
         remaining_participants = queue.participant_set.filter(position__gt=removed_position).order_by('position')
