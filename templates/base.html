@@ -1,102 +1,44 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token }}">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.14/dist/full.min.css" rel="stylesheet" type="text/css" />
+    <script src="https://cdn.tailwindcss.com"></script>
     {% block title %}<title>Queue Management</title>{% endblock %}
     <style>
-        :root {
-            --primary-color: #153e72;
-            --text-primary: #1e293b;
-            --text-secondary: #64748b;
-            --body-bg: #f0f2f5;
-        }
-
-        * {
+        {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
         }
-
         body {
             line-height: 1.6;
-            background-color: var(--body-bg);
+            background-color: #edf2f4;
         }
-
         .navbar {
+            background-color: white;
             display: flex;
             justify-content: space-between;
             align-items: center;
             padding: 1rem 2rem;
-            background-color: white;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            height: 70px;
         }
-
-        .navbar-brand {
-            font-size: 1.25rem;
-            font-weight: bold;
-            color: var(--text-primary);
+        .nav-right {
+            display: flex;
+            align-items: center;
         }
-
-        .btn {
-            padding: 0.5rem 1rem;
-            border-radius: 3rem;
-            font-size: 0.9375rem;
-            font-weight: 500;
-            text-decoration: none;
-            transition: all 0.2s;
-            white-space: nowrap;
-            color: white !important;
+        .nav-link {
+            margin-left: 1rem;
+            color: blue;
         }
-
-        .btn-primary {
-            background-color: var(--primary-color);
-            border: none;
-        }
-        .btn-edit {
-            background-color: gray;);
-            border: none;
-        }
-
-        .messages {
-            margin: auto;
-            list-style: none;
-            padding: 0;
-            width: 90%;
-        }
-
-        .messages li {
-            padding: 0.5rem;
-            border-radius: 4px;
-            margin-bottom: 0.5rem;
-        }
-
-        .messages .success {
-            background-color: #d4edda;
-            color: #155724;
-        }
-
-        .messages .info {
-            background-color: #cce5ff;
-            color: #004085;
-        }
-
-        .messages .error {
-            background-color: #f8d7da;
-            color: #721c24;
-        }
-
-        .user-button {
-            border: white;
-            background-color: white;
-        }
-
-        .btn:focus {
-            outline: none !important;
-            box-shadow: none !important;
+        .content-container {
+            background-color: #edf2f4;
+            min-height: calc(100vh - 70px);
+            padding: 20px;
         }
     </style>
     {% block extra_head %}{% endblock %}
@@ -110,10 +52,10 @@
             <span class="navbar-toggler-icon"></span>
         </button>
         <div class="collapse navbar-collapse" id="navbarNav">
-            <div class="d-flex ms-auto">
+            <div class="d-flex nav-right ms-auto">
                 {% if user.is_authenticated %}
                     <div class="dropdown">
-                        <button class="user-button dropdown-toggle mt-2 me-1" type="button"
+                        <button class="user-button dropdown dropdown-toggle mt-2 me-1" type="button"
                                 id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
                             {{ user.username }}
                         </button>
@@ -127,25 +69,26 @@
                         </ul>
                     </div>
                 {% else %}
-                    <a href="{% url 'login' %}" class="btn btn-primary">Log in</a>
+                    <span>Have an account?</span>
+                    <a href="{% url 'login' %}" class="nav-link">Log in</a>
                 {% endif %}
-                <a href="https://github.com/pannlnwza/queue-management/issues/new" target="_blank"
-                   class="btn btn-primary ms-2">Report Issues</a>
+                <a href="https://github.com/pannlnwza/queue-management/issues/new" target="_blank" class="nav-link">Report Issues</a>
             </div>
         </div>
     </div>
 </nav>
 
+<div class="content-container">
+    {% if messages %}
+        <ul class="messages">
+            {% for message in messages %}
+                <li class="{{ message.tags }}">{{ message }}</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
 
-{% if messages %}
-    <ul class="messages">
-        {% for message in messages %}
-            <li class="{{ message.tags }}">{{ message }}</li>
-        {% endfor %}
-    </ul>
-{% endif %}
-
-{% block content %} {% endblock %}
+    {% block content %} {% endblock %}
+</div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
         integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
