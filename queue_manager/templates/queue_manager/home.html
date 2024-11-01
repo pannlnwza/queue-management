@@ -4,7 +4,7 @@
 
 {% block extra_head %}
     <style>
-        {
+        * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
@@ -25,9 +25,17 @@
             box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
             padding: 2.5rem;
             margin: 1rem;
-            width: 400px;
+            width: 700px;
             max-width: 450px;
-            text-align: center;
+            text-align: left;
+            text-decoration: none;
+            color: inherit;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
         }
 
         .card h5 {
@@ -40,7 +48,6 @@
         .card p {
             color: #64748b;
             margin-bottom: 1.5rem;
-            padding: 0 1rem;
             font-size: 1rem;
         }
 
@@ -50,39 +57,21 @@
             max-height: 200px;
             margin-bottom: 1.5rem;
             object-fit: contain;
-            padding: 0 1rem;
-        }
-
-        .btn-primary {
-            background-color: btn-primary;
-            border: none;
-            color: white;
-            width: 100%;
-            padding: 0.75rem;
-            font-size: 1rem;
-            transition: background-color 0.3s ease;
-        }
-
-        .btn-primary:hover {
-            background-color: #0056b3;
         }
     </style>
 {% endblock %}
 
 {% block content %}
     <main>
-        <div class="card">
+        <a href="{% url 'queue:create_q' %}" class="card">
             <h5>I’m a Business</h5>
             <p>Start managing your customer queues efficiently by creating a queue.</p>
             <img src="{% static 'queue_manager/images/business.png' %}" alt="Create Queue Icon">
-            <a href="{% url 'queue:create_q' %}" class="btn btn-primary">Create Queue</a>
-        </div>
-
-        <div class="card">
+        </a>
+        <a href="{% url 'queue:queues' %}" class="card">
             <h5>Browse Queues</h5>
             <p>Browse available queues if you're looking to join one.</p>
             <img src="{% static 'queue_manager/images/browse.png' %}" alt="Browse Queue Icon">
-            <a href="{% url 'queue:queues' %}" class="btn btn-primary">Browse Queue</a>
-        </div>
+        </a>
     </main>
 {% endblock %}

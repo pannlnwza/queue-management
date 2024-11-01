@@ -42,6 +42,7 @@
         }
         .dropdown {
             position: relative;
+            margin-right: 10rem;
         }
         .dropdown-content {
             position: absolute;
@@ -53,6 +54,9 @@
             background-color: white;
             border: 1px solid #ddd;
             box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        .h1{
+            margin-left: 10rem;
         }
     </style>
     {% block extra_head %}{% endblock %}
@@ -68,7 +72,7 @@
         <div class="d-flex nav-right ms-auto">
             {% if user.is_authenticated %}
                 <details class="dropdown ">
-                    <summary class="btn m-1">{{ user.username }}</summary>
+                    <summary class="btn m-1">Welcome!, {{ user.username }}</summary>
                     <ul class="menu dropdown-content bg-base-100 rounded-box z-[1] w-52 p-2 shadow">
                         <li><form action="{% url 'logout' %}" method="post" style="display: inline;">
                             {% csrf_token %}
