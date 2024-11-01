@@ -4,160 +4,74 @@
 
 {% block extra_head %}
     <style>
-        * {
+        {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
         }
 
         main {
-            padding: 1rem;
-            width: 90%;
-            margin: auto;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem;
+            min-height: 80vh;
+            gap: 2rem;
         }
 
         .card {
             background: white;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-            margin-bottom: 1rem;
-            padding: 1rem;
+            border-radius: 16px;
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+            padding: 2.5rem;
+            margin: 1rem;
+            width: 700px;
+            max-width: 450px;
+            text-align: left;
+            text-decoration: none;
+            color: inherit;
+            transition: transform 0.3s, box-shadow 0.3s;
         }
 
-        .card-title {
-            font-size: 1.1rem;
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+        }
+
+        .card h5 {
+            font-size: 1.8rem;
             font-weight: bold;
-            margin-bottom: 0.5rem;
-        }
-
-        .stat-label {
-            color: #666;
-            font-size: 0.9rem;
-        }
-
-        .stat-value {
             color: black;
-            font-size: 1.5rem;
-            font-weight: bold;
+            margin-bottom: 1rem;
         }
 
-        .status {
-            border-radius: 12px;
-            font-size: 0.8em;
-            color: white;
+        .card p {
+            color: #64748b;
+            margin-bottom: 1.5rem;
+            font-size: 1rem;
         }
 
-        .status-normal {
-            background-color: green;
-        }
-
-        .status-busy {
-            background-color: orange;
-        }
-
-        .status-full {
-            background-color: red;
-        }
-        .card {
-            position: relative;
-        }
-        .button-group {
-            display: flex;
-            gap: 0.5rem;
-            align-items: center;
-        }
-        .edit-btn {
-            background-color: #6c757d;
-            color: white;
-        }
-        .d-none {
-            display: none;
+        .card img {
+            width: 100%;
+            height: auto;
+            max-height: 200px;
+            margin-bottom: 1.5rem;
+            object-fit: contain;
         }
     </style>
 {% endblock %}
 
 {% block content %}
-    <main class="container py-4">
-
-        <div class="card">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <div class="card-title">Current Queues</div>
-                    <div class="button-group">
-                        <button onclick="toggleEditMode()" class="btn edit-btn me-2">Edit</button>
-                    </div>
-                </div>
-            <div id="queues-container">
-                {% if queue_list %}
-                    {% for queue in queue_list %}
-                        <div class="card queue-card mb-3 position-relative" id="queue-{{ queue.id }}">
-                            <div class="d-flex align-items-center">
-                                <h5 class="mb-0">{{ queue.name }}</h5>
-                                <div class="status ms-2 px-1 py-auto" id="status-{{ queue.id }}">{{ queue.status }}</div>
-                            </div>
-                            <div class="row mt-2">
-                                <div class="col">
-                                    <div class="stat-label">Your Position</div>
-                                    <div class="stat-value position" id="position-{{ queue.id }}">{{ queue_positions|get_item:queue.id }}</div>
-                                </div>
-                                <div class="col">
-                                    <div class="stat-label">Queue Length</div>
-                                    <div class="stat-value participant-count" id="length-{{ queue.id }}">{{ queue.participant_set.count }}</div>
-                                </div>
-                            </div>
-                            <div class="row mt-2">
-                                <div class="col">
-                                    <div class="stat-label">Estimated Wait Time</div>
-                                    <div class="stat-value estimated" id="estimated-{{ queue.id }}">{{ estimated_wait_time|get_item:queue.id }} minute</div>
-                                </div>
-                            </div>
-                            {% if queue.id in active_participants %}
-                                <div class="position-absolute" style="top: 10px; right: 10px;">
-                                    <div class="leave-queue-btn" style="display: none;">
-                                        <form method="POST" action="{% url 'manager:delete_participant' active_participants|get_item:queue.id %}" class="d-inline" onsubmit="return confirm('Are you sure you want to leave this queue?');">
-                                            {% csrf_token %}
-                                            <button type="submit" class="btn btn-danger btn-sm">
-                                                Leave Queue
-                                            </button>
-                                        </form>
-                                    </div>
-                                </div>
-                            {% endif %}
-                        </div>
-                    {% endfor %}
-                {% else %}
-                    <div class="alert alert-info">You are not in a queue.</div>
-                {% endif %}
-
-            </div>
-        </div>
-        <div class="card d-inline-block">
-            <h4 class="card-title">Join Queue by Code</h4>
-            <form class="join-form" method="POST" action="{% url 'participant:join' %}">
-                {% csrf_token %}
-                <div class="input-group">
-                    <input type="text" class="form-control" placeholder="Enter queue code" name="queue_code">
-                    <button type="submit" class="btn btn-primary">Join Queue</button>
-                </div>
-            </form>
-        </div>
-
-        <div class="modal" id="notificationModal">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title">Your Turn Is Ready!</h5>
-                    </div>
-                    <div class="modal-body">
-                        <p id="modalMessage"></p>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-primary" id="modalOkButton">OK</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
+    <main>
+        <a href="{% url 'queue:create_q' %}" class="card">
+            <h5>I’m a Business</h5>
+            <p>Start managing your customer queues efficiently by creating a queue.</p>
+            <img src="{% static 'queue_manager/images/business.png' %}" alt="Create Queue Icon">
+        </a>
+        <a href="{% url 'queue:queues' %}" class="card">
+            <h5>Browse Queues</h5>
+            <p>Browse available queues if you're looking to join one.</p>
+            <img src="{% static 'queue_manager/images/browse.png' %}" alt="Browse Queue Icon">
+        </a>
     </main>
-    <script src="{% static 'participant/js/queueDataStream.js' %}"></script>
-
 {% endblock %}
