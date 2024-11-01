@@ -23,11 +23,11 @@ class ParticipantHandler(ABC):
         pass
 
     @abstractmethod
-    def get_queue_object(self, queue_id):
+    def get_participant_set(self, queue_id):
         pass
 
     @abstractmethod
-    def get_participants(self, queue_id):
+    def get_queue_object(self, queue_id):
         pass
 
     @abstractmethod
@@ -49,11 +49,11 @@ class RestaurantParticipantHandler(ParticipantHandler):
     def create_participant(self, data):
         return RestaurantParticipant.objects.create(**data)
 
+    def get_participant_set(self, queue_id):
+        return RestaurantParticipant.objects.filter(queue_id=queue_id).all()
+
     def get_queue_object(self, queue_id):
         return get_object_or_404(RestaurantQueue, id=queue_id)
-
-    def get_participants(self, queue_id):
-        return RestaurantParticipant.objects.filter(queue_id=queue_id)
 
     def assign_to_resource(self, participant):
         restaurant_participant = RestaurantParticipant.objects.get(id=participant.id)
