@@ -7,7 +7,7 @@ from django.http import JsonResponse
 from django.shortcuts import render, redirect
 from django.views import generic
 
-from participant.models import Participant, Notification, QueueHistory
+from participant.models import Participant, Notification
 from manager.models import Queue
 from manager.views import logger
 
@@ -65,26 +65,6 @@ class BankQueueView(BaseQueueView):
 
 class ServiceCenterQueueView(BaseQueueView):
     queue_category = 'service center'
-
-
-class QueueHistoryView(LoginRequiredMixin, generic.ListView):
-    template_name = 'participant/queue_history.html'
-    context_object_name = 'history_queues'
-
-    def get_queryset(self):
-        """
-        Return the history of queues for the logged-in user.
-        """
-        return QueueHistory.objects.filter(user=self.request.user).order_by('-joined_at')
-
-    def get_context_data(self, **kwargs):
-        """
-        Add additional context if needed.
-        """
-        context = super().get_context_data(**kwargs)
-        context['title'] = 'Your Queue History'  # You can customize this title as needed
-        return context
-
 
 class BrowseQueueView(generic.ListView):
     model = Queue
