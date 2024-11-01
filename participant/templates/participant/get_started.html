@@ -5,9 +5,9 @@
 {% block content %}
     <main class="flex items-center justify-center min-h-screen">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-4xl">
-            <a href="{% url 'manager:create_q' %}" class="card bg-base-100 shadow-xl hover:shadow-2xl transform hover:scale-105 transition duration-300">
+            <a href="{% url 'manager:create_q' %}" class="card bg-base-100 shadow-xl hover:shadow-2xl hover:bg-primary/30 transform hover:scale-105 transition duration-300">
                 <figure class="px-10 pt-10">
-                    <img src="{% static 'participant/images/business.png' %}" alt="Create Queue Icon" class="rounded-xl w-32 h-32 object-cover">
+                    <img src="{% static 'participant/images/Krustykrab.jpg' %}" alt="Create Queue Icon" class="rounded-xl w-32 h-32 object-cover">
                 </figure>
                 <div class="card-body items-center text-center">
                     <h5 class="card-title text-xl font-semibold text-primary">I’m a Business</h5>
@@ -15,9 +15,9 @@
                 </div>
             </a>
 
-            <a href="{% url 'participant:queues' %}" class="card bg-base-100 shadow-xl hover:shadow-2xl transform hover:scale-105 transition duration-300">
+            <a href="{% url 'participant:queues' %}" class="card bg-base-100 shadow-xl hover:shadow-2xl hover:bg-primary/30 transform hover:scale-105 transition duration-300">
                 <figure class="px-10 pt-10">
-                    <img src="{% static 'participant/images/browse.png' %}" alt="Browse Queue Icon" class="rounded-xl w-32 h-32 object-cover">
+                    <img src="{% static 'participant/images/spongebob_queue.jpg' %}" alt="Browse Queue Icon" class="rounded-xl w-32 h-32 object-cover">
                 </figure>
                 <div class="card-body items-center text-center">
                     <h5 class="card-title text-xl font-semibold text-primary">Browse Queues</h5>
