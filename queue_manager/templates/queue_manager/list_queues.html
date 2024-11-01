@@ -1,0 +1,202 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block extra_head %}
+    <style>
+        main {
+            padding: 2rem;
+            width: 80%;
+            margin: auto;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .card {
+            background: white;
+            width: 1000px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 1.5rem;
+            transition: box-shadow 0.3s ease;
+        }
+        .card:hover {
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+        }
+        .card-title {
+            font-size: 1.6rem;
+            font-weight: bold;
+            margin-top: 1.2rem;
+            text-align: center;
+            color: #333;
+        }
+        .queue-block {
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            transition: background-color 0.3s ease, box-shadow 0.3s ease;
+        }
+        .queue-block.open {
+            background-color: #fafafa;
+        }
+        .queue-block.open:hover {
+            background-color: #f0f0f0;
+            border-color: #ccc;
+        }
+        .queue-logo {
+            width: 100px;
+            height: auto;
+            margin-right: 1rem;
+        }
+        .queue-header {
+            display: flex;
+            align-items: center;
+            width: 100%;
+            margin-bottom: 0.4rem;
+        }
+        .queue-title {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #333;
+        }
+        .queue-info {
+            font-size: 0.85rem;
+            color: #555;
+            margin-bottom: 0.25rem;
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            font-size: 1rem;
+            margin-top: 1rem;
+            margin-bottom: 2rem;
+            text-align: center;
+            font-weight: bold;
+        }
+        .status-badge-green {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .status-badge-red {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        .no-queues {
+            font-size: 1rem;
+            color: #888;
+            text-align: center;
+        }
+        .queue-block.closed {
+            background-color: #f7f7f7;
+            border-color: #ddd;
+            opacity: 0.8;
+        }
+        .queue-block.closed:hover {
+            background-color: #f0f0f0;
+            border-color: #ccc;
+            box-shadow: none;
+        }
+        .queue-status {
+            color: white;
+            font-size: 0.9rem;
+            padding: 0.2rem 0.5rem;
+            border-radius: 16px;
+            margin-left: 0.5rem;
+        }
+        .status-bg {
+            font-weight: bold;
+        }
+        .status-bg-green {
+            background-color: #2DA44E;
+        }
+        .status-bg-yellow {
+            background-color: #FFC519;
+        }
+        .status-bg-red {
+            background-color: #ff0000;
+        }
+        .status-bg-dark-red{
+            background-color: #721c24;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+    <main>
+        <div class="card">
+            <div class="card-title">{{ queue_type }} Queues</div>
+            <div>
+                <div style="text-align: center;">
+                    <span class="status-badge status-badge-green">Open Queues</span>
+                </div>
+                {% if queues %}
+                    {% for queue in queues %}
+                        {% if not queue.is_closed %}
+                            <div class="queue-block open">
+                                <img src="{{ queue.get_logo_url }}" alt="{{ queue.name }} logo" class="queue-logo">
+                                <div style="margin-left: 0.5rem;">
+                                    <div class="queue-header">
+                                        <div class="queue-title">{{ queue.name }}</div>
+                                        <div class="queue-status status-bg
+                                            {% if queue.queue_status == 'Very Busy' %} status-bg-red
+                                           {% elif queue.queue_status == 'Moderate Busy' %} status-bg-yellow
+                                           {% elif queue.queue_status == 'Not Busy' %} status-bg-green
+                                        {% endif %}">
+                                            {{ queue.queue_status }}
+                                        </div>
+                                    </div>
+                                    <div class="queue-info">{{ queue.description }}</div>
+                                    <div class="queue-info">
+                                        Currently in queue:
+                                        {% if queue.get_number_of_participants == 1 %}
+                                            1 person
+                                        {% else %}
+                                            {{ queue.get_number_of_participants }} people
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+                {% else %}
+                    <div class="no-queues">No open queues available.</div>
+                {% endif %}
+            </div>
+
+            <div>
+                <div style="text-align: center;">
+                    <span class="status-badge status-badge-red">Closed Queues</span>
+                </div>
+                {% if queues %}
+                    {% for queue in queues %}
+                        {% if queue.is_closed %}
+                            <div class="queue-block closed">
+                                <img src="{{ queue.get_logo_url }}" alt="{{ queue.name }} logo" class="queue-logo">
+                                <div style="margin-left: 0.5rem;">
+                                    <div class="queue-header">
+                                        <div class="queue-title">{{ queue.name }}</div>
+                                        <div class="queue-status status-bg status-bg-dark-red">Closed</div>
+                                    </div>
+                                    <div class="queue-info">{{ queue.description }}</div>
+                                    <div class="queue-info">
+                                        Currently in queue:
+                                        {% if queue.get_number_of_participants == 1 %}
+                                            1 person
+                                        {% else %}
+                                            {{ queue.get_number_of_participants }} people
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+                {% else %}
+                    <div class="no-queues">No closed queues available.</div>
+                {% endif %}
+            </div>
+        </div>
+    </main>
+{% endblock %}
