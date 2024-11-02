@@ -30,7 +30,7 @@
                 </label>
                 <ul tabindex="0" class="menu dropdown-content bg-base-100 rounded-box z-[1] w-52 p-2 shadow">
                     <li>
-                        <form action="{% url 'logout' %}" method="post" style="display: inline;">
+                        <form action="{% url 'account_logout' %}" method="post" style="display: inline;">
                             {% csrf_token %}
                             <button type="submit" class="btn btn-error btn-block text-white">Log out</button>
                         </form>
