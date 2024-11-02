@@ -1,5 +1,6 @@
 import json
 import logging
+from datetime import timedelta
 
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, user_logged_in, user_logged_out, user_login_failed
@@ -274,7 +275,7 @@ def edit_participant(request, participant_id):
     data = json.loads(request.body)
 
     name = data.get('name', participant.name)
-    # phone = data.get('phone', participant.phone)
+    phone = data.get('phone', participant.phone)
     party_size = data.get('party_size', participant.party_size)
     notes = data.get('notes', participant.note)
     seating_preference = data.get('seating_preference', participant.seating_preference)
@@ -288,7 +289,7 @@ def edit_participant(request, participant_id):
             table.save()
 
     participant.name = name
-    # participant.phone = phone
+    participant.phone = phone
     participant.party_size = party_size
     participant.note = notes
     participant.seating_preference = seating_preference
@@ -300,7 +301,7 @@ def edit_participant(request, participant_id):
         'participant': {
             'id': participant.id,
             'name': participant.name,
-            # 'phone': participant.phone,
+            'phone': participant.phone,
             'party_size': participant.party_size,
             'notes': participant.note,
             'table': participant.table.name if participant.table else None,
@@ -392,24 +393,70 @@ def complete_participant(request, participant_id):
         }, status=500)
 
 
-class ParticipantListView(generic.ListView):
+class ParticipantListView(generic.TemplateView):
     template_name = 'manager/participant_list.html'
-    context_object_name = 'participant_list'
-
-    def get_queryset(self):
-        queue_id = self.kwargs.get('queue_id')
-        queue = get_object_or_404(Queue, id=queue_id)
-        handler = ParticipantHandlerFactory.get_handler(queue.category)
-        queue = handler.get_queue_object(queue_id)
-        return handler.get_participant_set(queue.id)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         queue_id = self.kwargs.get('queue_id')
         queue = get_object_or_404(Queue, id=queue_id)
         handler = ParticipantHandlerFactory.get_handler(queue.category)
+
+        # Get filter parameters
+        time_filter_option = self.request.GET.get('time_filter', 'all_time')
+        state_filter_option = self.request.GET.get('state_filter', 'any_state')  # Default to 'any_state'
+
+        # Map time filter options to display names
+        time_filter_options_display = {
+            'all_time': 'All time',
+            'today': 'Today',
+            'this_week': 'This week',
+            'this_month': 'This month',
+            'this_year': 'This year',
+        }
+
+        state_filter_options_display = {
+            'any_state': 'Any state',
+            'waiting': 'Waiting',
+            'serving': 'Serving',
+            'completed': 'Completed',
+        }
+
+        # Determine the start date for time filtering
+        start_date = self.get_start_date(time_filter_option)
+
+        # Get the participants and apply the filters
+        participant_set = handler.get_participant_set(queue_id)
+
+        if start_date:
+            participant_set = participant_set.filter(joined_at__gte=start_date)
+
+        # Filter by state if it's not 'any_state'
+        if state_filter_option != 'any_state':
+            participant_set = participant_set.filter(state=state_filter_option)
+
         context['queue'] = handler.get_queue_object(queue_id)
+        context['participant_set'] = participant_set
+        context['time_filter_option'] = time_filter_option
+        context['time_filter_option_display'] = time_filter_options_display.get(time_filter_option, 'All time')
+        context['state_filter_option'] = state_filter_option
+        context['state_filter_option_display'] = state_filter_options_display.get(state_filter_option, 'Any state')
+
         return context
+
+    def get_start_date(self, time_filter_option):
+        """Returns the start date based on the time filter option."""
+        now = timezone.now()
+        if time_filter_option == 'today':
+            return now.replace(hour=0, minute=0, second=0, microsecond=0)
+        elif time_filter_option == 'this_week':
+            return now - timedelta(days=now.weekday())  # Monday of the current week
+        elif time_filter_option == 'this_month':
+            return now.replace(day=1)
+        elif time_filter_option == 'this_year':
+            return now.replace(month=1, day=1)
+        return None
+
 
 def signup(request):
     """
