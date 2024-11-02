@@ -111,7 +111,7 @@ AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
 ]
 
-LOGIN_REDIRECT_URL = 'participant:index'
+LOGIN_REDIRECT_URL = 'participant:home'
 LOGOUT_REDIRECT_URL = 'login'
 
 # Internationalization
