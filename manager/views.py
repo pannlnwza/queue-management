@@ -302,7 +302,7 @@ def signup(request):
             return redirect('participant:index')
     else:
         form = UserCreationForm()
-    return render(request, 'registration/signup.html', {'form': form})
+    return render(request, 'account/signup.html', {'form': form})
 
 
 logger = logging.getLogger('queue')

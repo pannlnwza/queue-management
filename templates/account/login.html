@@ -1,17 +1,17 @@
 {% load static %}
-<link rel="stylesheet" href="{% static 'manager/style_signup.html' %}">
+<link rel="stylesheet" href="{% static 'manager/style_login.css' %}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sign Up</title>
+    <title>Login</title>
     <style>
-        .form-errors {
+        .message {
+            padding: 10px;
             background-color: #f8d7da;
             color: #721c24;
             border: 1px solid #f5c6cb;
-            padding: 10px;
-            border-radius: 5px;
-            margin-bottom: 20px;
+            border-radius: 3px;
+            margin-bottom: 15px;
         }
 
         body {
@@ -23,7 +23,7 @@
             background-color: #f4f4f4;
         }
 
-        .signup-box {
+        .login-box {
             background-color: white;
             padding: 20px;
             border-radius: 8px;
@@ -31,7 +31,7 @@
             width: 300px;
         }
 
-        .signup-box form input {
+        .login-box form input {
             width: 100%;
             padding: 10px;
             margin-bottom: 5px;
@@ -39,14 +39,24 @@
             border-radius: 5px;
         }
 
-        .signup-box table td {
+        .login-box table td {
             padding: 4px;
         }
 
-        .signup-box button {
+        .login-box button {
             margin-top: 10px;
             padding: 10px;
         }
+
+        .login-box table td {
+            padding: 8px;
+        }
+
+        .login-box button {
+            margin-top: 10px;
+            padding: 10px;
+        }
+
 
         h2 {
             text-align: center;
@@ -66,10 +76,6 @@
             cursor: pointer;
         }
 
-        button:hover {
-            background-color: #0056b3;
-        }
-
         p {
             text-align: center;
         }
@@ -77,72 +83,54 @@
     </style>
 </head>
 <body>
-<div class="signup-box">
-    <h2>Register</h2>
-    {% if form.errors %}
-        <div class="form-errors">
-            {% for field in form %}
-                {% for error in field.errors %}
-                    <p>{{ field.label }}: {{ error }}</p>
-                {% endfor %}
-            {% endfor %}
+<div class="login-box">
+    <h2>Login</h2>
+
+    {% if form.non_field_errors %}
+        <div class="message">
             {% for error in form.non_field_errors %}
-                <li>{{ error }}</li>
+                {{ error }}
             {% endfor %}
         </div>
     {% endif %}
-
-    <form method="POST">
+    <form method="post">
         {% csrf_token %}
-        <table style="padding: 2ex;">
+        <table>
             <tr>
                 <td>
                     <label for="id_username">Username:</label>
                 </td>
             </tr>
-            <td>
-                <input type="text" id="id_username" name="username"
-                       data-info="Required. 150 characters or fewer. Letters, digits and @/./+/-/_ only.">
-            </td>
             <tr>
                 <td>
-                    <label for="id_email">Email:</label>
+                    <input type="text" id="id_username" name="username">
                 </td>
             </tr>
             <tr>
                 <td>
-                    <input type="email" id="id_email" name="email" data-info="Provide a valid email address.">
+                    <label for="id_password">Password:</label>
                 </td>
             </tr>
             <tr>
                 <td>
-                    <label for="id_password1">Password:</label>
-                </td>
-            </tr>
-            <tr>
-                <td>
-                    <input type="password" id="id_password1" name="password1"
-                           data-info="Your password must contain at least 8 characters.">
-                </td>
-            </tr>
-            <tr>
-                <td>
-                    <label for="id_password2">Confirm Password:</label>
-                </td>
-            </tr>
-            <tr>
-                <td>
-                    <input type="password" id="id_password2" name="password2"
-                           data-info="Retype your password for confirmation.">
+                    <input type="password" id="id_password" name="password">
                 </td>
             </tr>
             <tr>
                 <td colspan="2">
-                    <button type="submit">Register</button>
+                    <button type="submit">Login</button>
+                </td>
+            </tr>
+            <tr>
+                <td class="media-options">
+                    <a href="{% provider_login_url 'google' %}" class="field google">
+                        <i class="fa-brands fa-google googleicon"></i>
+                        <span>Continue with Google</span>
+                    </a>
                 </td>
             </tr>
         </table>
     </form>
-    <p>Already have an account? <a href="{% url 'login' %}">Log in here</a></p>
+    <p>Don't have an account? <a href="{% url 'signup' %}">Sign up here</a></p>
 </div>
 </body>
