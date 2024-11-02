@@ -23,7 +23,7 @@ import manager.views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('accounts/', include('django.contrib.auth.urls')),
+    path('accounts/', include('allauth.urls')),
     path('signup/', manager.views.signup, name='signup'),
     path('', include('participant.urls')),
     path('manager/', include('manager.urls')),
