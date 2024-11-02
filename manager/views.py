@@ -402,11 +402,9 @@ class ParticipantListView(generic.TemplateView):
         queue = get_object_or_404(Queue, id=queue_id)
         handler = ParticipantHandlerFactory.get_handler(queue.category)
 
-        # Get filter parameters
         time_filter_option = self.request.GET.get('time_filter', 'all_time')
-        state_filter_option = self.request.GET.get('state_filter', 'any_state')  # Default to 'any_state'
+        state_filter_option = self.request.GET.get('state_filter', 'any_state')
 
-        # Map time filter options to display names
         time_filter_options_display = {
             'all_time': 'All time',
             'today': 'Today',
@@ -422,16 +420,12 @@ class ParticipantListView(generic.TemplateView):
             'completed': 'Completed',
         }
 
-        # Determine the start date for time filtering
         start_date = self.get_start_date(time_filter_option)
-
-        # Get the participants and apply the filters
         participant_set = handler.get_participant_set(queue_id)
 
         if start_date:
             participant_set = participant_set.filter(joined_at__gte=start_date)
 
-        # Filter by state if it's not 'any_state'
         if state_filter_option != 'any_state':
             participant_set = participant_set.filter(state=state_filter_option)
 
@@ -441,7 +435,6 @@ class ParticipantListView(generic.TemplateView):
         context['time_filter_option_display'] = time_filter_options_display.get(time_filter_option, 'All time')
         context['state_filter_option'] = state_filter_option
         context['state_filter_option_display'] = state_filter_options_display.get(state_filter_option, 'Any state')
-
         return context
 
     def get_start_date(self, time_filter_option):
@@ -456,6 +449,21 @@ class ParticipantListView(generic.TemplateView):
         elif time_filter_option == 'this_year':
             return now.replace(month=1, day=1)
         return None
+
+class StatisticsView(generic.TemplateView):
+    template_name = 'manager/statistics.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        queue_id = self.kwargs.get('queue_id')
+        queue = get_object_or_404(Queue, id=queue_id)
+        handler = ParticipantHandlerFactory.get_handler(queue.category)
+        queue = handler.get_queue_object(queue_id)
+        participant_set = handler.get_participant_set(queue_id)
+
+        context['queue'] = queue
+        context['participant_set'] = participant_set
+        return context
 
 
 def signup(request):
