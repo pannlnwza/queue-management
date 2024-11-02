@@ -7,7 +7,6 @@ from django.utils import timezone
 from manager.models import RestaurantQueue
 from datetime import timedelta
 
-
 class Participant(models.Model):
     """Represents a participant in a queue."""
     PARTICIPANT_STATE = [
@@ -18,6 +17,7 @@ class Participant(models.Model):
 
     name = models.CharField(max_length=30)
     email = models.EmailField(max_length=50, null=True, blank=True)
+    phone = models.CharField(max_length=20, null=True, blank=True)
     queue = models.ForeignKey('manager.Queue', on_delete=models.CASCADE)
     joined_at = models.DateTimeField(default=timezone.localtime)
     position = models.PositiveIntegerField(null=True)
