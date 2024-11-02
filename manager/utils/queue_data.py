@@ -21,6 +21,7 @@ def get_restaurant_queue_data(request, queue_id):
             {
                 'id': participant.id,
                 'name': participant.name,
+                'phone': participant.phone,
                 'position': participant.position,
                 'party_size': participant.party_size,
                 'notes': participant.note,
@@ -32,6 +33,7 @@ def get_restaurant_queue_data(request, queue_id):
             {
                 'id': participant.id,
                 'name': participant.name,
+                'phone': participant.phone,
                 'party_size': participant.party_size,
                 'notes': participant.note,
                 'waited': participant.get_wait_time(),
@@ -45,6 +47,7 @@ def get_restaurant_queue_data(request, queue_id):
             {
                 'id': participant.id,
                 'name': participant.name,
+                'phone': participant.phone,
                 'party_size': participant.party_size,
                 'notes': participant.note,
                 'waited': participant.get_wait_time(),
