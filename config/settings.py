@@ -111,6 +111,16 @@ AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
 ]
 
+SOCIALACCOUNT_PROVIDERS = {
+    'google': {
+        'APP': {
+            'client_id': config('GOOGLE_OAUTH_CLIENT_ID', default=None),  # No default value
+            'secret': config('GOOGLE_OAUTH_CLIENT_SECRET', default=None),  # No default value
+            'key': '',
+        }
+    }
+}
+
 LOGIN_REDIRECT_URL = 'participant:home'
 LOGOUT_REDIRECT_URL = 'login'
 
