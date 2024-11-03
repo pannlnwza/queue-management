@@ -351,64 +351,24 @@ def signup(request):
             user = authenticate(username=username, password=raw_passwd)
             if user is not None:  # Add check to ensure authentication worked
                 login(request, user)
-                messages.success(request, f'Account created successfully! Welcome, {username}!')
                 logger.info(f'New user signed up: {username}')
+                # Only redirect to the home page without showing a message
                 return redirect('participant:home')
             else:
                 logger.error(f'Failed to authenticate user after signup: {username}')
+                # Handle authentication failure
                 messages.error(request, 'Error during signup process. Please try again.')
         else:
             # Add form errors to messages to display them to the user
             for field, errors in form.errors.items():
                 for error in errors:
-                    messages.error(request, f'{field}: {error}')
+                    logger.error(f'Error signup: {error}')
     else:
         form = UserCreationForm()
+
+        # Render the signup form with any error messages
     return render(request, 'account/signup.html', {'form': form})
 
-
-# def login_view(request):
-#     """
-#     Authenticate and login a user.
-#     Handles both username and email-based authentication.
-#
-#     :param request: The HTTP request object containing login credentials.
-#     :returns: Redirects to home page on successful login.
-#     """
-#     if request.method == 'POST':
-#         username = request.POST.get('username')
-#         password = request.POST.get('password')
-#
-#         if not username or not password:
-#             messages.error(request, 'Please provide both username and password.')
-#             return render(request, 'account/login.html')
-#
-#         # Try authenticating with username
-#         user = authenticate(request, username=username, password=password)
-#
-#         # If authentication failed, try with email
-#         if user is None:
-#             try:
-#                 from django.contrib.auth.models import User
-#                 user_obj = User.objects.get(email=username)
-#                 user = authenticate(request, username=user_obj.username, password=password)
-#             except User.DoesNotExist:
-#                 user = None
-#
-#         if user is not None:
-#             if user.is_active:
-#                 login(request, user)
-#                 # messages.success(request, f'Welcome back, {user.username}!')
-#                 logger.info(f'User logged in: {user.username}')
-#                 return redirect('participant:home')
-#             else:
-#                 messages.error(request, 'Your account is disabled.')
-#                 logger.warning(f'Disabled account login attempt: {username}')
-#         else:
-#             messages.error(request, 'Invalid username/email or password.')
-#             logger.warning(f'Failed login attempt for username: {username}')
-#
-#     return render(request, 'account/login.html')
 
 def login_view(request):
     if request.method == 'POST':
