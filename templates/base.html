@@ -77,15 +77,17 @@
 </div>
 
 
-
 <div class="content-container p-4">
     {% if messages %}
-        <ul class="messages">
+        <ul class="messages space-y-2">
             {% for message in messages %}
-                <li class="{{ message.tags }}">{{ message }}</li>
+                <li class="{% if message.tags == 'success' %}alert alert-success{% elif message.tags == 'error' %}alert alert-error{% elif message.tags == 'info' %}alert alert-info{% elif message.tags == 'warning' %}alert alert-warning{% endif %} shadow-lg">
+                    <span>{{ message }}</span>
+                </li>
             {% endfor %}
         </ul>
     {% endif %}
+</div>
 
     {% block content %} {% endblock %}
 </div>
