@@ -50,7 +50,6 @@ def get_general_queue_data(request, queue_id):
             } for participant in completed_participants
         ],
     }
-    print(data['completed_list'][0]['waited'])
     return JsonResponse(data)
 
 @login_required
