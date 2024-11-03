@@ -245,10 +245,10 @@ def delete_queue(request, queue_id):
 def delete_participant(request, participant_id):
     if request.method != 'DELETE':
         return JsonResponse({'error': 'Method not allowed'}, status=405)
-    participant = get_object_or_404(RestaurantParticipant, id=participant_id)
+    participant = get_object_or_404(Participant, id=participant_id)
     if participant.state == 'waiting':
         queue = participant.queue
-        waiting_participants = RestaurantParticipant.objects.filter(queue=queue, state='waiting').order_by('position')
+        waiting_participants = Participant.objects.filter(queue=queue, state='waiting').order_by('position')
         participant.delete()
 
         for idx, p in enumerate(waiting_participants):
@@ -309,7 +309,13 @@ def edit_participant(request, participant_id):
         }
     })
 class ManageWaitlist(generic.TemplateView):
-    template_name = 'manager/manage_queue/manage_restaurant.html'
+    def get_template_names(self):
+        queue_id = self.kwargs.get('queue_id')
+        queue = get_object_or_404(Queue, id=queue_id)
+        if queue.created_by != self.request.user:
+            raise PermissionDenied("You do not have permission to manage this queue.")
+        handler = ParticipantHandlerFactory.get_handler(queue.category)
+        return [handler.get_template_name()]
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -318,17 +324,16 @@ class ManageWaitlist(generic.TemplateView):
 
         if queue.created_by != self.request.user:
             raise PermissionDenied("You do not have permission to manage this queue.")
-
         handler = ParticipantHandlerFactory.get_handler(queue.category)
         queue = handler.get_queue_object(queue_id)
 
-        context['waiting_list'] = queue.participant_set.filter(state='waiting')
-        context['serving_list'] = queue.participant_set.filter(state='serving')
-        context['completed_list'] = queue.participant_set.filter(state='completed')
+        context['waiting_list'] = handler.get_participant_set(queue_id).filter(state='waiting')
+        context['serving_list'] = handler.get_participant_set(queue_id).filter(state='serving')
+        context['completed_list'] = handler.get_participant_set(queue_id).filter(state='completed')
         context['queue'] = queue
-        for item in handler.add_context_attributes(queue):
-            for key, value in item.items():
-                context[key] = value
+        more_context = handler.add_context_attributes(queue)
+        if more_context:
+            context.update({key: value for item in handler.add_context_attributes(queue) for key, value in item.items()})
         return context
 
 @login_required
@@ -365,8 +370,10 @@ def serve_participant(request, participant_id):
 @login_required
 def complete_participant(request, participant_id):
     participant = get_object_or_404(Participant, id=participant_id)
-    queue_category = participant.queue.category
-    handler = ParticipantHandlerFactory.get_handler(queue_category)
+    queue = participant.queue
+    handler = ParticipantHandlerFactory.get_handler(queue.category)
+    participant = handler.get_participant_set(queue.id).filter(id=participant_id).first()
+
 
     try:
         if participant.state != 'serving':
@@ -376,7 +383,6 @@ def complete_participant(request, participant_id):
 
 
         handler.complete_service(participant)
-        participant.complete_service()
         participant.save()
 
         serving_list = Participant.objects.filter(state='serving').values()

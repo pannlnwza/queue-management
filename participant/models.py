@@ -26,6 +26,7 @@ class Participant(models.Model):
     state = models.CharField(max_length=10, choices=PARTICIPANT_STATE, default='waiting')
     service_started_at = models.DateTimeField(null=True, blank=True)
     service_completed_at = models.DateTimeField(null=True, blank=True)
+    waited = models.PositiveIntegerField(default=0)
     visits = models.PositiveIntegerField(default=1)
 
     def save(self, *args, **kwargs):
@@ -61,20 +62,12 @@ class Participant(models.Model):
             self.service_started_at = timezone.localtime()
             self.save()
 
-    def complete_service(self):
-        """Mark the participant as completed."""
-        if self.state == 'serving':
-            self.state = 'completed'
-            self.service_completed_at = timezone.localtime()
-            self.save()
-
     def get_wait_time(self):
         """Calculate the wait time for the participant."""
         if self.state == 'waiting':
             return int((timezone.localtime() - self.joined_at).total_seconds() / 60)
         elif self.state == 'serving' and self.service_started_at:
             return int((self.service_started_at - self.joined_at).total_seconds() / 60)
-        return 0
 
     def get_service_duration(self):
         """Calculate the duration of service for the participant."""
@@ -94,6 +87,7 @@ class Participant(models.Model):
     def __str__(self) -> str:
         """Return a string representation of the participant."""
         return f"{self.name} - {self.state}"
+
 
 
 class RestaurantParticipant(Participant):
