@@ -37,7 +37,7 @@
                 {% endif %}
                 <div class="form-control">
                     <label class="label">
-                        <span class="label-text">Usernamel</span>
+                        <span class="label-text">Username</span>
                     </label>
                     <input type="text" name="username" placeholder="username" class="input input-bordered" required />
                 </div>
@@ -50,16 +50,17 @@
                         <a href="#" class="label-text-alt link link-hover">Forgot password?</a>
                     </label>
                 </div>
-                <div class="form-control mt-6">
+                <div class="form-control mt-2">
                     <button type="submit" class="btn btn-primary">Login</button>
                 </div>
-                <div class="form-control">
-                    <label class="label">
-                        <span class="label-text">Don't have an account? </span>
-                        <a href="{% url 'signup' %}" class="label-text-alt link link-hover font-green">Sign up</a>
+                <div class="form-control items-center justify-center text-center my-2 mb-0">
+                    <label class="label mb-0">
+                        <span class="label-text">Don't have an account?
+                            <a href="{% url 'signup' %}" class="label-text-alt link link-hover font-green">Sign Up</a>
+                        </span>
                     </label>
                 </div>
-                <div class="flex items-center my-4">
+                <div class="flex items-center my-1">
                     <div class="flex-grow h-px bg-gray-300"></div>
                     <span class="mx-2 text-gray-500">OR</span>
                     <div class="flex-grow h-px bg-gray-300"></div>
