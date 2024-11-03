@@ -1,10 +1,10 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="flex justify-center items-center min-h-screen">
+<div class="flex justify-center mt-20">
   <div class="card bg-base-300 w-120 h-100 shadow-xl">
     <div class="card-body">
-      <h2 class="card-title">{{ queue.name }}</h2>
+      <h2 class="card-title">Kiosk of {{ queue.name }}</h2>
       <p>There are currently {{ queue.get_number_of_participants }} participant(s) in the queue.</p>
       <div class="card-actions justify-end">
       <a href="{% url "participant:kiosk" queue.code %}">
