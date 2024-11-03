@@ -3,7 +3,7 @@ import logging
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, user_logged_in, user_logged_out, user_login_failed
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.dispatch import receiver
 from django.http import Http404
@@ -281,6 +281,58 @@ def delete_participant(request, participant_id):
     return redirect('participant:index')
 
 
+# def signup(request):
+#     """
+#     Register a new user.
+#     Handles the signup process, creating a new user if the provided data is valid.
+#
+#     :param request: The HTTP request object containing user signup data.
+#     :returns: Redirects to the queue index page on successful signup.
+#     :raises ValueError: If form data is invalid, displays an error message in the signup form.
+#     """
+#     if request.method == 'POST':
+#         form = UserCreationForm(request.POST)
+#         if form.is_valid():
+#             form.save()
+#             username = form.cleaned_data.get('username')
+#             raw_passwd = form.cleaned_data.get('password1')
+#             user = authenticate(username=username, password=raw_passwd)
+#             login(request, user)
+#             logger.info(f'New user signed up: {username}')
+#             return redirect('participant:home')
+#     else:
+#         form = UserCreationForm()
+#     return render(request, 'account/signup.html', {'form': form})
+#
+#
+# def login_view(request):
+#     """
+#     Log in a user.
+#     Handles the login process, authenticating the user if the provided credentials are valid.
+#
+#     :param request: The HTTP request object containing user login data.
+#     :returns: Redirects to the home page on successful login.
+#     :raises ValueError: If authentication fails, displays an error message in the login form.
+#     """
+#     if request.method == 'POST':
+#         form = AuthenticationForm(request, data=request.POST)
+#         if form.is_valid():
+#             username = form.cleaned_data.get('username')
+#             raw_passwd = form.cleaned_data.get('password')
+#             user = authenticate(username=username, password=raw_passwd)
+#             if user is not None:
+#                 login(request, user)
+#                 logger.info(f'User logged in: {username}')
+#                 return redirect('participant:home')
+#             else:
+#                 messages.error(request, "Invalid username or password.")
+#         else:
+#             messages.error(request, "Invalid form data.")
+#     else:
+#         form = AuthenticationForm()
+#
+#     return render(request, 'account/login.html', {'form': form})
+
 def signup(request):
     """
     Register a new user.
@@ -293,17 +345,85 @@ def signup(request):
     if request.method == 'POST':
         form = UserCreationForm(request.POST)
         if form.is_valid():
-            form.save()
+            user = form.save()
             username = form.cleaned_data.get('username')
             raw_passwd = form.cleaned_data.get('password1')
             user = authenticate(username=username, password=raw_passwd)
-            login(request, user)
-            logger.info(f'New user signed up: {username}')
-            return redirect('participant:index')
+            if user is not None:  # Add check to ensure authentication worked
+                login(request, user)
+                messages.success(request, f'Account created successfully! Welcome, {username}!')
+                logger.info(f'New user signed up: {username}')
+                return redirect('participant:home')
+            else:
+                logger.error(f'Failed to authenticate user after signup: {username}')
+                messages.error(request, 'Error during signup process. Please try again.')
+        else:
+            # Add form errors to messages to display them to the user
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, f'{field}: {error}')
     else:
         form = UserCreationForm()
     return render(request, 'account/signup.html', {'form': form})
 
+
+# def login_view(request):
+#     """
+#     Authenticate and login a user.
+#     Handles both username and email-based authentication.
+#
+#     :param request: The HTTP request object containing login credentials.
+#     :returns: Redirects to home page on successful login.
+#     """
+#     if request.method == 'POST':
+#         username = request.POST.get('username')
+#         password = request.POST.get('password')
+#
+#         if not username or not password:
+#             messages.error(request, 'Please provide both username and password.')
+#             return render(request, 'account/login.html')
+#
+#         # Try authenticating with username
+#         user = authenticate(request, username=username, password=password)
+#
+#         # If authentication failed, try with email
+#         if user is None:
+#             try:
+#                 from django.contrib.auth.models import User
+#                 user_obj = User.objects.get(email=username)
+#                 user = authenticate(request, username=user_obj.username, password=password)
+#             except User.DoesNotExist:
+#                 user = None
+#
+#         if user is not None:
+#             if user.is_active:
+#                 login(request, user)
+#                 # messages.success(request, f'Welcome back, {user.username}!')
+#                 logger.info(f'User logged in: {user.username}')
+#                 return redirect('participant:home')
+#             else:
+#                 messages.error(request, 'Your account is disabled.')
+#                 logger.warning(f'Disabled account login attempt: {username}')
+#         else:
+#             messages.error(request, 'Invalid username/email or password.')
+#             logger.warning(f'Failed login attempt for username: {username}')
+#
+#     return render(request, 'account/login.html')
+
+def login_view(request):
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+
+        user = authenticate(request, username=username, password=password)
+
+        if user is not None:
+            login(request, user)
+            return redirect('participant:home')  # No success message, just redirect
+        else:
+            messages.error(request, 'Invalid username or password.')
+
+    return render(request, 'account/login.html')
 
 logger = logging.getLogger('queue')
 

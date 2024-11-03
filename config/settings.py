@@ -150,6 +150,7 @@ LOGOUT_REDIRECT_URL = 'participant:home'
 
 SOCIALACCOUNT_LOGIN_ON_GET = True
 
+MESSAGE_STORAGE = 'django.contrib.messages.storage.session.SessionStorage'
 
 # Internationalization
 # https://docs.djangoproject.com/en/5.1/topics/i18n/
@@ -205,6 +206,10 @@ LOGGING = {
             'level': 'DEBUG',
             'propagate': True,
         },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'INFO',
     },
 }
 

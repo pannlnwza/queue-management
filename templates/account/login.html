@@ -23,11 +23,21 @@
             </p>
         </div>
         <div class="card bg-base-100 w-full max-w-sm shrink-0 shadow-2xl">
-            <form method="post" class="card-body">
-            {% csrf_token %}
+            <form method="post" action="{% url 'login' %}" class="card-body">
+                {% csrf_token %}
+                {% if messages %}
+                    {% for message in messages %}
+                        {% if message.tags == 'error' %}
+                        <div class="flex items-center gap-2 text-error">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                            <span>{{ message }}</span>
+                        </div>
+                        {% endif %}
+                    {% endfor %}
+                {% endif %}
                 <div class="form-control">
                     <label class="label">
-                        <span class="label-text">Username</span>
+                        <span class="label-text">Usernamel</span>
                     </label>
                     <input type="text" name="username" placeholder="username" class="input input-bordered" required />
                 </div>
@@ -35,13 +45,19 @@
                     <label class="label">
                         <span class="label-text">Password</span>
                     </label>
-                        <input type="password" name="password" placeholder="password" class="input input-bordered" required />
-                        <label class="label">
+                    <input type="password" name="password" placeholder="password" class="input input-bordered" required />
+                    <label class="label">
                         <a href="#" class="label-text-alt link link-hover">Forgot password?</a>
                     </label>
                 </div>
                 <div class="form-control mt-6">
                     <button type="submit" class="btn btn-primary">Login</button>
+                </div>
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text">Don't have an account? </span>
+                        <a href="{% url 'signup' %}" class="label-text-alt link link-hover font-green">Sign up</a>
+                    </label>
                 </div>
                 <div class="flex items-center my-4">
                     <div class="flex-grow h-px bg-gray-300"></div>
@@ -61,3 +77,51 @@
         </div>
     </div>
 </div>
+
+
+
+
+{#<body>#}
+{#<div class="login-box">#}
+{#    <h2>Login</h2>#}
+{##}
+{#    {% if form.non_field_errors %}#}
+{#        <div class="message">#}
+{#            {% for error in form.non_field_errors %}#}
+{#                {{ error }}#}
+{#            {% endfor %}#}
+{#        </div>#}
+{#    {% endif %}#}
+{#    <form method="post">#}
+{#        {% csrf_token %}#}
+{#        <table>#}
+{#            <tr>#}
+{#                <td>#}
+{#                    <label for="id_username">Username:</label>#}
+{#                </td>#}
+{#            </tr>#}
+{#            <tr>#}
+{#                <td>#}
+{#                    <input type="text" id="id_username" name="username">#}
+{#                </td>#}
+{#            </tr>#}
+{#            <tr>#}
+{#                <td>#}
+{#                    <label for="id_password">Password:</label>#}
+{#                </td>#}
+{#            </tr>#}
+{#            <tr>#}
+{#                <td>#}
+{#                    <input type="password" id="id_password" name="password">#}
+{#                </td>#}
+{#            </tr>#}
+{#            <tr>#}
+{#                <td colspan="2">#}
+{#                    <button type="submit">Login</button>#}
+{#                </td>#}
+{#            </tr>#}
+{#        </table>#}
+{#    </form>#}
+{#    <p>Don't have an account? <a href="{% url 'signup' %}">Sign up here</a></p>#}
+{#</div>#}
+{#</body>#}
