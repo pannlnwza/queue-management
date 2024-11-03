@@ -146,10 +146,9 @@ LOGIN_URL = 'account_login'
 LOGOUT_URL = 'account_logout'
 
 LOGIN_REDIRECT_URL = 'participant:home'
-LOGOUT_REDIRECT_URL = 'account_login'
+LOGOUT_REDIRECT_URL = 'participant:home'
 
 SOCIALACCOUNT_LOGIN_ON_GET = True
-ACCOUNT_SOCIAL_LOGIN_REDIRECT_URL = '/accounts/google/login/'
 
 
 # Internationalization
