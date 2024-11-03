@@ -44,6 +44,7 @@
 {% block content %}
     <div class="container mt-4">
         <h2 class="queue-name">{{ queue.name }}</h2>
+        <h2 class="queue-code">{{ queue.code }}</h2>
         <p>Status:
             <span class="status-badge 
                 {% if queue.status == 'normal' %}status-normal

@@ -4,7 +4,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import JsonResponse
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.views import generic
 
 from participant.models import Participant, Notification
@@ -116,10 +116,6 @@ class BrowseQueueView(generic.ListView):
 #         return redirect("participant:index")
 #     return redirect("participant:index")
 
-def join_queue(request, participant_code):
-    pass
-
-
 class IndexView(generic.ListView):
     """
     Display the index page for the user's queues.
@@ -177,3 +173,13 @@ class IndexView(generic.ListView):
             context["notification"] = notification
             context["active_participants"] = active_participants
         return context
+
+
+def welcome(request, queue_code):
+    queue = get_object_or_404(Queue, code=queue_code)
+    return render(request, 'participant/welcome.html', {'queue': queue})
+
+
+def kiosk(request, queue_code):
+    queue = get_object_or_404(Queue, code=queue_code)
+    return render(request, 'participant/kiosk.html', {'queue': queue})

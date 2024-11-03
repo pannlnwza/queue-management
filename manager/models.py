@@ -1,5 +1,6 @@
 import math
-
+import string
+import random
 from django.contrib.auth.models import User
 from django.db import models
 from django.templatetags.static import static
@@ -36,6 +37,22 @@ class Queue(models.Model):
     logo = models.ImageField(upload_to='queue_logos/', blank=True, null=True)
     capacity = models.PositiveIntegerField(null=False)
     completed_participants_count = models.PositiveIntegerField(default=0)
+    code = models.CharField(max_length=6, unique=True, editable=False)
+
+    def save(self, *args, **kwargs):
+        """Generate a unique ticket code for the participant if not already."""
+        if not self.pk:
+            self.code = self.generate_unique_queue_code()
+        super().save(*args, **kwargs)
+
+    @staticmethod
+    def generate_unique_queue_code(length=6):
+        """Generate a unique code for each participant."""
+        characters = string.ascii_uppercase + string.digits
+        while True:
+            code = ''.join(random.choices(characters, k=length))
+            if not Participant.objects.filter(code=code).exists():
+                return code
 
     def update_estimated_wait_time_per_turn(self, time_taken: int) -> None:
         """Update the estimated wait time per turn based on the time taken for the notified participant.
