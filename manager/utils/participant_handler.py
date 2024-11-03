@@ -1,12 +1,15 @@
 from abc import ABC, abstractmethod
-from participant.models import RestaurantParticipant
-from manager.models import Table, RestaurantQueue
+from participant.models import RestaurantParticipant, Participant
+from manager.models import Table, RestaurantQueue, Queue
 from django.shortcuts import get_object_or_404
+from django.utils import timezone
 
 class ParticipantHandlerFactory:
     @staticmethod
     def get_handler(queue_category):
-        if queue_category == 'restaurant':
+        if queue_category == 'general':
+            return GeneralParticipantHandler()
+        elif queue_category == 'restaurant':
             return RestaurantParticipantHandler()
         # elif queue_category == 'hospital':
         #     return HospitalParticipantHandler()
@@ -40,10 +43,43 @@ class ParticipantHandler(ABC):
 
     @abstractmethod
     def add_context_attributes(self, queue):
-        """
-        Returns restaurant-specific attributes for the context.
-        """
+        """Returns restaurant-specific attributes for the context."""
         pass
+
+    @abstractmethod
+    def get_template_name(self):
+        """Return the template name specific to the handler's category."""
+        pass
+
+
+class GeneralParticipantHandler(ParticipantHandler):
+    def create_participant(self, data):
+        return Participant.objects.create(**data)
+
+    def get_participant_set(self, queue_id):
+        return Participant.objects.filter(queue_id=queue_id)
+
+    def get_queue_object(self, queue_id):
+        return get_object_or_404(Queue, id=queue_id)
+
+    def assign_to_resource(self, participant):
+        pass
+
+    def complete_service(self, participant):
+        if participant.state == 'serving':
+            if participant.service_started_at:
+                wait_time = int((participant.service_started_at - participant.joined_at).total_seconds() / 60)
+                participant.waited = wait_time
+            participant.state = 'completed'
+            participant.service_completed_at = timezone.localtime()
+            participant.save()
+
+    def get_template_name(self):
+        return 'manager/manage_queue/manage_general.html'
+
+    def add_context_attributes(self, queue):
+        pass
+
 
 class RestaurantParticipantHandler(ParticipantHandler):
     def create_participant(self, data):
@@ -71,15 +107,24 @@ class RestaurantParticipantHandler(ParticipantHandler):
             capacity__gte=participant.party_size
         ).first()
 
+    def get_template_name(self):
+        return 'manager/manage_queue/manage_restaurant.html'
+
     def complete_service(self, participant):
-        restaurant_participant = RestaurantParticipant.objects.get(id=participant.id)
-        if restaurant_participant.table:
-            restaurant_participant.table_served = restaurant_participant.table.name
-            restaurant_participant.table.status = 'empty'
-            restaurant_participant.table.save()
-            restaurant_participant.table = None
-        restaurant_participant.state = 'completed'
-        restaurant_participant.save()
+        if participant.state == 'serving':
+            if participant.service_started_at:
+                wait_duration = int((participant.service_started_at - participant.joined_at).total_seconds() / 60)
+                participant.waited = wait_duration
+            service_duration = int((timezone.localtime() - participant.service_started_at).total_seconds() / 60)
+            participant.service_duration = service_duration
+            if participant.table:
+                participant.table_served = participant.table.name
+                participant.table.status = 'empty'
+                participant.table.save()
+                participant.table = None
+            participant.state = 'completed'
+            participant.service_completed_at = timezone.localtime()
+            participant.save()
 
     def add_context_attributes(self, queue):
         """
