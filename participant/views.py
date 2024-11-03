@@ -17,6 +17,7 @@ from manager.views import logger
 class HomePageView(generic.TemplateView):
     template_name = 'participant/get_started.html'
 
+
 @login_required
 def mark_notification_as_read(request, notification_id):
     if request.method == 'POST':
@@ -71,37 +72,48 @@ class BrowseQueueView(generic.ListView):
     template_name = 'participant/browse_queue.html'
 
 
-@login_required
-def join_queue(request):
-    """Customer joins queue using their ticket code."""
-    if request.method == 'POST':
-        queue_code = request.POST.get('queue_code')
-        try:
-            participant_slot = Participant.objects.get(queue_code=queue_code)
-            queue = participant_slot.queue
-            if Participant.objects.filter(user=request.user).exists():
-                messages.error(request, f"You're already in a queue.")
-                logger.info(
-                    f"User: {request.user} attempted to join queue: {queue.name} when they're already in one.")
-            elif queue.is_closed:
-                messages.error(request, "The queue is closed.")
-                logger.info(
-                    f'User {request.user.username} attempted to join queue {queue.name} that has been closed.')
-            elif participant_slot.user:
-                messages.error(request, "Sorry, this slot is already filled by another participant. Are you sure"
-                                        " that you have the right code?")
-                logger.info(
-                    f'User {request.user.username} attempted to join queue {queue.name}, but the participant slot is '
-                    f'already occupied.')
-            else:
-                participant_slot.insert_user(user=request.user)
-                participant_slot.save()
-                messages.success(request,
-                                 f"You have successfully joined the queue with code {queue_code}.")
-        except Participant.DoesNotExist:
-            messages.error(request, "Invalid queue code. Please try again.")
-            return redirect('participant:index')
-    return redirect('participant:index')
+# @login_required
+# def join_queue(request):
+#     """Customer joins queue using their ticket code."""
+#
+#     queue_code = request.POST.get("queue_code")
+#     try:
+#         participant_slot = Participant.objects.get(queue_code=queue_code)
+#         queue = participant_slot.queue
+#         if Participant.objects.filter(user=request.user).exists():
+#             messages.error(request, "You're already in a queue.")
+#             logger.info(
+#                 f"User: {request.user} attempted to join queue: {queue.name} when they're already in one."
+#             )
+#         elif queue.is_closed:
+#             messages.error(request, "The queue is closed.")
+#             logger.info(
+#                 f"User {request.user.username} attempted to join queue {queue.name} that has been closed."
+#             )
+#         elif participant_slot.user:
+#             messages.error(
+#                 request,
+#                 "Sorry, this slot is already filled by another participant. Are you sure"
+#                 " that you have the right code?",
+#             )
+#             logger.info(
+#                 f"User {request.user.username} attempted to join queue {queue.name}, but the participant slot is "
+#                 f"already occupied."
+#             )
+#         else:
+#             participant_slot.insert_user(user=request.user)
+#             participant_slot.save()
+#             messages.success(
+#                 request,
+#                 f"You have successfully joined the queue with code {queue_code}.",
+#             )
+#     except Participant.DoesNotExist:
+#         messages.error(request, "Invalid queue code. Please try again.")
+#         return redirect("participant:index")
+#     return redirect("participant:index")
+
+def join_queue(request, participant_code):
+    pass
 
 
     # class IndexView(generic.ListView):
