@@ -36,4 +36,167 @@
             <div class="flex justify-between items-center mb-5">
                 <h1 class="text-2xl font-bold antialiased font-sans">Statistics</h1>
             </div>
+
+    <div class="max-w">
+        <div class="flex justify-between items-center mb-6">
+            <select class="select select-bordered w-40">
+                <option>Last 7 days</option>
+                <option>Last 30 days</option>
+                <option>Last 3 months</option>
+            </select>
+        </div>
+
+        <!-- Stats Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-8">
+            <div class="stat bg-base-200 rounded-box">
+                <div class="stat-title">Waitlisted</div>
+                <div class="stat-value">7</div>
+                <div class="stat-desc">2 waiting now</div>
+            </div>
+
+            <div class="stat bg-base-200 rounded-box">
+                <div class="stat-title">Serving</div>
+                <div class="stat-value">5</div>
+                <div class="stat-desc">75% serve rate</div>
+            </div>
+
+            <div class="stat bg-base-200 rounded-box">
+                <div class="stat-title">Wait Time</div>
+                <div class="stat-value">18.5</div>
+                <div class="stat-desc">2.5h longest wait</div>
+            </div>
+
+            <div class="stat bg-base-200 rounded-box">
+                <div class="stat-title">Serve Duration</div>
+                <div class="stat-value">4.5</div>
+                <div class="stat-desc">12.6h longest serve duration</div>
+            </div>
+
+            <div class="stat bg-base-200 rounded-box">
+                <div class="stat-title">Peak Line Length</div>
+                <div class="stat-value">4</div>
+                <div class="stat-desc">3 avg</div>
+            </div>
+        </div>
+
+        <!-- Charts Section -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            <!-- Total Visits -->
+            <div class="card bg-base-200">
+                <div class="card-body">
+                    <h2 class="card-title">Total visits last 7 days</h2>
+                    <div class="w-full">
+                        <div class="flex items-center gap-2 mb-2">
+                            <progress class="progress progress-primary w-full" value="75" max="100"></progress>
+                            <span class="text-sm">8</span>
+                        </div>
+                        <div class="flex gap-4 text-sm">
+                            <span class="flex items-center gap-1">
+                                <div class="badge badge-primary"></div>
+                                Completed
+                            </span>
+                            <span class="flex items-center gap-1">
+                                <div class="badge badge-secondary"></div>
+                                Dropout
+                            </span>
+                            <span class="flex items-center gap-1">
+                                <div class="badge badge-ghost"></div>
+                                Unattended
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Donut Charts -->
+            <div class="grid grid-cols-2 gap-4">
+                <div class="card bg-base-200">
+                    <div class="card-body">
+                        <h2 class="card-title">Dropoffs</h2>
+                        <div class="radial-progress" style="--value:75;">75%</div>
+                    </div>
+                </div>
+                <div class="card bg-base-200">
+                    <div class="card-body">
+                        <h2 class="card-title">Visit creator</h2>
+                        <div class="radial-progress" style="--value:60;">60%</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tables -->
+        <div class="grid gap-6">
+            <!-- Users Table -->
+            <div class="card bg-base-200">
+                <div class="card-body">
+                    <h2 class="card-title mb-4">Users</h2>
+                    <div class="overflow-x-auto">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>NAME</th>
+                                    <th>TOTAL</th>
+                                    <th>SERVED</th>
+                                    <th>WAITLISTED</th>
+                                    <th>DROPOFF</th>
+                                    <th>COMPLETED</th>
+                                    <th>AVG WAIT TIME</th>
+                                    <th>AVG SERVE TIME</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>panxi</td>
+                                    <td>8</td>
+                                    <td>5</td>
+                                    <td>7</td>
+                                    <td>1</td>
+                                    <td>5</td>
+                                    <td>17 hours</td>
+                                    <td>4 hours</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tables Section -->
+            <div class="card bg-base-200">
+                <div class="card-body">
+                    <h2 class="card-title mb-4">Tables</h2>
+                    <div class="overflow-x-auto">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>RESOURCE</th>
+                                    <th>TOTAL</th>
+                                    <th>SERVED</th>
+                                    <th>WAITLISTED</th>
+                                    <th>DROPOFF</th>
+                                    <th>COMPLETED</th>
+                                    <th>AVG WAIT TIME</th>
+                                    <th>AVG SERVE TIME</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Table 1</td>
+                                    <td>2</td>
+                                    <td>1</td>
+                                    <td>2</td>
+                                    <td>0</td>
+                                    <td>1</td>
+                                    <td>2 hours, 52 minutes</td>
+                                    <td>7 hours</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
 {% endblock %}
