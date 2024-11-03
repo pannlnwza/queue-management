@@ -31,7 +31,7 @@ class CreateQView(LoginRequiredMixin, generic.CreateView):
     model = Queue
     form_class = QueueForm
     template_name = 'manager/create_q.html'
-    success_url = reverse_lazy('participant:index')
+    success_url = reverse_lazy('manager:manage_queues')
 
     def form_valid(self, form):
         """
