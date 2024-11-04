@@ -1,7 +1,6 @@
 import json
 import logging
 from datetime import timedelta
-
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, user_logged_in, user_logged_out, user_login_failed
 from django.contrib.auth.decorators import login_required
@@ -438,6 +437,17 @@ class ParticipantListView(generic.TemplateView):
         elif time_filter_option == 'this_year':
             return now.replace(month=1, day=1)
         return None
+
+
+class YourQueueView(LoginRequiredMixin, generic.TemplateView):
+    template_name = 'manager/your_queue.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        user = self.request.user
+        authorized_queues = Queue.objects.filter(authenticated_user=user)
+        context['authorized_queues'] = authorized_queues
+        return context
 
 class StatisticsView(generic.TemplateView):
     template_name = 'manager/statistics.html'

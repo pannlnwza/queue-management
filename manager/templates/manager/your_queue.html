@@ -1,0 +1,6 @@
+<h1>Your Queue</h1>
+{% if authorized_queues %}
+{% for queue in authorized_queues %}
+<li>{{ queue }}</li>
+{% endfor %}
+{% endif %}
