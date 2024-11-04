@@ -85,6 +85,7 @@ def get_restaurant_queue_data(request, queue_id):
                 'service_duration': participant.get_service_duration(),
                 'served': participant.service_started_at.strftime('%d %b. %Y %H:%M') if participant.service_started_at else None,
                 'table': participant.table.name if participant.table else None,
+                'table_id': participant.table.id if participant.table else None,
                 'seating_preference': participant.seating_preference,
             } for participant in serving_participants
         ],
