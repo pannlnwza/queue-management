@@ -100,7 +100,13 @@
                                 <td class="px-6 py-4 whitespace-nowrap">{{ participant.name }}</td>
                                 <td class="px-6 py-4 whitespace-nowrap">{{ participant.position }}</td>
                                 <td class="px-6 py-4 whitespace-nowrap">{{ participant.party_size }} people</td>
-                                <td class="px-6 py-4 whitespace-nowrap">{{ participant.notes }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    {% if participant.note %}
+                                    <button class="btn btn-sm no-animation" onclick="document.getElementById('${modalId}').showModal()">
+                                        View Note
+                                    </button>
+                                    {% endif %}
+                                </td>
                                 <td class="px-6 py-4 whitespace-nowrap">{{ participant.waited }}</td>
                                 <td class="badge badge-primary justify-center flex mx-7 my-5">{{ participant.seating_preference }}</td>
                                 <td class="px-6 py-4 whitespace-nowrap">
@@ -162,7 +168,13 @@
                             <tr>
                                 <td class="px-6 py-4 whitespace-nowrap">{{ participant.name }}</td>
                                 <td class="px-6 py-4 whitespace-nowrap">{{ participant.party_size }} people</td>
-                                <td class="px-6 py-4 whitespace-nowrap">{{ participant.notes }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                {% if participant.note %}
+                                    <button class="btn btn-sm no-animation" onclick="document.getElementById('${modalId}').showModal()">
+                                        View Note
+                                    </button>
+                                    {% endif %}
+                                </td>
                                 <td class="px-6 py-4 whitespace-nowrap">{{ participant.waited }}</td>
                                 <td class="px-6 py-4 whitespace-nowrap">{{ participant.get_service_duration }}</td>
                                 <td class="px-6 py-4 whitespace-nowrap">{{ participant.service_started_at }}</td>
@@ -213,7 +225,7 @@
                                 Completed
                             </th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Table
+                                Table Served
                             </th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 Seating Preference
@@ -225,7 +237,13 @@
                             <tr>
                                 <td id="name_{{ participant.id }}" class="px-6 py-4 whitespace-nowrap">{{ participant.name }}</td>
                                 <td id="party_size_{{ participant.id }}" class="px-6 py-4 whitespace-nowrap">{{ participant.party_size }} people</td>
-                                <td id="notes_{{ participant.id }}" class="px-6 py-4 whitespace-nowrap">{{ participant.notes }}</td>
+                                <td id="notes_{{ participant.id }}" class="px-6 py-4 whitespace-nowrap">
+                                {% if participant.note %}
+                                    <button class="btn btn-sm no-animation" onclick="document.getElementById('${modalId}').showModal()">
+                                        View Note
+                                    </button>
+                                    {% endif %}
+                                </td>
                                 <td id="waited_{{ participant.id }}" class="px-6 py-4 whitespace-nowrap">{{ participant.waited }}</td>
                                 <td class="px-6 py-4 whitespace-nowrap">{{ participant.get_service_duration }}</td>
                                 <td class="px-6 py-4 whitespace-nowrap">{{ participant.service_started_at }}</td>
@@ -297,7 +315,8 @@
 
                 <form id="editForm" method="POST">
                     {% csrf_token %}
-                    <input type="hidden" id="participant_id" name="participant_id">
+                    <input type="hidden" id="participant_id" name="participant_id" />
+                    <input type="hidden" id="table_id" name="table_id" />
 
                     <!-- Name Field -->
                     <div class="form-control w-full">
@@ -422,6 +441,38 @@
         });
     }
 
+    function createNotesModal(participant) {
+        const modalId = `notes-modal-${participant.id}`;
+        const notesHTML = participant.notes
+            ? `
+                <button class="btn btn-sm no-animation" onclick="document.getElementById('${modalId}').showModal()">
+                    View Note
+                </button>
+
+                <dialog id="${modalId}" class="modal">
+                    <div class="modal-box">
+                        <form method="dialog">
+                            <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
+                        </form>
+                        <h3 class="font-bold text-lg mb-4">${participant.name}'s note</h3>
+                        <div class="bg-base-200 p-4 rounded-lg min-h-[200px] shadow-inner">
+                            <p class="whitespace-pre-wrap">${participant.notes}</p>
+                        </div>
+                        <div class="modal-action">
+                            <form method="dialog">
+                                <button class="btn">Close</button>
+                            </form>
+                        </div>
+                    </div>
+                    <form method="dialog" class="modal-backdrop">
+                        <button>close</button>
+                    </form>
+                </dialog>`
+            : '';
+
+        return notesHTML;
+    }
+
     function createWaitingRow(participant) {
         const row = document.createElement('tr');
         row.id = `waiting-${participant.id}`;
@@ -430,7 +481,7 @@
             <td class="px-6 py-4 whitespace-nowrap">${participant.name || '-'}</td>
             <td class="px-6 py-4 whitespace-nowrap">${participant.position || '-'}</td>
             <td class="px-6 py-4 whitespace-nowrap">${participant.party_size ? `${participant.party_size} people` : '-'}</td>
-            <td class="px-6 py-4 whitespace-nowrap">${participant.notes || '-'}</td>
+            <td class="px-6 py-4 whitespace-nowrap">${createNotesModal(participant)}</td>
             <td class="px-6 py-4 whitespace-nowrap">${participant.waited || '0'} min</td>
             <td class="badge badge-primary justify-center flex mx-7 my-5">${participant.seating_preference || '-'}</td>
             <td class="px-6 py-4 whitespace-nowrap">
@@ -460,7 +511,7 @@
         row.innerHTML = `
             <td class="px-6 py-4 whitespace-nowrap">${participant.name || '-'}</td>
             <td class="px-6 py-4 whitespace-nowrap">${participant.party_size ? `${participant.party_size} people` : '-'}</td>
-            <td class="px-6 py-4 whitespace-nowrap">${participant.notes || '-'}</td>
+            <td class="px-6 py-4 whitespace-nowrap">${createNotesModal(participant)}</td>
             <td class="px-6 py-4 whitespace-nowrap">${participant.waited || '0'} min</td>
             <td class="px-6 py-4 whitespace-nowrap">${participant.service_duration || '0'} min</td>
             <td class="px-6 py-4 whitespace-nowrap">${participant.served || '-'}</td>
@@ -485,7 +536,7 @@
         row.innerHTML = `
             <td class="px-6 py-4 whitespace-nowrap">${participant.name || '-'}</td>
             <td class="px-6 py-4 whitespace-nowrap">${participant.party_size ? `${participant.party_size} people` : '-'}</td>
-            <td class="px-6 py-4 whitespace-nowrap">${participant.notes || '-'}</td>
+            <td class="px-6 py-4 whitespace-nowrap">${createNotesModal(participant)}</td>
             <td class="px-6 py-4 whitespace-nowrap">${participant.waited || '0'} min</td>
             <td class="px-6 py-4 whitespace-nowrap">${participant.service_duration || '0'} min</td>
             <td class="px-6 py-4 whitespace-nowrap">${participant.served || '-'}</td>
