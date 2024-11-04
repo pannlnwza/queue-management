@@ -25,6 +25,8 @@ from participant.models import Participant, Notification, RestaurantParticipant
 from manager.models import Queue
 
 
+logger = logging.getLogger('queue')
+
 class CreateQView(LoginRequiredMixin, generic.CreateView):
     """
     Create a new queue.
@@ -242,14 +244,16 @@ def delete_queue(request, queue_id):
     return redirect('manager:manage_queues')
 
 @login_required
+@require_http_methods(["DELETE"])
 def delete_participant(request, participant_id):
-    if request.method != 'DELETE':
-        return JsonResponse({'error': 'Method not allowed'}, status=405)
     participant = get_object_or_404(Participant, id=participant_id)
+    logger.info(f"Deleting participant {participant_id} from queue {participant.queue.id}")
+
     if participant.state == 'waiting':
         queue = participant.queue
         waiting_participants = Participant.objects.filter(queue=queue, state='waiting').order_by('position')
         participant.delete()
+        logger.info(f"Participant {participant_id} is deleted.")
 
         for idx, p in enumerate(waiting_participants):
             if p.position > participant.position:
@@ -265,6 +269,7 @@ def edit_participant(request, participant_id):
     participant = get_object_or_404(Participant, id=participant_id)
     queue = participant.queue
     if queue.created_by != request.user:
+        logger.error(f"Unauthorized edit attempt on queue {queue.id} by user {request.user.id}")
         raise PermissionDenied("You do not have permission to manage this queue.")
 
     handler = ParticipantHandlerFactory.get_handler(queue.category)
@@ -275,7 +280,7 @@ def edit_participant(request, participant_id):
     data = json.loads(request.body)
     handler.update_participant(participant, data)
 
-
+    logger.info(f"Participant {participant_id} in queue {queue.id} updated successfully.")
     return JsonResponse({
         'status': 'success',
         'message': 'Participant information updated successfully',
@@ -316,6 +321,7 @@ def serve_participant(request, participant_id):
 
     try:
         if participant.state != 'waiting':
+            logger.warning(f"Cannot serve participant {participant_id} because they are in state: {participant.state}")
             return JsonResponse({
                 'error': f'{participant.name} cannot be served because they are currently in state: {participant.state}.'
             }, status=400)
@@ -324,6 +330,7 @@ def serve_participant(request, participant_id):
         handler.assign_to_resource(participant)
         participant.start_service()
         participant.save()
+        logger.info(f"Participant {participant_id} started service in queue {participant.queue.id}.")
 
         waiting_list = Participant.objects.filter(state='waiting').values()
         serving_list = Participant.objects.filter(state='serving').values()
@@ -334,6 +341,7 @@ def serve_participant(request, participant_id):
         })
 
     except Exception as e:
+        logger.error(f"Error serving participant {participant_id}: {str(e)}")
         return JsonResponse({
             'error': f'Error: {str(e)}'
         }, status=500)
@@ -349,6 +357,8 @@ def complete_participant(request, participant_id):
 
     try:
         if participant.state != 'serving':
+            logger.warning(
+                f"Cannot complete participant {participant_id} because they are in state: {participant.state}")
             return JsonResponse({
                 'error': f'{participant.name} cannot be marked as completed because they are currently in state: {participant.state}.'
             }, status=400)
@@ -356,6 +366,7 @@ def complete_participant(request, participant_id):
 
         handler.complete_service(participant)
         participant.save()
+        logger.info(f"Participant {participant_id} completed service in queue {queue.id}.")
 
         serving_list = Participant.objects.filter(state='serving').values()
         completed_list = Participant.objects.filter(state='completed').values()
@@ -421,7 +432,7 @@ class ParticipantListView(generic.TemplateView):
         if time_filter_option == 'today':
             return now.replace(hour=0, minute=0, second=0, microsecond=0)
         elif time_filter_option == 'this_week':
-            return now - timedelta(days=now.weekday())  # Monday of the current week
+            return now - timedelta(days=now.weekday())  # monday of the current week
         elif time_filter_option == 'this_month':
             return now.replace(day=1)
         elif time_filter_option == 'this_year':
@@ -466,9 +477,6 @@ def signup(request):
     else:
         form = UserCreationForm()
     return render(request, 'registration/signup.html', {'form': form})
-
-
-logger = logging.getLogger('queue')
 
 
 def get_client_ip(request):
