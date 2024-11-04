@@ -47,9 +47,13 @@ class Queue(models.Model):
 
     def calculate_average_service_duration(self, serve_time: int):
         """Update the average serve duration based on recent serve time."""
-        total_serve_time = (self.average_service_duration * self.completed_participants_count) + serve_time
-        self.completed_participants_count += 1
-        self.average_serve_duration = math.ceil(total_serve_time / self.completed_participants_count)
+        if self.completed_participants_count > 0:
+            total_serve_time = (self.average_service_duration * self.completed_participants_count) + serve_time
+            self.completed_participants_count += 1
+            self.average_service_duration = math.ceil(total_serve_time / self.completed_participants_count)
+        else:
+            self.average_service_duration = serve_time
+            self.completed_participants_count += 1
         self.save()
 
     def get_participants(self) -> models.QuerySet:
@@ -139,6 +143,8 @@ class Table(models.Model):
         Reassigns the table to a new participant if it is available and matches the capacity requirements.
         """
         if self.is_assigned():
+            if self.party.queue != new_participant.queue:
+                raise ValueError("The new participant must be in the same queue as the current assignment.")
             self.free()
         self.assign_to_party(new_participant)
 

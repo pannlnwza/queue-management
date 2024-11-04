@@ -80,8 +80,8 @@ class Participant(models.Model):
 
     @staticmethod
     def remove_old_completed_participants():
-        """Remove participants whose service completed 24 hours ago or earlier."""
-        cutoff_time = timezone.localtime() - timedelta(hours=24)
+        """Remove participants whose service completed 30 days ago"""
+        cutoff_time = timezone.localtime() - timedelta(days=30)
         Participant.objects.filter(state='completed', service_completed_at__lte=cutoff_time).delete()
 
     def __str__(self) -> str:
@@ -109,7 +109,6 @@ class RestaurantParticipant(Participant):
             raise ValueError("This participant is not in a restaurant queue.")
 
         available_tables = self.queue.tables.filter(status='empty', capacity__gte=self.party_size)
-
         if available_tables.exists():
             table_to_assign = available_tables.first()
             table_to_assign.assign_to_party(self)
