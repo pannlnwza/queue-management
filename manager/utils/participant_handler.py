@@ -51,6 +51,9 @@ class ParticipantHandler(ABC):
         """Return the template name specific to the handler's category."""
         pass
 
+    @abstractmethod
+    def update_participant(self, participant, data):
+        pass
 
 class GeneralParticipantHandler(ParticipantHandler):
     def create_participant(self, data):
@@ -80,6 +83,11 @@ class GeneralParticipantHandler(ParticipantHandler):
     def add_context_attributes(self, queue):
         pass
 
+    def update_participant(self, participant, data):
+        participant.name = data.get('name', participant.name)
+        participant.phone = data.get('phone', participant.phone)
+        participant.note = data.get('notes', participant.note)
+        participant.save()
 
 class RestaurantParticipantHandler(ParticipantHandler):
     def create_participant(self, data):
@@ -134,6 +142,24 @@ class RestaurantParticipantHandler(ParticipantHandler):
             {'tables': queue.tables.all()}
         ]
 
+    def update_participant(self, participant, data):
+        participant.name = data.get('name', participant.name)
+        participant.phone = data.get('phone', participant.phone)
+        participant.party_size = data.get('party_size', participant.party_size)
+        participant.note = data.get('notes', participant.note)
+        participant.seating_preference = data.get('seating_preference', participant.seating_preference)
+
+        if participant.state == 'completed':
+            table_id = data.get('table')
+            table = get_object_or_404(Table, id=table_id)
+            participant.table_served = table.name
+        else:
+            table_id = data.get('table')
+            if table_id:
+                table = get_object_or_404(participant.queue.tables, id=table_id)
+                table.assign_to_party(participant)
+        participant.save()
+
 # class HospitalParticipantHandler(BaseParticipantHandler):
 #     def create_participant(self, data):
 #         return HospitalParticipant.objects.create(**data)
@@ -161,3 +187,4 @@ class RestaurantParticipantHandler(ParticipantHandler):
 #     def get_available_counter(self):
 #         # Implement logic to find an available counter
 #         return BankCounter.objects.filter(status='available').first()
+

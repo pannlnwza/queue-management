@@ -273,40 +273,12 @@ def edit_participant(request, participant_id):
 
     # Parse the JSON payload
     data = json.loads(request.body)
+    handler.update_participant(participant, data)
 
-    name = data.get('name', participant.name)
-    phone = data.get('phone', participant.phone)
-    party_size = data.get('party_size', participant.party_size)
-    notes = data.get('notes', participant.note)
-    seating_preference = data.get('seating_preference', participant.seating_preference)
-    table_id = data.get('table')
-
-    if table_id:
-        table = get_object_or_404(queue.tables.all(), id=table_id)
-        if table.capacity >= int(party_size):
-            participant.table = table
-            table.status = 'busy'
-            table.save()
-
-    participant.name = name
-    participant.phone = phone
-    participant.party_size = party_size
-    participant.note = notes
-    participant.seating_preference = seating_preference
-    participant.save()
 
     return JsonResponse({
         'status': 'success',
         'message': 'Participant information updated successfully',
-        'participant': {
-            'id': participant.id,
-            'name': participant.name,
-            'phone': participant.phone,
-            'party_size': participant.party_size,
-            'notes': participant.note,
-            'table': participant.table.name if participant.table else None,
-            'seating_preference': participant.seating_preference,
-        }
     })
 class ManageWaitlist(generic.TemplateView):
     def get_template_names(self):
