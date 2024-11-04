@@ -10,6 +10,7 @@ from django.views import generic
 from participant.models import Participant, Notification
 from manager.models import Queue
 from manager.views import logger
+from .forms import ReservationForm
 
 
 # Create your views here.
@@ -182,4 +183,23 @@ def welcome(request, queue_code):
 
 def kiosk(request, queue_code):
     queue = get_object_or_404(Queue, code=queue_code)
-    return render(request, 'participant/kiosk.html', {'queue': queue})
+
+    if request.method == 'POST':
+        form = ReservationForm(request.POST)  # Pass request.POST to the form
+        if form.is_valid():
+            participant = Participant.objects.create(
+                name=form.cleaned_data['name'],
+                email=form.cleaned_data['email'],
+                party_size=form.cleaned_data['party_size'],
+                note=form.cleaned_data['note'],
+                queue=queue,
+            )
+            participant.save()
+            messages.success(request, f"You have successfully joined {queue.name}.")
+            return redirect('participant:home')
+        else:
+            print(form.errors)  # Print form errors for debugging
+    else:
+        form = ReservationForm()
+
+    return render(request, 'participant/kiosk.html', {'queue': queue, 'form': form})
