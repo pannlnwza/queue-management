@@ -215,38 +215,31 @@ def notify_participant(request, queue_id, participant_id):
     return redirect('manager:dashboard', queue_id)
 
 
+@require_http_methods(["DELETE"])
 @login_required
 def delete_queue(request, queue_id):
     try:
         queue = Queue.objects.get(pk=queue_id)
     except Queue.DoesNotExist:
-        messages.error(request, f"Queue with ID {queue_id} does not exist.")
-        logger.error(f"Queue id: {queue_id} does not exist.")
-        return redirect('participant:index')
-    if queue.created_by != request.user:
-        messages.error(request, "You're not authorized to delete this queue.")
-        logger.warning(
-            f"Unauthorized queue delete attempt by user {request.user} "
-            f"for queue: {queue.name} queue_id: {queue.id}.")
-        return redirect('participant:index')
+        return JsonResponse({'error': 'Queue not found.'}, status=404)
+
+    if request.user not in queue.authorized_user.all():
+        return JsonResponse({'error': 'Unauthorized.'}, status=403)
+
     try:
         queue.delete()
-        messages.success(request,
-                         f"Queue {queue.name} has been deleted successfully.")
-        logger.info(
-            f"{request.user} successfully deleted queue: {queue.name} id: {queue.id}.")
+        return JsonResponse({'success': 'Queue deleted successfully.'}, status=200)
     except Exception as e:
-        messages.error(request, f"Error deleting queue: {e}")
-        logger.error(
-            f"Failed to delete queue: {queue.name} id: {queue.id} "
-            f"by user {request.user}: {e}")
-    return redirect('manager:manage_queues')
+        return JsonResponse({'error': str(e)}, status=500)
 
 @login_required
 @require_http_methods(["DELETE"])
 def delete_participant(request, participant_id):
     participant = get_object_or_404(Participant, id=participant_id)
     logger.info(f"Deleting participant {participant_id} from queue {participant.queue.id}")
+
+    if request.user not in participant.queue.authorized_user.all():
+        return JsonResponse({'error': 'Unauthorized.'}, status=403)
 
     if participant.state == 'waiting':
         queue = participant.queue
@@ -267,9 +260,9 @@ def delete_participant(request, participant_id):
 def edit_participant(request, participant_id):
     participant = get_object_or_404(Participant, id=participant_id)
     queue = participant.queue
-    if queue.created_by != request.user:
+    if request.user not in queue.authorized_user.all():
         logger.error(f"Unauthorized edit attempt on queue {queue.id} by user {request.user.id}")
-        raise PermissionDenied("You do not have permission to manage this queue.")
+        return JsonResponse({'error': 'Unauthorized.'}, status=403)
 
     handler = ParticipantHandlerFactory.get_handler(queue.category)
     queue = handler.get_queue_object(queue.id)
@@ -288,8 +281,10 @@ class ManageWaitlist(generic.TemplateView):
     def get_template_names(self):
         queue_id = self.kwargs.get('queue_id')
         queue = get_object_or_404(Queue, id=queue_id)
-        if queue.created_by != self.request.user:
-            raise PermissionDenied("You do not have permission to manage this queue.")
+        if self.request.user not in queue.authorized_user.all():
+            logger.error(f"Unauthorized edit attempt on queue {queue.id} by user {self.request.user.id}")
+            return JsonResponse({'error': 'Unauthorized.'}, status=403)
+
         handler = ParticipantHandlerFactory.get_handler(queue.category)
         return [handler.get_template_name()]
 
@@ -353,6 +348,9 @@ def complete_participant(request, participant_id):
     handler = ParticipantHandlerFactory.get_handler(queue.category)
     participant = handler.get_participant_set(queue.id).filter(id=participant_id).first()
 
+    if request.user not in queue.authorized_user.all():
+        logger.error(f"Unauthorized edit attempt on queue {queue.id} by user {request.user.id}")
+        return JsonResponse({'error': 'Unauthorized.'}, status=403)
 
     try:
         if participant.state != 'serving':
@@ -445,7 +443,7 @@ class YourQueueView(LoginRequiredMixin, generic.TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         user = self.request.user
-        authorized_queues = Queue.objects.filter(authenticated_user=user)
+        authorized_queues = Queue.objects.filter(authorized_user=user)
         context['authorized_queues'] = authorized_queues
         return context
 
