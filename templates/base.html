@@ -30,7 +30,7 @@
                 </label>
                 <ul tabindex="0" class="menu dropdown-content bg-base-100 rounded-box z-[1] w-52 p-2 shadow">
                     <li>
-                        <form action="{% url 'logout' %}" method="post" style="display: inline;">
+                        <form action="{% url 'account_logout' %}" method="post" style="display: inline;">
                             {% csrf_token %}
                             <button type="submit" class="btn btn-error btn-block text-white">Log out</button>
                         </form>
@@ -39,7 +39,7 @@
             </div>
         {% else %}
             <span class="mr-2 text-sm">Have an account?</span>
-            <a href="{% url 'login' %}" class="btn btn-primary text-white">Log in</a>
+            <a href="{% url 'account_login' %}" class="btn btn-primary text-white">Log in</a>
         {% endif %}
         <div class="m-4">
             <label class="flex cursor-pointer gap-2">
