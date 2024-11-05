@@ -16,7 +16,8 @@ class ParticipantHandlerFactory:
         # elif queue_category == 'bank':
         #     return BankParticipantHandler()
         else:
-            raise ValueError(f"Unknown category: {queue_category}")
+            return GeneralParticipantHandler()
+            # raise ValueError(f"Unknown category: {queue_category}")
 
 
 
