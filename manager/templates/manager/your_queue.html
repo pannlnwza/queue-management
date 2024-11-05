@@ -44,76 +44,79 @@
 </div>
 
 
-            <div class="overflow-x-auto">
-                <table class="table min-w-full bg-base-100 divide-y divide-gray-200" id="participantTable">
-                    <thead>
-                    <tr>
-                        <th class="w-10 px-2 py-3"></th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">State</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Serving</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Waiting</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Wait time</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"></th>
-                    </tr>
-                    </thead>
-                    <tbody id="tableBody" class="divide-y divide-gray-200">
-                        {% for queue in authorized_queues %}
-                            <tr>
-                                <td class="w-10 px-2 py-4">
-                                    <div class="form-control max-w-sm">
-                                      <label class="label cursor-pointer">
-                                        <input type="checkbox" class="checkbox checkbox-primary border-base-content" />
-                                      </label>
-                                    </div>
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="flex items-center space-x-3">
-                                        <div class="avatar">
-                                            <div class="w-9 rounded-full">
-                                                <img src="https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.webp" />
-                                            </div>
-                                        </div>
-                                        <span class="font-semibold">{{ queue.name }}</span>
-                                    </div>
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap">{{ queue.waiting }}</td>
-                                <td class="px-6 py-4 whitespace-nowrap">{{ queue.state}}</td>
-                                <td class="px-6 py-4 whitespace-nowrap">{{ queue.serving }}</td>
-                                <td class="px-6 py-4 whitespace-nowrap">{{ queue.waiting }}</td>
-                                <td class="px-6 py-4 whitespace-nowrap">{{ queue.wait_time }}</td>
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="dropdown dropdown-left dropdown-end">
-                                        <div tabindex="0" role="button" class="btn btn-square btn-sm btn-ghost">
-                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="size-5">
-                                                <path d="M3 10a1.5 1.5 0 1 1 3 0 1.5 1.5 0 0 1-3 0ZM8.5 10a1.5 1.5 0 1 1 3 0 1.5 1.5 0 0 1-3 0ZM15.5 8.5a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3Z" />
-                                            </svg>
-                                        </div>
-                                      <ul tabindex="0" class="dropdown-content menu bg-base-100 rounded-box z-[1] w-52 p-2 shadow">
-                                        <li>
-                                            <a onclick="openEditDrawer(this)">
-                                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="size-5">
-                                                    <path d="m5.433 13.917 1.262-3.155A4 4 0 0 1 7.58 9.42l6.92-6.918a2.121 2.121 0 0 1 3 3l-6.92 6.918c-.383.383-.84.685-1.343.886l-3.154 1.262a.5.5 0 0 1-.65-.65Z" />
-                                                    <path d="M3.5 5.75c0-.69.56-1.25 1.25-1.25H10A.75.75 0 0 0 10 3H4.75A2.75 2.75 0 0 0 2 5.75v9.5A2.75 2.75 0 0 0 4.75 18h9.5A2.75 2.75 0 0 0 17 15.25V10a.75.75 0 0 0-1.5 0v5.25c0 .69-.56 1.25-1.25 1.25h-9.5c-.69 0-1.25-.56-1.25-1.25v-9.5Z" />
-                                                </svg>Edit
-                                            </a>
-                                        </li>
-                                        <li>
-                                            <a id="participantDetail" class="text-red-500" onclick="openDeleteModal({{ queue.id }})">
-                                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="size-5">
-                                                    <path fill-rule="evenodd" d="M8.75 1A2.75 2.75 0 0 0 6 3.75v.443c-.795.077-1.584.176-2.365.298a.75.75 0 1 0 .23 1.482l.149-.022.841 10.518A2.75 2.75 0 0 0 7.596 19h4.807a2.75 2.75 0 0 0 2.742-2.53l.841-10.52.149.023a.75.75 0 0 0 .23-1.482A41.03 41.03 0 0 0 14 4.193V3.75A2.75 2.75 0 0 0 11.25 1h-2.5ZM10 4c.84 0 1.673.025 2.5.075V3.75c0-.69-.56-1.25-1.25-1.25h-2.5c-.69 0-1.25.56-1.25 1.25v.325C8.327 4.025 9.16 4 10 4ZM8.58 7.72a.75.75 0 0 0-1.5.06l.3 7.5a.75.75 0 1 0 1.5-.06l-.3-7.5Zm4.34.06a.75.75 0 1 0-1.5-.06l-.3 7.5a.75.75 0 1 0 1.5.06l.3-7.5Z" clip-rule="evenodd" />
-                                                </svg>Delete
-                                            </a>
-                                        </li>
-                                    </ul>
-                                    </div>
-                                </td>
-                            </tr>
+<div class="overflow-x-auto">
+    <table class="table min-w-full bg-base-100 divide-y divide-gray-200" id="participantTable">
+        <thead>
+            <tr>
+                <th class="w-10 px-2 py-3"></th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">State</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Serving</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Waiting</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Wait time</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"></th>
+            </tr>
+        </thead>
+        <tbody id="tableBody" class="divide-y divide-gray-200">
+            {% for queue in authorized_queues %}
+                <tr class="hover:bg-gray-100 cursor-pointer" onclick="handleRowClick(event, '{{ queue.id }}')">
+                    <td class="w-10 px-2 py-4">
+                        <div class="form-control max-w-sm">
+                            <label class="label cursor-pointer">
+                                <input type="checkbox" class="checkbox checkbox-primary border-base-content" />
+                            </label>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="flex items-center space-x-3">
+                            <div class="avatar">
+                                <div class="w-9 rounded-full">
+                                    <img src="https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.webp" />
+                                </div>
+                            </div>
+                            <span class="font-semibold">{{ queue.name }}</span>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">{{ queue.waiting }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">{{ queue.state }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">{{ queue.serving }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">{{ queue.waiting }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">{{ queue.wait_time }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="dropdown dropdown-left dropdown-end z-100">
+                            <div tabindex="0" role="button" class="btn btn-square btn-sm btn-ghost" onclick="event.stopPropagation();">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="size-5">
+                                    <path d="M3 10a1.5 1.5 0 1 1 3 0 1.5 1.5 0 0 1-3 0ZM8.5 10a1.5 1.5 0 1 1 3 0 1.5 1.5 0 0 1-3 0ZM15.5 8.5a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3Z" />
+                                </svg>
+                            </div>
+                            <ul tabindex="0" class="dropdown-content menu bg-base-100 rounded-box z-100 w-52 p-2 shadow">
+                                <li>
+                                    <a onclick="openEditDrawer(this); event.stopPropagation();"
+                                       data-id="{{ queue.id }}"
+                                       data-name="{{ queue.name }}"
+                                       data-description="{{ queue.description }}">
+                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="size-5">
+                                            <path d="m5.433 13.917 1.262-3.155A4 4 0 0 1 7.58 9.42l6.92-6.918a2.121 2.121 0 0 1 3 3l-6.92 6.918c-.383.383-.84.685-1.343.886l-3.154 1.262a.5.5 0 0 1-.65-.65Z" />
+                                            <path d="M3.5 5.75c0-.69.56-1.25 1.25-1.25H10A.75.75 0 0 0 10 3H4.75A2.75 2.75 0 0 0 2 5.75v9.5A2.75 2.75 0 0 0 4.75 18h9.5A2.75 2.75 0 0 0 17 15.25V10a.75.75 0 0 0-1.5 0v5.25c0 .69-.56 1.25-1.25 1.25h-9.5c-.69 0-1.25-.56-1.25-1.25v-9.5Z" />
+                                        </svg>Edit
+                                    </a>
+                                </li>
+                                <li>
+                                    <a id="participantDetail" class="text-red-500 z-100" onclick="openDeleteModal({{ queue.id }}); event.stopPropagation();">
+                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="size-5">
+                                            <path fill-rule="evenodd" d="M8.75 1A2.75 2.75 0 0 0 6 3.75v.443c-.795.077-1.584.176-2.365.298a.75.75 0 1 0 .23 1.482l.149-.022.841 10.518A2.75 2.75 0 0 0 7.596 19h4.807a2.75 2.75 0 0 0 2.742-2.53l.841-10.52.149.023a.75.75 0 0 0 .23-1.482A41.03 41.03 0 0 0 14 4.193V3.75A2.75 2.75 0 0 0 11.25 1h-2.5ZM10 4c.84 0 1.673.025 2.5.075V3.75c0-.69-.56-1.25-1.25-1.25h-2.5c-.69 0-1.25.56-1.25 1.25v.325C8.327 4.025 9.16 4 10 4ZM8.58 7.72a.75.75 0 0 0-1.5.06l.3 7.5a.75.75 0 1 0 1.5-.06l-.3-7.5Zm4.34.06a.75.75 0 1 0-1.5-.06l-.3 7.5a.75.75 0 1 0 1.5.06l.3-7.5Z" clip-rule="evenodd" />
+                                        </svg>Delete
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
 
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
 
        <!-- Delete Modal -->
 <input type="checkbox" id="deleteModal" class="modal-toggle" />
@@ -130,22 +133,37 @@
 
 <!-- Edit Sidebar Drawer -->
 <div class="drawer drawer-end drawer-overlay z-100">
-    <input id="editDrawer" type="checkbox" class="drawer-toggle"/>
-    <div class="drawer-content">
+    <input id="editDrawer" type="checkbox" class="drawer-toggle" />
     <div class="drawer-side">
-        <label for="editDrawer" aria-label="close sidebar" class="drawer-overlay"></label>
+        <label for="editDrawer" class="drawer-overlay"></label>
         <div class="bg-base-100 min-h-full w-100">
             <div class="p-4 space-y-4">
                 <div class="drawer-header">
-                    <h2 class="text-lg font-bold">Edit Participant</h2>
+                    <h2 class="text-lg font-bold">Edit Queue</h2>
                     <hr class="border-base-300" />
                 </div>
-
                 <form id="editForm" method="POST">
                     {% csrf_token %}
                     <input type="hidden" id="queue_id" name="queue_id">
+                    <div class="form-control w-full">
+                        <label class="label">
+                            <span class="label-text">Name*</span>
+                        </label>
+                        <input type="text" id="edit_name" name="name" class="input input-bordered w-full" />
+                    </div>
+                    <div class="form-control w-full">
+                        <label class="label">
+                            <span class="label-text">Description</span>
+                        </label>
+                        <textarea id="edit_description" name="description" class="textarea textarea-bordered w-full"></textarea>
 
-
+                    </div>
+                    <div class="form-control w-full">
+                        <label class="label">
+                            <span class="label-text">State</span>
+                        </label>
+                        <input type="tel" id="edit_state" name="state" class="input input-bordered w-full" />
+                    </div>
                     <button type="submit" class="btn btn-primary">Submit</button>
                 </form>
             </div>
@@ -190,59 +208,23 @@ document.getElementById('confirmDeleteButton').addEventListener('click', () => {
     }
 });
 
-
 function openEditDrawer(element) {
-    const participantId = element.getAttribute('data-id');
-    const participantName = element.getAttribute('data-name');
-    const participantPhone = element.getAttribute('data-phone');
-    const participantNotes = element.getAttribute('data-notes');
+    const queueId = element.getAttribute('data-id');
+    const queueName = element.getAttribute('data-name');
+    const queueDescription = element.getAttribute('data-description');
 
-    document.getElementById('participant_id').value = participantId;
-    document.getElementById('edit_name').value = participantName || '';
-    document.getElementById('edit_phone').value = participantPhone || '';
-    document.getElementById('edit_notes').value = participantNotes || '';
+    document.getElementById('queue_id').value = queueId;
+    document.getElementById('edit_name').value = queueName || '';
+    document.getElementById('edit_description').value = queueDescription || '';
 
-    document.getElementById('editForm').addEventListener('submit', (e) => {
-        e.preventDefault();
+    document.getElementById('editDrawer').checked = true;
+}
 
-        const updatedData = {
-            id: document.getElementById('participant_id').value,
-            name: document.getElementById('edit_name').value,
-            phone: document.getElementById('edit_phone').value,
-            notes: document.getElementById('edit_notes').value,
-        };
-
-        updateParticipant(updatedData);
-    });
-
-    function updateParticipant(data) {
-        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
-
-        fetch(`/manager/edit_participant/${data.id}/`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': csrfToken
-            },
-            body: JSON.stringify(data)
-        })
-            .then(response => {
-                if (response.ok) {
-                    console.log("Participant updated successfully!");
-                    alert("Participant updated successfully!");
-                    location.reload();
-                } else {
-                    console.error("Failed to update participant.");
-                    alert("Failed to update participant.");
-                }
-            })
-            .catch(error => {
-                console.error("Error:", error);
-                alert("An error occurred while updating the participant.");
-            });
+function handleRowClick(event, queueId) {
+    if (event.target.closest('.dropdown')) {
+        return;
     }
-
-
+    location.href = `/manager/manage/${queueId}`;
 }
 </script>
 
