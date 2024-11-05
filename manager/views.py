@@ -277,7 +277,7 @@ def edit_participant(request, participant_id):
         'status': 'success',
         'message': 'Participant information updated successfully',
     })
-class ManageWaitlist(generic.TemplateView):
+class ManageWaitlist(LoginRequiredMixin, generic.TemplateView):
     def get_template_names(self):
         queue_id = self.kwargs.get('queue_id')
         queue = get_object_or_404(Queue, id=queue_id)
@@ -379,7 +379,7 @@ def complete_participant(request, participant_id):
         }, status=500)
 
 
-class ParticipantListView(generic.TemplateView):
+class ParticipantListView(LoginRequiredMixin, generic.TemplateView):
     template_name = 'manager/participant_list.html'
 
     def get_context_data(self, **kwargs):
@@ -447,7 +447,7 @@ class YourQueueView(LoginRequiredMixin, generic.TemplateView):
         context['authorized_queues'] = authorized_queues
         return context
 
-class StatisticsView(generic.TemplateView):
+class StatisticsView(LoginRequiredMixin, generic.TemplateView):
     template_name = 'manager/statistics.html'
 
     def get_context_data(self, **kwargs):
@@ -462,58 +462,6 @@ class StatisticsView(generic.TemplateView):
         context['participant_set'] = participant_set
         return context
 
-
-# def signup(request):
-#     """
-#     Register a new user.
-#     Handles the signup process, creating a new user if the provided data is valid.
-#
-#     :param request: The HTTP request object containing user signup data.
-#     :returns: Redirects to the queue index page on successful signup.
-#     :raises ValueError: If form data is invalid, displays an error message in the signup form.
-#     """
-#     if request.method == 'POST':
-#         form = UserCreationForm(request.POST)
-#         if form.is_valid():
-#             form.save()
-#             username = form.cleaned_data.get('username')
-#             raw_passwd = form.cleaned_data.get('password1')
-#             user = authenticate(username=username, password=raw_passwd)
-#             login(request, user)
-#             logger.info(f'New user signed up: {username}')
-#             return redirect('participant:home')
-#     else:
-#         form = UserCreationForm()
-#     return render(request, 'account/signup.html', {'form': form})
-#
-#
-# def login_view(request):
-#     """
-#     Log in a user.
-#     Handles the login process, authenticating the user if the provided credentials are valid.
-#
-#     :param request: The HTTP request object containing user login data.
-#     :returns: Redirects to the home page on successful login.
-#     :raises ValueError: If authentication fails, displays an error message in the login form.
-#     """
-#     if request.method == 'POST':
-#         form = AuthenticationForm(request, data=request.POST)
-#         if form.is_valid():
-#             username = form.cleaned_data.get('username')
-#             raw_passwd = form.cleaned_data.get('password')
-#             user = authenticate(username=username, password=raw_passwd)
-#             if user is not None:
-#                 login(request, user)
-#                 logger.info(f'User logged in: {username}')
-#                 return redirect('participant:home')
-#             else:
-#                 messages.error(request, "Invalid username or password.")
-#         else:
-#             messages.error(request, "Invalid form data.")
-#     else:
-#         form = AuthenticationForm()
-#
-#     return render(request, 'account/login.html', {'form': form})
 
 def signup(request):
     """
@@ -561,7 +509,7 @@ def login_view(request):
 
         if user is not None:
             login(request, user)
-            return redirect('participant:home')  # No success message, just redirect
+            return redirect('manager:your-queue')  # No success message, just redirect
         else:
             messages.error(request, 'Invalid username or password.')
 
