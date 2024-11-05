@@ -141,11 +141,14 @@ SOCIALACCOUNT_PROVIDERS = {
 
 SITE_ID = 1
 
+GOOGLE_OAUTH_CLIENT_ID = config('GOOGLE_OAUTH_CLIENT_ID', default='your-default-client-id')
+GOOGLE_OAUTH_CLIENT_SECRET = config('GOOGLE_OAUTH_CLIENT_SECRET', default='your-default-client-secret')
+
 
 LOGIN_URL = 'account_login'
 LOGOUT_URL = 'account_logout'
 
-LOGIN_REDIRECT_URL = 'participant:home'
+LOGIN_REDIRECT_URL = 'manager:your-queue'
 LOGOUT_REDIRECT_URL = 'participant:home'
 
 SOCIALACCOUNT_LOGIN_ON_GET = True
@@ -162,6 +165,7 @@ TIME_ZONE = config('TIME_ZONE', default='Asia/Bangkok')
 USE_I18N = True
 
 USE_TZ = True
+
 
 
 # Static files (CSS, JavaScript, Images)

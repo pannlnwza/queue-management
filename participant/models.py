@@ -4,7 +4,8 @@ import string
 from django.contrib.auth.models import User
 from django.db import models
 from django.utils import timezone
-
+from manager.models import RestaurantQueue
+from datetime import timedelta
 
 class Participant(models.Model):
     """Represents a participant in a queue."""
@@ -16,6 +17,7 @@ class Participant(models.Model):
 
     name = models.CharField(max_length=30)
     email = models.EmailField(max_length=50, null=True, blank=True)
+    phone = models.CharField(max_length=20, null=True, blank=True)
     queue = models.ForeignKey('manager.Queue', on_delete=models.CASCADE)
     joined_at = models.DateTimeField(default=timezone.localtime)
     position = models.PositiveIntegerField(null=True)
@@ -24,6 +26,8 @@ class Participant(models.Model):
     state = models.CharField(max_length=10, choices=PARTICIPANT_STATE, default='waiting')
     service_started_at = models.DateTimeField(null=True, blank=True)
     service_completed_at = models.DateTimeField(null=True, blank=True)
+    waited = models.PositiveIntegerField(default=0)
+    visits = models.PositiveIntegerField(default=1)
 
     def save(self, *args, **kwargs):
         """Generate a unique ticket code for the participant if not already."""
@@ -58,20 +62,12 @@ class Participant(models.Model):
             self.service_started_at = timezone.localtime()
             self.save()
 
-    def complete_service(self):
-        """Mark the participant as completed."""
-        if self.state == 'serving':
-            self.state = 'completed'
-            self.service_completed_at = timezone.localtime()
-            self.save()
-
     def get_wait_time(self):
         """Calculate the wait time for the participant."""
         if self.state == 'waiting':
             return int((timezone.localtime() - self.joined_at).total_seconds() / 60)
         elif self.state == 'serving' and self.service_started_at:
             return int((self.service_started_at - self.joined_at).total_seconds() / 60)
-        return 0
 
     def get_service_duration(self):
         """Calculate the duration of service for the participant."""
@@ -82,9 +78,53 @@ class Participant(models.Model):
                 return int((self.service_completed_at - self.service_started_at).total_seconds() / 60)
         return 0
 
+    @staticmethod
+    def remove_old_completed_participants():
+        """Remove participants whose service completed 30 days ago"""
+        cutoff_time = timezone.localtime() - timedelta(days=30)
+        Participant.objects.filter(state='completed', service_completed_at__lte=cutoff_time).delete()
+
     def __str__(self) -> str:
         """Return a string representation of the participant."""
         return f"{self.name} - {self.state}"
+
+
+
+class RestaurantParticipant(Participant):
+    """Represents a participant in a restaurant queue with table assignment capabilities."""
+    SEATING_PREFERENCES = [
+        ('first_available', 'First Available'),
+        ('indoor', 'Indoor'),
+        ('outdoor', 'Outdoor'),
+    ]
+
+    table = models.ForeignKey('manager.Table', on_delete=models.SET_NULL, null=True, blank=True)
+    table_served = models.CharField(max_length=20, null=True, blank=True)
+    party_size = models.PositiveIntegerField(default=1)
+    seating_preference = models.CharField(max_length=20, choices=SEATING_PREFERENCES, default='first_available')
+
+    def assign_table(self):
+        """Assign an available table to the participant based on party size."""
+        if not isinstance(self.queue, RestaurantQueue):
+            raise ValueError("This participant is not in a restaurant queue.")
+
+        available_tables = self.queue.tables.filter(status='empty', capacity__gte=self.party_size)
+        if available_tables.exists():
+            table_to_assign = available_tables.first()
+            table_to_assign.assign_to_party(self)
+            self.table = table_to_assign
+            self.save()
+        else:
+            raise ValueError("No available tables for this party size.")
+
+    def save(self, *args, **kwargs):
+        """Override save method to enforce seating preference rules based on the queue's availability."""
+        if self.queue and isinstance(self.queue, RestaurantQueue):
+            if not self.queue.has_outdoor:
+                if self.seating_preference not in ['first_available']:
+                    raise ValueError(
+                        "Seating preference can only be 'First Available' for queues without outdoor seating.")
+        super().save(*args, **kwargs)
 
 
 class Notification(models.Model):
@@ -96,4 +136,3 @@ class Notification(models.Model):
 
     def __str__(self):
         return f"Notification for {self.participant}: {self.message}"
-

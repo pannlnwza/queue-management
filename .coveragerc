@@ -12,15 +12,11 @@ omit =
     # django's script
     manage.py
     # django's configuration file
-    mysite/*
+    config/*
     */__init__.py
     # django's migration files
     */migrations/*
     */services/*
-
-# explicitly include the main app
-include =
-    queue_manager/*
 
 # Exclude specific lines from the coverage report
 [report]

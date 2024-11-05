@@ -1,21 +1,30 @@
+import json
 import logging
-
+from datetime import timedelta
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, user_logged_in, user_logged_out, user_login_failed
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.core.exceptions import PermissionDenied
 from django.dispatch import receiver
-from django.http import Http404
+from django.http import Http404, JsonResponse, HttpResponse
 from django.shortcuts import render, redirect, get_object_or_404
+from django.template.loader import render_to_string
 from django.urls import reverse_lazy, reverse
 from django.utils import timezone
 from django.views import generic
+from django.apps import apps
+from django.views.decorators.http import require_http_methods
 
 from manager.forms import QueueForm
 from participant.models import Participant, Notification
+from manager.utils.participant_handler import ParticipantHandlerFactory
+from participant.models import Participant, Notification, RestaurantParticipant
 from manager.models import Queue
 
+
+logger = logging.getLogger('queue')
 
 class CreateQView(LoginRequiredMixin, generic.CreateView):
     """
@@ -206,132 +215,253 @@ def notify_participant(request, queue_id, participant_id):
     return redirect('manager:dashboard', queue_id)
 
 
+@require_http_methods(["DELETE"])
 @login_required
 def delete_queue(request, queue_id):
     try:
         queue = Queue.objects.get(pk=queue_id)
     except Queue.DoesNotExist:
-        messages.error(request, f"Queue with ID {queue_id} does not exist.")
-        logger.error(f"Queue id: {queue_id} does not exist.")
-        return redirect('participant:index')
-    if queue.created_by != request.user:
-        messages.error(request, "You're not authorized to delete this queue.")
-        logger.warning(
-            f"Unauthorized queue delete attempt by user {request.user} "
-            f"for queue: {queue.name} queue_id: {queue.id}.")
-        return redirect('participant:index')
+        return JsonResponse({'error': 'Queue not found.'}, status=404)
+
+    if request.user not in queue.authorized_user.all():
+        return JsonResponse({'error': 'Unauthorized.'}, status=403)
+
     try:
         queue.delete()
-        messages.success(request,
-                         f"Queue {queue.name} has been deleted successfully.")
-        logger.info(
-            f"{request.user} successfully deleted queue: {queue.name} id: {queue.id}.")
+        return JsonResponse({'success': 'Queue deleted successfully.'}, status=200)
     except Exception as e:
-        messages.error(request, f"Error deleting queue: {e}")
-        logger.error(
-            f"Failed to delete queue: {queue.name} id: {queue.id} "
-            f"by user {request.user}: {e}")
-    return redirect('manager:manage_queues')
+        return JsonResponse({'error': str(e)}, status=500)
+
+@login_required
+@require_http_methods(["DELETE"])
+def delete_participant(request, participant_id):
+    participant = get_object_or_404(Participant, id=participant_id)
+    logger.info(f"Deleting participant {participant_id} from queue {participant.queue.id}")
+
+    if request.user not in participant.queue.authorized_user.all():
+        return JsonResponse({'error': 'Unauthorized.'}, status=403)
+
+    if participant.state == 'waiting':
+        queue = participant.queue
+        waiting_participants = Participant.objects.filter(queue=queue, state='waiting').order_by('position')
+        participant.delete()
+        logger.info(f"Participant {participant_id} is deleted.")
+
+        for idx, p in enumerate(waiting_participants):
+            if p.position > participant.position:
+                p.position = idx + 1
+                p.save()
+        return JsonResponse({'message': 'Participant is deleted and positions are updated.'})
+    participant.delete()
+    return JsonResponse({'message': 'Participant deleted.'})
+
+
+@require_http_methods(["POST"])
+def edit_participant(request, participant_id):
+    participant = get_object_or_404(Participant, id=participant_id)
+    queue = participant.queue
+    if request.user not in queue.authorized_user.all():
+        logger.error(f"Unauthorized edit attempt on queue {queue.id} by user {request.user.id}")
+        return JsonResponse({'error': 'Unauthorized.'}, status=403)
+
+    handler = ParticipantHandlerFactory.get_handler(queue.category)
+    queue = handler.get_queue_object(queue.id)
+    participant = handler.get_participant_set(queue.id).get(id=participant_id)
+
+    # Parse the JSON payload
+    data = json.loads(request.body)
+    handler.update_participant(participant, data)
+
+    logger.info(f"Participant {participant_id} in queue {queue.id} updated successfully.")
+    return JsonResponse({
+        'status': 'success',
+        'message': 'Participant information updated successfully',
+    })
+class ManageWaitlist(LoginRequiredMixin, generic.TemplateView):
+    def get_template_names(self):
+        queue_id = self.kwargs.get('queue_id')
+        queue = get_object_or_404(Queue, id=queue_id)
+        if self.request.user not in queue.authorized_user.all():
+            logger.error(f"Unauthorized edit attempt on queue {queue.id} by user {self.request.user.id}")
+            return JsonResponse({'error': 'Unauthorized.'}, status=403)
+
+        handler = ParticipantHandlerFactory.get_handler(queue.category)
+        return [handler.get_template_name()]
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        queue_id = self.kwargs.get('queue_id')
+        queue = get_object_or_404(Queue, id=queue_id)
+
+        if queue.created_by != self.request.user:
+            raise PermissionDenied("You do not have permission to manage this queue.")
+        handler = ParticipantHandlerFactory.get_handler(queue.category)
+        queue = handler.get_queue_object(queue_id)
+
+        context['waiting_list'] = handler.get_participant_set(queue_id).filter(state='waiting')
+        context['serving_list'] = handler.get_participant_set(queue_id).filter(state='serving')
+        context['completed_list'] = handler.get_participant_set(queue_id).filter(state='completed')
+        context['queue'] = queue
+        more_context = handler.add_context_attributes(queue)
+        if more_context:
+            context.update({key: value for item in handler.add_context_attributes(queue) for key, value in item.items()})
+        return context
+
+@login_required
+def serve_participant(request, participant_id):
+    participant = get_object_or_404(Participant, id=participant_id)
+    queue_category = participant.queue.category
+    handler = ParticipantHandlerFactory.get_handler(queue_category)
+
+    try:
+        if participant.state != 'waiting':
+            logger.warning(f"Cannot serve participant {participant_id} because they are in state: {participant.state}")
+            return JsonResponse({
+                'error': f'{participant.name} cannot be served because they are currently in state: {participant.state}.'
+            }, status=400)
+
+        participant.queue.update_estimated_wait_time_per_turn(participant.get_wait_time())
+        handler.assign_to_resource(participant)
+        participant.start_service()
+        participant.save()
+        logger.info(f"Participant {participant_id} started service in queue {participant.queue.id}.")
+
+        waiting_list = Participant.objects.filter(state='waiting').values()
+        serving_list = Participant.objects.filter(state='serving').values()
+
+        return JsonResponse({
+            'waiting_list': list(waiting_list),
+            'serving_list': list(serving_list)
+        })
+
+    except Exception as e:
+        logger.error(f"Error serving participant {participant_id}: {str(e)}")
+        return JsonResponse({
+            'error': f'Error: {str(e)}'
+        }, status=500)
 
 
 @login_required
-def delete_participant(request, participant_id):
-    """Delete a participant from a specific queue if the requester is the queue creator or the participant themselves."""
-    try:
-        participant = Participant.objects.get(id=participant_id)
-    except Participant.DoesNotExist:
-        messages.error(request, f"Participant with ID {participant_id} does not exist.")
-        logger.error(f"Participant id: {participant_id} does not exist.")
-        return redirect('participant:index')
-
+def complete_participant(request, participant_id):
+    participant = get_object_or_404(Participant, id=participant_id)
     queue = participant.queue
+    handler = ParticipantHandlerFactory.get_handler(queue.category)
+    participant = handler.get_participant_set(queue.id).filter(id=participant_id).first()
 
-    if queue.created_by == request.user:
-        action = 'completed'
-        success_message = f"Participant with code {participant.queue_code} removed successfully."
-        log_message = f"Participant with code {participant.queue_code} successfully deleted from queue {queue.id} by user {request.user}."
-
-    elif participant.user == request.user:
-        action = 'canceled'
-        success_message = "You have successfully left the queue."
-        log_message = f"User {request.user} canceled participation in queue {queue.id}."
-
-    else:
-        messages.error(request, "You are not authorized to delete participants from this queue.")
-        logger.warning(
-            f'Unauthorized delete attempt by user {request.user} '
-            f'for participant {participant_id} in queue {queue.id}.')
-        return redirect('participant:index')
+    if request.user not in queue.authorized_user.all():
+        logger.error(f"Unauthorized edit attempt on queue {queue.id} by user {request.user.id}")
+        return JsonResponse({'error': 'Unauthorized.'}, status=403)
 
     try:
-        removed_position = participant.position
-        participant.delete()
-        remaining_participants = queue.participant_set.filter(position__gt=removed_position).order_by('position')
-        for p in remaining_participants:
-            p.position -= 1
-            p.save()
+        if participant.state != 'serving':
+            logger.warning(
+                f"Cannot complete participant {participant_id} because they are in state: {participant.state}")
+            return JsonResponse({
+                'error': f'{participant.name} cannot be marked as completed because they are currently in state: {participant.state}.'
+            }, status=400)
 
-        messages.success(request, success_message)
-        logger.info(log_message)
+
+        handler.complete_service(participant)
+        participant.save()
+        logger.info(f"Participant {participant_id} completed service in queue {queue.id}.")
+
+        serving_list = Participant.objects.filter(state='serving').values()
+        completed_list = Participant.objects.filter(state='completed').values()
+
+        return JsonResponse({
+            'serving_list': list(serving_list),
+            'completed_list': list(completed_list)
+        })
 
     except Exception as e:
-        messages.error(request, f"Error removing participant: {e}")
-        logger.error(f"Failed to delete participant {participant_id} from queue {queue.id} by user {request.user}: {e}")
+        return JsonResponse({
+            'error': f'Error: {str(e)}'
+        }, status=500)
 
-    return redirect('participant:index')
+
+class ParticipantListView(LoginRequiredMixin, generic.TemplateView):
+    template_name = 'manager/participant_list.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        queue_id = self.kwargs.get('queue_id')
+        queue = get_object_or_404(Queue, id=queue_id)
+        handler = ParticipantHandlerFactory.get_handler(queue.category)
+
+        time_filter_option = self.request.GET.get('time_filter', 'all_time')
+        state_filter_option = self.request.GET.get('state_filter', 'any_state')
+
+        time_filter_options_display = {
+            'all_time': 'All time',
+            'today': 'Today',
+            'this_week': 'This week',
+            'this_month': 'This month',
+            'this_year': 'This year',
+        }
+
+        state_filter_options_display = {
+            'any_state': 'Any state',
+            'waiting': 'Waiting',
+            'serving': 'Serving',
+            'completed': 'Completed',
+        }
+
+        start_date = self.get_start_date(time_filter_option)
+        participant_set = handler.get_participant_set(queue_id)
+
+        if start_date:
+            participant_set = participant_set.filter(joined_at__gte=start_date)
+
+        if state_filter_option != 'any_state':
+            participant_set = participant_set.filter(state=state_filter_option)
+
+        context['queue'] = handler.get_queue_object(queue_id)
+        context['participant_set'] = participant_set
+        context['time_filter_option'] = time_filter_option
+        context['time_filter_option_display'] = time_filter_options_display.get(time_filter_option, 'All time')
+        context['state_filter_option'] = state_filter_option
+        context['state_filter_option_display'] = state_filter_options_display.get(state_filter_option, 'Any state')
+        return context
+
+    def get_start_date(self, time_filter_option):
+        """Returns the start date based on the time filter option."""
+        now = timezone.now()
+        if time_filter_option == 'today':
+            return now.replace(hour=0, minute=0, second=0, microsecond=0)
+        elif time_filter_option == 'this_week':
+            return now - timedelta(days=now.weekday())  # monday of the current week
+        elif time_filter_option == 'this_month':
+            return now.replace(day=1)
+        elif time_filter_option == 'this_year':
+            return now.replace(month=1, day=1)
+        return None
 
 
-# def signup(request):
-#     """
-#     Register a new user.
-#     Handles the signup process, creating a new user if the provided data is valid.
-#
-#     :param request: The HTTP request object containing user signup data.
-#     :returns: Redirects to the queue index page on successful signup.
-#     :raises ValueError: If form data is invalid, displays an error message in the signup form.
-#     """
-#     if request.method == 'POST':
-#         form = UserCreationForm(request.POST)
-#         if form.is_valid():
-#             form.save()
-#             username = form.cleaned_data.get('username')
-#             raw_passwd = form.cleaned_data.get('password1')
-#             user = authenticate(username=username, password=raw_passwd)
-#             login(request, user)
-#             logger.info(f'New user signed up: {username}')
-#             return redirect('participant:home')
-#     else:
-#         form = UserCreationForm()
-#     return render(request, 'account/signup.html', {'form': form})
-#
-#
-# def login_view(request):
-#     """
-#     Log in a user.
-#     Handles the login process, authenticating the user if the provided credentials are valid.
-#
-#     :param request: The HTTP request object containing user login data.
-#     :returns: Redirects to the home page on successful login.
-#     :raises ValueError: If authentication fails, displays an error message in the login form.
-#     """
-#     if request.method == 'POST':
-#         form = AuthenticationForm(request, data=request.POST)
-#         if form.is_valid():
-#             username = form.cleaned_data.get('username')
-#             raw_passwd = form.cleaned_data.get('password')
-#             user = authenticate(username=username, password=raw_passwd)
-#             if user is not None:
-#                 login(request, user)
-#                 logger.info(f'User logged in: {username}')
-#                 return redirect('participant:home')
-#             else:
-#                 messages.error(request, "Invalid username or password.")
-#         else:
-#             messages.error(request, "Invalid form data.")
-#     else:
-#         form = AuthenticationForm()
-#
-#     return render(request, 'account/login.html', {'form': form})
+class YourQueueView(LoginRequiredMixin, generic.TemplateView):
+    template_name = 'manager/your_queue.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        user = self.request.user
+        authorized_queues = Queue.objects.filter(authorized_user=user)
+        context['authorized_queues'] = authorized_queues
+        return context
+
+class StatisticsView(LoginRequiredMixin, generic.TemplateView):
+    template_name = 'manager/statistics.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        queue_id = self.kwargs.get('queue_id')
+        queue = get_object_or_404(Queue, id=queue_id)
+        handler = ParticipantHandlerFactory.get_handler(queue.category)
+        queue = handler.get_queue_object(queue_id)
+        participant_set = handler.get_participant_set(queue_id)
+
+        context['queue'] = queue
+        context['participant_set'] = participant_set
+        return context
+
 
 def signup(request):
     """
@@ -379,14 +509,11 @@ def login_view(request):
 
         if user is not None:
             login(request, user)
-            return redirect('participant:home')  # No success message, just redirect
+            return redirect('manager:your-queue')  # No success message, just redirect
         else:
             messages.error(request, 'Invalid username or password.')
 
     return render(request, 'account/login.html')
-
-logger = logging.getLogger('queue')
-
 
 def get_client_ip(request):
     """Retrieve the client's IP address from the request."""
