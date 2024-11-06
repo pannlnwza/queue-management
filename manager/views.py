@@ -26,6 +26,7 @@ from manager.models import Queue
 
 logger = logging.getLogger('queue')
 
+
 class CreateQView(LoginRequiredMixin, generic.CreateView):
     """
     Create a new queue.
@@ -40,7 +41,7 @@ class CreateQView(LoginRequiredMixin, generic.CreateView):
     model = Queue
     form_class = QueueForm
     template_name = 'manager/create_q.html'
-    success_url = reverse_lazy('manager:manage_queues')
+    success_url = reverse_lazy('manager:your-queue')
 
     def form_valid(self, form):
         """
