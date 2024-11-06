@@ -51,7 +51,9 @@ class CreateQView(LoginRequiredMixin, generic.CreateView):
         :returns: The response after the form has been successfully validated and saved.
         """
         form.instance.created_by = self.request.user
-        return super().form_valid(form)
+        response = super().form_valid(form)
+        form.instance.authorized_user.add(self.request.user)
+        return response
 
 
 class ManageQueuesView(LoginRequiredMixin, generic.ListView):
@@ -278,6 +280,8 @@ def edit_participant(request, participant_id):
         'status': 'success',
         'message': 'Participant information updated successfully',
     })
+
+
 class ManageWaitlist(LoginRequiredMixin, generic.TemplateView):
     def get_template_names(self):
         queue_id = self.kwargs.get('queue_id')
