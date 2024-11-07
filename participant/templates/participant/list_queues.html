@@ -6,8 +6,6 @@
     <div class="card bg-base-100 shadow-xl">
         <div class="card-body">
             <h2 class="card-title text-2xl font-bold mb-6">{{ queue_type }} Queues</h2>
-
-            <!-- Search Bar -->
             <div class="form-control mb-6">
                 <div class="input-group">
                     <input
@@ -19,46 +17,50 @@
                 </div>
             </div>
 
-            <!-- Queue List -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="queueList">
                 {% if queues %}
                     {% for queue in queues %}
                         {% if not queue.is_closed %}
-                            <div class="queue-item card bg-base-200 shadow-sm hover:shadow-md transition-shadow h-[calc(100vh-24rem)]"
+                            <div class="queue-item card bg-base-200 shadow-sm hover:shadow-md transition-shadow"
                                  data-queue-name="{{ queue.name|lower }}">
-                                <div class="card-body p-6 flex flex-col">
-                                    <div class="flex items-start gap-4 grow">
-                                        <img src="{{ queue.get_logo_url }}"
-                                             alt="{{ queue.name }} logo"
-                                             class="w-16 h-16 rounded-lg object-cover">
-                                        <div class="flex-1 min-h-0 flex flex-col">
-                                            <div class="flex justify-between items-start flex-wrap gap-2">
-                                                <h3 class="text-xl font-bold">{{ queue.name }}</h3>
-                                                <div class="badge badge-lg text-white
-                                                    {% if queue.queue_status == 'Very Busy' %} bg-error text-error-content
-                                                    {% elif queue.queue_status == 'Moderate Busy' %} bg-warning text-warning-content
-                                                    {% elif queue.queue_status == 'Not Busy' %} bg-success text-success-content
-                                                    {% endif %}">
-                                                    {{ queue.queue_status }}
+                                <div class="card-body p-6">
+                                    <div class="flex flex-col h-full">
+                                        <!-- Header with Logo and Title -->
+                                        <div class="flex items-start gap-4 mb-4">
+                                            <img src="{{ queue.get_logo_url }}"
+                                                 alt="{{ queue.name }} logo"
+                                                 class="w-16 h-16 rounded-lg object-cover flex-shrink-0">
+                                            <div class="flex-1">
+                                                <div class="flex justify-between items-start flex-wrap gap-2">
+                                                    <h3 class="text-xl font-bold">{{ queue.name }}</h3>
+                                                    <div class="badge badge-lg text-white whitespace-nowrap
+                                                        {% if queue.queue_status == 'Very Busy' %} bg-error text-error-content
+                                                        {% elif queue.queue_status == 'Moderate Busy' %} bg-warning text-warning-content
+                                                        {% elif queue.queue_status == 'Not Busy' %} bg-success text-success-content
+                                                        {% endif %}">
+                                                        {{ queue.queue_status }}
+                                                    </div>
                                                 </div>
                                             </div>
-                                            <div class="divider my-2"></div>
-                                            <p class="text-base-content/70 flex-grow overflow-y-auto">
-                                                {{ queue.description }}
+                                        </div>
+
+                                        <div class="divider my-0"></div>
+                                        <p class="text-base-content/70 break-words whitespace-pre-wrap">
+                                            {{ queue.description }}
+                                        </p>
+                                        <div class="divider my-0"></div>
+
+                                        <div class="flex items-center justify-between mt-2">
+                                            <p class="text-sm font-medium flex items-center flex-wrap gap-2">
+                                                <span>Currently in queue:</span>
+                                                <span class="badge badge-neutral">
+                                                    {% if queue.get_number_of_participants == 1 %}
+                                                        1 person
+                                                    {% else %}
+                                                        {{ queue.get_number_of_participants }} people
+                                                    {% endif %}
+                                                </span>
                                             </p>
-                                            <div class="divider my-2"></div>
-                                            <div class="mt-auto pt-4 flex items-center justify-between">
-                                                <p class="text-sm font-medium">
-                                                    Currently in queue:
-                                                    <span class="badge badge-neutral ml-2">
-                                                        {% if queue.get_number_of_participants == 1 %}
-                                                            1 person
-                                                        {% else %}
-                                                            {{ queue.get_number_of_participants }} people
-                                                        {% endif %}
-                                                    </span>
-                                                </p>
-                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -94,7 +96,6 @@
                 }
             });
 
-            // Show/hide no results message
             let noResultsMsg = document.getElementById('noResultsMessage');
             if (!hasVisibleQueues) {
                 if (!noResultsMsg) {
