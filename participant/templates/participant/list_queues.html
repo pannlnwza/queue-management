@@ -2,90 +2,112 @@
 {% load static %}
 
 {% block content %}
-    <div class="container mx-auto p-4 max-w-4xl">
-        <div class="card bg-base-100 shadow-xl">
-            <div class="card-body">
-                <h2 class="card-title text-2xl font-bold mb-6">{{ queue_type }} Queues</h2>
-                <div class="form-control mb-6">
-                    <div class="input-group">
-                        <input
-                            type="text"
-                            id="searchBar"
-                            placeholder="Search queues..."
-                            class="input input-bordered w-full"
-                            oninput="searchQueues()"
-                        >
-                    </div>
-                </div>
+<div class="container mx-auto p-4">
+    <div class="card bg-base-100 shadow-xl">
+        <div class="card-body">
+            <h2 class="card-title text-2xl font-bold mb-6">{{ queue_type }} Queues</h2>
 
-                <div id="openQueues" class="space-y-4">
-                    {% if queues %}
-                        {% for queue in queues %}
-                            {% if not queue.is_closed %}
-                                <div class="queue-block card bg-base-200 shadow-sm hover:shadow-md transition-shadow"
-                                     data-queue-name="{{ queue.name|lower }}">
-                                    <div class="card-body p-4">
-                                        <div class="flex items-start gap-4">
-                                            <img src="{{ queue.get_logo_url }}"
-                                                 alt="{{ queue.name }} logo"
-                                                 class="w-12 h-12 rounded-lg object-cover">
-                                            <div class="flex-1">
-                                                <div class="flex justify-between items-start">
-                                                    <h3 class="queue-title text-lg font-semibold">{{ queue.name }}</h3>
-                                                    <div class="badge badge-lg
-                                                        {% if queue.queue_status == 'full' %} badge-error
-                                                        {% elif queue.queue_status == 'busy' %} badge-warning
-                                                        {% elif queue.queue_status == 'Normal' %} badge-success
-                                                        {% endif %}">
-                                                        {{ queue.queue_status }}
-                                                    </div>
+            <!-- Search Bar -->
+            <div class="form-control mb-6">
+                <div class="input-group">
+                    <input
+                        type="text"
+                        id="searchInput"
+                        placeholder="Search queues..."
+                        class="input input-bordered w-full"
+                    >
+                </div>
+            </div>
+
+            <!-- Queue List -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="queueList">
+                {% if queues %}
+                    {% for queue in queues %}
+                        {% if not queue.is_closed %}
+                            <div class="queue-item card bg-base-200 shadow-sm hover:shadow-md transition-shadow h-[calc(100vh-24rem)]"
+                                 data-queue-name="{{ queue.name|lower }}">
+                                <div class="card-body p-6 flex flex-col">
+                                    <div class="flex items-start gap-4 grow">
+                                        <img src="{{ queue.get_logo_url }}"
+                                             alt="{{ queue.name }} logo"
+                                             class="w-16 h-16 rounded-lg object-cover">
+                                        <div class="flex-1 min-h-0 flex flex-col">
+                                            <div class="flex justify-between items-start flex-wrap gap-2">
+                                                <h3 class="text-xl font-bold">{{ queue.name }}</h3>
+                                                <div class="badge badge-lg text-white
+                                                    {% if queue.queue_status == 'Very Busy' %} bg-error text-error-content
+                                                    {% elif queue.queue_status == 'Moderate Busy' %} bg-warning text-warning-content
+                                                    {% elif queue.queue_status == 'Not Busy' %} bg-success text-success-content
+                                                    {% endif %}">
+                                                    {{ queue.queue_status }}
                                                 </div>
-                                                <p class="text-base-content/70 mt-1">{{ queue.description }}</p>
-                                                <p class="text-sm mt-2">
+                                            </div>
+                                            <div class="divider my-2"></div>
+                                            <p class="text-base-content/70 flex-grow overflow-y-auto">
+                                                {{ queue.description }}
+                                            </p>
+                                            <div class="divider my-2"></div>
+                                            <div class="mt-auto pt-4 flex items-center justify-between">
+                                                <p class="text-sm font-medium">
                                                     Currently in queue:
-                                                    {% if queue.get_number_of_participants == 1 %}
-                                                        1 person
-                                                    {% else %}
-                                                        {{ queue.get_number_of_participants }} people
-                                                    {% endif %}
+                                                    <span class="badge badge-neutral ml-2">
+                                                        {% if queue.get_number_of_participants == 1 %}
+                                                            1 person
+                                                        {% else %}
+                                                            {{ queue.get_number_of_participants }} people
+                                                        {% endif %}
+                                                    </span>
                                                 </p>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
-                            {% endif %}
-                        {% endfor %}
-                    {% else %}
-                        <div class="text-center py-8 text-base-content/70">
-                            No queues available.
-                        </div>
-                    {% endif %}
-                </div>
-
-                <div id="noOpenQueuesMessage" class="text-center py-8 text-base-content/70" style="display: none;">
-                    No queues found matching your search.
-                </div>
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+                {% else %}
+                    <div class="text-center py-8 text-base-content/70 col-span-2">
+                        No queues available.
+                    </div>
+                {% endif %}
             </div>
         </div>
     </div>
+</div>
 
-    <script>
-        function searchQueues() {
-            const input = document.getElementById('searchBar').value.toLowerCase();
-            const openQueues = document.querySelectorAll('#openQueues .queue-block');
-            let openCount = 0;
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const searchInput = document.getElementById('searchInput');
+        const queueItems = document.querySelectorAll('.queue-item');
 
-            openQueues.forEach(queue => {
-                const title = queue.querySelector('.queue-title').textContent.toLowerCase();
-                if (title.includes(input)) {
-                    queue.style.display = '';
-                    openCount++;
+        searchInput.addEventListener('input', function(e) {
+            const searchTerm = e.target.value.toLowerCase();
+            let hasVisibleQueues = false;
+
+            queueItems.forEach(item => {
+                const queueName = item.dataset.queueName;
+                if (queueName.includes(searchTerm)) {
+                    item.style.display = '';
+                    hasVisibleQueues = true;
                 } else {
-                    queue.style.display = 'none';
+                    item.style.display = 'none';
                 }
             });
 
-            document.getElementById('noOpenQueuesMessage').style.display = openCount === 0 ? '' : 'none';
-        }
-    </script>
+            // Show/hide no results message
+            let noResultsMsg = document.getElementById('noResultsMessage');
+            if (!hasVisibleQueues) {
+                if (!noResultsMsg) {
+                    noResultsMsg = document.createElement('div');
+                    noResultsMsg.id = 'noResultsMessage';
+                    noResultsMsg.className = 'text-center py-8 text-base-content/70 col-span-2';
+                    noResultsMsg.textContent = 'No queues found matching your search.';
+                    document.getElementById('queueList').appendChild(noResultsMsg);
+                }
+            } else if (noResultsMsg) {
+                noResultsMsg.remove();
+            }
+        });
+    });
+</script>
 {% endblock %}
