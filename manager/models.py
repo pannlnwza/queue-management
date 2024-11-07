@@ -74,13 +74,13 @@ class Queue(models.Model):
         if self.logo:
             return self.logo.url
         default_logos = {
-            'restaurant': static('queue_manager/images/restaurant_default_logo.png'),
-            'bank': static('queue_manager/images/bank_default_logo.jpg'),
-            'general': static('queue_manager/images/general_default_logo.png'),
-            'hospital': static('queue_manager/images/hospital_default_logo.jpg'),
-            'service center': static('queue_manager/images/service_center_default_logo.png')
+            'restaurant': static('participant/images/restaurant_default_logo.png'),
+            'bank': static('participant/images/bank_default_logo.jpg'),
+            'general': static('participant/images/general_default_logo.png'),
+            'hospital': static('participant/images/hospital_default_logo.jpg'),
+            'service center': static('participant/images/service_center_default_logo.png')
         }
-        return default_logos.get(self.category, static('queue_manager/images/default_logo.png'))
+        return default_logos.get(str(self.category))
 
     def edit(self, name: str = None, description: str = None, is_closed: bool = None, status: str = None) -> None:
         """Edit the queue's name, description, or closed status."""
