@@ -69,4 +69,23 @@
         </div>
     </div>
 
+    <script>
+        function searchQueues() {
+            const input = document.getElementById('searchBar').value.toLowerCase();
+            const openQueues = document.querySelectorAll('#openQueues .queue-block');
+            let openCount = 0;
+
+            openQueues.forEach(queue => {
+                const title = queue.querySelector('.queue-title').textContent.toLowerCase();
+                if (title.includes(input)) {
+                    queue.style.display = '';
+                    openCount++;
+                } else {
+                    queue.style.display = 'none';
+                }
+            });
+
+            document.getElementById('noOpenQueuesMessage').style.display = openCount === 0 ? '' : 'none';
+        }
+    </script>
 {% endblock %}
