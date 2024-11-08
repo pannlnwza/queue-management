@@ -6,19 +6,22 @@ from django.utils import timezone
 
 
 class QueueHandlerFactory:
+    _handlers = {}
+
     @staticmethod
     def get_handler(queue_category):
+        if queue_category in QueueHandlerFactory._handlers:
+            return QueueHandlerFactory._handlers[queue_category]
+
         if queue_category == 'general':
-            return GeneralQueueHandler()
+            handler = GeneralQueueHandler()
         elif queue_category == 'restaurant':
-            return RestaurantQueueHandler()
-        # elif queue_category == 'hospital':
-        #     return HospitalQueueHandler()
-        # elif queue_category == 'bank':
-        #     return BankQueueHandler()
+            handler = RestaurantQueueHandler()
         else:
-            return GeneralQueueHandler()
-            # raise ValueError(f"Unknown category: {queue_category}")
+            handler = GeneralQueueHandler()  # default handler
+
+        QueueHandlerFactory._handlers[queue_category] = handler
+        return handler
 
 
 class QueueHandler(ABC):
