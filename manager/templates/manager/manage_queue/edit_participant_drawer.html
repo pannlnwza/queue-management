@@ -1,0 +1,116 @@
+<form id="editForm" method="POST">
+    {% csrf_token %}
+    <input type="hidden" id="participant_id" name="participant_id" />
+    <input type="hidden" id="table_id" name="table_id" />
+
+    <div class="form-control w-full">
+        <label class="label">
+            <span class="label-text">Name*</span>
+        </label>
+        <input type="text" id="edit_name" name="name" class="input input-bordered w-full" />
+    </div>
+
+    <div class="form-control w-full">
+        <label class="label">
+            <span class="label-text">Phone</span>
+        </label>
+        <input type="tel" id="edit_phone" name="phone" placeholder="Ex. 081 234 5678" class="input input-bordered w-full" />
+    </div>
+
+    {% if participant.queue.category == "restaurant" %}
+    <div class="form-control w-full">
+        <label class="label">
+            <span class="label-text">Party Size</span>
+        </label>
+        <div class="flex gap-2">
+            {% for size in '1234567'|make_list %}
+                <input type="radio" name="party_size" value="{{ size }}" class="btn btn-square btn-sm join-item">
+                <span>{{ size }}</span>
+            {% endfor %}
+            <input type="radio" name="party_size" value="7+" class="btn btn-square btn-sm join-item">
+            <span>7+</span>
+        </div>
+    </div>
+    {% endif %}
+
+    {% if participant.queue.category == "restaurant" %}
+    <div class="form-control w-full">
+        <label class="label">
+            <span class="label-text">Table</span>
+        </label>
+        <select id="edit_table" class="select select-bordered w-full">
+            {% for table in tables %}
+                <option value="{{ table.id }}">{{ table.name }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    {% endif %}
+
+    {% if participant.queue.category == "restaurant" %}
+    <div class="form-control w-full">
+        <label class="label">
+            <span class="label-text">Seating Preference</span>
+        </label>
+        <select id="edit_seating" class="select select-bordered w-full">
+            <option value="First Available">First Available</option>
+            <option value="Indoor">Indoor</option>
+            <option value="Outdoor">Outdoor</option>
+        </select>
+    </div>
+    {% endif %}
+
+    {% if participant.queue.category == "bank" %}
+    <div class="form-control w-full">
+        <label class="label">
+            <span class="label-text">Service Type</span>
+        </label>
+        <select id="edit_service_type" name="service_type" class="select select-bordered w-full">
+            <option value="account_services">Account Services</option>
+            <option value="loan_services">Loan Services</option>
+            <option value="investment_services">Investment Services</option>
+            <option value="customer_support">Customer Support</option>
+        </select>
+    </div>
+    {% endif %}
+
+    {% if participant.queue.category == "hospital" %}
+    <div class="form-control w-full">
+        <label class="label">
+            <span class="label-text">Medical Field</span>
+        </label>
+        <select id="edit_medical_field" name="medical_field" class="select select-bordered w-full">
+            <option value="cardiology">Cardiology</option>
+            <option value="neurology">Neurology</option>
+            <option value="orthopedics">Orthopedics</option>
+            <option value="dermatology">Dermatology</option>
+            <option value="pediatrics">Pediatrics</option>
+            <option value="general">General Medicine</option>
+            <option value="emergency">Emergency</option>
+            <option value="psychiatry">Psychiatry</option>
+            <option value="surgery">Surgery</option>
+            <option value="oncology">Oncology</option>
+        </select>
+    </div>
+
+    <div class="form-control w-full">
+        <label class="label">
+            <span class="label-text">Priority</span>
+        </label>
+        <select id="edit_priority" name="priority" class="select select-bordered w-full">
+            <option value="urgent">Urgent</option>
+            <option value="normal">Normal</option>
+            <option value="low">Low</option>
+        </select>
+    </div>
+    {% endif %}
+
+    <!-- Notes Field -->
+    <div class="form-control w-full">
+        <label class="label">
+            <span class="label-text">Note</span>
+        </label>
+        <textarea id="edit_notes" name="notes" class="textarea textarea-bordered w-full"></textarea>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Submit</button>
+</form>
