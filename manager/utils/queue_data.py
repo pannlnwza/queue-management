@@ -52,6 +52,7 @@ def get_general_queue_data(request, queue_id):
     }
     return JsonResponse(data)
 
+
 @login_required
 def get_restaurant_queue_data(request, queue_id):
     Participant.remove_old_completed_participants()
