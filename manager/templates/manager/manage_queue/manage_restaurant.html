@@ -37,7 +37,7 @@
                 <h1 class="text-2xl font-bold antialiased font-sans">Queue Manager</h1>
                 <div class="ml-auto">
                     <a class="btn btn-primary">
-                        View Table
+                        View {{ resource_name }}
                     </a>
                 </div>
             </div>
@@ -81,7 +81,7 @@
                                 Position
                             </th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Party Size
+                                {{ special_1 }}
                             </th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 Notes
@@ -90,7 +90,7 @@
                                 Waited
                             </th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Seat Preference
+                                {{ special_2 }}
                             </th>
                         </tr>
                         </thead>
@@ -99,7 +99,7 @@
                             <tr>
                                 <td class="px-6 py-4 whitespace-nowrap">{{ participant.name }}</td>
                                 <td class="px-6 py-4 whitespace-nowrap">{{ participant.position }}</td>
-                                <td class="px-6 py-4 whitespace-nowrap">{{ participant.party_size }} people</td>
+                                <td class="px-6 py-4 whitespace-nowrap"></td>
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     {% if participant.note %}
                                     <button class="btn btn-sm no-animation" onclick="document.getElementById('${modalId}').showModal()">
@@ -108,7 +108,7 @@
                                     {% endif %}
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">{{ participant.waited }}</td>
-                                <td class="badge badge-primary justify-center flex mx-7 my-5">{{ participant.seating_preference }}</td>
+                                <td class="badge badge-primary justify-center flex mx-7 my-5"></td>
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <button class="btn btn-warning btn-square btn-sm text-base-100 no-animation mx-2">
                                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="size-5">
@@ -141,7 +141,7 @@
                                 Name
                             </th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Party Size
+                                {{ special_1 }}
                             </th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 Notes
@@ -156,10 +156,10 @@
                                 Served
                             </th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Table
+                                {{ resource_name }}
                             </th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Seating Preference
+                                {{ special_2 }}
                             </th>
                         </tr>
                         </thead>
@@ -167,7 +167,7 @@
                         {% for participant in serving_list %}
                             <tr>
                                 <td class="px-6 py-4 whitespace-nowrap">{{ participant.name }}</td>
-                                <td class="px-6 py-4 whitespace-nowrap">{{ participant.party_size }} people</td>
+                                <td class="px-6 py-4 whitespace-nowrap"></td>
                                 <td class="px-6 py-4 whitespace-nowrap">
                                 {% if participant.note %}
                                     <button class="btn btn-sm no-animation" onclick="document.getElementById('${modalId}').showModal()">
@@ -207,7 +207,7 @@
                                 Name
                             </th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Party Size
+                                {{ special_1 }}
                             </th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 Notes
@@ -225,10 +225,10 @@
                                 Completed
                             </th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Table Served
+                                {{ resource_name }} Served
                             </th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Seating Preference
+                                {{ special_2 }}
                             </th>
                         </tr>
                         </thead>
@@ -236,7 +236,7 @@
                         {% for participant in completed_list %}
                             <tr>
                                 <td id="name_{{ participant.id }}" class="px-6 py-4 whitespace-nowrap">{{ participant.name }}</td>
-                                <td id="party_size_{{ participant.id }}" class="px-6 py-4 whitespace-nowrap">{{ participant.party_size }} people</td>
+                                <td id="party_size_{{ participant.id }}" class="px-6 py-4 whitespace-nowrap"></td>
                                 <td id="notes_{{ participant.id }}" class="px-6 py-4 whitespace-nowrap">
                                 {% if participant.note %}
                                     <button class="btn btn-sm no-animation" onclick="document.getElementById('${modalId}').showModal()">
@@ -480,10 +480,10 @@
         row.innerHTML = `
             <td class="px-6 py-4 whitespace-nowrap">${participant.name || '-'}</td>
             <td class="px-6 py-4 whitespace-nowrap">${participant.position || '-'}</td>
-            <td class="px-6 py-4 whitespace-nowrap">${participant.party_size ? `${participant.party_size} people` : '-'}</td>
+            <td class="px-6 py-4 whitespace-nowrap">${participant.special_1 ? `${participant.special_1}` : '-'}</td>
             <td class="px-6 py-4 whitespace-nowrap">${createNotesModal(participant)}</td>
             <td class="px-6 py-4 whitespace-nowrap">${participant.waited || '0'} min</td>
-            <td class="badge badge-primary justify-center flex mx-7 my-5">${participant.seating_preference || '-'}</td>
+            <td class="badge badge-primary justify-center flex mx-7 my-5">${participant.special_2 || '-'}</td>
             <td class="px-6 py-4 whitespace-nowrap">
                 <button class="btn btn-warning btn-square btn-sm text-base-100 no-animation mx-2">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="size-5">
@@ -510,13 +510,13 @@
 
         row.innerHTML = `
             <td class="px-6 py-4 whitespace-nowrap">${participant.name || '-'}</td>
-            <td class="px-6 py-4 whitespace-nowrap">${participant.party_size ? `${participant.party_size} people` : '-'}</td>
+            <td class="px-6 py-4 whitespace-nowrap">${participant.special_1 ? `${participant.special_1}` : '-'}</td>
             <td class="px-6 py-4 whitespace-nowrap">${createNotesModal(participant)}</td>
             <td class="px-6 py-4 whitespace-nowrap">${participant.waited || '0'} min</td>
             <td class="px-6 py-4 whitespace-nowrap">${participant.service_duration || '0'} min</td>
             <td class="px-6 py-4 whitespace-nowrap">${participant.served || '-'}</td>
-            <td class="px-6 py-4 whitespace-nowrap">${participant.table || '-'}</td>
-            <td class="badge badge-primary justify-center flex mx-7 my-5">${participant.seating_preference || '-'}</td>
+            <td class="px-6 py-4 whitespace-nowrap">${participant.resource || '-'}</td>
+            <td class="badge badge-primary justify-center flex mx-7 my-5">${participant.special_2 || '-'}</td>
             <td class="px-6 py-4 whitespace-nowrap">
                 <button class="btn btn-success btn-square btn-sm text-base-100 no-animation"
                         onclick="completeParticipant(${participant.id})">
@@ -535,14 +535,14 @@
 
         row.innerHTML = `
             <td class="px-6 py-4 whitespace-nowrap">${participant.name || '-'}</td>
-            <td class="px-6 py-4 whitespace-nowrap">${participant.party_size ? `${participant.party_size} people` : '-'}</td>
+            <td class="px-6 py-4 whitespace-nowrap">${participant.special_1 ? `${participant.special_1}` : '-'}</td>
             <td class="px-6 py-4 whitespace-nowrap">${createNotesModal(participant)}</td>
             <td class="px-6 py-4 whitespace-nowrap">${participant.waited || '0'} min</td>
             <td class="px-6 py-4 whitespace-nowrap">${participant.service_duration || '0'} min</td>
             <td class="px-6 py-4 whitespace-nowrap">${participant.served || '-'}</td>
             <td class="px-6 py-4 whitespace-nowrap">${participant.completed || '-'}</td>
-            <td class="px-6 py-4 whitespace-nowrap">${participant.table || '-'}</td>
-            <td class="badge badge-primary justify-center flex mx-7 my-5">${participant.seating_preference || '-'}</td>
+            <td class="px-6 py-4 whitespace-nowrap">${participant.resource_served || '-'}</td>
+            <td class="badge badge-primary justify-center flex mx-7 my-5">${participant.special_2 || '-'}</td>
             <td class="px-6 py-4 whitespace-nowrap">
                 <div class="dropdown dropdown-left dropdown-end">
                     <div tabindex="0" role="button" class="btn btn-square btn-sm btn-ghost">
