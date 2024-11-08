@@ -24,7 +24,7 @@ class Queue(models.Model):
     ]
 
     name = models.CharField(max_length=50)
-    description = models.TextField(max_length=100)
+    description = models.TextField(max_length=60)
     created_by = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
     authorized_user = models.ManyToManyField(User, related_name='queues', blank=True)
     open_time = models.DateTimeField(null=True, blank=True)
