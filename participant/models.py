@@ -4,7 +4,7 @@ import string
 from django.contrib.auth.models import User
 from django.db import models
 from django.utils import timezone
-from manager.models import RestaurantQueue, BankQueue, Resource
+from manager.models import RestaurantQueue, BankQueue, Resource, HospitalQueue
 from datetime import timedelta
 
 class Participant(models.Model):
@@ -147,16 +147,46 @@ class BankParticipant(Participant):
         default='account_services',
     )
 
-    def get_service_type_display(self) -> str:
-        """Returns the service type in a user-friendly format."""
-        return dict(self.SERVICE_TYPE_CHOICES).get(self.service_type, 'Unknown Service')
-
     def save(self, *args, **kwargs):
         """Additional validations based on the bank queue's rules."""
         if self.queue and isinstance(self.queue, RestaurantQueue):
             raise ValueError("BankParticipant must be assigned to a BankQueue.")
         super().save(*args, **kwargs)
 
+
+class HospitalParticipant(Participant):
+    """Represents a participant in a hospital queue."""
+    MEDICAL_FIELD_CHOICES = [
+        ('cardiology', 'Cardiology'),
+        ('neurology', 'Neurology'),
+        ('orthopedics', 'Orthopedics'),
+        ('dermatology', 'Dermatology'),
+        ('pediatrics', 'Pediatrics'),
+        ('general', 'General Medicine'),
+        ('emergency', 'Emergency'),
+        ('psychiatry', 'Psychiatry'),
+        ('surgery', 'Surgery'),
+        ('oncology', 'Oncology'),
+    ]
+
+    PRIORITY_CHOICES = [
+        ('urgent', 'Urgent'),
+        ('normal', 'Normal'),
+        ('low', 'Low'),
+    ]
+    medical_field = models.CharField(max_length=50, choices=MEDICAL_FIELD_CHOICES, default='general')
+    priority = models.CharField(max_length=10, choices=PRIORITY_CHOICES,
+                                default='normal')
+
+    def __str__(self):
+        return f"Hospital Participant: {self.name}"
+
+
+    def save(self, *args, **kwargs):
+        """Additional validations based on the bank queue's rules."""
+        if self.queue and isinstance(self.queue, HospitalQueue):
+            raise ValueError("HospitalParticipant must be assigned to a BankQueue.")
+        super().save(*args, **kwargs)
 
 
 class Notification(models.Model):

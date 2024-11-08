@@ -191,7 +191,7 @@ class RestaurantParticipantHandler(ParticipantHandler):
             'waited': participant.waited if state=='completed' else participant.get_wait_time(),
             'completed': participant.service_completed_at.strftime('%d %b. %Y %H:%M') if participant.service_completed_at else None,
             'special_1': f"{participant.party_size} people",
-            'special_2': participant.seating_preference,
+            'special_2': participant.get_seating_preference_display(),
             'service_duration': participant.get_service_duration(),
             'served': participant.service_started_at.strftime(
                 '%d %b. %Y %H:%M') if participant.service_started_at else None,
@@ -206,20 +206,20 @@ class RestaurantParticipantHandler(ParticipantHandler):
     def get_resource_name(self):
         return 'Table'
 
-# class HospitalParticipantHandler(BaseParticipantHandler):
-#     def create_participant(self, data):
-#         return HospitalParticipant.objects.create(**data)
-#
-#     def assign_to_resource(self, participant):
-#         # Logic to assign the participant to a doctor
-#         doctor = self.get_available_doctor()
-#         if doctor:
-#             doctor.assign_patient(participant)
-#
-#     def get_available_doctor(self):
-#         # Implement logic to find an available doctor
-#         return Doctor.objects.filter(is_available=True).first()
-#
+class HospitalParticipantHandler(ParticipantHandler):
+    def create_participant(self, data):
+        return HospitalParticipant.objects.create(**data)
+
+    def assign_to_resource(self, participant):
+        # Logic to assign the participant to a doctor
+        doctor = self.get_available_doctor()
+        if doctor:
+            doctor.assign_patient(participant)
+
+    def get_available_doctor(self):
+        # Implement logic to find an available doctor
+        return Doctor.objects.filter(is_available=True).first()
+
 class BankParticipantHandler(ParticipantHandler):
     def create_participant(self, data):
         return BankParticipant.objects.create(**data)
@@ -272,8 +272,8 @@ class BankParticipantHandler(ParticipantHandler):
             'name': participant.name,
             'phone': participant.phone,
             'position': participant.position,
-            'special_1': participant.service_type,
-            'special_2': None,
+            'special_2': participant.get_service_type_display(),
+            'special_1': None,
             'notes': participant.note,
             'waited': participant.waited if state=='completed' else participant.get_wait_time(),
             'completed': participant.service_completed_at.strftime('%d %b. %Y %H:%M') if participant.service_completed_at else None,
@@ -286,7 +286,7 @@ class BankParticipantHandler(ParticipantHandler):
         }
 
     def get_special_column(self):
-        return 'Service Type', None
+        return None, 'Service Type'
 
     def get_resource_name(self):
         return 'Counter'
