@@ -15,8 +15,8 @@ class QueueForm(forms.ModelForm):
             'logo': 'Logo (Optional)',
         }
         widgets = {
-            'name': forms.TextInput(attrs={'class': 'input input-bordered w-full max-w-xs"', 'placeholder': 'Enter Queue Name (Max Length: 50)'}),
-            'description': forms.Textarea(attrs={'class': 'textarea textarea-bordered', 'placeholder': 'Enter Description (Max Length: 100)', 'rows': 4}),
+            'name': forms.TextInput(attrs={'class': 'input input-bordered w-full max-w-xs m-2', 'placeholder': 'Enter Queue Name (Max Length: 50)'}),
+            'description': forms.Textarea(attrs={'class': 'textarea textarea-bordered w-full m-2', 'placeholder': 'Enter Description (Max Length: 100)', 'rows': 4}),
             'category': forms.Select(attrs={'class': 'select select-bordered w-full max-w-xs m-2'}),
             'logo': forms.ClearableFileInput(attrs={'class': 'file-input w-full max-w-xs m-2', 'accept': 'image/*'}),
         }
