@@ -2,16 +2,14 @@ from datetime import datetime, timedelta
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.views import generic
 
 from participant.models import Participant, Notification
 from manager.models import Queue
-from manager.views import logger
 from .forms import ReservationForm
-from participant.utils.participant_handler import ParticipantHandlerFactory
+from manager.utils.category_handler import CategoryHandlerFactory
 
 
 # Create your views here.
@@ -189,7 +187,7 @@ class KioskView(generic.FormView):
     def dispatch(self, request, *args, **kwargs):
         # Retrieve the queue object based on the queue_code from the URL
         self.queue = get_object_or_404(Queue, code=kwargs['queue_code'])
-        self.participant_handler = ParticipantHandlerFactory.get_handler(self.queue.category)
+        self.participant_handler = CategoryHandlerFactory.get_handler(self.queue.id)
         return super().dispatch(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):

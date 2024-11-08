@@ -30,6 +30,7 @@ class Participant(models.Model):
     waited = models.PositiveIntegerField(default=0)
     visits = models.PositiveIntegerField(default=1)
     resource = models.ForeignKey(Resource, on_delete=models.CASCADE, blank=True, null=True)
+    resource_assigned = models.CharField(max_length=20, null=True, blank=True)
 
 
     def save(self, *args, **kwargs):
@@ -116,7 +117,6 @@ class RestaurantParticipant(Participant):
         ('indoor', 'Indoor'),
         ('outdoor', 'Outdoor'),
     ]
-    table_served = models.CharField(max_length=20, null=True, blank=True)
     party_size = models.PositiveIntegerField(default=1)
     seating_preference = models.CharField(max_length=20, choices=SEATING_PREFERENCES, default='first_available')
 
@@ -142,7 +142,6 @@ class BankParticipant(Participant):
         ('customer_support', 'Customer Support'),
     ]
 
-    counter_served = models.CharField(max_length=20, null=True, blank=True)
     service_type = models.CharField(
         max_length=20,
         choices=SERVICE_TYPE_CHOICES,
@@ -179,6 +178,7 @@ class HospitalParticipant(Participant):
     medical_field = models.CharField(max_length=50, choices=MEDICAL_FIELD_CHOICES, default='general')
     priority = models.CharField(max_length=10, choices=PRIORITY_CHOICES,
                                 default='normal')
+
 
     def __str__(self):
         return f"Hospital Participant: {self.name}"

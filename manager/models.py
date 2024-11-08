@@ -60,10 +60,10 @@ class Queue(models.Model):
     def has_resources(self):
         return self.category != 'general'
 
-    def get_resources(self):
-        if self.has_resources():
-            return self.resource_set.all()
-        return None
+    def get_resources_by_status(self, status):
+        return self.resource_set.filter(
+            status=status
+        )
 
     def update_estimated_wait_time_per_turn(self, time_taken: int) -> None:
         """Update the estimated wait time per turn based on the time taken for a turn."""
@@ -128,9 +128,8 @@ class Queue(models.Model):
         Fetch an available resource for the specified queue.
         It finds a resource with enough capacity that is currently empty.
         """
-        print(self.resource_set)
         return self.resource_set.filter(
-            status='empty',
+            status='available',
             capacity__gte=required_capacity
         ).first()
 
@@ -147,14 +146,14 @@ class Queue(models.Model):
 
 class Resource(models.Model):
     TABLE_STATUS = [
-        ('empty', 'Empty'),
+        ('available', 'Available'),
         ('busy', 'Busy'),
         ('unavailable', 'Unavailable'),
     ]
 
     name = models.CharField(max_length=50, unique=True)
     capacity = models.PositiveIntegerField(default=1)
-    status = models.CharField(choices=TABLE_STATUS, max_length=15, default='empty')
+    status = models.CharField(choices=TABLE_STATUS, max_length=15, default='available')
     queue = models.ForeignKey(Queue, on_delete=models.CASCADE, blank=True, null=True)
     assigned_to = models.ForeignKey('participant.Participant', on_delete=models.SET_NULL, null=True, blank=True,
                                     related_name='resource_assignment')
@@ -207,17 +206,40 @@ class Resource(models.Model):
         return f"{self.name} (Status: {self.status}, Capacity: {self.capacity})"
 
 
+class Doctor(Resource):
+    """Represents a doctor in the hospital queue system."""
+    MEDICAL_SPECIALTY_CHOICES = [
+        ('cardiology', 'Cardiology'),
+        ('neurology', 'Neurology'),
+        ('orthopedics', 'Orthopedics'),
+        ('dermatology', 'Dermatology'),
+        ('pediatrics', 'Pediatrics'),
+        ('general', 'General Medicine'),
+        ('emergency', 'Emergency'),
+        ('psychiatry', 'Psychiatry'),
+        ('surgery', 'Surgery'),
+        ('oncology', 'Oncology'),
+    ]
+
+    specialty = models.CharField(max_length=100, choices=MEDICAL_SPECIALTY_CHOICES, default='general')
+
+    def __str__(self):
+        return f"Doctor {self.name} - Specialty: {self.get_specialty_display()}"
+
+
 class RestaurantQueue(Queue):
     has_outdoor = models.BooleanField(default=False)
+    tables = models.ManyToManyField(Resource)
 
 class BankQueue(Queue):
     """Represents a queue specifically for bank services."""
+    counter = models.ManyToManyField(Resource)
 
     def __str__(self):
         return f"Bank Queue: {self.name}"
 
 class HospitalQueue(Queue):
-    doctors = models,ManyToManyField(Resource)
+    doctors = models.ManyToManyField(Doctor)
 
 
 class UserProfile(models.Model):

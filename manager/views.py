@@ -6,9 +6,8 @@ from django.contrib.auth import authenticate, login, user_logged_in, user_logged
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.core.exceptions import PermissionDenied
 from django.dispatch import receiver
-from django.http import Http404, JsonResponse
+from django.http import JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse_lazy, reverse
 from django.utils import timezone
@@ -16,7 +15,7 @@ from django.views import generic
 from django.views.decorators.http import require_http_methods
 
 from manager.forms import QueueForm
-from participant.utils.participant_handler import ParticipantHandlerFactory
+from manager.utils.category_handler import CategoryHandlerFactory
 from participant.models import Participant, Notification
 from manager.models import Queue
 from manager.utils.queue_handler import QueueHandlerFactory
@@ -224,7 +223,7 @@ def edit_participant(request, participant_id):
         logger.error(f"Unauthorized edit attempt on queue {queue.id} by user {request.user.id}")
         return JsonResponse({'error': 'Unauthorized.'}, status=403)
 
-    handler = ParticipantHandlerFactory.get_handler(queue.category)
+    handler = CategoryHandlerFactory.get_handler(queue.category)
     queue = handler.get_queue_object(queue.id)
     participant = handler.get_participant_set(queue.id).get(id=participant_id)
 
@@ -240,37 +239,42 @@ def edit_participant(request, participant_id):
 
 
 class ManageWaitlist(LoginRequiredMixin, generic.TemplateView):
-    template_name = 'manager/manage_queue/manage_restaurant.html'
+    template_name = 'manager/manage_queue/manage_unique_category.html'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         queue_id = self.kwargs.get('queue_id')
-        handler = ParticipantHandlerFactory.get_handler(queue_id)
+        handler = CategoryHandlerFactory.get_handler(queue_id)
         queue = handler.get_queue_object(queue_id)
 
         if self.request.user not in queue.authorized_user.all():
             logger.error(f"Unauthorized edit attempt on queue {queue.id} by user {self.request.user.id}")
             return JsonResponse({'error': 'Unauthorized.'}, status=403)
 
-        context['waiting_list'] = handler.get_participant_set(queue_id).filter(state='waiting')
-        context['serving_list'] = handler.get_participant_set(queue_id).filter(state='serving')
-        context['completed_list'] = handler.get_participant_set(queue_id).filter(state='completed')
+        search_query = self.request.GET.get('search', '').strip()
+        participant_set = handler.get_participant_set(queue_id)
+        if search_query:
+            participant_set = participant_set.filter(name__icontains=search_query)
+
+        context['waiting_list'] = participant_set.filter(state='waiting')
+        context['serving_list'] = participant_set.filter(state='serving')
+        context['completed_list'] = participant_set.filter(state='completed')
         context['queue'] = queue
-        context['resource'] = queue.get_resources()
-        context['resource_name'] = handler.get_resource_name()
-        special_column = handler.get_special_column()
-        context['special_1'] = special_column[0]
-        context['special_2'] = special_column[1]
-        more_context = handler.add_context_attributes(queue)
-        if more_context:
-            context.update({key: value for item in handler.add_context_attributes(queue) for key, value in item.items()})
+        context['resources'] = queue.resource_set.all()
+        context['available_resource'] = queue.get_resources_by_status('available')
+        context['busy_resource'] = queue.get_resources_by_status('busy')
+        context['unavailable_resource'] = queue.get_resources_by_status('unavailable')
+
+        category_context = handler.add_context_attributes(queue)
+        if category_context:
+            context.update(category_context)
         return context
 
 @login_required
 def serve_participant(request, participant_id):
     participant = get_object_or_404(Participant, id=participant_id)
     queue_id = participant.queue.id
-    handler = ParticipantHandlerFactory.get_handler(queue_id)
+    handler = CategoryHandlerFactory.get_handler(queue_id)
     participant_set = handler.get_participant_set(queue_id)
     participant = get_object_or_404(participant_set, id=participant_id)
 
@@ -306,7 +310,7 @@ def serve_participant(request, participant_id):
 def complete_participant(request, participant_id):
     participant = get_object_or_404(Participant, id=participant_id)
     queue = participant.queue
-    handler = ParticipantHandlerFactory.get_handler(queue.id)
+    handler = CategoryHandlerFactory.get_handler(queue.id)
     participant = handler.get_participant_set(queue.id).filter(id=participant_id).first()
 
     if request.user not in queue.authorized_user.all():
@@ -346,8 +350,7 @@ class ParticipantListView(LoginRequiredMixin, generic.TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         queue_id = self.kwargs.get('queue_id')
-        queue = get_object_or_404(Queue, id=queue_id)
-        handler = ParticipantHandlerFactory.get_handler(queue.category)
+        handler = CategoryHandlerFactory.get_handler(queue_id)
 
         time_filter_option = self.request.GET.get('time_filter', 'all_time')
         state_filter_option = self.request.GET.get('state_filter', 'any_state')
@@ -415,8 +418,7 @@ class StatisticsView(LoginRequiredMixin, generic.TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         queue_id = self.kwargs.get('queue_id')
-        queue = get_object_or_404(Queue, id=queue_id)
-        handler = ParticipantHandlerFactory.get_handler(queue.category)
+        handler = CategoryHandlerFactory.get_handler(queue_id)
         queue = handler.get_queue_object(queue_id)
         participant_set = handler.get_participant_set(queue_id)
 
