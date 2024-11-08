@@ -4,7 +4,7 @@ from django.shortcuts import get_object_or_404
 import json
 import time
 from manager.models import RestaurantQueue, Queue
-from manager.utils.participant_handler import ParticipantHandlerFactory
+from manager.utils.category_handler import CategoryHandlerFactory
 from participant.models import Participant, RestaurantParticipant
 
 @login_required
@@ -57,7 +57,7 @@ def get_general_queue_data(request, queue_id):
 @login_required
 def get_restaurant_queue_data(request, queue_id):
     Participant.remove_old_completed_participants()
-    handler = ParticipantHandlerFactory.get_handler(queue_id)
+    handler = CategoryHandlerFactory.get_handler(queue_id)
     queue = handler.get_queue_object(queue_id)
     participant = handler.get_participant_set(queue_id)
     waiting_participants = participant.filter(queue=queue, state='waiting')

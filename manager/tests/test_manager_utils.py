@@ -6,19 +6,19 @@ from django.contrib.auth.models import User
 from django.urls import reverse
 
 from participant.models import RestaurantParticipant, Participant
-from manager.models import Table, RestaurantQueue, Queue
-from participant.utils.participant_handler import ParticipantHandlerFactory, GeneralParticipantHandler, RestaurantParticipantHandler
+from manager.models import Resource, RestaurantQueue, Queue
+from manager.utils.category_handler import CategoryHandlerFactory, GeneralQueueHandler, RestaurantQueueHandler
 from django.utils import timezone
 
 
 class ParticipantHandlerFactoryTests(TestCase):
     def test_get_handler_general(self):
-        handler = ParticipantHandlerFactory.get_handler('general')
-        self.assertIsInstance(handler, GeneralParticipantHandler)
+        handler = CategoryHandlerFactory.get_handler('general')
+        self.assertIsInstance(handler, GeneralQueueHandler)
 
     def test_get_handler_restaurant(self):
-        handler = ParticipantHandlerFactory.get_handler('restaurant')
-        self.assertIsInstance(handler, RestaurantParticipantHandler)
+        handler = CategoryHandlerFactory.get_handler('restaurant')
+        self.assertIsInstance(handler, RestaurantQueueHandler)
 
     # def test_get_handler_invalid_category(self):
     #     with self.assertRaises(ValueError):
@@ -28,7 +28,7 @@ class ParticipantHandlerFactoryTests(TestCase):
 class GeneralParticipantHandlerTests(TestCase):
     def setUp(self):
         self.queue = Queue.objects.create(name="General Queue", description="A general queue")
-        self.handler = GeneralParticipantHandler()
+        self.handler = GeneralQueueHandler()
 
     def test_create_participant(self):
         data = {'name': 'Panny 69', 'phone': '1234567890', 'queue': self.queue}
@@ -60,10 +60,10 @@ class GeneralParticipantHandlerTests(TestCase):
 class RestaurantParticipantHandlerTests(TestCase):
     def setUp(self):
         self.queue = RestaurantQueue.objects.create(name="Restaurant Queue", description="A restaurant queue")
-        self.table = Table.objects.create(name="Table 1", capacity=4)
+        self.table = Resource.objects.create(name="Table 1", capacity=4)
         self.table.save()
         self.queue.tables.add(self.table)
-        self.handler = RestaurantParticipantHandler()
+        self.handler = RestaurantQueueHandler()
 
     def test_create_participant(self):
         data = {'name': 'Tai Demalu', 'phone': '0987654321', 'queue': self.queue, 'party_size': 2}
