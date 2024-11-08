@@ -4,20 +4,24 @@ from manager.models import Table, RestaurantQueue, Queue
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 
+
 class ParticipantHandlerFactory:
+    _handlers = {}
+
     @staticmethod
     def get_handler(queue_category):
+        if queue_category in ParticipantHandlerFactory._handlers:
+            return ParticipantHandlerFactory._handlers[queue_category]
+
         if queue_category == 'general':
-            return GeneralParticipantHandler()
+            handler = GeneralParticipantHandler()
         elif queue_category == 'restaurant':
-            return RestaurantParticipantHandler()
-        # elif queue_category == 'hospital':
-        #     return HospitalParticipantHandler()
-        # elif queue_category == 'bank':
-        #     return BankParticipantHandler()
+            handler = RestaurantParticipantHandler()
         else:
-            return GeneralParticipantHandler()
-            # raise ValueError(f"Unknown category: {queue_category}")
+            handler = GeneralParticipantHandler()  # default handler
+
+        ParticipantHandlerFactory._handlers[queue_category] = handler
+        return handler
 
 
 
