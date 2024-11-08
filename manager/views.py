@@ -22,6 +22,7 @@ from participant.models import Participant, Notification
 from manager.utils.participant_handler import ParticipantHandlerFactory
 from participant.models import Participant, Notification, RestaurantParticipant
 from manager.models import Queue
+from manager.utils.queue_handler import QueueHandlerFactory
 
 
 logger = logging.getLogger('queue')
@@ -50,10 +51,17 @@ class CreateQView(LoginRequiredMixin, generic.CreateView):
         :param form: The form containing the queue data.
         :returns: The response after the form has been successfully validated and saved.
         """
-        form.instance.created_by = self.request.user
-        response = super().form_valid(form)
-        form.instance.authorized_user.add(self.request.user)
-        return response
+        queue_category = form.cleaned_data['category']
+        handler = QueueHandlerFactory.get_handler(queue_category)
+
+        queue_data = form.cleaned_data.copy()
+        queue_data['created_by'] = self.request.user
+
+        queue = handler.create_queue(queue_data)
+
+        queue.authorized_user.add(self.request.user)
+
+        return redirect(self.success_url)
 
 
 class ManageQueuesView(LoginRequiredMixin, generic.ListView):
@@ -452,6 +460,7 @@ class YourQueueView(LoginRequiredMixin, generic.TemplateView):
         context['authorized_queues'] = authorized_queues
         return context
 
+
 class StatisticsView(LoginRequiredMixin, generic.TemplateView):
     template_name = 'manager/statistics.html'
 
@@ -519,6 +528,7 @@ def login_view(request):
             messages.error(request, 'Invalid username or password.')
 
     return render(request, 'account/login.html')
+
 
 def get_client_ip(request):
     """Retrieve the client's IP address from the request."""
