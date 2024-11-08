@@ -4,24 +4,22 @@ from datetime import timedelta
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, user_logged_in, user_logged_out, user_login_failed
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
+from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.exceptions import PermissionDenied
 from django.dispatch import receiver
-from django.http import Http404, JsonResponse, HttpResponse
+from django.http import Http404, JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
-from django.template.loader import render_to_string
 from django.urls import reverse_lazy, reverse
 from django.utils import timezone
 from django.views import generic
-from django.apps import apps
 from django.views.decorators.http import require_http_methods
 
 from manager.forms import QueueForm
+from participant.utils.participant_handler import ParticipantHandlerFactory
 from participant.models import Participant, Notification
-from manager.utils.participant_handler import ParticipantHandlerFactory
-from participant.models import Participant, Notification, RestaurantParticipant
 from manager.models import Queue
+from manager.utils.queue_handler import QueueHandlerFactory
 
 
 logger = logging.getLogger('queue')
@@ -50,10 +48,17 @@ class CreateQView(LoginRequiredMixin, generic.CreateView):
         :param form: The form containing the queue data.
         :returns: The response after the form has been successfully validated and saved.
         """
-        form.instance.created_by = self.request.user
-        response = super().form_valid(form)
-        form.instance.authorized_user.add(self.request.user)
-        return response
+        queue_category = form.cleaned_data['category']
+        handler = QueueHandlerFactory.get_handler(queue_category)
+
+        queue_data = form.cleaned_data.copy()
+        queue_data['created_by'] = self.request.user
+
+        queue = handler.create_queue(queue_data)
+
+        queue.authorized_user.add(self.request.user)
+
+        return redirect(self.success_url)
 
 
 class EditQueueView(LoginRequiredMixin, generic.UpdateView):
@@ -403,6 +408,7 @@ class YourQueueView(LoginRequiredMixin, generic.TemplateView):
         context['authorized_queues'] = authorized_queues
         return context
 
+
 class StatisticsView(LoginRequiredMixin, generic.TemplateView):
     template_name = 'manager/statistics.html'
 
@@ -470,6 +476,7 @@ def login_view(request):
             messages.error(request, 'Invalid username or password.')
 
     return render(request, 'account/login.html')
+
 
 def get_client_ip(request):
     """Retrieve the client's IP address from the request."""

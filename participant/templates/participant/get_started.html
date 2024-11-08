@@ -15,15 +15,15 @@
                 </div>
             </a>
 
-            <a href="{% url 'participant:queues' %}" class="card bg-base-100 shadow-xl hover:shadow-2xl hover:bg-primary/30 transform hover:scale-105 transition duration-300">
-                <figure class="px-10 pt-10">
-                    <img src="{% static 'participant/images/spongebob_queue.jpg' %}" alt="Browse Queue Icon" class="rounded-xl w-32 h-32 object-cover">
-                </figure>
-                <div class="card-body items-center text-center">
-                    <h5 class="card-title text-xl font-semibold text-primary">Browse Queues</h5>
-                    <p class="text-accent">Browse available queues if you're looking to join one.</p>
-                </div>
-            </a>
-        </div>
-    </main>
+        <a href="{% url 'participant:queues' %}" class="card bg-base-100 shadow-xl hover:shadow-2xl hover:bg-primary/30 transform hover:scale-105 transition duration-300">
+            <figure class="px-10 pt-10">
+                <img src="{% static 'participant/images/spongebob_queue.jpg' %}" alt="Browse Queue Icon" class="rounded-xl w-32 h-32 object-cover">
+            </figure>
+            <div class="card-body items-center text-center">
+                <h5 class="card-title text-xl font-semibold text-primary">Browse Queues</h5>
+                <p class="text-accent">Browse available queues if you're looking to join one.</p>
+            </div>
+        </a>
+    </div>
+</main>
 {% endblock %}

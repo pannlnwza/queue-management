@@ -7,6 +7,8 @@ from django.utils import timezone
 from django.db import models
 from django.templatetags.static import static
 from django.contrib.auth.models import User
+from django.urls import reverse
+from django.conf import settings
 
 
 class Queue(models.Model):
@@ -38,6 +40,22 @@ class Queue(models.Model):
     category = models.CharField(max_length=20, choices=CATEGORY_CHOICES)
     logo = models.ImageField(upload_to='queue_logos/', blank=True, null=True)
     completed_participants_count = models.PositiveIntegerField(default=0)
+    code = models.CharField(max_length=6, unique=True, editable=False)
+
+    def save(self, *args, **kwargs):
+        """Generate a unique ticket code for the participant if not already."""
+        if not self.pk:
+            self.code = self.generate_unique_queue_code()
+        super().save(*args, **kwargs)
+
+    @staticmethod
+    def generate_unique_queue_code(length=6):
+        """Generate a unique code for each participant."""
+        characters = string.ascii_uppercase + string.digits
+        while True:
+            code = ''.join(random.choices(characters, k=length))
+            if not Queue.objects.filter(code=code).exists():
+                return code
 
     def has_resources(self):
         return self.category != 'general'
@@ -115,6 +133,12 @@ class Queue(models.Model):
             status='empty',
             capacity__gte=required_capacity
         ).first()
+
+    def get_join_link(self):
+        """
+        Returns the full URL to the welcome page for this queue.
+        """
+        return f"{settings.SITE_DOMAIN}/welcome/{self.code}/"
 
     def __str__(self) -> str:
         """Return a string representation of the queue."""

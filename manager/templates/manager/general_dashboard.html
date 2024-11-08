@@ -44,6 +44,7 @@
 {% block content %}
     <div class="container mt-4">
         <h2 class="queue-name">{{ queue.name }}</h2>
+        <h2 class="queue-code">{{ queue.code }}</h2>
         <p>Status:
             <span class="status-badge 
                 {% if queue.status == 'normal' %}status-normal
@@ -107,14 +108,10 @@
                     <tr>
                         <td>{{ participant.position }}</td>
                         <td>
-                            {% if participant.user %}
-                                {{ participant.user.username }}
-                            {% else %}
-                                -
-                            {% endif %}
+                            {{ participant.name }}
                         </td>
                         <td>{{ participant.joined_at|date:"d-m-Y H:i:s" }}</td>
-                        <td>{{ participant.calculate_estimated_wait_time }} min</td>
+{#                        <td>{{ participant.calculate_estimated_wait_time }} min</td>#}
                         <td>{{ participant.queue_code }}</td>
                         <td>
                             {% if participant.position == 1 %}
