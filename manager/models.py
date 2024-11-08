@@ -5,6 +5,8 @@ from django.utils import timezone
 from django.db import models
 from django.templatetags.static import static
 from django.contrib.auth.models import User
+from django.urls import reverse
+from django.conf import settings
 
 
 class Queue(models.Model):
@@ -110,6 +112,12 @@ class Queue(models.Model):
         if status in dict(self.STATUS_CHOICES):
             self.status = status
         self.save()
+
+    def get_join_link(self):
+        """
+        Returns the full URL to the welcome page for this queue.
+        """
+        return f"{settings.SITE_DOMAIN}/welcome/{self.code}/"
 
     def __str__(self) -> str:
         """Return a string representation of the queue."""

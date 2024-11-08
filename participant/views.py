@@ -200,12 +200,10 @@ class KioskView(generic.FormView):
 
     def form_valid(self, form):
         # Create a new participant associated with the queue
-        participant = self.participant_handler.objects.create(
-            name=form.cleaned_data['name'],
-            email=form.cleaned_data['email'],
-            party_size=form.cleaned_data['party_size'],
-            note=form.cleaned_data['note'],
-            queue=self.queue
+        form_data = form.cleaned_data.copy()
+        form_data['queue'] = self.queue
+        participant = self.participant_handler.create_participant(
+            form_data,
         )
         participant.save()
         messages.success(self.request, f"You have successfully joined {self.queue.name}.")
