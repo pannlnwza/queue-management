@@ -2,6 +2,7 @@ import math
 import string
 import random
 
+from django.db.models import ManyToManyField
 from django.utils import timezone
 from django.db import models
 from django.templatetags.static import static
@@ -37,6 +38,14 @@ class Queue(models.Model):
     category = models.CharField(max_length=20, choices=CATEGORY_CHOICES)
     logo = models.ImageField(upload_to='queue_logos/', blank=True, null=True)
     completed_participants_count = models.PositiveIntegerField(default=0)
+
+    def has_resources(self):
+        return self.category != 'general'
+
+    def get_resources(self):
+        if self.has_resources():
+            return self.resource_set.all()
+        return None
 
     def update_estimated_wait_time_per_turn(self, time_taken: int) -> None:
         """Update the estimated wait time per turn based on the time taken for a turn."""
@@ -96,12 +105,23 @@ class Queue(models.Model):
             self.status = status
         self.save()
 
+    def get_available_resource(self, required_capacity=1):
+        """
+        Fetch an available resource for the specified queue.
+        It finds a resource with enough capacity that is currently empty.
+        """
+        print(self.resource_set)
+        return self.resource_set.filter(
+            status='empty',
+            capacity__gte=required_capacity
+        ).first()
+
     def __str__(self) -> str:
         """Return a string representation of the queue."""
         return self.name
 
 
-class Table(models.Model):
+class Resource(models.Model):
     TABLE_STATUS = [
         ('empty', 'Empty'),
         ('busy', 'Busy'),
@@ -111,42 +131,52 @@ class Table(models.Model):
     name = models.CharField(max_length=50, unique=True)
     capacity = models.PositiveIntegerField(default=1)
     status = models.CharField(choices=TABLE_STATUS, max_length=15, default='empty')
-    party = models.ForeignKey('participant.RestaurantParticipant', on_delete=models.SET_NULL, null=True, blank=True,
-                              related_name='table_assignment')
+    queue = models.ForeignKey(Queue, on_delete=models.CASCADE, blank=True, null=True)
+    assigned_to = models.ForeignKey('participant.Participant', on_delete=models.SET_NULL, null=True, blank=True,
+                                    related_name='resource_assignment')
 
-    def assign_to_party(self, participant) -> None:
-        """Assigns this table to the given participant if it is available and the capacity matches the party size."""
-        if self.status == 'empty' and self.capacity >= participant.party_size:
-            self.status = 'busy'
-            self.party = participant
-            self.save()
-            participant.table = self
-            participant.save()
-        elif self.capacity < participant.party_size:
-            raise ValueError("This table cannot accommodate the party size.")
-        else:
-            raise ValueError("This table is not available.")
+
+    def assign_to_participant(self, participant, capacity=1) -> None:
+        """
+        Assigns this resource to the given participant if it is available
+        and the capacity matches the participant's needs.
+        """
+        if self.status != 'empty':
+            raise ValueError("This resource is not available.")
+        if self.capacity < capacity:
+            raise ValueError("This resource cannot accommodate the party size.")
+
+        self.status = 'busy'
+        self.assigned_to = participant
+        self.save()
+        participant.resource = self
+        participant.save()
 
     def free(self) -> None:
-        """Frees the table, making it available for new assignments."""
-        if self.status == 'busy':
+        """
+        Frees the resource, making it available for new assignments.
+        """
+        if self.status == 'busy' and self.assigned_to:
             self.status = 'empty'
-            self.party = None
+            self.assigned_to = None
             self.save()
 
     def is_assigned(self) -> bool:
-        """Checks if this table has an assigned participant."""
-        return self.party is not None
-
-    def change_party(self, new_participant) -> None:
         """
-        Reassigns the table to a new participant if it is available and matches the capacity requirements.
+        Checks if this resource is currently assigned to a participant.
+        """
+        return self.assigned_to is not None
+
+    def change_assignment(self, new_participant) -> None:
+        """
+        Reassigns the resource to a new participant if it is available or
+        belongs to the same queue as the current assignment.
         """
         if self.is_assigned():
-            if self.party.queue != new_participant.queue:
-                raise ValueError("The new participant must be in the same queue as the current assignment.")
+            if self.assigned_to.queue != new_participant.queue:
+                raise ValueError("The new participant must be in the same queue.")
             self.free()
-        self.assign_to_party(new_participant)
+        self.assign_to_participant(new_participant)
 
     def __str__(self):
         """Return a string representation of the table."""
@@ -154,8 +184,16 @@ class Table(models.Model):
 
 
 class RestaurantQueue(Queue):
-    tables = models.ManyToManyField(Table)
     has_outdoor = models.BooleanField(default=False)
+
+class BankQueue(Queue):
+    """Represents a queue specifically for bank services."""
+
+    def __str__(self):
+        return f"Bank Queue: {self.name}"
+
+class HospitalQueue(Queue):
+    doctors = models,ManyToManyField(Resource)
 
 
 class UserProfile(models.Model):

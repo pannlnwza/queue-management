@@ -4,7 +4,7 @@ import string
 from django.contrib.auth.models import User
 from django.db import models
 from django.utils import timezone
-from manager.models import RestaurantQueue
+from manager.models import RestaurantQueue, BankQueue, Resource
 from datetime import timedelta
 
 class Participant(models.Model):
@@ -28,6 +28,8 @@ class Participant(models.Model):
     service_completed_at = models.DateTimeField(null=True, blank=True)
     waited = models.PositiveIntegerField(default=0)
     visits = models.PositiveIntegerField(default=1)
+    resource = models.ForeignKey(Resource, on_delete=models.CASCADE, blank=True, null=True)
+
 
     def save(self, *args, **kwargs):
         """Generate a unique ticket code for the participant if not already."""
@@ -78,6 +80,21 @@ class Participant(models.Model):
                 return int((self.service_completed_at - self.service_started_at).total_seconds() / 60)
         return 0
 
+    def assign_to_resource(self, required_capacity=None):
+        """
+        Assigns this participant to an available resource based on the queue category.
+        """
+        queue = self.queue
+        resource = queue.get_available_resource(required_capacity=required_capacity)
+
+        if resource:
+            resource.status = 'busy'
+            resource.save()
+            self.resource = resource
+            self.save()
+        else:
+            raise ValueError("No available resources")
+
     @staticmethod
     def remove_old_completed_participants():
         """Remove participants whose service completed 30 days ago"""
@@ -97,25 +114,9 @@ class RestaurantParticipant(Participant):
         ('indoor', 'Indoor'),
         ('outdoor', 'Outdoor'),
     ]
-
-    table = models.ForeignKey('manager.Table', on_delete=models.SET_NULL, null=True, blank=True)
     table_served = models.CharField(max_length=20, null=True, blank=True)
     party_size = models.PositiveIntegerField(default=1)
     seating_preference = models.CharField(max_length=20, choices=SEATING_PREFERENCES, default='first_available')
-
-    def assign_table(self):
-        """Assign an available table to the participant based on party size."""
-        if not isinstance(self.queue, RestaurantQueue):
-            raise ValueError("This participant is not in a restaurant queue.")
-
-        available_tables = self.queue.tables.filter(status='empty', capacity__gte=self.party_size)
-        if available_tables.exists():
-            table_to_assign = available_tables.first()
-            table_to_assign.assign_to_party(self)
-            self.table = table_to_assign
-            self.save()
-        else:
-            raise ValueError("No available tables for this party size.")
 
     def save(self, *args, **kwargs):
         """Override save method to enforce seating preference rules based on the queue's availability."""
@@ -125,6 +126,37 @@ class RestaurantParticipant(Participant):
                     raise ValueError(
                         "Seating preference can only be 'First Available' for queues without outdoor seating.")
         super().save(*args, **kwargs)
+
+
+
+
+class BankParticipant(Participant):
+    """Represents a participant in a bank queue with specific service complexity and service type needs."""
+
+    SERVICE_TYPE_CHOICES = [
+        ('account_services', 'Account Services'),
+        ('loan_services', 'Loan Services'),
+        ('investment_services', 'Investment Services'),
+        ('customer_support', 'Customer Support'),
+    ]
+
+    counter_served = models.CharField(max_length=20, null=True, blank=True)
+    service_type = models.CharField(
+        max_length=20,
+        choices=SERVICE_TYPE_CHOICES,
+        default='account_services',
+    )
+
+    def get_service_type_display(self) -> str:
+        """Returns the service type in a user-friendly format."""
+        return dict(self.SERVICE_TYPE_CHOICES).get(self.service_type, 'Unknown Service')
+
+    def save(self, *args, **kwargs):
+        """Additional validations based on the bank queue's rules."""
+        if self.queue and isinstance(self.queue, RestaurantQueue):
+            raise ValueError("BankParticipant must be assigned to a BankQueue.")
+        super().save(*args, **kwargs)
+
 
 
 class Notification(models.Model):

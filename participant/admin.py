@@ -4,3 +4,4 @@ from participant.models import *
 
 admin.site.register(Participant)
 admin.site.register(RestaurantParticipant)
+admin.site.register(BankParticipant)
