@@ -241,6 +241,16 @@ def edit_participant(request, participant_id):
 class ManageWaitlist(LoginRequiredMixin, generic.TemplateView):
     template_name = 'manager/manage_queue/manage_unique_category.html'
 
+    def get_template_names(self):
+        """Return the appropriate template based on the queue category."""
+        queue_id = self.kwargs.get('queue_id')
+        handler = CategoryHandlerFactory.get_handler(queue_id)
+        queue = handler.get_queue_object(queue_id)
+
+        if queue.category == 'general':
+            return ['manager/manage_queue/manage_general.html']
+        return [self.template_name]
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         queue_id = self.kwargs.get('queue_id')
