@@ -5,7 +5,7 @@ from django.utils import timezone
 from django.db import models
 from django.templatetags.static import static
 from django.contrib.auth.models import User
-from participant.models import Participant
+
 
 class Queue(models.Model):
     """Represents a queue created by a user."""
@@ -50,7 +50,7 @@ class Queue(models.Model):
         characters = string.ascii_uppercase + string.digits
         while True:
             code = ''.join(random.choices(characters, k=length))
-            if not Participant.objects.filter(code=code).exists():
+            if not Queue.objects.filter(code=code).exists():
                 return code
 
     def update_estimated_wait_time_per_turn(self, time_taken: int) -> None:

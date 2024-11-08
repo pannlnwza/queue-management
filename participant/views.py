@@ -11,6 +11,7 @@ from participant.models import Participant, Notification
 from manager.models import Queue
 from manager.views import logger
 from .forms import ReservationForm
+from participant.utils.participant_handler import ParticipantHandlerFactory
 
 
 # Create your views here.
@@ -181,25 +182,36 @@ def welcome(request, queue_code):
     return render(request, 'participant/welcome.html', {'queue': queue})
 
 
-def kiosk(request, queue_code):
-    queue = get_object_or_404(Queue, code=queue_code)
+class KioskView(generic.FormView):
+    template_name = 'participant/kiosk.html'
+    form_class = ReservationForm
 
-    if request.method == 'POST':
-        form = ReservationForm(request.POST)  # Pass request.POST to the form
-        if form.is_valid():
-            participant = Participant.objects.create(
-                name=form.cleaned_data['name'],
-                email=form.cleaned_data['email'],
-                party_size=form.cleaned_data['party_size'],
-                note=form.cleaned_data['note'],
-                queue=queue,
-            )
-            participant.save()
-            messages.success(request, f"You have successfully joined {queue.name}.")
-            return redirect('participant:home')
-        else:
-            print(form.errors)  # Print form errors for debugging
-    else:
-        form = ReservationForm()
+    def dispatch(self, request, *args, **kwargs):
+        # Retrieve the queue object based on the queue_code from the URL
+        self.queue = get_object_or_404(Queue, code=kwargs['queue_code'])
+        self.participant_handler = ParticipantHandlerFactory.get_handler(self.queue.category)
+        return super().dispatch(request, *args, **kwargs)
 
-    return render(request, 'participant/kiosk.html', {'queue': queue, 'form': form})
+    def get_context_data(self, **kwargs):
+        # Add the queue object to the context for rendering
+        context = super().get_context_data(**kwargs)
+        context['queue'] = self.queue
+        return context
+
+    def form_valid(self, form):
+        # Create a new participant associated with the queue
+        participant = self.participant_handler.objects.create(
+            name=form.cleaned_data['name'],
+            email=form.cleaned_data['email'],
+            party_size=form.cleaned_data['party_size'],
+            note=form.cleaned_data['note'],
+            queue=self.queue
+        )
+        participant.save()
+        messages.success(self.request, f"You have successfully joined {self.queue.name}.")
+        return redirect('participant:home')
+
+    def form_invalid(self, form):
+        # Optional: Log or print errors for debugging
+        print(form.errors)
+        return super().form_invalid(form)

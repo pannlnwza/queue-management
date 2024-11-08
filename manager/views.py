@@ -4,23 +4,20 @@ from datetime import timedelta
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, user_logged_in, user_logged_out, user_login_failed
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
+from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.exceptions import PermissionDenied
 from django.dispatch import receiver
-from django.http import Http404, JsonResponse, HttpResponse
+from django.http import Http404, JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
-from django.template.loader import render_to_string
 from django.urls import reverse_lazy, reverse
 from django.utils import timezone
 from django.views import generic
-from django.apps import apps
 from django.views.decorators.http import require_http_methods
 
 from manager.forms import QueueForm
+from participant.utils.participant_handler import ParticipantHandlerFactory
 from participant.models import Participant, Notification
-from manager.utils.participant_handler import ParticipantHandlerFactory
-from participant.models import Participant, Notification, RestaurantParticipant
 from manager.models import Queue
 from manager.utils.queue_handler import QueueHandlerFactory
 

@@ -24,7 +24,6 @@ class ParticipantHandlerFactory:
         return handler
 
 
-
 class ParticipantHandler(ABC):
     @abstractmethod
     def create_participant(self, data):
@@ -60,6 +59,7 @@ class ParticipantHandler(ABC):
     def update_participant(self, participant, data):
         pass
 
+
 class GeneralParticipantHandler(ParticipantHandler):
     def create_participant(self, data):
         return Participant.objects.create(**data)
@@ -93,6 +93,7 @@ class GeneralParticipantHandler(ParticipantHandler):
         participant.phone = data.get('phone', participant.phone)
         participant.note = data.get('notes', participant.note)
         participant.save()
+
 
 class RestaurantParticipantHandler(ParticipantHandler):
     def create_participant(self, data):
