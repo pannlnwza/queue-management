@@ -56,29 +56,6 @@ class CreateQView(LoginRequiredMixin, generic.CreateView):
         return response
 
 
-class ManageQueuesView(LoginRequiredMixin, generic.ListView):
-    """
-    Manage queues.
-
-    Allows authenticated users to view, edit, and delete their queues.
-    Lists all user-associated queues and provides action options.
-
-    :param model: The model representing the queues.
-    :param template_name: Template for displaying the queue list.
-    :param context_object_name: Variable name for queues in the template.
-    """
-    model = Queue
-    template_name = 'manager/manage_queues.html'
-    context_object_name = 'queues'
-
-    def get_queryset(self):
-        """
-        Retrieve the queues created by the logged-in user.
-        :returns: A queryset of queues created by the current user.
-        """
-        return Queue.objects.filter(created_by=self.request.user)
-
-
 class EditQueueView(LoginRequiredMixin, generic.UpdateView):
     """
     Edit an existing queue.
@@ -152,31 +129,6 @@ class EditQueueView(LoginRequiredMixin, generic.UpdateView):
         self.object.save()
         messages.success(self.request, "Queue status updated successfully.")
         return redirect('manager:manage_queues')
-
-
-class QueueDashboardView(generic.DetailView):
-    model = Queue
-    template_name = 'manager/general_dashboard.html'
-    context_object_name = 'queue'
-
-    def get(self, request, *args, **kwargs):
-        try:
-            queue = get_object_or_404(Queue, pk=kwargs.get('pk'))
-        except Http404:
-            logger.warning(f'User {request.user.username} attempted '
-                           f'to access a non-existent queue with ID {kwargs.get("pk")}.')
-            messages.error(request, 'Queue does not exist.')
-            return redirect('queue:index')
-        if queue.created_by != request.user:
-            logger.warning(
-                f'User {request.user.username} attempted to access the dashboard '
-                f'for queue "{queue.name}" (ID: {queue.pk}) without ownership.')
-            messages.error(request, 'You are not the owner of this queue.')
-            return redirect('queue:index')
-
-        logger.info(f'User {request.user.username} accessed the '
-                    f'dashboard for queue "{queue.name}" with ID {queue.pk}.')
-        return super().get(request, *args, **kwargs)
 
 
 @login_required
@@ -283,30 +235,27 @@ def edit_participant(request, participant_id):
 
 
 class ManageWaitlist(LoginRequiredMixin, generic.TemplateView):
-    def get_template_names(self):
-        queue_id = self.kwargs.get('queue_id')
-        queue = get_object_or_404(Queue, id=queue_id)
-        if self.request.user not in queue.authorized_user.all():
-            logger.error(f"Unauthorized edit attempt on queue {queue.id} by user {self.request.user.id}")
-            return JsonResponse({'error': 'Unauthorized.'}, status=403)
-
-        handler = ParticipantHandlerFactory.get_handler(queue.category)
-        return [handler.get_template_name()]
+    template_name = 'manager/manage_queue/manage_restaurant.html'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         queue_id = self.kwargs.get('queue_id')
-        queue = get_object_or_404(Queue, id=queue_id)
-
-        if queue.created_by != self.request.user:
-            raise PermissionDenied("You do not have permission to manage this queue.")
-        handler = ParticipantHandlerFactory.get_handler(queue.category)
+        handler = ParticipantHandlerFactory.get_handler(queue_id)
         queue = handler.get_queue_object(queue_id)
+
+        if self.request.user not in queue.authorized_user.all():
+            logger.error(f"Unauthorized edit attempt on queue {queue.id} by user {self.request.user.id}")
+            return JsonResponse({'error': 'Unauthorized.'}, status=403)
 
         context['waiting_list'] = handler.get_participant_set(queue_id).filter(state='waiting')
         context['serving_list'] = handler.get_participant_set(queue_id).filter(state='serving')
         context['completed_list'] = handler.get_participant_set(queue_id).filter(state='completed')
         context['queue'] = queue
+        context['resource'] = queue.get_resources()
+        context['resource_name'] = handler.get_resource_name()
+        special_column = handler.get_special_column()
+        context['special_1'] = special_column[0]
+        context['special_2'] = special_column[1]
         more_context = handler.add_context_attributes(queue)
         if more_context:
             context.update({key: value for item in handler.add_context_attributes(queue) for key, value in item.items()})
@@ -315,8 +264,10 @@ class ManageWaitlist(LoginRequiredMixin, generic.TemplateView):
 @login_required
 def serve_participant(request, participant_id):
     participant = get_object_or_404(Participant, id=participant_id)
-    queue_category = participant.queue.category
-    handler = ParticipantHandlerFactory.get_handler(queue_category)
+    queue_id = participant.queue.id
+    handler = ParticipantHandlerFactory.get_handler(queue_id)
+    participant_set = handler.get_participant_set(queue_id)
+    participant = get_object_or_404(participant_set, id=participant_id)
 
     try:
         if participant.state != 'waiting':
@@ -350,7 +301,7 @@ def serve_participant(request, participant_id):
 def complete_participant(request, participant_id):
     participant = get_object_or_404(Participant, id=participant_id)
     queue = participant.queue
-    handler = ParticipantHandlerFactory.get_handler(queue.category)
+    handler = ParticipantHandlerFactory.get_handler(queue.id)
     participant = handler.get_participant_set(queue.id).filter(id=participant_id).first()
 
     if request.user not in queue.authorized_user.all():
