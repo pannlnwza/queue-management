@@ -25,7 +25,6 @@
                                  data-queue-name="{{ queue.name|lower }}">
                                 <div class="card-body p-6">
                                     <div class="flex flex-col h-full">
-                                        <!-- Header with Logo and Title -->
                                         <div class="flex items-start gap-4 mb-4">
                                             <img src="{{ queue.get_logo_url }}"
                                                  alt="{{ queue.name }} logo"
@@ -33,12 +32,16 @@
                                             <div class="flex-1">
                                                 <div class="flex justify-between items-start flex-wrap gap-2">
                                                     <h3 class="text-xl font-bold">{{ queue.name }}</h3>
-                                                    <div class="badge badge-lg text-white whitespace-nowrap
-                                                        {% if queue.queue_status == 'Very Busy' %} bg-error text-error-content
-                                                        {% elif queue.queue_status == 'Moderate Busy' %} bg-warning text-warning-content
-                                                        {% elif queue.queue_status == 'Not Busy' %} bg-success text-success-content
-                                                        {% endif %}">
-                                                        {{ queue.queue_status }}
+                                                    <div class="flex items-center gap-2">
+                                                        <span class="text-sm font-medium">
+                                                            {{ queue.status.capitalize }}
+                                                        </span>
+                                                        <div class="badge badge-lg text-white whitespace-nowrap
+                                                            {% if queue.status == 'full' %} bg-error text-error-content
+                                                            {% elif queue.status == 'busy' %} bg-warning text-warning-content
+                                                            {% elif queue.status == 'normal' %} bg-success text-success-content
+                                                            {% endif %}">
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </div>
