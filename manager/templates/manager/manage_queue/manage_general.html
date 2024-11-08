@@ -41,15 +41,15 @@
                 <div class="flex items-center gap-2">
                     <label class="input input-bordered flex items-center w-full">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
-                          <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
                         </svg>
-                        <input type="text" placeholder="Search" class="pl-2 w-full"/>
+                        <input type="text" id="searchInput" placeholder="Search" class="pl-2 w-full" oninput="filterParticipants()"/>
                     </label>
-                    <button class="btn no-animation bg-neutral-content">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="size-4">
-                          <path d="M14 2a1 1 0 0 0-1-1H3a1 1 0 0 0-1 1v2.172a2 2 0 0 0 .586 1.414l2.828 2.828A2 2 0 0 1 6 9.828v4.363a.5.5 0 0 0 .724.447l2.17-1.085A2 2 0 0 0 10 11.763V9.829a2 2 0 0 1 .586-1.414l2.828-2.828A2 2 0 0 0 14 4.172V2Z" />
+                    <button class="btn no-animation" onclick="resetSearch()">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="size-5">
+                          <path fill-rule="evenodd" d="M15.312 11.424a5.5 5.5 0 0 1-9.201 2.466l-.312-.311h2.433a.75.75 0 0 0 0-1.5H3.989a.75.75 0 0 0-.75.75v4.242a.75.75 0 0 0 1.5 0v-2.43l.31.31a7 7 0 0 0 11.712-3.138.75.75 0 0 0-1.449-.39Zm1.23-3.723a.75.75 0 0 0 .219-.53V2.929a.75.75 0 0 0-1.5 0V5.36l-.31-.31A7 7 0 0 0 3.239 8.188a.75.75 0 1 0 1.448.389A5.5 5.5 0 0 1 13.89 6.11l.311.31h-2.432a.75.75 0 0 0 0 1.5h4.243a.75.75 0 0 0 .53-.219Z" clip-rule="evenodd" />
                         </svg>
-                        Filter
+                        Reset
                     </button>
                 </div>
             </div>
@@ -88,7 +88,7 @@
                             <tr>
                                 <td class="px-6 py-4 whitespace-nowrap">{{ participant.name }}</td>
                                 <td class="px-6 py-4 whitespace-nowrap">{{ participant.position }}</td>
-                                <td class="px-6 py-4 whitespace-nowrap">{
+                                <td class="px-6 py-4 whitespace-nowrap">
                                     {% if participant.note %}
                                     <button class="btn btn-sm no-animation" onclick="document.getElementById('${modalId}').showModal()">
                                         View Note
@@ -214,30 +214,6 @@
                                 <td class="px-6 py-4 whitespace-nowrap">{{ participant.get_service_duration }} min</td>
                                 <td class="px-6 py-4 whitespace-nowrap">{{ participant.service_started_at }}</td>
                                 <td class="px-6 py-4 whitespace-nowrap">{{ participant.service_completed_at }}</td>
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="dropdown dropdown-left dropdown-end">
-                                    <div tabindex="0" role="button" class="btn btn-square btn-sm btn-ghost">
-                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="size-5">
-                                            <path d="M3 10a1.5 1.5 0 1 1 3 0 1.5 1.5 0 0 1-3 0ZM8.5 10a1.5 1.5 0 1 1 3 0 1.5 1.5 0 0 1-3 0ZM15.5 8.5a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3Z" />
-                                        </svg>
-                                    </div>
-                                    <ul tabindex="0" class="dropdown-content menu bg-base-100 rounded-box z-[1] w-52 p-2 shadow">
-                                        <li>
-                                            <a onclick="openEditDrawer(this)"
-                                               data-id="{{ participant.id }}"
-                                               data-name="{{ participant.name }}"
-                                               data-phone="{{ participant.phone|default:'' }}"
-                                               data-table="{{ participant.table.id }}"
-                                               data-notes="{{ participant.notes|default:'' }}">
-                                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="size-5">
-                                                    <path d="m5.433 13.917 1.262-3.155A4 4 0 0 1 7.58 9.42l6.92-6.918a2.121 2.121 0 0 1 3 3l-6.92 6.918c-.383.383-.84.685-1.343.886l-3.154 1.262a.5.5 0 0 1-.65-.65Z" />
-                                                    <path d="M3.5 5.75c0-.69.56-1.25 1.25-1.25H10A.75.75 0 0 0 10 3H4.75A2.75 2.75 0 0 0 2 5.75v9.5A2.75 2.75 0 0 0 4.75 18h9.5A2.75 2.75 0 0 0 17 15.25V10a.75.75 0 0 0-1.5 0v5.25c0 .69-.56 1.25-1.25 1.25h-9.5c-.69 0-1.25-.56-1.25-1.25v-9.5Z" />
-                                                </svg>Edit
-                                            </a>
-                                        </li>
-                                    </ul>
-                                </div>
-                            </td>
                         </tr>
                         {% endfor %}
                         </tbody>
@@ -245,67 +221,6 @@
                 </div>
             </div>
         </div>
-    <!-- Delete Modal -->
-<input type="checkbox" id="deleteModal" class="modal-toggle" />
-<div class="modal">
-  <div class="modal-box">
-    <h3 class="font-bold text-lg">Are you sure you want to delete this record?</h3>
-    <p class="py-4">This action cannot be undone.</p>
-    <div class="modal-action">
-      <button class="btn btn-error" id="confirmDeleteButton">Delete</button>
-      <label for="deleteModal" class="btn">Cancel</label>
-    </div>
-  </div>
-</div>
-
-<!-- Edit Sidebar Drawer -->
-<div class="drawer drawer-end drawer-overlay z-100">
-    <input id="editDrawer" type="checkbox" class="drawer-toggle"/>
-    <div class="drawer-content">
-    </div>
-    <div class="drawer-side">
-        <label for="editDrawer" aria-label="close sidebar" class="drawer-overlay"></label>
-        <div class="bg-base-100 min-h-full w-100">
-            <div class="p-4 space-y-4">
-                <div class="drawer-header">
-                    <h2 class="text-lg font-bold">Edit Participant</h2>
-                    <hr class="border-base-300" />
-                </div>
-
-                <form id="editForm" method="POST">
-                    {% csrf_token %}
-                    <input type="hidden" id="participant_id" name="participant_id">
-
-                    <!-- Name Field -->
-                    <div class="form-control w-full">
-                        <label class="label">
-                            <span class="label-text">Name*</span>
-                        </label>
-                        <input type="text" id="edit_name" name="name" class="input input-bordered w-full" />
-                    </div>
-
-                    <!-- Phone Field -->
-                    <div class="form-control w-full">
-                        <label class="label">
-                            <span class="label-text">Phone</span>
-                        </label>
-                        <input type="tel" id="edit_phone" name="phone" placeholder="Ex. 081 234 5678" class="input input-bordered w-full" />
-                    </div>
-
-                    <!-- Notes Field -->
-                    <div class="form-control w-full">
-                        <label class="label">
-                            <span class="label-text">Note</span>
-                        </label>
-                        <textarea id="edit_notes" name="notes" class="textarea textarea-bordered w-full"></textarea>
-                    </div>
-
-                    <button type="submit" class="btn btn-primary">Submit</button>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
 
 <script>
     const queue_id = {{ queue.id }};
@@ -358,6 +273,32 @@
             const row = createCompletedRow(participant);
             completedSection.appendChild(row);
         });
+    }
+
+    function filterParticipants() {
+        const searchQuery = document.getElementById('searchInput').value.toLowerCase();
+        const waitingRows = document.querySelectorAll('tr[id^="waiting-"]');
+        const servingRows = document.querySelectorAll('tr[id^="serving-"]');
+        const completedRows = document.querySelectorAll('tr[id^="completed-"]');
+
+        filterRows(waitingRows, searchQuery);
+        filterRows(servingRows, searchQuery);
+        filterRows(completedRows, searchQuery);
+    }
+
+    function filterRows(rows, query) {
+        rows.forEach(row => {
+            const nameCell = row.querySelector('td:first-child');
+            if (nameCell) {
+                const name = nameCell.textContent.toLowerCase();
+                row.style.display = name.includes(query) ? '' : 'none';
+            }
+        });
+    }
+
+    function resetSearch() {
+        document.getElementById('searchInput').value = '';
+        filterParticipants();
     }
 
     function createNotesModal(participant) {
@@ -457,37 +398,7 @@
         <td class="px-6 py-4 whitespace-nowrap">${participant.service_duration || '0'} min</td>
         <td class="px-6 py-4 whitespace-nowrap">${participant.served || ''}</td>
         <td class="px-6 py-4 whitespace-nowrap">${participant.completed || ''}</td>
-        <td class="px-6 py-4 whitespace-nowrap">
-            <div class="dropdown dropdown-left dropdown-end">
-                <div tabindex="0" role="button" class="btn btn-square btn-sm btn-ghost">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="size-5">
-                        <path d="M3 10a1.5 1.5 0 1 1 3 0 1.5 1.5 0 0 1-3 0ZM8.5 10a1.5 1.5 0 1 1 3 0 1.5 1.5 0 0 1-3 0ZM15.5 8.5a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3Z" />
-                    </svg>
-                </div>
-                <ul tabindex="0" class="dropdown-content menu bg-base-100 rounded-box z-[1] w-52 p-2 shadow">
-                    <li>
-                        <a
-                            onclick="openEditDrawer(this)"
-                            data-id="${participant.id}"
-                            data-name="${participant.name}"
-                            data-notes="${participant.notes || '-'}"
-                            data-phone="${participant.phone}">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="size-5">
-                                <path d="m5.433 13.917 1.262-3.155A4 4 0 0 1 7.58 9.42l6.92-6.918a2.121 2.121 0 0 1 3 3l-6.92 6.918c-.383.383-.84.685-1.343.886l-3.154 1.262a.5.5 0 0 1-.65-.65Z" />
-                                <path d="M3.5 5.75c0-.69.56-1.25 1.25-1.25H10A.75.75 0 0 0 10 3H4.75A2.75 2.75 0 0 0 2 5.75v9.5A2.75 2.75 0 0 0 4.75 18h9.5A2.75 2.75 0 0 0 17 15.25V10a.75.75 0 0 0-1.5 0v5.25c0 .69-.56 1.25-1.25 1.25h-9.5c-.69 0-1.25-.56-1.25-1.25v-9.5Z" />
-                            </svg>Edit
-                        </a>
-                    </li>
-                    <li>
-                        <a id="participantDetail" class="text-red-500" onclick="openDeleteModal(${participant.id})">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="size-5">
-                                <path fill-rule="evenodd" d="M8.75 1A2.75 2.75 0 0 0 6 3.75v.443c-.795.077-1.584.176-2.365.298a.75.75 0 1 0 .23 1.482l.149-.022.841 10.518A2.75 2.75 0 0 0 7.596 19h4.807a2.75 2.75 0 0 0 2.742-2.53l.841-10.52.149.023a.75.75 0 0 0 .23-1.482A41.03 41.03 0 0 0 14 4.193V3.75A2.75 2.75 0 0 0 11.25 1h-2.5ZM10 4c.84 0 1.673.025 2.5.075V3.75c0-.69-.56-1.25-1.25-1.25h-2.5c-.69 0-1.25.56-1.25 1.25v.325C8.327 4.025 9.16 4 10 4ZM8.58 7.72a.75.75 0 0 0-1.5.06l.3 7.5a.75.75 0 1 0 1.5-.06l-.3-7.5Zm4.34.06a.75.75 0 1 0-1.5-.06l-.3 7.5a.75.75 0 1 0 1.5.06l.3-7.5Z" clip-rule="evenodd" />
-                            </svg>Delete
-                        </a>
-                    </li>
-                </ul>
-            </div>
-        </td>
+
     `;
     return row;
 }
@@ -546,13 +457,55 @@ function openEditDrawer(element) {
     const participantName = element.getAttribute('data-name');
     const participantPhone = element.getAttribute('data-phone');
     const participantNotes = element.getAttribute('data-notes');
+    const participantCategory = element.getAttribute('data-category');  // Get the category of the participant (restaurant, bank, hospital)
 
     document.getElementById('participant_id').value = participantId;
     document.getElementById('edit_name').value = participantName || '';
     document.getElementById('edit_phone').value = participantPhone || '';
     document.getElementById('edit_notes').value = participantNotes || '';
 
+    // Clear any dynamically added fields before adding new ones
+    clearDynamicFields();
+
+    // Populate form based on the participant category
+    if (participantCategory === 'restaurant') {
+        // Party size and table (restaurant-specific)
+        const partySize = element.getAttribute('data-party-size');
+        const seatingPreference = element.getAttribute('data-seating');
+        document.getElementById('edit_party_size_' + partySize).checked = true;  // Pre-select the party size
+        document.getElementById('edit_seating').value = seatingPreference || 'First Available';  // Pre-select seating preference
+    } else if (participantCategory === 'bank') {
+        // Service type (bank-specific)
+        const serviceType = element.getAttribute('data-service-type');
+        document.getElementById('edit_service_type').value = serviceType || 'account_services';
+    } else if (participantCategory === 'hospital') {
+        // Medical field and priority (hospital-specific)
+        const medicalField = element.getAttribute('data-medical-field');
+        const priority = element.getAttribute('data-priority');
+        document.getElementById('edit_medical_field').value = medicalField || 'general';
+        document.getElementById('edit_priority').value = priority || 'normal';
+    }
+
     document.getElementById('editDrawer').checked = true;
+}
+
+// Clear dynamically populated fields based on category
+function clearDynamicFields() {
+    // Clear party size radio buttons for restaurant
+    const partySizeRadios = document.querySelectorAll('input[name="party_size"]');
+    partySizeRadios.forEach(radio => radio.checked = false);
+
+    // Clear seating preference for restaurant
+    document.getElementById('edit_seating').value = '';
+
+    // Clear service type for bank
+    document.getElementById('edit_service_type').value = '';
+
+    // Clear medical field for hospital
+    document.getElementById('edit_medical_field').value = '';
+
+    // Clear priority for hospital
+    document.getElementById('edit_priority').value = '';
 }
 
 document.getElementById('editForm').addEventListener('submit', (e) => {
@@ -563,10 +516,20 @@ document.getElementById('editForm').addEventListener('submit', (e) => {
         name: document.getElementById('edit_name').value,
         phone: document.getElementById('edit_phone').value,
         notes: document.getElementById('edit_notes').value,
+        party_size: getSelectedPartySize(),  // Get selected party size
+        seating_preference: document.getElementById('edit_seating').value,  // Get seating preference (restaurant-specific)
+        service_type: document.getElementById('edit_service_type').value,  // Get service type (bank-specific)
+        medical_field: document.getElementById('edit_medical_field').value,  // Get medical field (hospital-specific)
+        priority: document.getElementById('edit_priority').value,  // Get priority (hospital-specific)
     };
 
     updateParticipant(updatedData);
 });
+
+function getSelectedPartySize() {
+    const selectedRadio = document.querySelector('input[name="party_size"]:checked');
+    return selectedRadio ? selectedRadio.value : null;
+}
 
 function updateParticipant(data) {
     const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
