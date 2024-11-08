@@ -7,7 +7,7 @@ from django.urls import reverse
 
 from participant.models import RestaurantParticipant, Participant
 from manager.models import Table, RestaurantQueue, Queue
-from utils.participant_handler import ParticipantHandlerFactory, GeneralParticipantHandler, RestaurantParticipantHandler
+from participant.utils.participant_handler import ParticipantHandlerFactory, GeneralParticipantHandler, RestaurantParticipantHandler
 from django.utils import timezone
 
 
