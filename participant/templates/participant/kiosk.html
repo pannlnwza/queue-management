@@ -11,49 +11,9 @@
             <form method="post" class="space-y-4">
                 {% csrf_token %}
 
-                <div class="form-control">
-                    <label class="label">
-                        <span class="label-text">How many people are coming?</span>
-                    </label>
-                    {{ form.party_size }}
-                    {% if form.party_size.errors %}
-                        <p class="text-red-500 text-sm mt-1">{{ form.party_size.errors }}</p>
-                    {% endif %}
-                </div>
-
-                <div class="form-control">
-                    <label class="label">
-                        <span class="label-text">Your name</span>
-                    </label>
-                    {{ form.name }}
-                    {% if form.name.errors %}
-                        <p class="text-red-500 text-sm mt-1">{{ form.name.errors }}</p>
-                    {% endif %}
-                </div>
-
-                <div class="form-control">
-                    <label class="label">
-                        <span class="label-text">Your email address</span>
-                    </label>
-                    {{ form.email }}
-                    {% if form.email.errors %}
-                        <p class="text-red-500 text-sm mt-1">{{ form.email.errors }}</p>
-                    {% endif %}
-                </div>
-
-                <div class="form-control">
-                    <label class="label">
-                        <span class="label-text">Any special requests?</span>
-                    </label>
-                    {{ form.note }}
-                    {% if form.note.errors %}
-                        <p class="text-red-500 text-sm mt-1">{{ form.note.errors }}</p>
-                    {% endif %}
-                </div>
-
-                <div class="card-actions justify-end">
-                    <button type="submit" class="btn btn-primary">Submit</button>
-                </div>
+                {% csrf_token %}
+                {{ form.as_p }}  <!-- Render the form fields, including the phone field -->
+                <button type="submit" class="btn btn-primary w-full mt-4">Create Reservation</button>
             </form>
         </div>
     </div>

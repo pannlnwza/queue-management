@@ -91,6 +91,7 @@ class Participant(models.Model):
 
 
 
+
 class RestaurantParticipant(Participant):
     """Represents a participant in a restaurant queue with table assignment capabilities."""
     SEATING_PREFERENCES = [
