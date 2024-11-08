@@ -4,21 +4,24 @@ from manager.models import Table, RestaurantQueue, Queue
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 
+
 class ParticipantHandlerFactory:
+    _handlers = {}
+
     @staticmethod
     def get_handler(queue_category):
-        if queue_category == 'general':
-            return GeneralParticipantHandler()
-        elif queue_category == 'restaurant':
-            return RestaurantParticipantHandler()
-        # elif queue_category == 'hospital':
-        #     return HospitalParticipantHandler()
-        # elif queue_category == 'bank':
-        #     return BankParticipantHandler()
-        else:
-            return GeneralParticipantHandler()
-            # raise ValueError(f"Unknown category: {queue_category}")
+        if queue_category in ParticipantHandlerFactory._handlers:
+            return ParticipantHandlerFactory._handlers[queue_category]
 
+        if queue_category == 'general':
+            handler = GeneralParticipantHandler()
+        elif queue_category == 'restaurant':
+            handler = RestaurantParticipantHandler()
+        else:
+            handler = GeneralParticipantHandler()  # default handler
+
+        ParticipantHandlerFactory._handlers[queue_category] = handler
+        return handler
 
 
 class ParticipantHandler(ABC):
@@ -56,6 +59,7 @@ class ParticipantHandler(ABC):
     def update_participant(self, participant, data):
         pass
 
+
 class GeneralParticipantHandler(ParticipantHandler):
     def create_participant(self, data):
         return Participant.objects.create(**data)
@@ -89,6 +93,7 @@ class GeneralParticipantHandler(ParticipantHandler):
         participant.phone = data.get('phone', participant.phone)
         participant.note = data.get('notes', participant.note)
         participant.save()
+
 
 class RestaurantParticipantHandler(ParticipantHandler):
     def create_participant(self, data):

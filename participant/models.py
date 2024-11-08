@@ -7,6 +7,7 @@ from django.utils import timezone
 from manager.models import RestaurantQueue
 from datetime import timedelta
 
+
 class Participant(models.Model):
     """Represents a participant in a queue."""
     PARTICIPANT_STATE = [
@@ -19,8 +20,8 @@ class Participant(models.Model):
     email = models.EmailField(max_length=50, null=True, blank=True)
     phone = models.CharField(max_length=20, null=True, blank=True)
     queue = models.ForeignKey('manager.Queue', on_delete=models.CASCADE)
-    joined_at = models.DateTimeField(default=timezone.localtime)
-    position = models.PositiveIntegerField(null=True)
+    joined_at = models.DateTimeField(auto_now_add=True)
+    position = models.PositiveIntegerField(null=True)  # why null? right now
     note = models.TextField(max_length=150, null=True, blank=True)
     code = models.CharField(max_length=6, unique=True, editable=False)
     state = models.CharField(max_length=10, choices=PARTICIPANT_STATE, default='waiting')
@@ -90,6 +91,7 @@ class Participant(models.Model):
 
 
 
+
 class RestaurantParticipant(Participant):
     """Represents a participant in a restaurant queue with table assignment capabilities."""
     SEATING_PREFERENCES = [
@@ -133,6 +135,7 @@ class Notification(models.Model):
     message = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
     is_read = models.BooleanField(default=False)
+
 
     def __str__(self):
         return f"Notification for {self.participant}: {self.message}"

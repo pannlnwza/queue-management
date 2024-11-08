@@ -1,11 +1,12 @@
 import math
 import string
 import random
-
 from django.utils import timezone
 from django.db import models
 from django.templatetags.static import static
 from django.contrib.auth.models import User
+from django.urls import reverse
+from django.conf import settings
 
 
 class Queue(models.Model):
@@ -37,6 +38,22 @@ class Queue(models.Model):
     category = models.CharField(max_length=20, choices=CATEGORY_CHOICES)
     logo = models.ImageField(upload_to='queue_logos/', blank=True, null=True)
     completed_participants_count = models.PositiveIntegerField(default=0)
+    code = models.CharField(max_length=6, unique=True, editable=False)
+
+    def save(self, *args, **kwargs):
+        """Generate a unique ticket code for the participant if not already."""
+        if not self.pk:
+            self.code = self.generate_unique_queue_code()
+        super().save(*args, **kwargs)
+
+    @staticmethod
+    def generate_unique_queue_code(length=6):
+        """Generate a unique code for each participant."""
+        characters = string.ascii_uppercase + string.digits
+        while True:
+            code = ''.join(random.choices(characters, k=length))
+            if not Queue.objects.filter(code=code).exists():
+                return code
 
     def update_estimated_wait_time_per_turn(self, time_taken: int) -> None:
         """Update the estimated wait time per turn based on the time taken for a turn."""
@@ -95,6 +112,12 @@ class Queue(models.Model):
         if status in dict(self.STATUS_CHOICES):
             self.status = status
         self.save()
+
+    def get_join_link(self):
+        """
+        Returns the full URL to the welcome page for this queue.
+        """
+        return f"{settings.SITE_DOMAIN}/welcome/{self.code}/"
 
     def __str__(self) -> str:
         """Return a string representation of the queue."""
