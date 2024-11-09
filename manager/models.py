@@ -164,7 +164,7 @@ class Resource(models.Model):
         Assigns this resource to the given participant if it is available
         and the capacity matches the participant's needs.
         """
-        if self.status != 'empty':
+        if self.status != 'available':
             raise ValueError("This resource is not available.")
         if self.capacity < capacity:
             raise ValueError("This resource cannot accommodate the party size.")
@@ -180,7 +180,7 @@ class Resource(models.Model):
         Frees the resource, making it available for new assignments.
         """
         if self.status == 'busy' and self.assigned_to:
-            self.status = 'empty'
+            self.status = 'available'
             self.assigned_to = None
             self.save()
 
@@ -190,16 +190,7 @@ class Resource(models.Model):
         """
         return self.assigned_to is not None
 
-    def change_assignment(self, new_participant) -> None:
-        """
-        Reassigns the resource to a new participant if it is available or
-        belongs to the same queue as the current assignment.
-        """
-        if self.is_assigned():
-            if self.assigned_to.queue != new_participant.queue:
-                raise ValueError("The new participant must be in the same queue.")
-            self.free()
-        self.assign_to_participant(new_participant)
+
 
     def __str__(self):
         """Return a string representation of the table."""
