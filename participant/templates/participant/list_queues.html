@@ -1,202 +1,145 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block extra_head %}
-    <style>
-        main {
-            padding: 2rem;
-            width: 80%;
-            margin: auto;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-        .card {
-            background: white;
-            width: 1000px;
-            border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            padding: 1.5rem;
-            transition: box-shadow 0.3s ease;
-        }
-        .card:hover {
-            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
-        }
-        .card-title {
-            font-size: 1.6rem;
-            font-weight: bold;
-            margin-top: 1.2rem;
-            text-align: center;
-            color: #333;
-        }
-        .queue-block {
-            border: 1px solid #e0e0e0;
-            border-radius: 8px;
-            padding: 1rem;
-            margin-bottom: 1rem;
-            display: flex;
-            align-items: center;
-            transition: background-color 0.3s ease, box-shadow 0.3s ease;
-        }
-        .queue-block.open {
-            background-color: #fafafa;
-        }
-        .queue-block.open:hover {
-            background-color: #f0f0f0;
-            border-color: #ccc;
-        }
-        .queue-logo {
-            width: 100px;
-            height: auto;
-            margin-right: 1rem;
-        }
-        .queue-header {
-            display: flex;
-            align-items: center;
-            width: 100%;
-            margin-bottom: 0.4rem;
-        }
-        .queue-title {
-            font-size: 1.2rem;
-            font-weight: bold;
-            color: #333;
-        }
-        .queue-info {
-            font-size: 0.85rem;
-            color: #555;
-            margin-bottom: 0.25rem;
-        }
-        .status-badge {
-            display: inline-block;
-            padding: 0.5rem 1rem;
-            border-radius: 5px;
-            font-size: 1rem;
-            margin-top: 1rem;
-            margin-bottom: 2rem;
-            text-align: center;
-            font-weight: bold;
-        }
-        .status-badge-green {
-            background-color: #d4edda;
-            color: #155724;
-        }
-        .status-badge-red {
-            background-color: #f8d7da;
-            color: #721c24;
-        }
-        .no-queues {
-            font-size: 1rem;
-            color: #888;
-            text-align: center;
-        }
-        .queue-block.closed {
-            background-color: #f7f7f7;
-            border-color: #ddd;
-            opacity: 0.8;
-        }
-        .queue-block.closed:hover {
-            background-color: #f0f0f0;
-            border-color: #ccc;
-            box-shadow: none;
-        }
-        .queue-status {
-            color: white;
-            font-size: 0.9rem;
-            padding: 0.2rem 0.5rem;
-            border-radius: 16px;
-            margin-left: 0.5rem;
-        }
-        .status-bg {
-            font-weight: bold;
-        }
-        .status-bg-green {
-            background-color: #2DA44E;
-        }
-        .status-bg-yellow {
-            background-color: #FFC519;
-        }
-        .status-bg-red {
-            background-color: #ff0000;
-        }
-        .status-bg-dark-red{
-            background-color: #721c24;
-        }
-    </style>
-{% endblock %}
-
 {% block content %}
-    <main>
-        <div class="card">
-            <div class="card-title">{{ queue_type }} Queues</div>
-            <div>
-                <div style="text-align: center;">
-                    <span class="status-badge status-badge-green">Open Queues</span>
+<div class="container mx-auto p-4">
+    <div class="card bg-base-100 shadow-xl">
+        <div class="card-body">
+            <h2 class="card-title text-2xl font-bold mb-6">{{ queue_type }} Queues</h2>
+            <div class="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4 sm:gap-6">
+
+                <div class="form-control w-full sm:w-4/5 mb-4 sm:mb-0">
+                    <div class="input-group">
+                        <input
+                            type="text"
+                            id="searchInput"
+                            placeholder="Search queues..."
+                            class="input input-bordered w-full"
+                        >
+                    </div>
                 </div>
+
+                <div class="form-control w-full sm:w-1/6">
+                    <select id="statusFilter" class="select select-bordered w-full">
+                        <option value="">All</option>
+                        <option value="full">Full</option>
+                        <option value="busy">Busy</option>
+                        <option value="normal">Normal</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4" id="queueList">
                 {% if queues %}
                     {% for queue in queues %}
                         {% if not queue.is_closed %}
-                            <div class="queue-block open">
-                                <img src="{{ queue.get_logo_url }}" alt="{{ queue.name }} logo" class="queue-logo">
-                                <div style="margin-left: 0.5rem;">
-                                    <div class="queue-header">
-                                        <div class="queue-title">{{ queue.name }}</div>
-                                        <div class="queue-status status-bg
-                                            {% if queue.queue_status == 'Very Busy' %} status-bg-red
-                                           {% elif queue.queue_status == 'Moderate Busy' %} status-bg-yellow
-                                           {% elif queue.queue_status == 'Not Busy' %} status-bg-green
-                                        {% endif %}">
-                                            {{ queue.queue_status }}
+                            <div class="queue-item card bg-base-200 shadow-sm hover:shadow-md transition-shadow"
+                                 data-queue-name="{{ queue.name|lower }}"
+                                 data-queue-status="{{ queue.status|lower }}">
+                                <div class="card-body p-6">
+                                    <div class="flex flex-col h-full">
+                                        <div class="flex items-start gap-4 mb-4">
+                                            <img src="{{ queue.get_logo_url }}"
+                                                 alt="{{ queue.name }} logo"
+                                                 class="w-16 h-16 rounded-lg object-cover flex-shrink-0">
+                                            <div class="flex-1">
+                                                <div class="flex justify-between items-start flex-wrap gap-2">
+                                                    <h3 class="text-xl font-bold">{{ queue.name }}</h3>
+                                                    <div class="flex items-center gap-2">
+                                                        <span class="text-sm font-medium">
+                                                            {{ queue.status.capitalize }}
+                                                        </span>
+                                                        <div class="badge badge-lg text-white whitespace-nowrap
+                                                            {% if queue.status == 'full' %} bg-error text-error-content
+                                                            {% elif queue.status == 'busy' %} bg-warning text-warning-content
+                                                            {% elif queue.status == 'normal' %} bg-success text-success-content
+                                                            {% endif %}">
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="divider my-0"></div>
+                                        <p class="text-base-content/70 break-words">
+                                            {{ queue.description|striptags }}
+                                        </p>
+                                        <div class="divider my-0"></div>
+
+                                        <div class="flex items-center justify-between mt-2">
+                                            <p class="text-sm font-medium flex items-center flex-wrap gap-2">
+                                                <span>Currently in queue:</span>
+                                                <span class="badge badge-neutral">
+                                                    {% if queue.get_number_of_participants == 1 %}
+                                                        1 person
+                                                    {% else %}
+                                                        {{ queue.get_number_of_participants }} people
+                                                    {% endif %}
+                                                </span>
+                                            </p>
                                         </div>
                                     </div>
-                                    <div class="queue-info">{{ queue.description }}</div>
-                                    <div class="queue-info">
-                                        Currently in queue:
-                                        {% if queue.get_number_of_participants == 1 %}
-                                            1 person
-                                        {% else %}
-                                            {{ queue.get_number_of_participants }} people
-                                        {% endif %}
-                                    </div>
                                 </div>
                             </div>
                         {% endif %}
                     {% endfor %}
                 {% else %}
-                    <div class="no-queues">No open queues available.</div>
-                {% endif %}
-            </div>
-
-            <div>
-                <div style="text-align: center;">
-                    <span class="status-badge status-badge-red">Closed Queues</span>
-                </div>
-                {% if queues %}
-                    {% for queue in queues %}
-                        {% if queue.is_closed %}
-                            <div class="queue-block closed">
-                                <img src="{{ queue.get_logo_url }}" alt="{{ queue.name }} logo" class="queue-logo">
-                                <div style="margin-left: 0.5rem;">
-                                    <div class="queue-header">
-                                        <div class="queue-title">{{ queue.name }}</div>
-                                        <div class="queue-status status-bg status-bg-dark-red">Closed</div>
-                                    </div>
-                                    <div class="queue-info">{{ queue.description }}</div>
-                                    <div class="queue-info">
-                                        Currently in queue:
-                                        {% if queue.get_number_of_participants == 1 %}
-                                            1 person
-                                        {% else %}
-                                            {{ queue.get_number_of_participants }} people
-                                        {% endif %}
-                                    </div>
-                                </div>
-                            </div>
-                        {% endif %}
-                    {% endfor %}
-                {% else %}
-                    <div class="no-queues">No closed queues available.</div>
+                    <div class="text-center py-8 text-base-content/70 col-span-2">
+                        No queues available.
+                    </div>
                 {% endif %}
             </div>
         </div>
-    </main>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const searchInput = document.getElementById('searchInput');
+        const queueItems = document.querySelectorAll('.queue-item');
+        const statusFilter = document.getElementById('statusFilter');
+
+        searchInput.addEventListener('input', function(e) {
+            const searchTerm = e.target.value.toLowerCase();
+            filterQueues(searchTerm, statusFilter.value);
+        });
+
+        statusFilter.addEventListener('change', function(e) {
+            const status = e.target.value.toLowerCase();
+            filterQueues(searchInput.value, status);
+        });
+
+        function filterQueues(searchTerm, status) {
+            let hasVisibleQueues = false;
+
+            queueItems.forEach(item => {
+                const queueName = item.dataset.queueName;
+                const queueStatus = item.dataset.queueStatus;
+
+                const matchesSearch = queueName.includes(searchTerm);
+                const matchesStatus = status ? queueStatus === status : true;
+
+                if (matchesSearch && matchesStatus) {
+                    item.style.display = '';
+                    hasVisibleQueues = true;
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+
+            let noResultsMsg = document.getElementById('noResultsMessage');
+            if (!hasVisibleQueues) {
+                if (!noResultsMsg) {
+                    noResultsMsg = document.createElement('div');
+                    noResultsMsg.id = 'noResultsMessage';
+                    noResultsMsg.className = 'text-center py-8 text-base-content/70 col-span-2';
+                    noResultsMsg.textContent = 'No queues found matching your search and filter criteria.';
+                    document.getElementById('queueList').appendChild(noResultsMsg);
+                }
+            } else if (noResultsMsg) {
+                noResultsMsg.remove();
+            }
+        }
+    });
+</script>
 {% endblock %}

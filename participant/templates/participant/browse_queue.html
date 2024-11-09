@@ -1,72 +1,64 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}<title>Browse Queues</title>{% endblock %}
+{% block title %}<title>Queue Management</title>{% endblock %}
 
 {% block content %}
-<div class="container mx-auto mt-4">
-    <h2 class="mb-4 text-center text-3xl font-bold">Browse Queues</h2>
+<div class="bg-gray-100 py-12">
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+    <h1 class="text-4xl font-bold text-center mb-8">Browse Queues</h1>
 
-    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-        <div class="bg-white rounded-lg shadow-md">
-            <a href="{% url 'participant:restaurant_queues' %}">
-                <div class="bg-gradient-to-r from-orange-400 to-red-400 rounded-t-lg p-4 text-white">
-                    <h5 class="text-lg font-semibold">Restaurant Queues</h5>
-                </div>
-                <div class="p-4">
-                    <img src="{% static 'participant/images/restaurant.jpg' %}" alt="Restaurant Queues" class="w-full rounded-md">
-                    <p class="mt-2 text-gray-600">Find all available restaurant queues.</p>
-                </div>
-            </a>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+      <a href="{% url 'participant:restaurant_queues' %}" class="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300">
+        <div class="bg-gradient-to-r from-orange-400 to-red-400 p-6">
+          <h2 class="text-2xl font-bold text-white ">Restaurant Queues</h2>
         </div>
+        <div class="p-6">
+          <img src="{% static 'participant/images/restaurant.jpg' %}" alt="Restaurant Queues" class="w-full rounded-md mb-4">
+          <p class="text-gray-600 font-bold">Find available restaurant queues.</p>
+        </div>
+      </a>
 
-        <div class="bg-white rounded-lg shadow-md">
-            <a href="{% url 'participant:general_queues' %}">
-                <div class="bg-gradient-to-r from-red-400 to-pink-400 rounded-t-lg p-4 text-white">
-                    <h5 class="text-lg font-semibold">General Queues</h5>
-                </div>
-                <div class="p-4">
-                    <img src="{% static 'participant/images/general.jpg' %}" alt="General Queues" class="w-full rounded-md">
-                    <p class="mt-2 text-gray-600">Explore general queues.</p>
-                </div>
-            </a>
+      <a href="{% url 'participant:general_queues' %}" class="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300">
+        <div class="bg-gradient-to-r from-red-400 to-pink-400 p-6">
+          <h2 class="text-2xl font-bold text-white">General Queues</h2>
         </div>
+        <div class="p-6">
+          <img src="{% static 'participant/images/general.jpg' %}" alt="General Queues" class="w-full rounded-md mb-4">
+          <p class="text-gray-600 font-bold">Find available general queues.</p>
+        </div>
+      </a>
 
-        <div class="bg-white rounded-lg shadow-md">
-            <a href="{% url 'participant:hospital_queues' %}">
-                <div class="bg-gradient-to-r from-pink-400 to-purple-400 rounded-t-lg p-4 text-white">
-                    <h5 class="text-lg font-semibold">Hospital Queues</h5>
-                </div>
-                <div class="p-4">
-                    <img src="{% static 'participant/images/hospital.jpg' %}" alt="Hospital Queues" class="w-full rounded-md">
-                    <p class="mt-2 text-gray-600">Access hospital queues.</p>
-                </div>
-            </a>
+      <a href="{% url 'participant:hospital_queues' %}" class="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300">
+        <div class="bg-gradient-to-r from-pink-400 to-purple-400 p-6">
+          <h2 class="text-2xl font-bold text-white">Hospital Queues</h2>
         </div>
+        <div class="p-6">
+          <img src="{% static 'participant/images/hospital.jpg' %}" alt="Hospital Queues" class="w-full rounded-md mb-4">
+          <p class="text-gray-600 font-bold">Find available hospital queues.</p>
+        </div>
+      </a>
 
-        <div class="bg-white rounded-lg shadow-md">
-            <a href="{% url 'participant:bank_queues' %}">
-                <div class="bg-gradient-to-r from-purple-400 to-indigo-400 rounded-t-lg p-4 text-white">
-                    <h5 class="text-lg font-semibold">Bank Queues</h5>
-                </div>
-                <div class="p-4">
-                    <img src="{% static 'participant/images/bank.jpg' %}" alt="Bank Queues" class="w-full rounded-md">
-                    <p class="mt-2 text-gray-600">Bank queues.</p>
-                </div>
-            </a>
+      <a href="{% url 'participant:bank_queues' %}" class="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300">
+        <div class="bg-gradient-to-r from-purple-400 to-indigo-400 p-6">
+          <h2 class="text-2xl font-bold text-white">Bank Queues</h2>
         </div>
+        <div class="p-6">
+          <img src="{% static 'participant/images/bank.jpg' %}" alt="Bank Queues" class="w-full rounded-md mb-4">
+          <p class="text-gray-600 font-bold">Find available bank queues.</p>
+        </div>
+      </a>
 
-        <div class="bg-white rounded-lg shadow-md">
-            <a href="{% url 'participant:service_center_queues' %}">
-                <div class="bg-gradient-to-r from-indigo-400 to-blue-400 rounded-t-lg p-4 text-white">
-                    <h5 class="text-lg font-semibold">Service Center Queues</h5>
-                </div>
-                <div class="p-4">
-                    <img src="{% static 'participant/images/service_center.jpg' %}" alt="Service Center Queues" class="w-full rounded-md">
-                    <p class="mt-2 text-gray-600">Service Center queues.</p>
-                </div>
-            </a>
+      <a href="{% url 'participant:service_center_queues' %}" class="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300">
+        <div class="bg-gradient-to-r from-indigo-400 to-blue-400 p-6">
+          <h2 class="text-2xl font-bold text-white">Service Center Queues</h2>
         </div>
+        <div class="p-6">
+          <img src="{% static 'participant/images/service_center.jpg' %}" alt="Service Center Queues" class="w-full rounded-md mb-4">
+          <p class="text-gray-600 font-bold">Find available service center queues.</p>
+        </div>
+      </a>
     </div>
+  </div>
 </div>
 {% endblock %}
