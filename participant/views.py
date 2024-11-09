@@ -213,3 +213,7 @@ class KioskView(generic.FormView):
         # Optional: Log or print errors for debugging
         print(form.errors)
         return super().form_invalid(form)
+
+
+class QRcodeView(generic):
+    pass
