@@ -112,6 +112,7 @@ class GeneralQueueHandler(CategoryHandler):
         participant.name = data.get('name', participant.name)
         participant.phone = data.get('phone', participant.phone)
         participant.note = data.get('notes', participant.note)
+        participant.state = data.get('state', participant.state)
         participant.save()
 
     def get_participant_data(self, participant):
@@ -162,8 +163,7 @@ class RestaurantQueueHandler(CategoryHandler):
             participant.service_duration = service_duration
             if participant.resource:
                 participant.resource_assigned = participant.resource.name
-                participant.resource.status = 'empty'
-                participant.resource.save()
+                participant.resource.free()
                 participant.resource = None
             participant.state = 'completed'
             participant.service_completed_at = timezone.localtime()
@@ -177,25 +177,37 @@ class RestaurantQueueHandler(CategoryHandler):
             'special_1': 'Party Size',
             'special_2': 'Seating Preference',
             'resource_name': 'Table',
+            'special_1_choices': None,
+            'special_2_choices': RestaurantParticipant.SEATING_PREFERENCES
         }
 
     def update_participant(self, participant, data):
+        # Update basic participant information
         participant.name = data.get('name', participant.name)
         participant.phone = data.get('phone', participant.phone)
         participant.party_size = data.get('party_size', participant.party_size)
+        participant.seating_preference = data.get('special_2', participant.seating_preference)
         participant.note = data.get('notes', participant.note)
-        participant.seating_preference = data.get('seating_preference', participant.seating_preference)
-
-        if participant.state == 'completed':
-            table_id = data.get('table')
-            table = get_object_or_404(Resource, id=table_id)
-            participant.table_served = table.name
-        else:
-            table_id = data.get('table')
-            if table_id:
-                table = get_object_or_404(participant.queue.tables, id=table_id)
-                table.assign_to_party(participant)
+        participant.state = data.get('state', participant.state)
+        participant.email = data.get('email', participant.email)
+        print(participant.party_size)
         participant.save()
+
+
+        # # Check if resource assignment is needed
+        # if participant.state == 'completed':
+        #     table_id = data.get('resource')
+        #     if table_id:
+        #         table = get_object_or_404(Resource, id=table_id)
+        #         participant.resource_assigned = table.name
+        # else:
+        #     # If participant is not completed, assign a table from the queue's available resources
+        #     table_id = data.get('resource')
+        #     if table_id:
+        #         table = get_object_or_404(participant.queue.tables, id=table_id)
+        #         table.assign_to_party(participant)  # Assuming you have a method for assigning tables
+
+         # Don't forget to save the participant after updating
 
     def get_participant_data(self, participant):
         return {
@@ -246,7 +258,7 @@ class HospitalQueueHandler(CategoryHandler):
         Assigns a doctor to a hospital participant based on their medical field and priority.
         """
         queue = self.get_queue_object(participant.queue.id)
-        doctor = queue.doctors.filter(specialty=participant.medical_field, status='empty').first()
+        doctor = queue.doctors.filter(specialty=participant.medical_field, status='available').first()
         if doctor:
             doctor.assign_to_participant(participant)
             participant.resource = doctor
@@ -272,8 +284,7 @@ class HospitalQueueHandler(CategoryHandler):
             participant.service_duration = service_duration
             if participant.resource:
                 participant.resource_assigned = participant.resource.name
-                participant.resource.status = 'empty'
-                participant.resource.save()
+                participant.resource.free()
                 participant.resource = None
             participant.state = 'completed'
             participant.service_completed_at = timezone.localtime()
@@ -287,7 +298,9 @@ class HospitalQueueHandler(CategoryHandler):
             'special_1': 'Medical Field Needed',
             'special_2': 'Priority',
             'resource_name': 'Doctor',
-            'resources': Doctor.objects.filter(queue=queue)
+            'resources': Doctor.objects.filter(queue=queue),
+            'special_1_choices': HospitalParticipant.MEDICAL_FIELD_CHOICES,
+            'special_2_choices': HospitalParticipant.PRIORITY_CHOICES
         }
 
     def update_participant(self, participant, data):
@@ -296,21 +309,11 @@ class HospitalQueueHandler(CategoryHandler):
         """
         participant.name = data.get('name', participant.name)
         participant.phone = data.get('phone', participant.phone)
-        participant.medical_field = data.get('medical_field', participant.medical_field)
-        participant.priority = data.get('priority', participant.priority)
-
-        if participant.state == 'completed':
-            doctor_id = data.get('doctor')
-            doctor = get_object_or_404(Doctor, id=doctor_id)
-            participant.resource = doctor
-            participant.resource.status = 'busy'
-            participant.save()
-        else:
-            doctor_id = data.get('doctor')
-            if doctor_id:
-                doctor = get_object_or_404(participant.queue.doctor_set, id=doctor_id)
-                doctor.assign_to_participant(participant)
-
+        participant.medical_field = data.get('special_1', participant.medical_field)
+        participant.priority = data.get('special_2', participant.priority)
+        participant.note = data.get('notes', participant.note)
+        participant.state = data.get('state', participant.state)
+        participant.email = data.get('email', participant.email)
         participant.save()
 
     def get_participant_data(self, participant):
@@ -335,20 +338,6 @@ class HospitalQueueHandler(CategoryHandler):
             'resource': participant.resource.name if participant.resource else None,
             'resource_id': participant.resource.id if participant.resource else None,
         }
-
-    def get_special_column(self):
-        """
-        Returns special columns to display for hospital participants.
-        """
-        return 'Required Medical Field', 'Priority'
-
-    def get_resource_name(self):
-        """
-        Returns the resource name, which for hospital participants is a doctor.
-        """
-        return 'Doctor'
-
-
 
 
 class BankQueueHandler(CategoryHandler):
@@ -384,8 +373,7 @@ class BankQueueHandler(CategoryHandler):
             participant.service_duration = service_duration
             if participant.resource:
                 participant.resource_assigned = participant.resource.name
-                participant.resource.status = 'empty'
-                participant.resource.save()
+                participant.resource.free()
                 participant.resource = None
             participant.state = 'completed'
             participant.service_completed_at = timezone.localtime()
@@ -402,12 +390,16 @@ class BankQueueHandler(CategoryHandler):
             'special_1': None,
             'special_2': 'Service Type',
             'resource_name': 'Counter',
+            'special_1_choices': None,
+            'special_2_choices': BankParticipant.SERVICE_TYPE_CHOICES
         }
 
     def update_participant(self, participant, data):
         participant.name = data.get('name', participant.name)
         participant.phone = data.get('phone', participant.phone)
         participant.note = data.get('notes', participant.note)
+        participant.state = data.get('state', participant.state)
+        participant.service_type = data.get('special_2', participant.service_type)
         participant.save()
 
     def get_participant_data(self, participant):
