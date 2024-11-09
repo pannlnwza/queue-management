@@ -325,6 +325,7 @@ class HospitalQueueHandler(CategoryHandler):
             'name': participant.name,
             'phone': participant.phone,
             'position': participant.position,
+            'notes': participant.note,
             'medical_field': participant.get_medical_field_display(),
             'priority': participant.get_priority_display(),
             'waited': participant.waited if participant.state == 'completed' else participant.get_wait_time(),

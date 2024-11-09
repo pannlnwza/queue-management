@@ -59,7 +59,7 @@
         <div class="text-xs opacity-80">{{ unavailable_resource| length }} unavailable</div>
     </div>
 
-  <div class="overflow-x-auto">
+  <div class="overflow-hidden">
     <table class="table w-full m-auto">
         <thead>
             <tr>
@@ -262,6 +262,8 @@
             <div class="card w-full shadow bordered bg-base-100 overflow-x-auto">
                 <div class="card-body">
                     <h2 class="card-title">Completed</h2>
+                    <p class="text-info-content font-thin">
+                        {{ queue.get_participants_today }} participants today</p>
                     <table class="min-w-full bg-base-100 divide-y divide-gray-200">
                         <thead>
                         <tr>
