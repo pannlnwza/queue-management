@@ -1,6 +1,6 @@
-import json
 import logging
 from datetime import timedelta
+
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, user_logged_in, user_logged_out, user_login_failed
 from django.contrib.auth.decorators import login_required
@@ -15,11 +15,10 @@ from django.views import generic
 from django.views.decorators.http import require_http_methods
 
 from manager.forms import QueueForm
-from manager.utils.category_handler import CategoryHandlerFactory
-from participant.models import Participant, Notification
 from manager.models import Queue
+from manager.utils.category_handler import CategoryHandlerFactory
 from manager.utils.queue_handler import QueueHandlerFactory
-
+from participant.models import Participant, Notification
 
 logger = logging.getLogger('queue')
 
@@ -191,6 +190,7 @@ def delete_queue(request, queue_id):
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
 
+
 @login_required
 @require_http_methods(["DELETE"])
 def delete_participant(request, participant_id):
@@ -218,24 +218,21 @@ def delete_participant(request, participant_id):
 @require_http_methods(["POST"])
 def edit_participant(request, participant_id):
     participant = get_object_or_404(Participant, id=participant_id)
-    queue = participant.queue
-    if request.user not in queue.authorized_user.all():
-        logger.error(f"Unauthorized edit attempt on queue {queue.id} by user {request.user.id}")
-        return JsonResponse({'error': 'Unauthorized.'}, status=403)
-
-    handler = CategoryHandlerFactory.get_handler(queue.category)
-    queue = handler.get_queue_object(queue.id)
-    participant = handler.get_participant_set(queue.id).get(id=participant_id)
-
-    # Parse the JSON payload
-    data = json.loads(request.body)
-    handler.update_participant(participant, data)
-
-    logger.info(f"Participant {participant_id} in queue {queue.id} updated successfully.")
-    return JsonResponse({
-        'status': 'success',
-        'message': 'Participant information updated successfully',
-    })
+    if request.method == "POST":
+        data = {
+            'name': request.POST.get('name'),
+            'phone': request.POST.get('phone'),
+            'email': request.POST.get('email'),
+            'notes': request.POST.get('notes'),
+            'special_1': request.POST.get('special_1'),
+            'special_2': request.POST.get('special_2'),
+            'party_size': request.POST.get('party_size'),
+            'state': request.POST.get('state')
+        }
+        handler = CategoryHandlerFactory.get_handler(participant.queue.id)
+        participant = handler.get_participant_set(participant.queue.id).get(id=participant_id)
+        handler.update_participant(participant, data)
+        return redirect('manager:participant_list', participant.queue.id)
 
 
 class ManageWaitlist(LoginRequiredMixin, generic.TemplateView):
@@ -279,6 +276,7 @@ class ManageWaitlist(LoginRequiredMixin, generic.TemplateView):
         if category_context:
             context.update(category_context)
         return context
+
 
 @login_required
 def serve_participant(request, participant_id):
@@ -335,7 +333,6 @@ def complete_participant(request, participant_id):
                 'error': f'{participant.name} cannot be marked as completed because they are currently in state: {participant.state}.'
             }, status=400)
 
-
         handler.complete_service(participant)
         participant.save()
         logger.info(f"Participant {participant_id} completed service in queue {queue.id}.")
@@ -391,10 +388,14 @@ class ParticipantListView(LoginRequiredMixin, generic.TemplateView):
 
         context['queue'] = handler.get_queue_object(queue_id)
         context['participant_set'] = participant_set
+        context['participant_state'] = Participant.PARTICIPANT_STATE
         context['time_filter_option'] = time_filter_option
         context['time_filter_option_display'] = time_filter_options_display.get(time_filter_option, 'All time')
         context['state_filter_option'] = state_filter_option
         context['state_filter_option_display'] = state_filter_options_display.get(state_filter_option, 'Any state')
+        category_context = handler.add_context_attributes(handler.get_queue_object(queue_id))
+        if category_context:
+            context.update(category_context)
         return context
 
     def get_start_date(self, time_filter_option):
