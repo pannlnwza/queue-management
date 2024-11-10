@@ -76,7 +76,10 @@
                   <div class="font-semibold text-lg">{{ resource.name }}</div>
                   {% if queue.category.lower == 'hospital' %}
                     <div class="text-sm opacity-50">{{ resource.get_specialty_display }}</div>
+                  {% elif queue.category.lower == 'restaurant' %}
+                    <div class="text-sm opacity-50">capacity: {{ resource.capacity }}</div>
                   {% endif %}
+
             </div>
           </td>
           <td>
@@ -124,7 +127,7 @@
         <div class="grid gap-4">
             <div class="card w-full overflow-x-auto shadow bordered bg-base-100 mb-5">
                 <div class="card-body">
-                    <h2 class="card-title">Waitlist</h2>
+                    <h2 class="card-title">Waiting</h2>
                     <div>
                         {% if queue.is_closed %}
                             <span class="badge badge-error text-base-100">Closed</span>
