@@ -358,6 +358,7 @@ class ParticipantListView(LoginRequiredMixin, generic.TemplateView):
         context = super().get_context_data(**kwargs)
         queue_id = self.kwargs.get('queue_id')
         handler = CategoryHandlerFactory.get_handler(queue_id)
+        queue = handler.get_queue_object(queue_id)
 
         time_filter_option = self.request.GET.get('time_filter', 'all_time')
         state_filter_option = self.request.GET.get('state_filter', 'any_state')
@@ -389,6 +390,7 @@ class ParticipantListView(LoginRequiredMixin, generic.TemplateView):
         context['queue'] = handler.get_queue_object(queue_id)
         context['participant_set'] = participant_set
         context['participant_state'] = Participant.PARTICIPANT_STATE
+        context['resources'] = queue.resource_set.all()
         context['time_filter_option'] = time_filter_option
         context['time_filter_option_display'] = time_filter_options_display.get(time_filter_option, 'All time')
         context['state_filter_option'] = state_filter_option

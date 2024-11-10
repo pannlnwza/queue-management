@@ -161,11 +161,11 @@
                                                         priority: '{{ participant.priority|default:'' }}',
                                                         service_type: '{{ participant.service_type|default:'' }}'
                                                         }, '{{ queue.category }}')">
-                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"
-                                                 fill="currentColor" class="w-5 h-5">
-                                                <path d="m5.433 13.917 1.262-3.155A4 4 0 0 1 7.58 9.42l6.92-6.918a2.121 2.121 0 0 1 3 3l-6.92 6.918c-.383.383-.84.685-1.343.886l-3.154 1.262a.5.5 0 0 1-.65-.65Z"/>
-                                                <path d="M3.5 5.75c0-.69.56-1.25 1.25-1.25H10A.75.75 0 0 0 10 3H4.75A2.75 2.75 0 0 0 2 5.75v9.5A2.75 2.75 0 0 0 4.75 18h9.5A2.75 2.75 0 0 0 17 15.25V10a.75.75 0 0 0-1.5 0v5.25c0 .69-.56 1.25-1.25 1.25h-9.5c-.69 0-1.25-.56-1.25-1.25v-9.5Z"/>
-                                            </svg>
+                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="size-4">
+  <path d="M13.488 2.513a1.75 1.75 0 0 0-2.475 0L6.75 6.774a2.75 2.75 0 0 0-.596.892l-.848 2.047a.75.75 0 0 0 .98.98l2.047-.848a2.75 2.75 0 0 0 .892-.596l4.261-4.262a1.75 1.75 0 0 0 0-2.474Z" />
+  <path d="M4.75 3.5c-.69 0-1.25.56-1.25 1.25v6.5c0 .69.56 1.25 1.25 1.25h6.5c.69 0 1.25-.56 1.25-1.25V9A.75.75 0 0 1 14 9v2.25A2.75 2.75 0 0 1 11.25 14h-6.5A2.75 2.75 0 0 1 2 11.25v-6.5A2.75 2.75 0 0 1 4.75 2H7a.75.75 0 0 1 0 1.5H4.75Z" />
+</svg>
+
                                             Edit
                                         </a>
                                     </li>
@@ -220,26 +220,22 @@
                         {% csrf_token %}
                         <input type="hidden" id="participant_id" name="participant_id">
 
-                        <!-- Name -->
                         <div class="form-control w-full">
                             <label class="label"><span class="label-text">Name*</span></label>
-                            <input type="text" id="edit_name" name="name" class="input input-bordered w-full"/>
+                            <input type="text" id="edit_name" name="name" class="input input-bordered w-full" required/>
                         </div>
 
-                        <!-- Phone -->
                         <div class="form-control w-full">
                             <label class="label"><span class="label-text">Phone</span></label>
                             <input type="tel" id="edit_phone" name="phone" placeholder="Ex. 081 234 5678"
                                    class="input input-bordered w-full"/>
                         </div>
 
-                        <!-- Email -->
                         <div class="form-control w-full">
                             <label class="label"><span class="label-text">Email</span></label>
                             <input type="email" id="edit_email" name="email" class="input input-bordered w-full"/>
                         </div>
 
-                        <!-- Note -->
                         <div class="form-control w-full">
                             <label class="label"><span class="label-text">Note</span></label>
                             <textarea id="edit_notes" name="notes" class="textarea textarea-bordered w-full"></textarea>
@@ -256,11 +252,22 @@
                             </select>
                         </div>
 
+                    <div id="conditionalFields">
+                        {% if resources %}
+                            <div class="form-control w-full">
+                            <label class="label">
+                                <span class="label-text">{{ resource_name }}</span>
+                            </label>
+                            <select id="edit_resource" name="resource" class="select select-bordered w-full">
+                                {% for value in resources %}
+                                    <option value="{{ value }}">{{ value.name }}</option>
+                                {% endfor %}
+                            </select>
+                            </div>
+                        {% endif %}
 
-                        <!-- Special 1 Field (Conditional) -->
                         {% if special_1 %}
                             {% if queue.category == 'restaurant' %}
-                                <!-- Restaurant Category: Party Size -->
                                 <div class="form-control">
                                     <label class="label"><span class="label-text">{{ special_1 }}</span></label>
                                     <div class="space-x-2">
@@ -274,7 +281,7 @@
                                     </div>
                                 </div>
                             {% else %}
-                                <!-- Non-Restaurant Category: Dropdown -->
+
                                 <div class="form-control w-full">
                                     <label class="label"><span class="label-text">{{ special_1 }}</span></label>
                                     <select id="edit_special_1" name="special_1" class="select select-bordered w-full">
@@ -286,7 +293,6 @@
                             {% endif %}
                         {% endif %}
 
-                        <!-- Special 2 Field (Choice Dropdown) -->
                         {% if special_2 %}
                             <div class="form-control w-full">
                                 <label class="label">
@@ -299,8 +305,8 @@
                                 </select>
                             </div>
                         {% endif %}
+                    </div>
 
-                        <!-- Submit Button -->
                         <button type="submit" class="btn btn-primary mt-4">Save</button>
                     </form>
                 </div>
@@ -351,6 +357,18 @@
             document.getElementById('edit_notes').value = participant.notes || '';
             const stateElement = document.getElementById('edit_state');
             if (stateElement) stateElement.value = participant.state || '';
+
+            const conditionalFields = document.getElementById('conditionalFields');
+            if (participant.state === 'completed') {
+                conditionalFields.classList.add('hidden');
+            } else {
+                conditionalFields.classList.remove('hidden');
+            }
+
+            if (category !== 'general') {
+                const resourceElement = document.getElementById('edit_resource');
+                resourceElement.value = participant.resource;
+            }
 
             if (category === 'restaurant') {
                 const partySizeRadios = document.getElementsByName('party_size');
