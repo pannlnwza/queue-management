@@ -17,6 +17,7 @@ from django.views.decorators.http import require_http_methods
 from manager.forms import QueueForm
 from manager.models import Queue
 from manager.utils.category_handler import CategoryHandlerFactory
+from manager.utils.helpers import send_notification
 from manager.utils.queue_handler import QueueHandlerFactory
 from participant.models import Participant, Notification
 
@@ -152,25 +153,18 @@ def add_participant_slot(request, queue_id):
     return redirect('manager:dashboard', queue_id)
 
 
+@require_http_methods(["POST"])
 @login_required
-def notify_participant(request, queue_id, participant_id):
+def notify_participant(request, participant_id):
     participant = get_object_or_404(Participant, id=participant_id)
-    if participant.user is None:
-        messages.error(request, "There is no participant for this position.")
-        return redirect('manager:dashboard', queue_id)
-    queue = get_object_or_404(Queue, id=queue_id)
-    message = f"Your turn for {queue.name} is ready! Please proceed to the counter."
-    Notification.objects.create(
-        queue=queue,
-        participant=participant,
-        message=message
-    )
-    time_taken = timezone.now() - participant.joined_at
-    time_taken_minutes = int(time_taken.total_seconds() // 60)
-    queue.update_estimated_wait_time_per_turn(time_taken_minutes)
-
-    messages.success(request, f"You notified the participant {participant.user.username}.")
-    return redirect('manager:dashboard', queue_id)
+    queue = participant.queue
+    message = request.POST.get('message', '')
+    Notification.objects.create(queue=queue, participant=participant, message=message)
+    participant.is_notified = True
+    participant.save()
+    if participant.email:
+        send_notification(participant, message)
+    return JsonResponse({'status': 'success', 'message': 'Notification sent successfully!'})
 
 
 @require_http_methods(["DELETE"])

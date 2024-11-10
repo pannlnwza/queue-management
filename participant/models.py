@@ -31,6 +31,7 @@ class Participant(models.Model):
     visits = models.PositiveIntegerField(default=1)
     resource = models.ForeignKey(Resource, on_delete=models.CASCADE, blank=True, null=True)
     resource_assigned = models.CharField(max_length=20, null=True, blank=True)
+    is_notified = models.BooleanField(default=False)
 
 
     def save(self, *args, **kwargs):

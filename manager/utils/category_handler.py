@@ -123,6 +123,7 @@ class GeneralQueueHandler(CategoryHandler):
             'position': participant.position,
             'notes': participant.note,
             'waited': participant.get_wait_time(),
+            'is_notified': participant.is_notified
         }
     def get_special_column(self):
         pass
@@ -226,6 +227,7 @@ class RestaurantQueueHandler(CategoryHandler):
             'resource_served': participant.resource_assigned,
             'resource': participant.resource.name if participant.resource else None,
             'resource_id': participant.resource.id if participant.resource else None,
+            'is_notified': participant.is_notified
         }
 
 class HospitalQueueHandler(CategoryHandler):
@@ -338,6 +340,7 @@ class HospitalQueueHandler(CategoryHandler):
             'resource_served': participant.resource_assigned,
             'resource': participant.resource.name if participant.resource else None,
             'resource_id': participant.resource.id if participant.resource else None,
+            'is_notified': participant.is_notified
         }
 
 
@@ -420,4 +423,5 @@ class BankQueueHandler(CategoryHandler):
             'resource': participant.resource.name if participant.resource else None,
             'resource_id': participant.resource.id if participant.resource else None,
             'resource_served': participant.resource_assigned,
+            'is_notified': participant.is_notified
         }

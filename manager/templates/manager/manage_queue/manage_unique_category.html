@@ -162,7 +162,21 @@
                         <tbody id="waiting-section" class="divide-y divide-gray-200">
                         {% for participant in waiting_list %}
                             <tr>
-                                <td class="px-6 py-4 whitespace-nowrap">{{ participant.name }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap">{{ participant.name }}
+                                    {% if participant.is_notified %}
+                                    <div class="flex items-center">
+                                        <div class="tooltip" data-tip="Notified at">
+                                        <span class="bg-amber-100 text-yellow-500 text-sm inline-flex items-center px-2 py-1">
+                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="size-4 mr-1">
+                                                <path d="M3.6 1.7A.75.75 0 1 0 2.4.799a6.978 6.978 0 0 0-1.123 2.247.75.75 0 1 0 1.44.418c.187-.644.489-1.24.883-1.764ZM13.6.799a.75.75 0 1 0-1.2.9 5.48 5.48 0 0 1 .883 1.765.75.75 0 1 0 1.44-.418A6.978 6.978 0 0 0 13.6.799Z" />
+                                                <path fill-rule="evenodd" d="M8 1a4 4 0 0 1 4 4v2.379c0 .398.158.779.44 1.06l1.267 1.268a1 1 0 0 1 .293.707V11a1 1 0 0 1-1 1h-2a3 3 0 1 1-6 0H3a1 1 0 0 1-1-1v-.586a1 1 0 0 1 .293-.707L3.56 8.44A1.5 1.5 0 0 0 4 7.38V5a4 4 0 0 1 4-4Zm0 12.5A1.5 1.5 0 0 1 6.5 12h3A1.5 1.5 0 0 1 8 13.5Z" clip-rule="evenodd" />
+                                            </svg>
+                                            Notified
+                                        </span>
+                                    </div>
+                                    </div>
+                                    {% endif %}
+                                </td>
                                 <td class="px-6 py-4 whitespace-nowrap">{{ participant.position }}</td>
                                 <td class="px-6 py-4 whitespace-nowrap"></td>
                                 <td class="px-6 py-4 whitespace-nowrap">
@@ -175,17 +189,22 @@
                                 <td class="px-6 py-4 whitespace-nowrap">{{ participant.waited }}</td>
                                 <td class="badge badge-primary justify-center flex mx-7 my-5"></td>
                                 <td class="px-6 py-4 whitespace-nowrap">
-                                    <button class="btn btn-warning btn-square btn-sm text-base-100 no-animation mx-2">
-                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="size-5">
-                                          <path d="M4.214 3.227a.75.75 0 0 0-1.156-.955 8.97 8.97 0 0 0-1.856 3.825.75.75 0 0 0 1.466.316 7.47 7.47 0 0 1 1.546-3.186ZM16.942 2.272a.75.75 0 0 0-1.157.955 7.47 7.47 0 0 1 1.547 3.186.75.75 0 0 0 1.466-.316 8.971 8.971 0 0 0-1.856-3.825Z" />
-                                          <path fill-rule="evenodd" d="M10 2a6 6 0 0 0-6 6c0 1.887-.454 3.665-1.257 5.234a.75.75 0 0 0 .515 1.076 32.91 32.91 0 0 0 3.256.508 3.5 3.5 0 0 0 6.972 0 32.903 32.903 0 0 0 3.256-.508.75.75 0 0 0 .515-1.076A11.448 11.448 0 0 1 16 8a6 6 0 0 0-6-6Zm0 14.5a2 2 0 0 1-1.95-1.557 33.54 33.54 0 0 0 3.9 0A2 2 0 0 1 10 16.5Z" clip-rule="evenodd" />
-                                        </svg>
-                                    </button>
-                                    <button class="btn btn-success btn-square btn-sm text-xs text-base-100 no-animation">
-                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="size-5">
-                                          <path fill-rule="evenodd" d="M16.704 4.153a.75.75 0 0 1 .143 1.052l-8 10.5a.75.75 0 0 1-1.127.075l-4.5-4.5a.75.75 0 0 1 1.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 0 1 1.05-.143Z" clip-rule="evenodd" />
-                                        </svg>
-                                    </button>
+                                    <div class="flex gap-2">
+                                        <button class="btn btn-warning btn-square btn-sm text-base-100 no-animation"
+                                            aria-label="Notify" data-participant-id="{{ participant.id }}" onclick="openNotifyModal(this)">
+                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="size-4">
+                                                <path d="M3.6 1.7A.75.75 0 1 0 2.4.799a6.978 6.978 0 0 0-1.123 2.247.75.75 0 1 0 1.44.418c.187-.644.489-1.24.883-1.764ZM13.6.799a.75.75 0 1 0-1.2.9 5.48 5.48 0 0 1 .883 1.765.75.75 0 1 0 1.44-.418A6.978 6.978 0 0 0 13.6.799Z" />
+                                                <path fill-rule="evenodd" d="M8 1a4 4 0 0 1 4 4v2.379c0 .398.158.779.44 1.06l1.267 1.268a1 1 0 0 1 .293.707V11a1 1 0 0 1-1 1h-2a3 3 0 1 1-6 0H3a1 1 0 0 1-1-1v-.586a1 1 0 0 1 .293-.707L3.56 8.44A1.5 1.5 0 0 0 4 7.38V5a4 4 0 0 1 4-4Zm0 12.5A1.5 1.5 0 0 1 6.5 12h3A1.5 1.5 0 0 1 8 13.5Z" clip-rule="evenodd" />
+                                            </svg>
+                                        </button>
+                                        <button class="btn btn-success btn-square btn-sm text-base-100 no-animation"
+                                            onclick="serveParticipant({{participant.id}})" aria-label="Serve">
+                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="size-5">
+                                                <path fill-rule="evenodd" d="M16.704 4.153a.75.75 0 0 1 .143 1.052l-8 10.5a.75.75 0 0 1-1.127.075l-4.5-4.5a.75.75 0 0 1 1.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 0 1 1.05-.143Z" clip-rule="evenodd" />
+                                            </svg>
+                                        </button>
+                                    </div>
+
                                 </td>
                             </tr>
                         {% endfor %}
@@ -231,7 +250,9 @@
                         <tbody id="serving-section" class="bg-base-100 divide-y divide-gray-200">
                         {% for participant in serving_list %}
                             <tr>
-                                <td class="px-6 py-4 whitespace-nowrap">{{ participant.name }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    {{ participant.name }}
+                                </td>
                                 <td class="px-6 py-4 whitespace-nowrap"></td>
                                 <td class="px-6 py-4 whitespace-nowrap">
                                 {% if participant.note %}
@@ -326,6 +347,35 @@
         </div>
     </div>
 
+<input type="checkbox" id="notify_modal" class="modal-toggle" />
+<div class="modal">
+    <div class="modal-box relative  p-10">
+        <label for="notify_modal" class="btn btn-sm btn-square btn-ghost absolute right-2 top-2">✕</label>
+
+        <!-- Modal Content -->
+        <div class="flex items-center gap-2 my-1">
+            <h2 class="font-semibold text-2xl">Notify Participant</h2>
+        </div>
+
+        <!-- Message Input Field -->
+        <div class="form-control">
+            <label class="label">
+                <span class="label-text">Message (Optional)</span>
+            </label>
+            <textarea id="message" class="textarea textarea-bordered w-full h-24" placeholder="Type your message here..."></textarea>
+        </div>
+
+        <!-- Notify Button -->
+        <div class="modal-action">
+            <button class="btn btn-primary no-animation" onclick="sendNotification()">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="size-4">
+                  <path d="M3.6 1.7A.75.75 0 1 0 2.4.799a6.978 6.978 0 0 0-1.123 2.247.75.75 0 1 0 1.44.418c.187-.644.489-1.24.883-1.764ZM13.6.799a.75.75 0 1 0-1.2.9 5.48 5.48 0 0 1 .883 1.765.75.75 0 1 0 1.44-.418A6.978 6.978 0 0 0 13.6.799Z" />
+                  <path fill-rule="evenodd" d="M8 1a4 4 0 0 1 4 4v2.379c0 .398.158.779.44 1.06l1.267 1.268a1 1 0 0 1 .293.707V11a1 1 0 0 1-1 1h-2a3 3 0 1 1-6 0H3a1 1 0 0 1-1-1v-.586a1 1 0 0 1 .293-.707L3.56 8.44A1.5 1.5 0 0 0 4 7.38V5a4 4 0 0 1 4-4Zm0 12.5A1.5 1.5 0 0 1 6.5 12h3A1.5 1.5 0 0 1 8 13.5Z" clip-rule="evenodd" />
+                </svg>Notify
+            </button>
+        </div>
+    </div>
+</div>
 
 
 
@@ -445,31 +495,90 @@
         modal.classList.toggle('modal-open');
       }
 
+    function openNotifyModal(button) {
+        const participantId = button.getAttribute("data-participant-id");
+        document.getElementById("notify_modal").checked = true;
+        window.selectedParticipantId = participantId;
+    }
+
+    function sendNotification() {
+        const message = document.getElementById("message").value;
+        const participantId = window.selectedParticipantId;
+
+        if (!participantId) {
+            alert("Please select a participant to notify.");
+            return;
+        }
+
+        fetch(`/manager/notify/${participantId}/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}',
+            },
+            body: JSON.stringify({ message: message })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                alert('Notification sent successfully!');
+                document.getElementById("notify_modal").checked = false;
+            } else {
+                alert('There was an error sending the notification');
+            }
+        });
+    }
+
+
+
     function createWaitingRow(participant) {
         const row = document.createElement('tr');
         row.id = `waiting-${participant.id}`;
 
+        let notifiedBadge = '';
+
+        if (participant.is_notified) {
+            notifiedBadge = `
+                <div class="flex items-center">
+                    <div class="tooltip" data-tip="Notified at">
+                    <span class="bg-amber-100 text-yellow-500 text-sm inline-flex items-center px-2 py-1">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="size-4 mr-1">
+                            <path d="M3.6 1.7A.75.75 0 1 0 2.4.799a6.978 6.978 0 0 0-1.123 2.247.75.75 0 1 0 1.44.418c.187-.644.489-1.24.883-1.764ZM13.6.799a.75.75 0 1 0-1.2.9 5.48 5.48 0 0 1 .883 1.765.75.75 0 1 0 1.44-.418A6.978 6.978 0 0 0 13.6.799Z" />
+                            <path fill-rule="evenodd" d="M8 1a4 4 0 0 1 4 4v2.379c0 .398.158.779.44 1.06l1.267 1.268a1 1 0 0 1 .293.707V11a1 1 0 0 1-1 1h-2a3 3 0 1 1-6 0H3a1 1 0 0 1-1-1v-.586a1 1 0 0 1 .293-.707L3.56 8.44A1.5 1.5 0 0 0 4 7.38V5a4 4 0 0 1 4-4Zm0 12.5A1.5 1.5 0 0 1 6.5 12h3A1.5 1.5 0 0 1 8 13.5Z" clip-rule="evenodd" />
+                        </svg>
+                        Notified
+                    </span>
+                </div>
+                </div>
+            `;
+        }
+
         row.innerHTML = `
-            <td class="px-6 py-4 whitespace-nowrap">${participant.name || '-'}</td>
+            <td class="px-6 py-4 whitespace-nowrap">
+                ${participant.name || '-'}
+                ${notifiedBadge}
+            </td>
             <td class="px-6 py-4 whitespace-nowrap">${participant.position || '-'}</td>
             <td class="px-6 py-4 whitespace-nowrap">${participant.special_1 ? `${participant.special_1}` : '-'}</td>
             <td class="px-6 py-4 whitespace-nowrap">${createNotesModal(participant)}</td>
             <td class="px-6 py-4 whitespace-nowrap">${participant.waited || '0'} min</td>
             <td class="badge badge-primary justify-center flex mx-7 my-5">${participant.special_2 || '-'}</td>
             <td class="px-6 py-4 whitespace-nowrap">
-                <button class="btn btn-warning btn-square btn-sm text-base-100 no-animation mx-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="size-5">
-                      <path d="M4.214 3.227a.75.75 0 0 0-1.156-.955 8.97 8.97 0 0 0-1.856 3.825.75.75 0 0 0 1.466.316 7.47 7.47 0 0 1 1.546-3.186ZM16.942 2.272a.75.75 0 0 0-1.157.955 7.47 7.47 0 0 1 1.547 3.186.75.75 0 0 0 1.466-.316 8.971 8.971 0 0 0-1.856-3.825Z" />
-                      <path fill-rule="evenodd" d="M10 2a6 6 0 0 0-6 6c0 1.887-.454 3.665-1.257 5.234a.75.75 0 0 0 .515 1.076 32.91 32.91 0 0 0 3.256.508 3.5 3.5 0 0 0 6.972 0 32.903 32.903 0 0 0 3.256-.508.75.75 0 0 0 .515-1.076A11.448 11.448 0 0 1 16 8a6 6 0 0 0-6-6Zm0 14.5a2 2 0 0 1-1.95-1.557 33.54 33.54 0 0 0 3.9 0A2 2 0 0 1 10 16.5Z" clip-rule="evenodd" />
-                    </svg>
-                </button>
-                <button class="btn btn-success btn-square btn-sm text-base-100 no-animation"
-                    onclick="serveParticipant(${participant.id})">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="size-5">
-                  <path fill-rule="evenodd" d="M16.704 4.153a.75.75 0 0 1 .143 1.052l-8 10.5a.75.75 0 0 1-1.127.075l-4.5-4.5a.75.75 0 0 1 1.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 0 1 1.05-.143Z" clip-rule="evenodd" />
-                </svg>
-
-                </button>
+                <div class="flex gap-2">
+                    <button class="btn btn-warning btn-square btn-sm text-base-100 no-animation"
+                        aria-label="Notify" data-participant-id="${participant.id }" onclick="openNotifyModal(this)">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="size-4">
+                            <path d="M3.6 1.7A.75.75 0 1 0 2.4.799a6.978 6.978 0 0 0-1.123 2.247.75.75 0 1 0 1.44.418c.187-.644.489-1.24.883-1.764ZM13.6.799a.75.75 0 1 0-1.2.9 5.48 5.48 0 0 1 .883 1.765.75.75 0 1 0 1.44-.418A6.978 6.978 0 0 0 13.6.799Z" />
+                            <path fill-rule="evenodd" d="M8 1a4 4 0 0 1 4 4v2.379c0 .398.158.779.44 1.06l1.267 1.268a1 1 0 0 1 .293.707V11a1 1 0 0 1-1 1h-2a3 3 0 1 1-6 0H3a1 1 0 0 1-1-1v-.586a1 1 0 0 1 .293-.707L3.56 8.44A1.5 1.5 0 0 0 4 7.38V5a4 4 0 0 1 4-4Zm0 12.5A1.5 1.5 0 0 1 6.5 12h3A1.5 1.5 0 0 1 8 13.5Z" clip-rule="evenodd" />
+                        </svg>
+                    </button>
+                    <button class="btn btn-success btn-square btn-sm text-base-100 no-animation"
+                        onclick="serveParticipant(${participant.id})" aria-label="Serve">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="size-5">
+                            <path fill-rule="evenodd" d="M16.704 4.153a.75.75 0 0 1 .143 1.052l-8 10.5a.75.75 0 0 1-1.127.075l-4.5-4.5a.75.75 0 0 1 1.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 0 1 1.05-.143Z" clip-rule="evenodd" />
+                        </svg>
+                    </button>
+                </div>
 
             </td>
         `;
@@ -551,6 +660,7 @@
             })
             .catch(error => console.error('Error completing participant:', error));
     }
+
 
 </script>
 

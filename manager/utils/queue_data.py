@@ -25,6 +25,7 @@ def get_general_queue_data(request, queue_id):
                 'position': participant.position,
                 'notes': participant.note,
                 'waited': participant.get_wait_time(),
+                'is_notified': participant.is_notified
             } for participant in waiting_participants
         ],
         'serving_list': [
@@ -36,6 +37,7 @@ def get_general_queue_data(request, queue_id):
                 'waited': participant.get_wait_time(),
                 'service_duration': participant.get_service_duration(),
                 'served': participant.service_started_at.strftime('%d %b. %Y %H:%M') if participant.service_started_at else None,
+                'is_notified': participant.is_notified
             } for participant in serving_participants
         ],
         'completed_list': [
@@ -48,6 +50,7 @@ def get_general_queue_data(request, queue_id):
                 'service_duration': participant.get_service_duration(),
                 'served': participant.service_started_at.strftime('%d %b. %Y %H:%M') if participant.service_started_at else None,
                 'completed': participant.service_completed_at.strftime('%d %b. %Y %H:%M') if participant.service_completed_at else None,
+                'is_notified': participant.is_notified
             } for participant in completed_participants
         ],
     }
