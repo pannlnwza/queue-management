@@ -29,115 +29,15 @@ class ParticipantHandler(ABC):
     def create_participant(self, data):
         pass
 
-    @abstractmethod
-    def get_participant_set(self, queue_id):
-        pass
-
-    @abstractmethod
-    def get_queue_object(self, queue_id):
-        pass
-
-    @abstractmethod
-    def assign_to_resource(self, participant):
-        pass
-
-    @abstractmethod
-    def complete_service(self, participant):
-        pass
-
-    @abstractmethod
-    def add_context_attributes(self, queue):
-        """Returns restaurant-specific attributes for the context."""
-        pass
-
-    @abstractmethod
-    def get_template_name(self):
-        """Return the template name specific to the handler's category."""
-        pass
-
-
 
 class GeneralParticipantHandler(ParticipantHandler):
     def create_participant(self, data):
         return Participant.objects.create(**data)
 
-    def get_participant_set(self, queue_id):
-        return Participant.objects.filter(queue_id=queue_id)
-
-    def get_queue_object(self, queue_id):
-        return get_object_or_404(Queue, id=queue_id)
-
-    def assign_to_resource(self, participant):
-        pass
-
-    def complete_service(self, participant):
-        if participant.state == 'serving':
-            if participant.service_started_at:
-                wait_time = int((participant.service_started_at - participant.joined_at).total_seconds() / 60)
-                participant.waited = wait_time
-            participant.state = 'completed'
-            participant.service_completed_at = timezone.localtime()
-            participant.save()
-
-    def get_template_name(self):
-        return 'manager/manage_queue/manage_general.html'
-
-    def add_context_attributes(self, queue):
-        pass
-
 
 class RestaurantParticipantHandler(ParticipantHandler):
     def create_participant(self, data):
         return RestaurantParticipant.objects.create(**data)
-
-    def get_participant_set(self, queue_id):
-        return RestaurantParticipant.objects.filter(queue_id=queue_id).all()
-
-    def get_queue_object(self, queue_id):
-        return get_object_or_404(RestaurantQueue, id=queue_id)
-
-    def assign_to_resource(self, participant):
-        restaurant_participant = RestaurantParticipant.objects.get(id=participant.id)
-        table = self.get_available_table(restaurant_participant)
-        if table:
-            table.assign_to_party(restaurant_participant)
-            restaurant_participant.table = table
-            restaurant_participant.save()
-        else:
-            raise ValueError("No available tables match the party size")
-
-    def get_available_table(self, participant):
-        return Table.objects.filter(
-            status='empty',
-            capacity__gte=participant.party_size
-        ).first()
-
-    def get_template_name(self):
-        return 'manager/manage_queue/manage_restaurant.html'
-
-    def complete_service(self, participant):
-        if participant.state == 'serving':
-            if participant.service_started_at:
-                wait_duration = int((participant.service_started_at - participant.joined_at).total_seconds() / 60)
-                participant.waited = wait_duration
-            service_duration = int((timezone.localtime() - participant.service_started_at).total_seconds() / 60)
-            participant.service_duration = service_duration
-            if participant.table:
-                participant.table_served = participant.table.name
-                participant.table.status = 'empty'
-                participant.table.save()
-                participant.table = None
-            participant.state = 'completed'
-            participant.service_completed_at = timezone.localtime()
-            participant.save()
-
-    def add_context_attributes(self, queue):
-        """
-        Returns restaurant-specific attributes for the context.
-        """
-        return [
-            {'tables': queue.tables.all()}
-        ]
 
 
 # class HospitalParticipantHandler(BaseParticipantHandler):
