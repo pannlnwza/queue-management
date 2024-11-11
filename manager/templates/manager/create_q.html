@@ -4,7 +4,7 @@
 <main>
     <div class="card bg-base-200/70 text-base-content w-full sm:w-3/4 md:w-1/2 mx-auto p-6">
         <h2 class="card-title mb-4 text-center">Create a New Queue</h2>
-        <form method="POST" enctype="multipart/form-data">
+        <form method="POST" enctype="multipart/form-data" id="queueForm">
             {% csrf_token %}
 
             <div class="form-group mb-4">
@@ -28,12 +28,13 @@
             </div>
 
             <div class="form-group mb-4">
-                <label for="map">Queue Location</label>
+                <label for="map">Queue Location (Mark location by dragging the blue marker)</label>
                 <div id="map" class="mt-4" style="height: 400px;"></div>
+                <p id="locationError" class="text-red-500 text-sm mt-2" style="display:none;">Please select a location on the map.</p>
             </div>
 
-            <input type="hidden" name="latitude" id="id_latitude">
-            <input type="hidden" name="longitude" id="id_longitude">
+            <input type="hidden" name="latitude" id="id_latitude" required>
+            <input type="hidden" name="longitude" id="id_longitude" required>
 
             <button type="submit" class="btn btn-primary w-full mt-4">Create Queue</button>
         </form>
@@ -57,6 +58,18 @@
         var lng = marker.getLatLng().lng;
         document.getElementById('id_latitude').value = lat;
         document.getElementById('id_longitude').value = lng;
+    });
+
+    document.getElementById('queueForm').addEventListener('submit', function(event) {
+        var latitude = document.getElementById('id_latitude').value;
+        var longitude = document.getElementById('id_longitude').value;
+
+        if (!latitude || !longitude) {
+            event.preventDefault();
+            document.getElementById('locationError').style.display = 'block';
+        } else {
+            document.getElementById('locationError').style.display = 'none';
+        }
     });
 </script>
 {% endblock %}
