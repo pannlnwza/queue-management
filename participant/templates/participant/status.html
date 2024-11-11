@@ -10,14 +10,35 @@
 
     <h2>Queue: {{ queue.name }}</h2>
 
-    <h3>Participants in Queue:</h3>
-    <ul>
-        {% for p in participants_in_queue %}
-            <li>{{ p.name }} - Position: {{ p.position }} (Joined: {{ p.joined_at }})</li>
-        {% endfor %}
-    </ul>
+    <div id="queue-status"></div>
 
-    <p>Your Position: {{ participant.position }}</p>
-    <p>Estimated Wait Time: {{ participant }} minutes</p>
+<div>
+    <h3>Queue: <span id="queueName"></span></h3>
+    <p>Participant: <span id="participantName"></span></p>
+    <p>Position: <span id="position"></span></p>
+    <p>Estimated Wait Time: <span id="waitTime"></span></p>
+</div>
+
+        <script>
+    // Replace 'your-url-here' with the correct endpoint URL for your SSE stream
+    const eventSource = new EventSource('/status/{{ participant.code }}/sse');
+
+    eventSource.onmessage = function(event) {
+        // Parse the JSON data from the server
+        const data = JSON.parse(event.data);
+
+        // Update the page with the received data
+        document.getElementById('queueName').innerText = data.queue_name;
+        document.getElementById('participantName').innerText = data.participant[0].name;
+        document.getElementById('position').innerText = data.participant[0].position;
+        document.getElementById('waitTime').innerText = data.participant[0].estimated_wait_time;
+    };
+
+    eventSource.onerror = function(error) {
+        console.error("Error in SSE connection:", error);
+    };
+</script>
+
+
 </body>
 </html>

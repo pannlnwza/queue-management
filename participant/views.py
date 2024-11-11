@@ -240,6 +240,13 @@ class QueueStatusView(generic.TemplateView):
         return context
 
 
+import json
+import time
+from django.http import StreamingHttpResponse
+from django.shortcuts import get_object_or_404
+from .models import Participant
+
+
 def sse_queue_status(request, participant_code):
     """Server-sent Events endpoint to stream the queue status."""
 
@@ -249,32 +256,32 @@ def sse_queue_status(request, participant_code):
         queue = participant.queue
 
         while True:
-            # Prepare the data to send in the SSE stream
-            data = {
-                'queue_name': queue.name,
-                'participant': [
-                    {
-                        'name': participant.name,
-                        'position': participant.position,
-                        'estimated_wait_time': participant.calculate_estimated_wait_time()
-                    }
-                ]
-            }
+            try:
+                # Prepare the data to send in the SSE stream
+                data = {
+                    'queue_name': queue.name,
+                    'participant': [
+                        {
+                            'name': participant.name,
+                            'position': participant.position,
+                            'estimated_wait_time': participant.calculate_estimated_wait_time()
+                        }
+                    ]
+                }
+                message = json.dumps(data)
 
-            # Convert the data dictionary to a JSON string
-            message = json.dumps(data)
+                # Yield the SSE formatted message
+                yield f"data: {message}\n\n"
 
-            # Yield the SSE formatted message
-            yield f"data: {message}\n\n"
+                # Wait for 5 seconds before sending the next update
+                time.sleep(5)
+            except Exception as e:
+                print("Error in event stream:", e)
+                break
 
-            # Wait for 5 seconds before sending the next update
-            time.sleep(5)
-
-    # Return a StreamingHttpResponse to stream the events
     response = StreamingHttpResponse(event_stream(), content_type='text/event-stream')
 
-    # Optional: Set headers for SSE
+    # Remove 'Connection: keep-alive' and set necessary headers for SSE
     response['Cache-Control'] = 'no-cache'
-    response['Connection'] = 'keep-alive'
 
     return response
