@@ -234,13 +234,13 @@ class QRcodeView(generic.DetailView):
         context['queue_code'] = self.kwargs.get('queue_code')
 
         # Generate QR code and convert to base64
-        queue_status_url = self.request.build_absolute_uri(
-            reverse('participant:queue_status', args=[participant.id])
+        check_queue_url = self.request.build_absolute_uri(
+            reverse('participant:check_queue', args=[participant.id])
         )
 
         # Generate QR code
         qr = qrcode.QRCode(version=1, box_size=10, border=5)
-        qr.add_data(queue_status_url)
+        qr.add_data(check_queue_url)
         qr.make(fit=True)
         img = qr.make_image(fill='black', back_color='white')
 
@@ -252,9 +252,9 @@ class QRcodeView(generic.DetailView):
         context['qr_image'] = qr_image
         return context
 
-class CheckQueueStatusView(generic.DetailView):
+class CheckQueueView(generic.DetailView):
     model = Participant
-    template_name = 'participant/queue_status.html'
+    template_name = 'participant/check_queue.html'
     context_object_name = 'participant'
 
     def get_context_data(self, **kwargs):
