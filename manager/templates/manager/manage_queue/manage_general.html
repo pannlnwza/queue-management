@@ -2,69 +2,77 @@
 {% load static %}
 
 {% block content %}
-        <div class="w-full max-w-full">
-            <div class="breadcrumbs text-sm mb-0">
-              <ul>
+    <div class="w-full max-w-full">
+        <div class="breadcrumbs text-sm mb-0">
+            <ul>
                 <li>
-                  <a href="{% url 'manager:your-queue' %}">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="size-4">
-                      <path d="M3 3.5A1.5 1.5 0 0 1 4.5 2h1.879a1.5 1.5 0 0 1 1.06.44l1.122 1.12A1.5 1.5 0 0 0 9.62 4H11.5A1.5 1.5 0 0 1 13 5.5v1H3v-3ZM3.081 8a1.5 1.5 0 0 0-1.423 1.974l1 3A1.5 1.5 0 0 0 4.081 14h7.838a1.5 1.5 0 0 0 1.423-1.026l1-3A1.5 1.5 0 0 0 12.919 8H3.081Z" />
-                    </svg>
-                    Your Queues
-                  </a>
+                    <a href="{% url 'manager:your-queue' %}">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="size-4">
+                            <path d="M3 3.5A1.5 1.5 0 0 1 4.5 2h1.879a1.5 1.5 0 0 1 1.06.44l1.122 1.12A1.5 1.5 0 0 0 9.62 4H11.5A1.5 1.5 0 0 1 13 5.5v1H3v-3ZM3.081 8a1.5 1.5 0 0 0-1.423 1.974l1 3A1.5 1.5 0 0 0 4.081 14h7.838a1.5 1.5 0 0 0 1.423-1.026l1-3A1.5 1.5 0 0 0 12.919 8H3.081Z"/>
+                        </svg>
+                        Your Queues
+                    </a>
                 </li>
                 <li>
-                  <a class="font-serif" href="{% url 'manager:manage_waitlist' queue.id %}">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="size-4">
-                      <path d="M4.5 7c.681 0 1.3-.273 1.75-.715C6.7 6.727 7.319 7 8 7s1.3-.273 1.75-.715A2.5 2.5 0 1 0 11.5 2h-7a2.5 2.5 0 0 0 0 5ZM6.25 8.097A3.986 3.986 0 0 1 4.5 8.5c-.53 0-1.037-.103-1.5-.29v4.29h-.25a.75.75 0 0 0 0 1.5h.5a.754.754 0 0 0 .138-.013A.5.5 0 0 0 3.5 14H6a.5.5 0 0 0 .5-.5v-3A.5.5 0 0 1 7 10h2a.5.5 0 0 1 .5.5v3a.5.5 0 0 0 .5.5h2.5a.5.5 0 0 0 .112-.013c.045.009.09.013.138.013h.5a.75.75 0 1 0 0-1.5H13V8.21c-.463.187-.97.29-1.5.29a3.986 3.986 0 0 1-1.75-.403A3.986 3.986 0 0 1 8 8.5a3.986 3.986 0 0 1-1.75-.403Z" />
-                    </svg>
-                      {{ queue.name| title}}
-                  </a>
+                    <a class="font-serif" href="{% url 'manager:manage_waitlist' queue.id %}">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="size-4">
+                            <path d="M4.5 7c.681 0 1.3-.273 1.75-.715C6.7 6.727 7.319 7 8 7s1.3-.273 1.75-.715A2.5 2.5 0 1 0 11.5 2h-7a2.5 2.5 0 0 0 0 5ZM6.25 8.097A3.986 3.986 0 0 1 4.5 8.5c-.53 0-1.037-.103-1.5-.29v4.29h-.25a.75.75 0 0 0 0 1.5h.5a.754.754 0 0 0 .138-.013A.5.5 0 0 0 3.5 14H6a.5.5 0 0 0 .5-.5v-3A.5.5 0 0 1 7 10h2a.5.5 0 0 1 .5.5v3a.5.5 0 0 0 .5.5h2.5a.5.5 0 0 0 .112-.013c.045.009.09.013.138.013h.5a.75.75 0 1 0 0-1.5H13V8.21c-.463.187-.97.29-1.5.29a3.986 3.986 0 0 1-1.75-.403A3.986 3.986 0 0 1 8 8.5a3.986 3.986 0 0 1-1.75-.403Z"/>
+                        </svg>
+                        {{ queue.name| title }}
+                    </a>
                 </li>
                 <li>
                   <span class="inline-flex items-center gap-2">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="size-4">
-                      <path fill-rule="evenodd" d="M1 8a7 7 0 1 1 14 0A7 7 0 0 1 1 8Zm7.75-4.25a.75.75 0 0 0-1.5 0V8c0 .414.336.75.75.75h3.25a.75.75 0 0 0 0-1.5h-2.5v-3.5Z" clip-rule="evenodd" />
+                      <path fill-rule="evenodd"
+                            d="M1 8a7 7 0 1 1 14 0A7 7 0 0 1 1 8Zm7.75-4.25a.75.75 0 0 0-1.5 0V8c0 .414.336.75.75.75h3.25a.75.75 0 0 0 0-1.5h-2.5v-3.5Z"
+                            clip-rule="evenodd"/>
                     </svg>
                     Queue Manager
                   </span>
                 </li>
-              </ul>
-            </div>
+            </ul>
+        </div>
 
 
-            <div class="flex justify-between items-center mb-5">
-                <h1 class="text-2xl font-bold antialiased font-sans">Queue Manager</h1>
-            </div>
+        <div class="flex justify-between items-center mb-5">
+            <h1 class="text-2xl font-bold antialiased font-sans">Queue Manager</h1>
+        </div>
 
-            <div class="form-control w-full max-w-xs mb-6">
-                <div class="flex items-center gap-2">
-                    <label class="input input-bordered flex items-center w-full">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
-                        </svg>
-                        <input type="text" id="searchInput" placeholder="Search" class="pl-2 w-full" oninput="filterParticipants()"/>
-                    </label>
-                    <button class="btn no-animation" onclick="resetSearch()">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="size-5">
-                          <path fill-rule="evenodd" d="M15.312 11.424a5.5 5.5 0 0 1-9.201 2.466l-.312-.311h2.433a.75.75 0 0 0 0-1.5H3.989a.75.75 0 0 0-.75.75v4.242a.75.75 0 0 0 1.5 0v-2.43l.31.31a7 7 0 0 0 11.712-3.138.75.75 0 0 0-1.449-.39Zm1.23-3.723a.75.75 0 0 0 .219-.53V2.929a.75.75 0 0 0-1.5 0V5.36l-.31-.31A7 7 0 0 0 3.239 8.188a.75.75 0 1 0 1.448.389A5.5 5.5 0 0 1 13.89 6.11l.311.31h-2.432a.75.75 0 0 0 0 1.5h4.243a.75.75 0 0 0 .53-.219Z" clip-rule="evenodd" />
-                        </svg>
-                        Reset
-                    </button>
-                </div>
+        <div class="form-control w-full max-w-xs mb-6">
+            <div class="flex items-center gap-2">
+                <label class="input input-bordered flex items-center w-full">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                         stroke="currentColor" class="size-6">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                              d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"/>
+                    </svg>
+                    <input type="text" id="searchInput" placeholder="Search" class="pl-2 w-full"
+                           oninput="filterParticipants()"/>
+                </label>
+                <button class="btn no-animation" onclick="resetSearch()">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="size-5">
+                        <path fill-rule="evenodd"
+                              d="M15.312 11.424a5.5 5.5 0 0 1-9.201 2.466l-.312-.311h2.433a.75.75 0 0 0 0-1.5H3.989a.75.75 0 0 0-.75.75v4.242a.75.75 0 0 0 1.5 0v-2.43l.31.31a7 7 0 0 0 11.712-3.138.75.75 0 0 0-1.449-.39Zm1.23-3.723a.75.75 0 0 0 .219-.53V2.929a.75.75 0 0 0-1.5 0V5.36l-.31-.31A7 7 0 0 0 3.239 8.188a.75.75 0 1 0 1.448.389A5.5 5.5 0 0 1 13.89 6.11l.311.31h-2.432a.75.75 0 0 0 0 1.5h4.243a.75.75 0 0 0 .53-.219Z"
+                              clip-rule="evenodd"/>
+                    </svg>
+                    Reset
+                </button>
             </div>
+        </div>
 
         <div class="grid gap-4">
             <div class="card w-full overflow-x-auto shadow bordered bg-base-100 mb-5">
                 <div class="card-body">
-                    <h2 class="card-title">Waitlist</h2>
+                    <h2 class="card-title">Waiting</h2>
                     <div>
                         {% if queue.is_closed %}
                             <span class="badge badge-error text-base-100">Closed</span>
                         {% else %}
                             <span class="badge badge-success text-base-100">Open</span>
                         {% endif %}
-                    <p class="font-thin inline-flex ">- est. wait/turn: {{ queue.estimated_wait_time_per_turn }} min</p>
+                        <p class="font-thin inline-flex ">- est. wait/turn: {{ queue.estimated_wait_time_per_turn }}
+                            min</p>
                     </div>
                     <table class="min-w-full bg-base-100 divide-y divide-gray-200">
                         <thead>
@@ -86,28 +94,57 @@
                         <tbody id="waiting-section" class="divide-y divide-gray-200">
                         {% for participant in waiting_list %}
                             <tr>
-                                <td class="px-6 py-4 whitespace-nowrap">{{ participant.name }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap">{{ participant.name }}
+                                    {% if participant.is_notified %}
+                                        <div class="flex items-center">
+                                            <div class="tooltip" data-tip="Notified at">
+                                        <span class="bg-amber-100 text-yellow-500 text-sm inline-flex items-center px-2 py-1">
+                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"
+                                                 fill="currentColor" class="size-4 mr-1">
+                                                <path d="M3.6 1.7A.75.75 0 1 0 2.4.799a6.978 6.978 0 0 0-1.123 2.247.75.75 0 1 0 1.44.418c.187-.644.489-1.24.883-1.764ZM13.6.799a.75.75 0 1 0-1.2.9 5.48 5.48 0 0 1 .883 1.765.75.75 0 1 0 1.44-.418A6.978 6.978 0 0 0 13.6.799Z"/>
+                                                <path fill-rule="evenodd"
+                                                      d="M8 1a4 4 0 0 1 4 4v2.379c0 .398.158.779.44 1.06l1.267 1.268a1 1 0 0 1 .293.707V11a1 1 0 0 1-1 1h-2a3 3 0 1 1-6 0H3a1 1 0 0 1-1-1v-.586a1 1 0 0 1 .293-.707L3.56 8.44A1.5 1.5 0 0 0 4 7.38V5a4 4 0 0 1 4-4Zm0 12.5A1.5 1.5 0 0 1 6.5 12h3A1.5 1.5 0 0 1 8 13.5Z"
+                                                      clip-rule="evenodd"/>
+                                            </svg>
+                                            Notified
+                                        </span>
+                                            </div>
+                                        </div>
+                                    {% endif %}
+                                </td>
                                 <td class="px-6 py-4 whitespace-nowrap">{{ participant.position }}</td>
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     {% if participant.note %}
-                                    <button class="btn btn-sm no-animation" onclick="document.getElementById('${modalId}').showModal()">
-                                        View Note
-                                    </button>
+                                        <button class="btn btn-sm no-animation"
+                                                onclick="document.getElementById('${modalId}').showModal()">
+                                            View Note
+                                        </button>
                                     {% endif %}
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">{{ participant.get_wait_time }} min</td>
                                 <td class="px-6 py-4 whitespace-nowrap">
-                                    <button class="btn btn-warning btn-square btn-sm text-base-100 no-animation mx-2">
-                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="size-5">
-                                          <path d="M4.214 3.227a.75.75 0 0 0-1.156-.955 8.97 8.97 0 0 0-1.856 3.825.75.75 0 0 0 1.466.316 7.47 7.47 0 0 1 1.546-3.186ZM16.942 2.272a.75.75 0 0 0-1.157.955 7.47 7.47 0 0 1 1.547 3.186.75.75 0 0 0 1.466-.316 8.971 8.971 0 0 0-1.856-3.825Z" />
-                                          <path fill-rule="evenodd" d="M10 2a6 6 0 0 0-6 6c0 1.887-.454 3.665-1.257 5.234a.75.75 0 0 0 .515 1.076 32.91 32.91 0 0 0 3.256.508 3.5 3.5 0 0 0 6.972 0 32.903 32.903 0 0 0 3.256-.508.75.75 0 0 0 .515-1.076A11.448 11.448 0 0 1 16 8a6 6 0 0 0-6-6Zm0 14.5a2 2 0 0 1-1.95-1.557 33.54 33.54 0 0 0 3.9 0A2 2 0 0 1 10 16.5Z" clip-rule="evenodd" />
-                                        </svg>
-                                    </button>
-                                    <button class="btn btn-success btn-square btn-sm text-xs text-base-100 no-animation">
-                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="size-5">
-                                          <path fill-rule="evenodd" d="M16.704 4.153a.75.75 0 0 1 .143 1.052l-8 10.5a.75.75 0 0 1-1.127.075l-4.5-4.5a.75.75 0 0 1 1.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 0 1 1.05-.143Z" clip-rule="evenodd" />
-                                        </svg>
-                                    </button>
+                                    <div class="flex gap-2">
+                                        <button class="btn btn-warning btn-square btn-sm text-base-100 no-animation"
+                                                aria-label="Notify" data-participant-id="{{ participant.id }}"
+                                                onclick="openNotifyModal(this)">
+                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"
+                                                 fill="currentColor" class="size-4">
+                                                <path d="M3.6 1.7A.75.75 0 1 0 2.4.799a6.978 6.978 0 0 0-1.123 2.247.75.75 0 1 0 1.44.418c.187-.644.489-1.24.883-1.764ZM13.6.799a.75.75 0 1 0-1.2.9 5.48 5.48 0 0 1 .883 1.765.75.75 0 1 0 1.44-.418A6.978 6.978 0 0 0 13.6.799Z"/>
+                                                <path fill-rule="evenodd"
+                                                      d="M8 1a4 4 0 0 1 4 4v2.379c0 .398.158.779.44 1.06l1.267 1.268a1 1 0 0 1 .293.707V11a1 1 0 0 1-1 1h-2a3 3 0 1 1-6 0H3a1 1 0 0 1-1-1v-.586a1 1 0 0 1 .293-.707L3.56 8.44A1.5 1.5 0 0 0 4 7.38V5a4 4 0 0 1 4-4Zm0 12.5A1.5 1.5 0 0 1 6.5 12h3A1.5 1.5 0 0 1 8 13.5Z"
+                                                      clip-rule="evenodd"/>
+                                            </svg>
+                                        </button>
+                                        <button class="btn btn-success btn-square btn-sm text-base-100 no-animation"
+                                                onclick="serveParticipant({{ participant.id }})" aria-label="Serve">
+                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"
+                                                 fill="currentColor" class="size-5">
+                                                <path fill-rule="evenodd"
+                                                      d="M16.704 4.153a.75.75 0 0 1 .143 1.052l-8 10.5a.75.75 0 0 1-1.127.075l-4.5-4.5a.75.75 0 0 1 1.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 0 1 1.05-.143Z"
+                                                      clip-rule="evenodd"/>
+                                            </svg>
+                                        </button>
+                                    </div>
                                 </td>
                             </tr>
                         {% endfor %}
@@ -148,9 +185,10 @@
                                 <td class="px-6 py-4 whitespace-nowrap">{{ participant.name }}</td>
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     {% if participant.note %}
-                                    <button class="btn btn-sm no-animation" onclick="document.getElementById('${modalId}').showModal()">
-                                        View Note
-                                    </button>
+                                        <button class="btn btn-sm no-animation"
+                                                onclick="document.getElementById('${modalId}').showModal()">
+                                            View Note
+                                        </button>
                                     {% endif %}
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">{{ participant.get_wait_time }} min</td>
@@ -159,8 +197,11 @@
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <button class="btn btn-success btn-square btn-sm text-base-100 no-animation"
                                             onclick="completeParticipant({{ participant.id }})">
-                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="size-5">
-                                          <path fill-rule="evenodd" d="M16.704 4.153a.75.75 0 0 1 .143 1.052l-8 10.5a.75.75 0 0 1-1.127.075l-4.5-4.5a.75.75 0 0 1 1.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 0 1 1.05-.143Z" clip-rule="evenodd" />
+                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"
+                                             class="size-5">
+                                            <path fill-rule="evenodd"
+                                                  d="M16.704 4.153a.75.75 0 0 1 .143 1.052l-8 10.5a.75.75 0 0 1-1.127.075l-4.5-4.5a.75.75 0 0 1 1.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 0 1 1.05-.143Z"
+                                                  clip-rule="evenodd"/>
                                         </svg>
                                     </button>
                                 </td>
@@ -202,19 +243,23 @@
                         <tbody id="completed-section" class="bg-base-100 divide-y divide-gray-200">
                         {% for participant in completed_list %}
                             <tr>
-                                <td id="name_{{ participant.id }}" class="px-6 py-4 whitespace-nowrap">{{ participant.name }}</td>
+                                <td id="name_{{ participant.id }}"
+                                    class="px-6 py-4 whitespace-nowrap">{{ participant.name }}</td>
                                 <td id="notes_{{ participant.id }}" class="px-6 py-4 whitespace-nowrap">
                                     {% if participant.note %}
-                                    <button class="btn btn-sm no-animation" onclick="document.getElementById('${modalId}').showModal()">
-                                        View Note
-                                    </button>
+                                        <button class="btn btn-sm no-animation"
+                                                onclick="document.getElementById('${modalId}').showModal()">
+                                            View Note
+                                        </button>
                                     {% endif %}
                                 </td>
-                                <td id="waited_{{ participant.id }}" class="px-6 py-4 whitespace-nowrap">{{ participant.waited }} min</td>
+                                <td id="waited_{{ participant.id }}"
+                                    class="px-6 py-4 whitespace-nowrap">{{ participant.waited }} min
+                                </td>
                                 <td class="px-6 py-4 whitespace-nowrap">{{ participant.get_service_duration }} min</td>
                                 <td class="px-6 py-4 whitespace-nowrap">{{ participant.service_started_at }}</td>
                                 <td class="px-6 py-4 whitespace-nowrap">{{ participant.service_completed_at }}</td>
-                        </tr>
+                            </tr>
                         {% endfor %}
                         </tbody>
                     </table>
@@ -222,89 +267,154 @@
             </div>
         </div>
 
-<script>
-    const queue_id = {{ queue.id }};
-    const updateInterval = 60000;
+        <input type="checkbox" id="notify_modal" class="modal-toggle"/>
+        <div class="modal">
+            <div class="modal-box relative  p-10">
+                <label for="notify_modal" class="btn btn-sm btn-square btn-ghost absolute right-2 top-2">✕</label>
 
-    document.addEventListener('DOMContentLoaded', function () {
-        fetchData();
-        setInterval(fetchData, updateInterval);
-    });
+                <div class="flex items-center gap-2 my-1">
+                    <h2 class="font-semibold text-2xl">Notify Participant</h2>
+                </div>
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text">Message (Optional)</span>
+                    </label>
+                    <textarea id="message" class="textarea textarea-bordered w-full h-24"
+                              placeholder="Type your message here..."></textarea>
+                </div>
+                <div class="modal-action">
+                    <button class="btn btn-primary no-animation" onclick="sendNotification()">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="size-4">
+                            <path d="M3.6 1.7A.75.75 0 1 0 2.4.799a6.978 6.978 0 0 0-1.123 2.247.75.75 0 1 0 1.44.418c.187-.644.489-1.24.883-1.764ZM13.6.799a.75.75 0 1 0-1.2.9 5.48 5.48 0 0 1 .883 1.765.75.75 0 1 0 1.44-.418A6.978 6.978 0 0 0 13.6.799Z"/>
+                            <path fill-rule="evenodd"
+                                  d="M8 1a4 4 0 0 1 4 4v2.379c0 .398.158.779.44 1.06l1.267 1.268a1 1 0 0 1 .293.707V11a1 1 0 0 1-1 1h-2a3 3 0 1 1-6 0H3a1 1 0 0 1-1-1v-.586a1 1 0 0 1 .293-.707L3.56 8.44A1.5 1.5 0 0 0 4 7.38V5a4 4 0 0 1 4-4Zm0 12.5A1.5 1.5 0 0 1 6.5 12h3A1.5 1.5 0 0 1 8 13.5Z"
+                                  clip-rule="evenodd"/>
+                        </svg>
+                        Notify
+                    </button>
+                </div>
+            </div>
+        </div>
 
-    function fetchData() {
-        fetch(`/manager/general-updates/${queue_id}/`)
-            .then(response => {
-                if (!response.ok) throw new Error('Network response was not ok');
-                return response.json();
-            })
-            .then(data => {
-                updateWaitingList(data.waiting_list);
-                updateServingList(data.serving_list);
-                updateCompletedList(data.completed_list);
-            })
-            .catch(error => console.error('Error fetching data:', error));
-    }
 
-    function updateWaitingList(waitingList) {
-        const waitingSection = document.getElementById('waiting-section');
-        waitingSection.innerHTML = '';
+        <script>
+            const queue_id = {{ queue.id }};
+            const updateInterval = 30000;
 
-        waitingList.forEach(participant => {
-            const row = createWaitingRow(participant);
-            waitingSection.appendChild(row);
-        });
-    }
+            document.addEventListener('DOMContentLoaded', function () {
+                fetchData();
+                setInterval(fetchData, updateInterval);
+            });
 
-    function updateServingList(servingList) {
-        const servingSection = document.getElementById('serving-section');
-        servingSection.innerHTML = '';
-
-        servingList.forEach(participant => {
-            const row = createServingRow(participant);
-            servingSection.appendChild(row);
-        });
-    }
-
-    function updateCompletedList(completedList) {
-        const completedSection = document.getElementById('completed-section');
-        completedSection.innerHTML = '';
-
-        completedList.forEach(participant => {
-            const row = createCompletedRow(participant);
-            completedSection.appendChild(row);
-        });
-    }
-
-    function filterParticipants() {
-        const searchQuery = document.getElementById('searchInput').value.toLowerCase();
-        const waitingRows = document.querySelectorAll('tr[id^="waiting-"]');
-        const servingRows = document.querySelectorAll('tr[id^="serving-"]');
-        const completedRows = document.querySelectorAll('tr[id^="completed-"]');
-
-        filterRows(waitingRows, searchQuery);
-        filterRows(servingRows, searchQuery);
-        filterRows(completedRows, searchQuery);
-    }
-
-    function filterRows(rows, query) {
-        rows.forEach(row => {
-            const nameCell = row.querySelector('td:first-child');
-            if (nameCell) {
-                const name = nameCell.textContent.toLowerCase();
-                row.style.display = name.includes(query) ? '' : 'none';
+            function fetchData() {
+                fetch(`/manager/general-updates/${queue_id}/`)
+                    .then(response => {
+                        if (!response.ok) throw new Error('Network response was not ok');
+                        return response.json();
+                    })
+                    .then(data => {
+                        updateWaitingList(data.waiting_list);
+                        updateServingList(data.serving_list);
+                        updateCompletedList(data.completed_list);
+                    })
+                    .catch(error => console.error('Error fetching data:', error));
             }
-        });
-    }
 
-    function resetSearch() {
-        document.getElementById('searchInput').value = '';
-        filterParticipants();
-    }
+            function updateWaitingList(waitingList) {
+                const waitingSection = document.getElementById('waiting-section');
+                waitingSection.innerHTML = '';
 
-    function createNotesModal(participant) {
-        const modalId = `notes-modal-${participant.id}`;
-        const notesHTML = participant.notes
-            ? `
+                waitingList.forEach(participant => {
+                    const row = createWaitingRow(participant);
+                    waitingSection.appendChild(row);
+                });
+            }
+
+            function updateServingList(servingList) {
+                const servingSection = document.getElementById('serving-section');
+                servingSection.innerHTML = '';
+
+                servingList.forEach(participant => {
+                    const row = createServingRow(participant);
+                    servingSection.appendChild(row);
+                });
+            }
+
+            function updateCompletedList(completedList) {
+                const completedSection = document.getElementById('completed-section');
+                completedSection.innerHTML = '';
+
+                completedList.forEach(participant => {
+                    const row = createCompletedRow(participant);
+                    completedSection.appendChild(row);
+                });
+            }
+
+            function openNotifyModal(button) {
+                const participantId = button.getAttribute("data-participant-id");
+                document.getElementById("notify_modal").checked = true;
+                window.selectedParticipantId = participantId;
+            }
+
+            function sendNotification() {
+                const message = document.getElementById("message").value;
+                const participantId = window.selectedParticipantId;
+
+                if (!participantId) {
+                    alert("Please select a participant to notify.");
+                    return;
+                }
+
+                fetch(`/manager/notify/${participantId}/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': '{{ csrf_token }}',
+                    },
+                    body: JSON.stringify({message: message})
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status === 'success') {
+                            alert('Notification sent successfully!');
+                            document.getElementById("notify_modal").checked = false;
+                        } else {
+                            alert('There was an error sending the notification');
+                        }
+                    });
+            }
+
+
+            function filterParticipants() {
+                const searchQuery = document.getElementById('searchInput').value.toLowerCase();
+                const waitingRows = document.querySelectorAll('tr[id^="waiting-"]');
+                const servingRows = document.querySelectorAll('tr[id^="serving-"]');
+                const completedRows = document.querySelectorAll('tr[id^="completed-"]');
+
+                filterRows(waitingRows, searchQuery);
+                filterRows(servingRows, searchQuery);
+                filterRows(completedRows, searchQuery);
+            }
+
+            function filterRows(rows, query) {
+                rows.forEach(row => {
+                    const nameCell = row.querySelector('td:first-child');
+                    if (nameCell) {
+                        const name = nameCell.textContent.toLowerCase();
+                        row.style.display = name.includes(query) ? '' : 'none';
+                    }
+                });
+            }
+
+            function resetSearch() {
+                document.getElementById('searchInput').value = '';
+                filterParticipants();
+            }
+
+            function createNotesModal(participant) {
+                const modalId = `notes-modal-${participant.id}`;
+                const notesHTML = participant.notes
+                    ? `
                 <button class="btn btn-sm no-animation" onclick="document.getElementById('${modalId}').showModal()">
                     View Note
                 </button>
@@ -328,45 +438,68 @@
                         <button>close</button>
                     </form>
                 </dialog>`
-            : '';
+                    : '';
 
-        return notesHTML;
-    }
+                return notesHTML;
+            }
 
-    function createWaitingRow(participant) {
-        const row = document.createElement('tr');
-        row.id = `waiting-${participant.id}`;
+            function createWaitingRow(participant) {
+                const row = document.createElement('tr');
+                row.id = `waiting-${participant.id}`;
 
-        row.innerHTML = `
-            <td class="px-6 py-4 whitespace-nowrap">${participant.name || '-'}</td>
+                let notifiedBadge = '';
+
+                if (participant.is_notified) {
+                    notifiedBadge = `
+                <div class="flex items-center">
+                    <div class="tooltip" data-tip="Notified at">
+                    <span class="bg-amber-100 text-yellow-500 text-sm inline-flex items-center px-2 py-1">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="size-4 mr-1">
+                            <path d="M3.6 1.7A.75.75 0 1 0 2.4.799a6.978 6.978 0 0 0-1.123 2.247.75.75 0 1 0 1.44.418c.187-.644.489-1.24.883-1.764ZM13.6.799a.75.75 0 1 0-1.2.9 5.48 5.48 0 0 1 .883 1.765.75.75 0 1 0 1.44-.418A6.978 6.978 0 0 0 13.6.799Z" />
+                            <path fill-rule="evenodd" d="M8 1a4 4 0 0 1 4 4v2.379c0 .398.158.779.44 1.06l1.267 1.268a1 1 0 0 1 .293.707V11a1 1 0 0 1-1 1h-2a3 3 0 1 1-6 0H3a1 1 0 0 1-1-1v-.586a1 1 0 0 1 .293-.707L3.56 8.44A1.5 1.5 0 0 0 4 7.38V5a4 4 0 0 1 4-4Zm0 12.5A1.5 1.5 0 0 1 6.5 12h3A1.5 1.5 0 0 1 8 13.5Z" clip-rule="evenodd" />
+                        </svg>
+                        Notified
+                    </span>
+                </div>
+                </div>
+            `;
+                }
+
+                row.innerHTML = `
+            <td class="px-6 py-4 whitespace-nowrap">
+                ${participant.name || '-'}
+                ${notifiedBadge}
+            </td>
             <td class="px-6 py-4 whitespace-nowrap">${participant.position || '-'}</td>
             <td class="px-6 py-4 whitespace-nowrap">${createNotesModal(participant)}</td>
             <td class="px-6 py-4 whitespace-nowrap">${participant.waited || '0'} min</td>
             <td class="px-6 py-4 whitespace-nowrap">
-                <button class="btn btn-warning btn-square btn-sm text-base-100 no-animation mx-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="size-5">
-                      <path d="M4.214 3.227a.75.75 0 0 0-1.156-.955 8.97 8.97 0 0 0-1.856 3.825.75.75 0 0 0 1.466.316 7.47 7.47 0 0 1 1.546-3.186ZM16.942 2.272a.75.75 0 0 0-1.157.955 7.47 7.47 0 0 1 1.547 3.186.75.75 0 0 0 1.466-.316 8.971 8.971 0 0 0-1.856-3.825Z" />
-                      <path fill-rule="evenodd" d="M10 2a6 6 0 0 0-6 6c0 1.887-.454 3.665-1.257 5.234a.75.75 0 0 0 .515 1.076 32.91 32.91 0 0 0 3.256.508 3.5 3.5 0 0 0 6.972 0 32.903 32.903 0 0 0 3.256-.508.75.75 0 0 0 .515-1.076A11.448 11.448 0 0 1 16 8a6 6 0 0 0-6-6Zm0 14.5a2 2 0 0 1-1.95-1.557 33.54 33.54 0 0 0 3.9 0A2 2 0 0 1 10 16.5Z" clip-rule="evenodd" />
-                    </svg>
-                </button>
-                <button class="btn btn-success btn-square btn-sm text-base-100 no-animation"
-                    onclick="serveParticipant(${participant.id})">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="size-5">
-                  <path fill-rule="evenodd" d="M16.704 4.153a.75.75 0 0 1 .143 1.052l-8 10.5a.75.75 0 0 1-1.127.075l-4.5-4.5a.75.75 0 0 1 1.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 0 1 1.05-.143Z" clip-rule="evenodd" />
-                </svg>
-
-                </button>
+                <div class="flex gap-2">
+                    <button class="btn btn-warning btn-square btn-sm text-base-100 no-animation"
+                        aria-label="Notify" data-participant-id="${participant.id}" onclick="openNotifyModal(this)">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="size-4">
+                            <path d="M3.6 1.7A.75.75 0 1 0 2.4.799a6.978 6.978 0 0 0-1.123 2.247.75.75 0 1 0 1.44.418c.187-.644.489-1.24.883-1.764ZM13.6.799a.75.75 0 1 0-1.2.9 5.48 5.48 0 0 1 .883 1.765.75.75 0 1 0 1.44-.418A6.978 6.978 0 0 0 13.6.799Z" />
+                            <path fill-rule="evenodd" d="M8 1a4 4 0 0 1 4 4v2.379c0 .398.158.779.44 1.06l1.267 1.268a1 1 0 0 1 .293.707V11a1 1 0 0 1-1 1h-2a3 3 0 1 1-6 0H3a1 1 0 0 1-1-1v-.586a1 1 0 0 1 .293-.707L3.56 8.44A1.5 1.5 0 0 0 4 7.38V5a4 4 0 0 1 4-4Zm0 12.5A1.5 1.5 0 0 1 6.5 12h3A1.5 1.5 0 0 1 8 13.5Z" clip-rule="evenodd" />
+                        </svg>
+                    </button>
+                    <button class="btn btn-success btn-square btn-sm text-base-100 no-animation"
+                        onclick="serveParticipant(${participant.id})" aria-label="Serve">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="size-5">
+                            <path fill-rule="evenodd" d="M16.704 4.153a.75.75 0 0 1 .143 1.052l-8 10.5a.75.75 0 0 1-1.127.075l-4.5-4.5a.75.75 0 0 1 1.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 0 1 1.05-.143Z" clip-rule="evenodd" />
+                        </svg>
+                    </button>
+                </div>
 
             </td>
         `;
-        return row;
-    }
+                return row;
+            }
 
-    function createServingRow(participant) {
-        const row = document.createElement('tr');
-        row.id = `serving-${participant.id}`;
+            function createServingRow(participant) {
+                const row = document.createElement('tr');
+                row.id = `serving-${participant.id}`;
 
-        row.innerHTML = `
+                row.innerHTML = `
             <td class="px-6 py-4 whitespace-nowrap">${participant.name || ''}</td>
             <td class="px-6 py-4 whitespace-nowrap">${createNotesModal(participant)}</td>
             <td class="px-6 py-4 whitespace-nowrap">${participant.waited || '0'} min</td>
@@ -381,15 +514,15 @@
                 </button>
             </td>
         `;
-        return row;
-    }
+                return row;
+            }
 
 
-    function createCompletedRow(participant) {
-    const row = document.createElement('tr');
-    row.id = `completed-${participant.id}`;
+            function createCompletedRow(participant) {
+                const row = document.createElement('tr');
+                row.id = `completed-${participant.id}`;
 
-    row.innerHTML = `
+                row.innerHTML = `
         <td class="px-6 py-4 whitespace-nowrap">${participant.name || ''}</td>
         <td class="px-6 py-4 whitespace-nowrap">
             ${createNotesModal(participant)}
@@ -400,183 +533,43 @@
         <td class="px-6 py-4 whitespace-nowrap">${participant.completed || ''}</td>
 
     `;
-    return row;
-}
+                return row;
+            }
 
-    function serveParticipant(id) {
-        fetch(`/manager/serve/${id}/`, {
-            method: 'POST',
-            headers: {
-                'X-CSRFToken': '{{ csrf_token }}',
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({id})
-        })
-            .then(response => {
-                if (!response.ok) throw new Error('Network response was not ok');
-                fetchData();
-            })
-            .catch(error => console.error('Error serving participant:', error));
-    }
+            function serveParticipant(id) {
+                fetch(`/manager/serve/${id}/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': '{{ csrf_token }}',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({id})
+                })
+                    .then(response => {
+                        if (!response.ok) throw new Error('Network response was not ok');
+                        fetchData();
+                    })
+                    .catch(error => console.error('Error serving participant:', error));
+            }
 
-    function completeParticipant(id) {
-        fetch(`/manager/complete/${id}/`, {
-            method: 'POST',
-            headers: {
-                'X-CSRFToken': '{{ csrf_token }}',
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({id})
-        })
-            .then(response => {
-                if (!response.ok) throw new Error('Network response was not ok');
-                fetchData();
-            })
-            .catch(error => console.error('Error completing participant:', error));
-    }
-</script>
+            function completeParticipant(id) {
+                fetch(`/manager/complete/${id}/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': '{{ csrf_token }}',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({id})
+                })
+                    .then(response => {
+                        if (!response.ok) throw new Error('Network response was not ok');
+                        fetchData();
+                    })
+                    .catch(error => console.error('Error completing participant:', error));
+            }
 
 
-<script>
-let deleteParticipantId = null;
+        </script>
 
-function openDeleteModal(participantId) {
-    deleteParticipantId = participantId;
-    document.getElementById('deleteModal').checked = true;
-}
-
-document.getElementById('confirmDeleteButton').addEventListener('click', () => {
-    if (deleteParticipantId) {
-        deleteParticipant(deleteParticipantId);
-        document.getElementById('deleteModal').checked = false;
-    }
-});
-
-function openEditDrawer(element) {
-    const participantId = element.getAttribute('data-id');
-    const participantName = element.getAttribute('data-name');
-    const participantPhone = element.getAttribute('data-phone');
-    const participantNotes = element.getAttribute('data-notes');
-    const participantCategory = element.getAttribute('data-category');  // Get the category of the participant (restaurant, bank, hospital)
-
-    document.getElementById('participant_id').value = participantId;
-    document.getElementById('edit_name').value = participantName || '';
-    document.getElementById('edit_phone').value = participantPhone || '';
-    document.getElementById('edit_notes').value = participantNotes || '';
-
-    // Clear any dynamically added fields before adding new ones
-    clearDynamicFields();
-
-    // Populate form based on the participant category
-    if (participantCategory === 'restaurant') {
-        // Party size and table (restaurant-specific)
-        const partySize = element.getAttribute('data-party-size');
-        const seatingPreference = element.getAttribute('data-seating');
-        document.getElementById('edit_party_size_' + partySize).checked = true;  // Pre-select the party size
-        document.getElementById('edit_seating').value = seatingPreference || 'First Available';  // Pre-select seating preference
-    } else if (participantCategory === 'bank') {
-        // Service type (bank-specific)
-        const serviceType = element.getAttribute('data-service-type');
-        document.getElementById('edit_service_type').value = serviceType || 'account_services';
-    } else if (participantCategory === 'hospital') {
-        // Medical field and priority (hospital-specific)
-        const medicalField = element.getAttribute('data-medical-field');
-        const priority = element.getAttribute('data-priority');
-        document.getElementById('edit_medical_field').value = medicalField || 'general';
-        document.getElementById('edit_priority').value = priority || 'normal';
-    }
-
-    document.getElementById('editDrawer').checked = true;
-}
-
-// Clear dynamically populated fields based on category
-function clearDynamicFields() {
-    // Clear party size radio buttons for restaurant
-    const partySizeRadios = document.querySelectorAll('input[name="party_size"]');
-    partySizeRadios.forEach(radio => radio.checked = false);
-
-    // Clear seating preference for restaurant
-    document.getElementById('edit_seating').value = '';
-
-    // Clear service type for bank
-    document.getElementById('edit_service_type').value = '';
-
-    // Clear medical field for hospital
-    document.getElementById('edit_medical_field').value = '';
-
-    // Clear priority for hospital
-    document.getElementById('edit_priority').value = '';
-}
-
-document.getElementById('editForm').addEventListener('submit', (e) => {
-    e.preventDefault();
-
-    const updatedData = {
-        id: document.getElementById('participant_id').value,
-        name: document.getElementById('edit_name').value,
-        phone: document.getElementById('edit_phone').value,
-        notes: document.getElementById('edit_notes').value,
-        party_size: getSelectedPartySize(),  // Get selected party size
-        seating_preference: document.getElementById('edit_seating').value,  // Get seating preference (restaurant-specific)
-        service_type: document.getElementById('edit_service_type').value,  // Get service type (bank-specific)
-        medical_field: document.getElementById('edit_medical_field').value,  // Get medical field (hospital-specific)
-        priority: document.getElementById('edit_priority').value,  // Get priority (hospital-specific)
-    };
-
-    updateParticipant(updatedData);
-});
-
-function getSelectedPartySize() {
-    const selectedRadio = document.querySelector('input[name="party_size"]:checked');
-    return selectedRadio ? selectedRadio.value : null;
-}
-
-function updateParticipant(data) {
-    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
-
-    fetch(`/manager/edit_participant/${data.id}/`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': csrfToken
-        },
-        body: JSON.stringify(data)
-    })
-    .then(response => {
-        if (response.ok) {
-            console.log("Participant updated successfully!");
-            alert("Participant updated successfully!");
-            location.reload();
-        } else {
-            console.error("Failed to update participant.");
-            alert("Failed to update participant.");
-        }
-    })
-    .catch(error => {
-        console.error("Error:", error);
-        alert("An error occurred while updating the participant.");
-    });
-}
-
-function deleteParticipant(id) {
-    fetch(`/manager/delete_participant/${id}/`, {
-        method: 'DELETE',
-        headers: {
-            'X-CSRFToken': '{{ csrf_token }}'
-        }
-    })
-    .then(response => {
-        if (response.ok) {
-            console.log("Participant deleted successfully!");
-            location.reload();
-        } else {
-            console.error("Failed to delete participant.");
-        }
-    })
-    .catch(error => {
-        console.error("Error:", error);
-    });
-}
-</script>
 
 {% endblock %}
