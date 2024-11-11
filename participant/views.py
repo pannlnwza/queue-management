@@ -240,40 +240,32 @@ class QueueStatusView(generic.TemplateView):
         return context
 
 
-import json
-import time
-from django.http import StreamingHttpResponse
-from django.shortcuts import get_object_or_404
-from .models import Participant
-
-
 def sse_queue_status(request, participant_code):
     """Server-sent Events endpoint to stream the queue status."""
 
     def event_stream():
-        # Get the participant by their code
+        last_position = None
         while True:
             try:
                 participant = get_object_or_404(Participant, code=participant_code)
                 queue = participant.queue
-                # Prepare the data to send in the SSE stream
-                data = {
-                    'queue_name': queue.name,
-                    'participant': [
-                        {
-                            'name': participant.name,
-                            'position': participant.position,
-                            'estimated_wait_time': participant.calculate_estimated_wait_time()
-                        }
-                    ]
-                }
-                message = json.dumps(data)
+                if participant.position != last_position:
+                    # Prepare the data to send in the SSE stream
+                    data = {
+                        'queue_name': queue.name,
+                        'participant': [
+                            {
+                                'name': participant.name,
+                                'position': participant.position,
+                                'estimated_wait_time': participant.calculate_estimated_wait_time()
+                            }
+                        ]
+                    }
+                    message = json.dumps(data)
 
-                # Yield the SSE formatted message
-                yield f"data: {message}\n\n"
-                print(message)
+                    yield f"data: {message}\n\n"
 
-                # Wait for 5 seconds before sending the next update
+                    last_position = participant.position
                 time.sleep(5)
             except Exception as e:
                 print("Error in event stream:", e)

@@ -1,19 +1,15 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Queue Status</title>
-</head>
-<body>
-    <h1>Queue Status for {{ participant.name }}</h1>
-
-    <h2>Queue: {{ queue.name }}</h2>
-
-    <h3>Queue: <span id="queueName"></span></h3>
-    <p>Participant: <span id="participantName"></span></p>
-    <p>Position: <span id="position"></span></p>
-    <p>Estimated Wait Time: <span id="waitTime"></span></p>
+{% extends 'base.html' %}
+{% block content %}
+<div class="max-w-md mx-auto p-4">
+    <div class="card bg-base-200/70 shadow-xl">
+        <div class="card-body">
+            <h1>Queue: <span id="queueName"></span></h1>
+            <p>Participant: <span id="participantName"></span></p>
+            <p>Position: <span id="position"></span></p>
+            <p>Estimated Wait Time: <span id="waitTime"></span></p>
+        </div>
+    </div>
+</div>
 
 <script>
         const eventSource = new EventSource('/status/{{ participant.code }}/sse');
@@ -37,8 +33,4 @@
             console.error("Error in SSE connection:", error);
         };
     </script>
-
-
-
-</body>
-</html>
+{% endblock %}
