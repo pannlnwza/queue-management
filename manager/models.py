@@ -74,8 +74,14 @@ class Queue(models.Model):
         self.save()
 
     def get_participants(self) -> models.QuerySet:
-        """Return a queryset of all participants in this queue."""
-        return self.participant_set.all()
+        """Return a queryset of all participants in this queue. Ordered by joined_at"""
+        return self.participant_set.all().order_by('joined_at')
+
+    def update_participants_positions(self):
+        participants = self.participant_set.order_by('joined_at')
+        for index, participant in enumerate(participants, start=1):
+            participant.position = index
+            participant.save(update_fields=["position"])
 
     def get_number_of_participants(self) -> int:
         """Return the count of all participants in this queue."""
