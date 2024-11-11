@@ -1,5 +1,6 @@
 import logging
 from datetime import timedelta
+from unicodedata import category
 
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, user_logged_in, user_logged_out, user_login_failed
@@ -17,8 +18,6 @@ from django.views.decorators.http import require_http_methods
 from manager.forms import QueueForm
 from manager.models import Queue
 from manager.utils.category_handler import CategoryHandlerFactory
-from manager.utils.helpers import send_notification
-from manager.utils.queue_handler import QueueHandlerFactory
 from participant.models import Participant, Notification
 
 logger = logging.getLogger('queue')
@@ -48,7 +47,7 @@ class CreateQView(LoginRequiredMixin, generic.CreateView):
         :returns: The response after the form has been successfully validated and saved.
         """
         queue_category = form.cleaned_data['category']
-        handler = QueueHandlerFactory.get_handler(queue_category)
+        handler = CategoryHandlerFactory.get_handler(queue_category)
 
         queue_data = form.cleaned_data.copy()
         queue_data['created_by'] = self.request.user
@@ -162,8 +161,6 @@ def notify_participant(request, participant_id):
     Notification.objects.create(queue=queue, participant=participant, message=message)
     participant.is_notified = True
     participant.save()
-    if participant.email:
-        send_notification(participant, message)
     return JsonResponse({'status': 'success', 'message': 'Notification sent successfully!'})
 
 
@@ -220,7 +217,7 @@ def edit_participant(request, participant_id):
             'party_size': request.POST.get('party_size'),
             'state': request.POST.get('state')
         }
-        handler = CategoryHandlerFactory.get_handler(participant.queue.id)
+        handler = CategoryHandlerFactory.get_handler(participant.queue.category)
         participant = handler.get_participant_set(participant.queue.id).get(id=participant_id)
         handler.update_participant(participant, data)
         return redirect('manager:participant_list', participant.queue.id)
@@ -237,7 +234,8 @@ def add_participant(request, queue_id):
     special_2 = request.POST.get('special_2')
     party_size = request.POST.get('party_size')
 
-    handler = CategoryHandlerFactory.get_handler(queue_id)
+    queue = get_object_or_404(Queue, id=queue_id)
+    handler = CategoryHandlerFactory.get_handler(queue.category)
     queue = handler.get_queue_object(queue_id)
     data = {
         'name': name,
@@ -259,7 +257,8 @@ class ManageWaitlist(LoginRequiredMixin, generic.TemplateView):
     def get_template_names(self):
         """Return the appropriate template based on the queue category."""
         queue_id = self.kwargs.get('queue_id')
-        handler = CategoryHandlerFactory.get_handler(queue_id)
+        queue = get_object_or_404(Queue, id=queue_id)
+        handler = CategoryHandlerFactory.get_handler(queue.category)
         queue = handler.get_queue_object(queue_id)
 
         if queue.category == 'general':
@@ -269,7 +268,8 @@ class ManageWaitlist(LoginRequiredMixin, generic.TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         queue_id = self.kwargs.get('queue_id')
-        handler = CategoryHandlerFactory.get_handler(queue_id)
+        queue = get_object_or_404(Queue, id=queue_id)
+        handler = CategoryHandlerFactory.get_handler(queue.category)
         queue = handler.get_queue_object(queue_id)
 
         if self.request.user not in queue.authorized_user.all():
@@ -300,7 +300,7 @@ class ManageWaitlist(LoginRequiredMixin, generic.TemplateView):
 def serve_participant(request, participant_id):
     participant = get_object_or_404(Participant, id=participant_id)
     queue_id = participant.queue.id
-    handler = CategoryHandlerFactory.get_handler(queue_id)
+    handler = CategoryHandlerFactory.get_handler(participant.queue.category)
     participant_set = handler.get_participant_set(queue_id)
     participant = get_object_or_404(participant_set, id=participant_id)
 
@@ -336,7 +336,7 @@ def serve_participant(request, participant_id):
 def complete_participant(request, participant_id):
     participant = get_object_or_404(Participant, id=participant_id)
     queue = participant.queue
-    handler = CategoryHandlerFactory.get_handler(queue.id)
+    handler = CategoryHandlerFactory.get_handler(queue.category)
     participant = handler.get_participant_set(queue.id).filter(id=participant_id).first()
 
     if request.user not in queue.authorized_user.all():
@@ -375,7 +375,8 @@ class ParticipantListView(LoginRequiredMixin, generic.TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         queue_id = self.kwargs.get('queue_id')
-        handler = CategoryHandlerFactory.get_handler(queue_id)
+        queue = get_object_or_404(Queue, id=queue_id)
+        handler = CategoryHandlerFactory.get_handler(queue.category)
         queue = handler.get_queue_object(queue_id)
 
         time_filter_option = self.request.GET.get('time_filter', 'all_time')
@@ -449,7 +450,8 @@ class StatisticsView(LoginRequiredMixin, generic.TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         queue_id = self.kwargs.get('queue_id')
-        handler = CategoryHandlerFactory.get_handler(queue_id)
+        queue = get_object_or_404(Queue, id=queue_id)
+        handler = CategoryHandlerFactory.get_handler(queue.category)
         queue = handler.get_queue_object(queue_id)
         participant_set = handler.get_participant_set(queue_id)
 

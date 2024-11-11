@@ -5,15 +5,19 @@ from manager.models import Queue, RestaurantQueue, Table
 from django.contrib.auth.models import User
 from datetime import timedelta
 
+
 class ParticipantModelTests(TestCase):
     def setUp(self):
-        self.user = User.objects.create_user(username='testuser', password='testpass')
+        self.user = User.objects.create_user(username='testuser',
+                                             password='testpass')
         self.queue = Queue.objects.create(
             name='General Queue',
             description='A general test queue.',
             created_by=self.user,
             estimated_wait_time_per_turn=5,
-            average_service_duration=10
+            average_service_duration=10,
+            longitude=100.5163,
+            latitude=13.7285
         )
         self.participant = Participant.objects.create(
             name='John Doe',
@@ -50,7 +54,8 @@ class ParticipantModelTests(TestCase):
         """Test the wait time calculation."""
         self.assertEqual(self.participant.get_wait_time(), 0)  #
         self.participant.state = 'waiting'
-        self.participant.joined_at = timezone.localtime() - timedelta(minutes=10)
+        self.participant.joined_at = timezone.localtime() - timedelta(
+            minutes=10)
         self.participant.save()
         self.assertEqual(self.participant.get_wait_time(), 10)
 
@@ -69,7 +74,8 @@ class ParticipantModelTests(TestCase):
         self.participant.refresh_from_db()
 
         # Now we should get the duration equal to service_duration_minutes
-        self.assertEqual(self.participant.get_service_duration(), service_duration_minutes)
+        self.assertEqual(self.participant.get_service_duration(),
+                         service_duration_minutes)
 
     def test_remove_old_completed_participants(self):
         """Test that old completed participants are removed."""
@@ -80,17 +86,22 @@ class ParticipantModelTests(TestCase):
             service_completed_at=timezone.now() - timedelta(days=31)
         )
         Participant.remove_old_completed_participants()
-        self.assertFalse(Participant.objects.filter(id=old_participant.id).exists())
+        self.assertFalse(
+            Participant.objects.filter(id=old_participant.id).exists())
+
 
 class RestaurantParticipantModelTests(TestCase):
     def setUp(self):
-        self.user = User.objects.create_user(username='testuser', password='testpass')
+        self.user = User.objects.create_user(username='testuser',
+                                             password='testpass')
         self.restaurant_queue = RestaurantQueue.objects.create(
             name='Test Restaurant Queue',
             description='A test restaurant queue.',
             created_by=self.user,
             estimated_wait_time_per_turn=5,
-            average_service_duration=10
+            average_service_duration=10,
+            longitude=100.5163,
+            latitude=13.7285
         )
         self.table = Table.objects.create(name='A01', capacity=4)
         self.restaurant_queue.tables.add(self.table)
@@ -127,5 +138,5 @@ class RestaurantParticipantModelTests(TestCase):
 
     def test_participant_str(self):
         """Test the string representation of the participant."""
-        self.assertEqual(str(self.restaurant_participant), 'Alice Doe - waiting')
-
+        self.assertEqual(str(self.restaurant_participant),
+                         'Alice Doe - waiting')

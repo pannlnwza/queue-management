@@ -12,9 +12,7 @@ class CategoryHandlerFactory:
     _handlers = {}
 
     @staticmethod
-    def get_handler(queue_id):
-        queue = get_object_or_404(Queue, id=queue_id)
-        queue_category = queue.category
+    def get_handler(queue_category):
         if queue_category in CategoryHandlerFactory._handlers:
             return CategoryHandlerFactory._handlers[queue_category]
 

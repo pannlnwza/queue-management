@@ -41,6 +41,8 @@ class Queue(models.Model):
     logo = models.ImageField(upload_to='queue_logos/', blank=True, null=True)
     completed_participants_count = models.PositiveIntegerField(default=0)
     code = models.CharField(max_length=6, unique=True, editable=False)
+    latitude = models.FloatField()
+    longitude = models.FloatField()
 
     def save(self, *args, **kwargs):
         """Generate a unique ticket code for the participant if not already."""

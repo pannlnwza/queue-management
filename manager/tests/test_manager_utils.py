@@ -1,4 +1,5 @@
 import json
+import time
 from unittest.mock import patch
 
 from django.test import TestCase, Client
@@ -8,6 +9,7 @@ from django.urls import reverse
 from participant.models import RestaurantParticipant, Participant
 from manager.models import Resource, RestaurantQueue, Queue
 from manager.utils.category_handler import CategoryHandlerFactory, GeneralQueueHandler, RestaurantQueueHandler
+from manager.models import Table, RestaurantQueue, Queue
 from django.utils import timezone
 
 
@@ -27,8 +29,10 @@ class ParticipantHandlerFactoryTests(TestCase):
 
 class GeneralParticipantHandlerTests(TestCase):
     def setUp(self):
-        self.queue = Queue.objects.create(name="General Queue", description="A general queue")
-        self.handler = GeneralQueueHandler()
+        self.queue = Queue.objects.create(name="General Queue",
+                                          description="A general queue",
+                                          longitude=100.5163, latitude=13.7285)
+        self.handler = GeneralParticipantHandler()
 
     def test_create_participant(self):
         data = {'name': 'Panny 69', 'phone': '1234567890', 'queue': self.queue}
@@ -47,32 +51,39 @@ class GeneralParticipantHandlerTests(TestCase):
         participant = self.handler.create_participant(data)
         participant.state = 'serving'
         participant.service_started_at = timezone.localtime()
-        participant.joined_at = timezone.localtime() - timezone.timedelta(minutes=5)
+        participant.joined_at = timezone.localtime() - timezone.timedelta(
+            minutes=5)
         participant.save()
-
+        time.sleep(1)
         self.handler.complete_service(participant)
 
         participant.refresh_from_db()
         self.assertEqual(participant.state, 'completed')
-        self.assertGreater(participant.service_completed_at, participant.service_started_at)
+        self.assertGreater(participant.service_completed_at,
+                           participant.service_started_at)
 
 
 class RestaurantParticipantHandlerTests(TestCase):
     def setUp(self):
-        self.queue = RestaurantQueue.objects.create(name="Restaurant Queue", description="A restaurant queue")
-        self.table = Resource.objects.create(name="Table 1", capacity=4)
+        self.queue = RestaurantQueue.objects.create(name="Restaurant Queue",
+                                                    description="A restaurant queue",
+                                                    longitude=100.5163,
+                                                    latitude=13.7285)
+        self.table = Table.objects.create(name="Table 1", capacity=4)
         self.table.save()
         self.queue.tables.add(self.table)
         self.handler = RestaurantQueueHandler()
 
     def test_create_participant(self):
-        data = {'name': 'Tai Demalu', 'phone': '0987654321', 'queue': self.queue, 'party_size': 2}
+        data = {'name': 'Tai Demalu', 'phone': '0987654321',
+                'queue': self.queue, 'party_size': 2}
         participant = self.handler.create_participant(data)
         self.assertIsInstance(participant, RestaurantParticipant)
         self.assertEqual(participant.name, 'Tai Demalu')
 
     def test_assign_to_resource(self):
-        data = {'name': 'Tai Demalu', 'phone': '0987654321', 'queue': self.queue, 'party_size': 2}
+        data = {'name': 'Tai Demalu', 'phone': '0987654321',
+                'queue': self.queue, 'party_size': 2}
         participant = self.handler.create_participant(data)
         self.handler.assign_to_resource(participant)
 
@@ -91,7 +102,8 @@ class RestaurantParticipantHandlerTests(TestCase):
 
         participant.state = 'serving'
         participant.service_started_at = timezone.localtime()
-        participant.joined_at = timezone.localtime() - timezone.timedelta(minutes=5)
+        participant.joined_at = timezone.localtime() - timezone.timedelta(
+            minutes=5)
         participant.table = self.table
         participant.save()
         participant.refresh_from_db()
@@ -105,23 +117,30 @@ class RestaurantParticipantHandlerTests(TestCase):
 class QueueDataTests(TestCase):
     def setUp(self):
         self.client = Client()
-        self.user = User.objects.create_user(username='testuser', password='testpass')
-        self.queue = Queue.objects.create(created_by=self.user)
-        self.restaurant_queue = RestaurantQueue.objects.create(created_by=self.user)
+        self.user = User.objects.create_user(username='testuser',
+                                             password='testpass')
+        self.queue = Queue.objects.create(created_by=self.user,
+                                          longitude=100.5163, latitude=13.7285)
+        self.restaurant_queue = RestaurantQueue.objects.create(
+            created_by=self.user, longitude=100.5163, latitude=13.7285)
 
         # Create participants
         self.participant_waiting = Participant.objects.create(
-            name='Waiting Participant', queue=self.queue, state='waiting', phone='1234567890'
+            name='Waiting Participant', queue=self.queue, state='waiting',
+            phone='1234567890'
         )
         self.participant_serving = Participant.objects.create(
-            name='Serving Participant', queue=self.queue, state='serving', phone='0987654321'
+            name='Serving Participant', queue=self.queue, state='serving',
+            phone='0987654321'
         )
         self.participant_completed = Participant.objects.create(
-            name='Completed Participant', queue=self.queue, state='completed', phone='1112223333'
+            name='Completed Participant', queue=self.queue, state='completed',
+            phone='1112223333'
         )
 
         self.restaurant_participant_waiting = RestaurantParticipant.objects.create(
-            name='Restaurant Waiting Participant', queue=self.restaurant_queue, state='waiting', phone='4445556666'
+            name='Restaurant Waiting Participant', queue=self.restaurant_queue,
+            state='waiting', phone='4445556666'
         )
 
     def test_get_general_queue_data(self):
@@ -130,7 +149,8 @@ class QueueDataTests(TestCase):
 
         # Mock the get_wait_time and get_service_duration methods
         with patch.object(Participant, 'get_wait_time', return_value=10), \
-                patch.object(Participant, 'get_service_duration', return_value=5):
+                patch.object(Participant, 'get_service_duration',
+                             return_value=5):
             response = self.client.get(url)
             self.assertEqual(response.status_code, 200)
             data = json.loads(response.content)
@@ -138,17 +158,23 @@ class QueueDataTests(TestCase):
             self.assertIn('waiting_list', data)
             self.assertIn('serving_list', data)
             self.assertIn('completed_list', data)
-            self.assertEqual(data['waiting_list'][0]['name'], 'Waiting Participant')
-            self.assertEqual(data['serving_list'][0]['name'], 'Serving Participant')
-            self.assertEqual(data['completed_list'][0]['name'], 'Completed Participant')
+            self.assertEqual(data['waiting_list'][0]['name'],
+                             'Waiting Participant')
+            self.assertEqual(data['serving_list'][0]['name'],
+                             'Serving Participant')
+            self.assertEqual(data['completed_list'][0]['name'],
+                             'Completed Participant')
 
     def test_get_restaurant_queue_data(self):
         self.client.login(username='testuser', password='testpass')
-        url = reverse('manager:get_restaurant_queue_data', args=[self.restaurant_queue.id])
+        url = reverse('manager:get_restaurant_queue_data',
+                      args=[self.restaurant_queue.id])
 
         # Mock the methods for restaurant participant
-        with patch.object(RestaurantParticipant, 'get_wait_time', return_value=10), \
-                patch.object(RestaurantParticipant, 'get_service_duration', return_value=5):
+        with patch.object(RestaurantParticipant, 'get_wait_time',
+                          return_value=10), \
+                patch.object(RestaurantParticipant, 'get_service_duration',
+                             return_value=5):
             response = self.client.get(url)
             self.assertEqual(response.status_code, 200)
             data = json.loads(response.content)
@@ -156,4 +182,5 @@ class QueueDataTests(TestCase):
             self.assertIn('waiting_list', data)
             self.assertIn('serving_list', data)
             self.assertIn('completed_list', data)
-            self.assertEqual(data['waiting_list'][0]['name'], 'Restaurant Waiting Participant')
+            self.assertEqual(data['waiting_list'][0]['name'],
+                             'Restaurant Waiting Participant')

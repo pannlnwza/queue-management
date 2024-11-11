@@ -2,18 +2,23 @@ from datetime import datetime, timedelta
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.views import generic
 
 from participant.models import Participant, Notification
 from manager.models import Queue
+from manager.views import logger
 from .forms import ReservationForm
-from manager.utils.category_handler import CategoryHandlerFactory
+from participant.utils.participant_handler import ParticipantHandlerFactory
 
+
+# Create your views here.
 
 class HomePageView(generic.TemplateView):
     template_name = 'participant/get_started.html'
+
 
 
 @login_required
@@ -21,7 +26,7 @@ def mark_notification_as_read(request, notification_id):
     if request.method == "POST":
         try:
             notification = Notification.objects.get(id=notification_id)
-            notification.is_read = True
+            notification.is_read = True  # Adjust according to your model's field
             notification.save()
             return JsonResponse({"status": "success"})
         except Notification.DoesNotExist:
@@ -113,6 +118,64 @@ class BrowseQueueView(generic.ListView):
 #         return redirect("participant:index")
 #     return redirect("participant:index")
 
+class IndexView(generic.ListView):
+    """
+    Display the index page for the user's queues.
+    Lists the queues the authenticated user is participating in.
+
+    :param template_name: The name of the template to render.
+    :param context_object_name: The name of the context variable to hold the queue list.
+    """
+
+    template_name = "participant/index.html"
+    context_object_name = "queue_list"
+
+    def get_queryset(self):
+        """
+        Get the list of queues for the authenticated user.
+        :returns: A queryset of queues the user is participating in, or an empty queryset if not authenticated.
+        """
+        if self.request.user.is_authenticated:
+            return Queue.objects.filter(participant__user=self.request.user)
+        return Queue.objects.none()
+
+    def get_context_data(self, **kwargs):
+        """
+        Add additional context data to the template.
+
+        :param kwargs: Additional keyword arguments passed to the method.
+        :returns: The updated context dictionary with user's queue positions.
+        """
+        context = super().get_context_data(**kwargs)
+        if self.request.user.is_authenticated:
+            user_participants = Participant.objects.filter(user=self.request.user)
+            queue_positions = {
+                participant.queue.id: participant.position
+                for participant in user_participants
+            }
+            estimated_wait_time = {
+                participant.queue.id: participant.calculate_estimated_wait_time()
+                for participant in user_participants
+            }
+            active_participants = {
+                participant.queue.id: participant.id
+                for participant in user_participants
+            }
+            expected_service_time = {
+                participant.queue.id: datetime.now()
+                + timedelta(minutes=participant.calculate_estimated_wait_time())
+                for participant in user_participants
+            }
+            notification = Notification.objects.filter(
+                participant__user=self.request.user
+            ).order_by("-created_at")
+            context["queue_positions"] = queue_positions
+            context["estimated_wait_time"] = estimated_wait_time
+            context["expected_service_time"] = expected_service_time
+            context["notification"] = notification
+            context["active_participants"] = active_participants
+        return context
+
 
 def welcome(request, queue_code):
     queue = get_object_or_404(Queue, code=queue_code)
@@ -126,7 +189,7 @@ class KioskView(generic.FormView):
     def dispatch(self, request, *args, **kwargs):
         # Retrieve the queue object based on the queue_code from the URL
         self.queue = get_object_or_404(Queue, code=kwargs['queue_code'])
-        self.participant_handler = CategoryHandlerFactory.get_handler(self.queue.id)
+        self.participant_handler = ParticipantHandlerFactory.get_handler(self.queue.category)
         return super().dispatch(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):
