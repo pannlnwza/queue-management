@@ -473,7 +473,9 @@
 
                 if (category !== 'general') {
                     const resourceElement = document.getElementById('edit_resource');
-                    resourceElement.value = participant.resource;
+                    if (resourceElement) {
+                        resourceElement.value = participant.resource || '';
+                    }
                 }
 
                 if (category === 'restaurant') {
