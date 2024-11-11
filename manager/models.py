@@ -184,6 +184,7 @@ class RestaurantQueue(Queue):
 class UserProfile(models.Model):
     """Represents a user profile in the system."""
     user = models.OneToOneField(User, on_delete=models.CASCADE)
+    image = models.ImageField(upload_to='profile_images/', default='media/queue_logos/profile.jpg')
     phone_no = models.CharField(max_length=15)
 
     def __str__(self) -> str:
