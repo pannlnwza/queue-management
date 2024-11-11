@@ -15,7 +15,7 @@ class QueueForm(forms.ModelForm):
         fields = ['name', 'logo', 'description', 'category', 'latitude',
                   'longitude']
         labels = {
-            'logo': 'Logo (Optional)',
+            'logo': 'Logo (Optional)'
         }
         widgets = {
             'name': forms.TextInput(
@@ -23,7 +23,7 @@ class QueueForm(forms.ModelForm):
                        'placeholder': 'Enter Queue Name (Max Length: 50)'}),
             'description': forms.Textarea(
                 attrs={'class': 'textarea textarea-bordered w-full m-2',
-                       'placeholder': 'Enter Description (Max Length: 100)',
+                       'placeholder': 'Enter Description (Max Length: 60)',
                        'rows': 4}),
             'category': forms.Select(
                 attrs={'class': 'select select-bordered w-full max-w-xs m-2'}),
