@@ -194,19 +194,15 @@ def delete_participant(request, participant_id):
     if request.user not in participant.queue.authorized_user.all():
         return JsonResponse({'error': 'Unauthorized.'}, status=403)
 
-    if participant.state == 'waiting':
-        queue = participant.queue
-        waiting_participants = Participant.objects.filter(queue=queue, state='waiting').order_by('position')
-        participant.delete()
-        logger.info(f"Participant {participant_id} is deleted.")
-
-        for idx, p in enumerate(waiting_participants):
-            if p.position > participant.position:
-                p.position = idx + 1
-                p.save()
-        return JsonResponse({'message': 'Participant is deleted and positions are updated.'})
+    queue = participant.queue
     participant.delete()
-    return JsonResponse({'message': 'Participant deleted.'})
+    logger.info(f"Participant {participant_id} is deleted.")
+
+    waiting_participants = Participant.objects.filter(queue=queue, state='waiting').order_by('position')
+    for idx, p in enumerate(waiting_participants):
+        p.position = idx + 1
+        p.save()
+    return JsonResponse({'message': 'Participant deleted and positions updated.'})
 
 
 @require_http_methods(["POST"])
@@ -218,6 +214,7 @@ def edit_participant(request, participant_id):
             'phone': request.POST.get('phone'),
             'email': request.POST.get('email'),
             'notes': request.POST.get('notes'),
+            'resource': request.POST.get('resource'),
             'special_1': request.POST.get('special_1'),
             'special_2': request.POST.get('special_2'),
             'party_size': request.POST.get('party_size'),
@@ -227,6 +224,33 @@ def edit_participant(request, participant_id):
         participant = handler.get_participant_set(participant.queue.id).get(id=participant_id)
         handler.update_participant(participant, data)
         return redirect('manager:participant_list', participant.queue.id)
+
+
+@require_http_methods(["POST"])
+@login_required
+def add_participant(request, queue_id):
+    name = request.POST.get('name')
+    phone = request.POST.get('phone')
+    email = request.POST.get('email')
+    note = request.POST.get('note', "")
+    special_1 = request.POST.get('special_1')
+    special_2 = request.POST.get('special_2')
+    party_size = request.POST.get('party_size')
+
+    handler = CategoryHandlerFactory.get_handler(queue_id)
+    queue = handler.get_queue_object(queue_id)
+    data = {
+        'name': name,
+        'phone': phone,
+        'email': email,
+        'note': note,
+        'queue': queue,
+        'special_1': special_1,
+        'special_2': special_2,
+        'party_size': party_size
+    }
+    handler.create_participant(data)
+    return redirect('manager:participant_list', queue_id)
 
 
 class ManageWaitlist(LoginRequiredMixin, generic.TemplateView):

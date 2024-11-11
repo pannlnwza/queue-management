@@ -224,7 +224,7 @@ class RestaurantQueue(Queue):
 
 class BankQueue(Queue):
     """Represents a queue specifically for bank services."""
-    counter = models.ManyToManyField(Resource)
+    counters = models.ManyToManyField(Resource)
 
     def __str__(self):
         return f"Bank Queue: {self.name}"

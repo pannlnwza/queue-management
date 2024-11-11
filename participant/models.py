@@ -121,15 +121,6 @@ class RestaurantParticipant(Participant):
     party_size = models.PositiveIntegerField(default=1)
     seating_preference = models.CharField(max_length=20, choices=SEATING_PREFERENCES, default='first_available')
 
-    def save(self, *args, **kwargs):
-        """Override save method to enforce seating preference rules based on the queue's availability."""
-        if self.queue and isinstance(self.queue, RestaurantQueue):
-            if not self.queue.has_outdoor:
-                if self.seating_preference not in ['first_available']:
-                    raise ValueError(
-                        "Seating preference can only be 'First Available' for queues without outdoor seating.")
-        super().save(*args, **kwargs)
-
 
 
 
@@ -148,12 +139,6 @@ class BankParticipant(Participant):
         choices=SERVICE_TYPE_CHOICES,
         default='account_services',
     )
-
-    def save(self, *args, **kwargs):
-        """Additional validations based on the bank queue's rules."""
-        if self.queue and isinstance(self.queue, RestaurantQueue):
-            raise ValueError("BankParticipant must be assigned to a BankQueue.")
-        super().save(*args, **kwargs)
 
 
 class HospitalParticipant(Participant):
@@ -185,11 +170,6 @@ class HospitalParticipant(Participant):
         return f"Hospital Participant: {self.name}"
 
 
-    def save(self, *args, **kwargs):
-        """Additional validations based on the bank queue's rules."""
-        if self.queue and isinstance(self.queue, HospitalQueue):
-            raise ValueError("HospitalParticipant must be assigned to a BankQueue.")
-        super().save(*args, **kwargs)
 
 
 class Notification(models.Model):

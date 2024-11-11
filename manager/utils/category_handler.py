@@ -1,8 +1,11 @@
 from abc import ABC, abstractmethod
-from participant.models import RestaurantParticipant, Participant, HospitalParticipant, BankParticipant
-from manager.models import Resource, RestaurantQueue, Queue, BankQueue, HospitalQueue, Doctor
+
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
+
+from manager.models import RestaurantQueue, Queue, BankQueue, HospitalQueue, Doctor
+from manager.utils.helpers import extract_data_variables
+from participant.models import RestaurantParticipant, Participant, HospitalParticipant, BankParticipant
 
 
 class CategoryHandlerFactory:
@@ -82,7 +85,16 @@ class GeneralQueueHandler(CategoryHandler):
         return Queue.objects.create(**data)
 
     def create_participant(self, data):
-        return Participant.objects.create(**data)
+        participant_info = extract_data_variables(data)
+        queue_length = participant_info['queue'].participant_set.filter(state='waiting').count()
+        return Participant.objects.create(
+            name=participant_info['name'],
+            email=participant_info['email'],
+            phone=participant_info['phone'],
+            note=participant_info['note'],
+            queue=participant_info['queue'],
+            position=queue_length + 1
+        )
 
     def get_participant_set(self, queue_id):
         return Participant.objects.filter(queue_id=queue_id)
@@ -111,7 +123,7 @@ class GeneralQueueHandler(CategoryHandler):
     def update_participant(self, participant, data):
         participant.name = data.get('name', participant.name)
         participant.phone = data.get('phone', participant.phone)
-        participant.note = data.get('notes', participant.note)
+        participant.note = data.get('notes') or ""
         participant.state = data.get('state', participant.state)
         participant.save()
 
@@ -125,8 +137,10 @@ class GeneralQueueHandler(CategoryHandler):
             'waited': participant.get_wait_time(),
             'is_notified': participant.is_notified
         }
+
     def get_special_column(self):
         pass
+
 
 class RestaurantQueueHandler(CategoryHandler):
     def create_queue(self, data):
@@ -136,7 +150,18 @@ class RestaurantQueueHandler(CategoryHandler):
         return Queue.objects.create(**data)
 
     def create_participant(self, data):
-        return RestaurantParticipant.objects.create(**data)
+        participant_info = extract_data_variables(data)
+        queue_length = participant_info['queue'].participant_set.filter(state='waiting').count()
+        return RestaurantParticipant.objects.create(
+            name=participant_info['name'],
+            email=participant_info['email'],
+            phone=participant_info['phone'],
+            note=participant_info['note'],
+            queue=participant_info['queue'],
+            party_size=participant_info['party_size'],
+            seating_preference=participant_info['special_2'],
+            position=queue_length + 1
+        )
 
     def get_participant_set(self, queue_id):
         return RestaurantParticipant.objects.filter(queue_id=queue_id).all()
@@ -168,7 +193,10 @@ class RestaurantQueueHandler(CategoryHandler):
                 participant.resource = None
             participant.state = 'completed'
             participant.service_completed_at = timezone.localtime()
-            participant.save()
+
+        else:
+            participant.state = 'completed'
+        participant.save()
 
     def add_context_attributes(self, queue):
         """
@@ -183,32 +211,27 @@ class RestaurantQueueHandler(CategoryHandler):
         }
 
     def update_participant(self, participant, data):
-        # Update basic participant information
         participant.name = data.get('name', participant.name)
         participant.phone = data.get('phone', participant.phone)
         participant.party_size = data.get('party_size', participant.party_size)
         participant.seating_preference = data.get('special_2', participant.seating_preference)
-        participant.note = data.get('notes', participant.note)
-        participant.state = data.get('state', participant.state)
+        participant.note = data.get('notes') or ""
+        new_state = data.get('state')
         participant.email = data.get('email', participant.email)
-        print(participant.party_size)
         participant.save()
 
-
-        # # Check if resource assignment is needed
-        # if participant.state == 'completed':
-        #     table_id = data.get('resource')
-        #     if table_id:
-        #         table = get_object_or_404(Resource, id=table_id)
-        #         participant.resource_assigned = table.name
-        # else:
-        #     # If participant is not completed, assign a table from the queue's available resources
-        #     table_id = data.get('resource')
-        #     if table_id:
-        #         table = get_object_or_404(participant.queue.tables, id=table_id)
-        #         table.assign_to_party(participant)  # Assuming you have a method for assigning tables
-
-         # Don't forget to save the participant after updating
+        if new_state == 'completed':
+            self.complete_service(participant)
+        else:
+            table_id = data.get('resource')
+            if table_id:
+                queue = self.get_queue_object(participant.queue.id)
+                table = get_object_or_404(queue.tables, id=table_id)
+                table.assign_to_participant(participant=participant, capacity=int(participant.party_size))
+                table.save()
+            participant.state = new_state
+            participant.service_started_at = timezone.localtime()
+        participant.save()
 
     def get_participant_data(self, participant):
         return {
@@ -217,8 +240,9 @@ class RestaurantQueueHandler(CategoryHandler):
             'phone': participant.phone,
             'position': participant.position,
             'notes': participant.note,
-            'waited': participant.waited if participant.state=='completed' else participant.get_wait_time(),
-            'completed': participant.service_completed_at.strftime('%d %b. %Y %H:%M') if participant.service_completed_at else None,
+            'waited': participant.waited if participant.state == 'completed' else participant.get_wait_time(),
+            'completed': participant.service_completed_at.strftime(
+                '%d %b. %Y %H:%M') if participant.service_completed_at else None,
             'special_1': f"{participant.party_size} people",
             'special_2': participant.get_seating_preference_display(),
             'service_duration': participant.get_service_duration(),
@@ -230,6 +254,7 @@ class RestaurantQueueHandler(CategoryHandler):
             'is_notified': participant.is_notified
         }
 
+
 class HospitalQueueHandler(CategoryHandler):
     def create_queue(self, data):
         """
@@ -238,10 +263,18 @@ class HospitalQueueHandler(CategoryHandler):
         return HospitalQueue.objects.create(**data)
 
     def create_participant(self, data):
-        """
-        Creates a participant for the hospital queue.
-        """
-        return HospitalParticipant.objects.create(**data)
+        participant_info = extract_data_variables(data)
+        queue_length = participant_info['queue'].participant_set.filter(state='waiting').count()
+        return HospitalParticipant.objects.create(
+            name=participant_info['name'],
+            email=participant_info['email'],
+            phone=participant_info['phone'],
+            note=participant_info['note'],
+            queue=participant_info['queue'],
+            medical_field=participant_info['special_1'],
+            priority=participant_info['special_2'],
+            position=queue_length + 1
+        )
 
     def get_participant_set(self, queue_id):
         """
@@ -290,7 +323,9 @@ class HospitalQueueHandler(CategoryHandler):
                 participant.resource = None
             participant.state = 'completed'
             participant.service_completed_at = timezone.localtime()
-            participant.save()
+        else:
+            participant.state = 'completed'
+        participant.save()
 
     def add_context_attributes(self, queue):
         """
@@ -313,9 +348,22 @@ class HospitalQueueHandler(CategoryHandler):
         participant.phone = data.get('phone', participant.phone)
         participant.medical_field = data.get('special_1', participant.medical_field)
         participant.priority = data.get('special_2', participant.priority)
-        participant.note = data.get('notes', participant.note)
-        participant.state = data.get('state', participant.state)
+        participant.note = data.get('notes') or ""
+        new_state = data.get('state', participant.state)
         participant.email = data.get('email', participant.email)
+        participant.save()
+
+        if new_state == 'completed':
+            self.complete_service(participant)
+        else:
+            doctor_id = data.get('resource')
+            if doctor_id:
+                queue = self.get_queue_object(participant.queue.id)
+                doctor = get_object_or_404(queue.doctors, id=doctor_id)
+                doctor.assign_to_participant(participant=participant)
+                doctor.save()
+            participant.state = new_state
+            participant.service_started_at = timezone.localtime()
         participant.save()
 
     def get_participant_data(self, participant):
@@ -331,7 +379,8 @@ class HospitalQueueHandler(CategoryHandler):
             'medical_field': participant.get_medical_field_display(),
             'priority': participant.get_priority_display(),
             'waited': participant.waited if participant.state == 'completed' else participant.get_wait_time(),
-            'completed': participant.service_completed_at.strftime('%d %b. %Y %H:%M') if participant.service_completed_at else None,
+            'completed': participant.service_completed_at.strftime(
+                '%d %b. %Y %H:%M') if participant.service_completed_at else None,
             'special_1': participant.get_medical_field_display(),
             'special_2': participant.get_priority_display(),
             'service_duration': participant.get_service_duration(),
@@ -352,7 +401,17 @@ class BankQueueHandler(CategoryHandler):
         return BankQueue.objects.create(**data)
 
     def create_participant(self, data):
-        return BankParticipant.objects.create(**data)
+        participant_info = extract_data_variables(data)
+        queue_length = participant_info['queue'].participant_set.count()
+        return BankParticipant.objects.create(
+            name=participant_info['name'],
+            email=participant_info['email'],
+            phone=participant_info['phone'],
+            note=participant_info['note'],
+            queue=participant_info['queue'],
+            service_type=participant_info['special_2'],
+            position=queue_length + 1
+        )
 
     def get_participant_set(self, queue_id):
         return BankParticipant.objects.filter(queue_id=queue_id)
@@ -381,7 +440,9 @@ class BankQueueHandler(CategoryHandler):
                 participant.resource = None
             participant.state = 'completed'
             participant.service_completed_at = timezone.localtime()
-            participant.save()
+        else:
+            participant.state = 'completed'
+        participant.save()
 
     def get_template_name(self):
         return 'manager/manage_queue/manage_bank.html'
@@ -401,9 +462,23 @@ class BankQueueHandler(CategoryHandler):
     def update_participant(self, participant, data):
         participant.name = data.get('name', participant.name)
         participant.phone = data.get('phone', participant.phone)
-        participant.note = data.get('notes', participant.note)
-        participant.state = data.get('state', participant.state)
         participant.service_type = data.get('special_2', participant.service_type)
+        participant.note = data.get('notes') or ""
+        new_state = data.get('state')
+        participant.email = data.get('email', participant.email)
+        participant.save()
+
+        if new_state == 'completed':
+            self.complete_service(participant)
+        else:
+            counter_id = data.get('resource')
+            if counter_id:
+                queue = self.get_queue_object(participant.queue.id)
+                counter = get_object_or_404(queue.counters, id=counter_id)
+                counter.assign_to_participant(participant=participant)
+                counter.save()
+            participant.state = new_state
+            participant.service_started_at = timezone.localtime()
         participant.save()
 
     def get_participant_data(self, participant):
@@ -415,8 +490,9 @@ class BankQueueHandler(CategoryHandler):
             'special_1': None,
             'special_2': participant.get_service_type_display(),
             'notes': participant.note,
-            'waited': participant.waited if participant.state=='completed' else participant.get_wait_time(),
-            'completed': participant.service_completed_at.strftime('%d %b. %Y %H:%M') if participant.service_completed_at else None,
+            'waited': participant.waited if participant.state == 'completed' else participant.get_wait_time(),
+            'completed': participant.service_completed_at.strftime(
+                '%d %b. %Y %H:%M') if participant.service_completed_at else None,
             'service_duration': participant.get_service_duration(),
             'served': participant.service_started_at.strftime(
                 '%d %b. %Y %H:%M') if participant.service_started_at else None,
