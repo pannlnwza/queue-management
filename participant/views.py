@@ -249,3 +249,15 @@ class QRcodeView(generic.DetailView):
 
         context['qr_image'] = qr_image
         return context
+
+class CheckQueueStatusView(generic.DetailView):
+    model = Participant
+    template_name = 'participant/queue_status.html'
+    context_object_name = 'participant'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        participant = self.get_object()
+        queue = participant.queue
+        context['queue'] = queue
+        return context
