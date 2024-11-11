@@ -210,7 +210,7 @@ class KioskView(generic.FormView):
             form_data,
         )
         participant.save()
-        messages.success(self.request, f"You have successfully joined {self.queue.name}.")
+        # messages.success(self.request, f"You have successfully joined {self.queue.name}.")
         return redirect('participant:qrcode',
                         queue_code=self.kwargs['queue_code'],
                         participant_id=participant.id)
@@ -254,7 +254,7 @@ class QRcodeView(generic.DetailView):
 
 class CheckQueueView(generic.DetailView):
     model = Participant
-    template_name = 'participant/check_queue.html'
+    template_name = 'participant/status.html'
     context_object_name = 'participant'
 
     def get_context_data(self, **kwargs):
