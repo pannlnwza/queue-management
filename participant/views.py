@@ -1,10 +1,14 @@
 from datetime import datetime, timedelta
 
+import qrcode
+from io import BytesIO
+import base64
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
+from django.urls import reverse
 from django.views import generic
 
 from participant.models import Participant, Notification
@@ -215,5 +219,33 @@ class KioskView(generic.FormView):
         return super().form_invalid(form)
 
 
-class QRcodeView(generic):
-    pass
+class QRcodeView(generic.DetailView):
+    model = Participant
+    template_name = 'participant/qrcode.html'
+    context_object_name = 'participant'
+    pk_url_kwarg = 'participant_id'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        participant = self.get_object()
+        context['queue'] = participant.queue
+        context['queue_code'] = self.kwargs.get('queue_code')
+
+        # Generate QR code and convert to base64
+        queue_status_url = self.request.build_absolute_uri(
+            reverse('participant:queue_status', args=[participant.id])
+        )
+
+        # Generate QR code
+        qr = qrcode.QRCode(version=1, box_size=10, border=5)
+        qr.add_data(queue_status_url)
+        qr.make(fit=True)
+        img = qr.make_image(fill='black', back_color='white')
+
+        # Convert image to base64
+        buffer = BytesIO()
+        img.save(buffer, format='PNG')
+        qr_image = base64.b64encode(buffer.getvalue()).decode()
+
+        context['qr_image'] = qr_image
+        return context
