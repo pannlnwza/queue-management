@@ -21,7 +21,7 @@ class Participant(models.Model):
     phone = models.CharField(max_length=20, null=True, blank=True)
     queue = models.ForeignKey('manager.Queue', on_delete=models.CASCADE)
     joined_at = models.DateTimeField(auto_now_add=True)
-    position = models.PositiveIntegerField(null=True)  # why null? right now
+    position = models.PositiveIntegerField(null=True)
     note = models.TextField(max_length=150, null=True, blank=True)
     code = models.CharField(max_length=6, unique=True, editable=False)
     state = models.CharField(max_length=10, choices=PARTICIPANT_STATE, default='waiting')
