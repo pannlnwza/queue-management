@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+
 {% block content %}
 <main>
     <div class="card bg-base-200/70 text-base-content w-1/3 mx-auto p-6">
@@ -6,7 +7,6 @@
         <form method="POST" enctype="multipart/form-data">
             {% csrf_token %}
 
-            <!-- Render form fields without custom classes -->
             <div class="form-group mb-2">
                 <label for="{{ form.name.id_for_label }}">Queue Name</label>
                 <div>{{ form.name }}</div>
@@ -27,8 +27,37 @@
                 <div>{{ form.logo }}</div>
             </div>
 
+            <div class="form-group mb-2">
+                <label for="map">Queue Location</label>
+                <div id="map" style="height: 400px;"></div>
+            </div>
+
+            <input type="hidden" name="latitude" id="id_latitude">
+            <input type="hidden" name="longitude" id="id_longitude">
+
             <button type="submit" class="btn btn-primary w-full mt-4">Create Queue</button>
         </form>
     </div>
 </main>
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+<script>
+
+    var map = L.map('map').setView([13.7563, 100.5018], 13);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(map);
+
+    var marker = L.marker([13.7563, 100.5018], {draggable: true}).addTo(map);
+
+    marker.on('dragend', function(event) {
+        var lat = marker.getLatLng().lat;
+        var lng = marker.getLatLng().lng;
+        document.getElementById('id_latitude').value = lat;
+        document.getElementById('id_longitude').value = lng;
+    });
+</script>
 {% endblock %}
