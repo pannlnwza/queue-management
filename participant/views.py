@@ -252,11 +252,10 @@ def sse_queue_status(request, participant_code):
 
     def event_stream():
         # Get the participant by their code
-        participant = get_object_or_404(Participant, code=participant_code)
-        queue = participant.queue
-
         while True:
             try:
+                participant = get_object_or_404(Participant, code=participant_code)
+                queue = participant.queue
                 # Prepare the data to send in the SSE stream
                 data = {
                     'queue_name': queue.name,
@@ -272,6 +271,7 @@ def sse_queue_status(request, participant_code):
 
                 # Yield the SSE formatted message
                 yield f"data: {message}\n\n"
+                print(message)
 
                 # Wait for 5 seconds before sending the next update
                 time.sleep(5)

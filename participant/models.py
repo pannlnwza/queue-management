@@ -21,7 +21,7 @@ class Participant(models.Model):
     phone = models.CharField(max_length=20, null=True, blank=True)
     queue = models.ForeignKey('manager.Queue', on_delete=models.CASCADE)
     joined_at = models.DateTimeField(auto_now_add=True)
-    position = models.PositiveIntegerField(null=True)
+    position = models.PositiveIntegerField()
     note = models.TextField(max_length=150, null=True, blank=True)
     code = models.CharField(max_length=6, unique=True, editable=False)
     state = models.CharField(max_length=10, choices=PARTICIPANT_STATE, default='waiting')
@@ -34,6 +34,9 @@ class Participant(models.Model):
         """Generate a unique ticket code for the participant if not already."""
         if not self.pk:
             self.code = self.generate_unique_queue_code()
+        if not self.position:  # Only set position if it's not already set
+            last_position = Participant.objects.aggregate(models.Max('position'))['position__max'] or 0
+            self.position = last_position + 1
         super().save(*args, **kwargs)
 
     @staticmethod
@@ -88,8 +91,6 @@ class Participant(models.Model):
     def __str__(self) -> str:
         """Return a string representation of the participant."""
         return f"{self.name} - {self.state}"
-
-
 
 
 class RestaurantParticipant(Participant):
