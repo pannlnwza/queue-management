@@ -2,34 +2,34 @@
 
 {% block content %}
 <main>
-    <div class="card bg-base-200/70 text-base-content w-1/3 mx-auto p-6">
+    <div class="card bg-base-200/70 text-base-content w-full sm:w-3/4 md:w-1/2 mx-auto p-6">
         <h2 class="card-title mb-4 text-center">Create a New Queue</h2>
         <form method="POST" enctype="multipart/form-data">
             {% csrf_token %}
 
-            <div class="form-group mb-2">
+            <div class="form-group mb-4">
                 <label for="{{ form.name.id_for_label }}">Queue Name</label>
                 <div>{{ form.name }}</div>
             </div>
 
-            <div class="form-group mb-2">
+            <div class="form-group mb-4">
                 <label for="{{ form.description.id_for_label }}">Description</label>
                 <div>{{ form.description }}</div>
             </div>
 
-            <div class="form-group mb-2">
+            <div class="form-group mb-4">
                 <label for="{{ form.category.id_for_label }}">Category</label>
                 <div>{{ form.category }}</div>
             </div>
 
-            <div class="form-group mb-2">
+            <div class="form-group mb-4">
                 <label for="{{ form.logo.id_for_label }}">Logo (Optional)</label>
                 <div>{{ form.logo }}</div>
             </div>
 
-            <div class="form-group mb-2">
+            <div class="form-group mb-4">
                 <label for="map">Queue Location</label>
-                <div id="map" style="height: 400px;"></div>
+                <div id="map" class="mt-4" style="height: 400px;"></div>
             </div>
 
             <input type="hidden" name="latitude" id="id_latitude">
@@ -44,7 +44,6 @@
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 
 <script>
-
     var map = L.map('map').setView([13.7563, 100.5018], 13);
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
