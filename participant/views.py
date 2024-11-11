@@ -12,6 +12,9 @@ from manager.models import Queue
 from manager.views import logger
 from .forms import ReservationForm
 from participant.utils.participant_handler import ParticipantHandlerFactory
+import time
+from django.http import StreamingHttpResponse
+import json
 
 
 # Create your views here.
@@ -206,10 +209,72 @@ class KioskView(generic.FormView):
             form_data,
         )
         participant.save()
+        # self.queue.update_participants_positions()
         messages.success(self.request, f"You have successfully joined {self.queue.name}.")
-        return redirect('participant:home')
+        return redirect('participant:queue_status', participant.code)
 
     def form_invalid(self, form):
         # Optional: Log or print errors for debugging
         print(form.errors)
         return super().form_invalid(form)
+
+
+class QueueStatusView(generic.TemplateView):
+    template_name = 'participant/status.html'
+
+    def get_context_data(self, **kwargs):
+        """Add the queue and participants context to template."""
+        context = super().get_context_data(**kwargs)
+        # look for 'participant_code' in the url
+        participant_code = kwargs['participant_code']
+        # get the participant
+        participant = get_object_or_404(Participant ,code=participant_code)
+        # get the queue
+        queue = participant.queue
+        # add in context data
+        context['queue'] = queue
+        context['participant'] = participant
+        # Get the list of all participants in the same queue
+        participants_in_queue = queue.participant_set.all().order_by('joined_at')
+        context['participants_in_queue'] = participants_in_queue
+        return context
+
+
+def sse_queue_status(request, participant_code):
+    """Server-sent Events endpoint to stream the queue status."""
+
+    def event_stream():
+        # Get the participant by their code
+        participant = get_object_or_404(Participant, code=participant_code)
+        queue = participant.queue
+
+        while True:
+            # Prepare the data to send in the SSE stream
+            data = {
+                'queue_name': queue.name,
+                'participant': [
+                    {
+                        'name': participant.name,
+                        'position': participant.position,
+                        'estimated_wait_time': participant.calculate_estimated_wait_time()
+                    }
+                ]
+            }
+
+            # Convert the data dictionary to a JSON string
+            message = json.dumps(data)
+
+            # Yield the SSE formatted message
+            yield f"data: {message}\n\n"
+
+            # Wait for 5 seconds before sending the next update
+            time.sleep(5)
+
+    # Return a StreamingHttpResponse to stream the events
+    response = StreamingHttpResponse(event_stream(), content_type='text/event-stream')
+
+    # Optional: Set headers for SSE
+    response['Cache-Control'] = 'no-cache'
+    response['Connection'] = 'keep-alive'
+
+    return response

@@ -317,6 +317,7 @@ class ManageWaitlist(LoginRequiredMixin, generic.TemplateView):
             context.update({key: value for item in handler.add_context_attributes(queue) for key, value in item.items()})
         return context
 
+
 @login_required
 def serve_participant(request, participant_id):
     participant = get_object_or_404(Participant, id=participant_id)

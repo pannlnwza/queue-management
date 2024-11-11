@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Queue Status</title>
+</head>
+<body>
+    <h1>Queue Status for {{ participant.name }}</h1>
+
+    <h2>Queue: {{ queue.name }}</h2>
+
+    <h3>Participants in Queue:</h3>
+    <ul>
+        {% for p in participants_in_queue %}
+            <li>{{ p.name }} - Position: {{ p.position }} (Joined: {{ p.joined_at }})</li>
+        {% endfor %}
+    </ul>
+
+    <p>Your Position: {{ participant.position }}</p>
+    <p>Estimated Wait Time: {{ participant }} minutes</p>
+</body>
+</html>
