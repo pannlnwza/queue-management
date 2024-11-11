@@ -211,7 +211,9 @@ class KioskView(generic.FormView):
         )
         participant.save()
         messages.success(self.request, f"You have successfully joined {self.queue.name}.")
-        return redirect('participant:home')
+        return redirect('participant:qrcode',
+                        queue_code=self.kwargs['queue_code'],
+                        participant_id=participant.id)
 
     def form_invalid(self, form):
         # Optional: Log or print errors for debugging
