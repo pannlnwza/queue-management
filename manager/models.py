@@ -161,6 +161,10 @@ class Queue(models.Model):
         """Return percentage of dropout participants."""
         return int((self.get_number_dropoff() / self.get_number_of_participants()) * 100)
 
+    def get_unattended_percentage(self):
+        """Return percentage of unattended participants."""
+        return 100 - self.get_dropoff_percentage() - self.get_served_percentage()
+
     def get_average_waiting_time(self):
         """Calculate the average waiting time for participants in minutes."""
         waiting_times = [

@@ -86,43 +86,32 @@
                 <div class="card-body">
                     <h2 class="card-title">Total visits last 7 days</h2>
                     <div class="w-full">
-
-                        <!-- Completed Progress -->
+                        <!-- Stacked Progress Bar -->
                         <div class="flex items-center gap-2 mb-2">
                             <progress class="progress progress-primary w-full" value="{{ served_percentage }}" max="100"></progress>
-                            <span class="text-sm">{{ served_percentage }}</span>
-                        </div>
-
-                        <!-- Dropout Progress -->
-                        <div class="flex items-center gap-2 mb-2">
                             <progress class="progress progress-secondary w-full" value="{{ dropoff_percentage }}" max="100"></progress>
-                            <span class="text-sm">{{ dropoff_percentage }}</span>
-                        </div>
-
-                        <!-- Unattended Progress -->
-                        <div class="flex items-center gap-2 mb-2">
                             <progress class="progress progress-ghost w-full" value="{{ unattended_percentage }}" max="100"></progress>
-                            <span class="text-sm">{{ unattended_count }}</span>
+                            <span class="text-sm">{{ waitlisted }}</span>
                         </div>
 
+                        <!-- Labels for each section -->
                         <div class="flex gap-4 text-sm mt-2">
                             <span class="flex items-center gap-1">
                                 <div class="badge badge-primary"></div>
-                                Completed
+                                Completed ({{ served_percentage }}%)
                             </span>
                             <span class="flex items-center gap-1">
                                 <div class="badge badge-secondary"></div>
-                                Dropout
+                                Dropout ({{ dropoff_percentage }}%)
                             </span>
                             <span class="flex items-center gap-1">
                                 <div class="badge badge-ghost"></div>
-                                Unattended
+                                Unattended ({{ unattended_percentage }}%)
                             </span>
+                        </div>
+                    </div>
+                </div>
             </div>
-        </div>
-    </div>
-</div>
-
             <!-- Donut Charts -->
             <div class="grid grid-cols-2 gap-4">
                 <div class="card bg-base-200">

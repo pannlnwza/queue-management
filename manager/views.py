@@ -470,6 +470,7 @@ class StatisticsView(LoginRequiredMixin, generic.TemplateView):
         context['peak_line_length'] = queue.get_peak_line_length()
         context['avg_line_length'] = queue.get_avg_line_length()
         context['dropoff_percentage'] = queue.get_dropoff_percentage()
+        context['unattended_percentage'] = queue.get_unattended_percentage()
         return context
 
 
