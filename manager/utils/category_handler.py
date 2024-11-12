@@ -145,7 +145,7 @@ class RestaurantQueueHandler(CategoryHandler):
         """
         Creates a general queue.
         """
-        return Queue.objects.create(**data)
+        return RestaurantQueue.objects.create(**data)
 
     def create_participant(self, data):
         participant_info = extract_data_variables(data)
