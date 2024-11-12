@@ -155,6 +155,25 @@ class Queue(models.Model):
         """Return the number of participants currently being served."""
         return self.participant_set.filter(state='serving').count()
 
+    def get_average_waiting_time(self):
+        """Calculate the average waiting time for participants in minutes."""
+        waiting_times = [
+            p.get_wait_time() for p in
+            self.participant_set.all()
+            if p.get_wait_time() is not None
+        ]
+        return math.ceil(
+            sum(waiting_times) / len(waiting_times)) if waiting_times else 0
+
+    def get_max_waiting_time(self):
+        """Calculate the maximum waiting time for participants in minutes."""
+        waiting_times = [
+            p.get_wait_time() for p in
+            self.participant_set.all()
+            if p.get_wait_time() is not None
+        ]
+        return max(waiting_times) if waiting_times else 0
+
     def __str__(self) -> str:
         """Return a string representation of the queue."""
         return self.name
