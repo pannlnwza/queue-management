@@ -1,3 +1,4 @@
+import json
 import logging
 from datetime import timedelta
 from unicodedata import category
@@ -7,6 +8,7 @@ from django.contrib.auth import authenticate, login, user_logged_in, user_logged
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.models import User
 from django.dispatch import receiver
 from django.http import JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
@@ -58,93 +60,10 @@ class CreateQView(LoginRequiredMixin, generic.CreateView):
 
         return redirect(self.success_url)
 
-
-class EditQueueView(LoginRequiredMixin, generic.UpdateView):
-    """
-    Edit an existing queue.
-
-    Allows authenticated users to change the queue's name, delete participants,
-    or close the queue.
-
-    :param model: The model to use for editing the queue.
-    :param form_class: The form class for queue editing.
-    :param template_name: The name of the template to render.
-    """
-    model = Queue
-    form_class = QueueForm
-    template_name = 'manager/edit_queue.html'
-
-    def dispatch(self, request, *args, **kwargs):
-        """
-        Check if the user is the creator of the queue before allowing access.
-        """
-        queue = self.get_object()
-        if queue.created_by != request.user:
-            messages.error(self.request,
-                           "You do not have permission to edit this queue.")
-            logger.warning(
-                f"Unauthorized attempt to access edit queue page for queue: {queue.name} by user: {request.user}")
-            return redirect('manager:manage_queues')
-        return super().dispatch(request, *args, **kwargs)
-
-    def get_success_url(self):
-        """redirect user back to manage queues page, if the edit was saved successfully."""
-        return reverse('manager:manage_queues')
-
-    def get_context_data(self, **kwargs):
-        """
-        Add additional context data to the template.
-
-        :param kwargs: Additional keyword arguments passed to the method.
-        :returns: The updated context dictionary.
-        """
-        context = super().get_context_data(**kwargs)
-        queue = self.object
-        context['participants'] = queue.participant_set.all()
-        return context
-
-    def post(self, request, *args, **kwargs):
-        """
-        Handle POST requests to update the queue and manage participants.
-
-        :param request: The HTTP request object containing data for the queue and participants.
-        :returns: Redirects to the success URL after processing.
-        """
-        self.object = self.get_object()
-
-        if request.POST.get('action') == 'queue_status':
-            return self.queue_status_handler()
-        if request.POST.get('action') == 'edit_queue':
-            name = request.POST.get('name')
-            description = request.POST.get('description')
-            is_closed = request.POST.get('is_closed') == 'true'
-            try:
-                self.object.edit(name=name, description=description,
-                                 is_closed=is_closed)
-                messages.success(self.request, "Queue updated successfully.")
-            except ValueError as e:
-                messages.error(self.request, str(e))
-        return super().post(request, *args, **kwargs)
-
-    def queue_status_handler(self):
-        """Close the queue."""
-        self.object.is_closed = not self.object.is_closed
-        self.object.save()
-        messages.success(self.request, "Queue status updated successfully.")
-        return redirect('manager:manage_queues')
-
-
 @login_required
 def add_participant_slot(request, queue_id):
     """Staff adds a participant to the queue and generates a queue code."""
     queue = get_object_or_404(Queue, id=queue_id)
-
-    if queue.is_full():
-        messages.error(request,
-                       f'Queue has exceeded the limit capacity ({queue.capacity}).')
-        logger.info(
-            f'{request.user} tried to add participants when the queue was already full.')
-        return redirect('queue:dashboard', queue_id)
     last_position = queue.participant_set.count()
     Participant.objects.create(
         position=last_position + 1,
@@ -472,7 +391,23 @@ class QueueSettingsView(LoginRequiredMixin, generic.TemplateView):
 
         context['queue'] = queue
         context['participant_set'] = participant_set
+        context['authorized_users'] = queue.authorized_user.all()
         return context
+
+
+@require_http_methods(["POST"])
+def check_username(request):
+    try:
+        data = json.loads(request.body)
+        username = data.get('username')
+    except json.JSONDecodeError:
+        return JsonResponse({'error': 'Invalid JSON'}, status=400)
+    if username:
+        user_exists = User.objects.filter(username=username).exists()
+        return JsonResponse({'exists': user_exists})
+    else:
+        return JsonResponse({'error': 'No username provided'}, status=400)
+
 
 
 def signup(request):
