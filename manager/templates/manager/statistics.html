@@ -88,10 +88,12 @@
                     <div class="w-full">
                         <!-- Stacked Progress Bar -->
                         <div class="flex items-center gap-2 mb-2">
-                            <progress class="progress progress-primary w-full" value="{{ served_percentage }}" max="100"></progress>
-                            <progress class="progress progress-secondary w-full" value="{{ dropoff_percentage }}" max="100"></progress>
-                            <progress class="progress progress-ghost w-full" value="{{ unattended_percentage }}" max="100"></progress>
-                            <span class="text-sm">{{ waitlisted }}</span>
+                              <div class="w-full bg-gray-200 rounded-full h-2.5 flex">
+                                <div class="bg-primary full h-2.5" style="width: {{ served_percentage }}%;"></div>
+                                <div class="bg-secondary full h-2.5" style="width: {{ dropoff_percentage }}%;"></div>
+                                <div class="bg-gray-300 full h-2.5" style="width: {{ unattended_percentage }}%;"></div>
+                              </div>
+                              <span class="text-sm">{{ waitlisted }}</span>
                         </div>
 
                         <!-- Labels for each section -->
@@ -102,10 +104,10 @@
                             </span>
                             <span class="flex items-center gap-1">
                                 <div class="badge badge-secondary"></div>
-                                Dropout ({{ dropoff_percentage }}%)
+                                Dropoff ({{ dropoff_percentage }}%)
                             </span>
                             <span class="flex items-center gap-1">
-                                <div class="badge badge-ghost"></div>
+                                <div class="badge badge-ghost bg-gray-300"></div>
                                 Unattended ({{ unattended_percentage }}%)
                             </span>
                         </div>
