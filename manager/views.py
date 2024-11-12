@@ -18,7 +18,7 @@ from django.views.decorators.http import require_http_methods
 from manager.forms import QueueForm
 from participant.utils.participant_handler import ParticipantHandlerFactory
 from participant.models import Participant, Notification
-from manager.models import Queue
+from manager.models import Queue, UserProfile
 from manager.utils.queue_handler import QueueHandlerFactory
 
 
@@ -474,14 +474,26 @@ class StatisticsView(LoginRequiredMixin, generic.TemplateView):
         return context
 
 
+def create_or_update_profile(user, profile_image=None):
+    """
+    Helper function to create or update user profile
+    """
+    try:
+        profile, created = UserProfile.objects.get_or_create(user=user)
+        if profile_image:
+            profile.image = profile_image
+            profile.save()
+        return profile
+
+    except Exception as e:
+        logger.error(f'Error creating/updating profile for user {user.username}: {str(e)}')
+        return None
+
+
 def signup(request):
     """
     Register a new user.
-    Handles the signup process, creating a new user if the provided data is valid.
-
-    :param request: The HTTP request object containing user signup data.
-    :returns: Redirects to the queue index page on successful signup.
-    :raises ValueError: If form data is invalid, displays an error message in the signup form.
+    Handles the signup process, creating a new user and profile if the provided data is valid.
     """
     if request.method == 'POST':
         form = UserCreationForm(request.POST)
@@ -489,29 +501,34 @@ def signup(request):
             user = form.save()
             username = form.cleaned_data.get('username')
             raw_passwd = form.cleaned_data.get('password1')
+
+            profile = create_or_update_profile(user)
+            if not profile:
+                messages.error(request, 'Error creating user profile. Please contact support.')
+
             user = authenticate(username=username, password=raw_passwd)
-            if user is not None:  # Add check to ensure authentication worked
+            if user is not None:
                 login(request, user)
-                logger.info(f'New user signed up: {username}')
-                # Only redirect to the home page without showing a message
+                logger.info(f'New user signed up with profile: {username}')
                 return redirect('participant:home')
             else:
                 logger.error(f'Failed to authenticate user after signup: {username}')
-                # Handle authentication failure
                 messages.error(request, 'Error during signup process. Please try again.')
         else:
-            # Add form errors to messages to display them to the user
             for field, errors in form.errors.items():
                 for error in errors:
                     logger.error(f'Error signup: {error}')
+
     else:
         form = UserCreationForm()
 
-        # Render the signup form with any error messages
     return render(request, 'account/signup.html', {'form': form})
 
 
 def login_view(request):
+    """
+    Handle user login and update profile if needed
+    """
     if request.method == 'POST':
         username = request.POST.get('username')
         password = request.POST.get('password')
@@ -520,7 +537,21 @@ def login_view(request):
 
         if user is not None:
             login(request, user)
-            return redirect('manager:your-queue')  # No success message, just redirect
+
+            if hasattr(user, 'socialaccount_set') and user.socialaccount_set.exists():
+                social_account = user.socialaccount_set.first()
+                if social_account.provider == 'google':
+                    extra_data = social_account.extra_data
+                    profile_image_url = extra_data.get('picture')
+                    if profile_image_url:
+                        profile = create_or_update_profile(user)
+                        if profile:
+                            profile.google_picture = profile_image_url
+                            profile.save()
+            else:
+                create_or_update_profile(user)
+
+            return redirect('manager:your-queue')
         else:
             messages.error(request, 'Invalid username or password.')
 
