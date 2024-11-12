@@ -155,15 +155,15 @@ class Queue(models.Model):
 
     def get_served_percentage(self):
         """Return percentage of participants served."""
-        return int((self.get_number_served() / self.get_number_of_participants()) * 100)
+        return round((self.get_number_served() / self.get_number_of_participants()) * 100, 2)
 
     def get_dropoff_percentage(self):
         """Return percentage of dropout participants."""
-        return int((self.get_number_dropoff() / self.get_number_of_participants()) * 100)
+        return round(( self.get_number_dropoff() / self.get_number_of_participants()) * 100, 2)
 
     def get_unattended_percentage(self):
         """Return percentage of unattended participants."""
-        return 100 - self.get_dropoff_percentage() - self.get_served_percentage()
+        return round(100 - self.get_dropoff_percentage() - self.get_served_percentage(), 2)
 
     def get_average_waiting_time(self):
         """Calculate the average waiting time for participants in minutes."""

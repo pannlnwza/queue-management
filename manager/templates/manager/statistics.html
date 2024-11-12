@@ -50,32 +50,32 @@
         <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-8">
             <div class="stat bg-base-200 rounded-box">
                 <div class="stat-title">Waitlisted</div>
-                <div class="stat-value">{{ waitlisted }}</div>
+                <div class="text-2xl stat-value">{{ waitlisted }}</div>
                 <div class="stat-desc">{{ currently_waiting }} waiting now</div>
             </div>
 
             <div class="stat bg-base-200 rounded-box">
                 <div class="stat-title">Serving</div>
-                <div class="stat-value">{{ serving }}</div>
+                <div class="text-2xl stat-value">{{ serving }}</div>
                 <div class="stat-desc">{{ served_percentage }}% serve rate</div>
             </div>
 
             <div class="stat bg-base-200 rounded-box">
                 <div class="stat-title">Wait Time</div>
-                <div class="stat-value">{{ average_wait_time }}</div>
-                <div class="stat-desc">{{ max_wait_time }} longest wait</div>
+                <div class="text-2xl stat-value">{{ average_wait_time }} minutes</div>
+                <div class="stat-desc">{{ max_wait_time }} minutes longest wait</div>
             </div>
 
             <div class="stat bg-base-200 rounded-box">
                 <div class="stat-title">Serve Duration</div>
-                <div class="stat-value">{{ average_service_duration }}</div>
-                <div class="stat-desc">{{ max_service_duration }} longest serve duration</div>
+                <div class="text-2xl stat-value">{{ average_service_duration }} minutes</div>
+                <div class="stat-desc">{{ max_service_duration }} minutes longest serve duration</div>
             </div>
 
             <div class="stat bg-base-200 rounded-box">
                 <div class="stat-title">Peak Line Length</div>
-                <div class="stat-value">{{ peak_line_length }}</div>
-                <div class="stat-desc">{{ avg_line_length }} avg</div>
+                <div class="text-2xl stat-value">{{ peak_line_length }}</div>
+                <div class="stat-desc">{{ avg_line_length }} on average</div>
             </div>
         </div>
 
@@ -119,13 +119,13 @@
                 <div class="card bg-base-200">
                     <div class="card-body">
                         <h2 class="card-title">Dropoffs</h2>
-                        <div class="radial-progress" style="--value:{{ dropoff_percentage }};">{{ dropoff_percentage }}%</div>
+                        <div class="radial-progress mt-2" style="--value:{{ dropoff_percentage }};">{{ dropoff_percentage }}%</div>
                     </div>
                 </div>
                 <div class="card bg-base-200">
                     <div class="card-body">
                         <h2 class="card-title">Visit creator</h2>
-                        <div class="radial-progress" style="--value:60;">60%</div>
+                        <div class="radial-progress mt-2" style="--value:60;">60%</div>
                     </div>
                 </div>
             </div>
