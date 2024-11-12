@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token }}">
-    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.14/dist/full.min.css" rel="stylesheet" type="text/css" />
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.14/dist/full.min.css" rel="stylesheet" type="text/css"/>
     <script src="https://cdn.tailwindcss.com"></script>
 
     {% block title %}<title>Queue Management</title>{% endblock %}
@@ -16,8 +16,9 @@
     <div class="navbar-start">
         <div class="dropdown">
             <div tabindex="0" role="button" class="btn btn-ghost lg:hidden">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h8m-8 6h16" />
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+                     stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h8m-8 6h16"/>
                 </svg>
             </div>
         </div>
@@ -26,45 +27,46 @@
     <div class="navbar-end">
         {% if user.is_authenticated %}
             <div class="dropdown dropdown-end">
-{#                <label tabindex="0" class="btn btn-outline m-1">#}
-{#                    Welcome, {{ user.username }}!#}
-{#                </label>#}
                 <label tabindex="0" class="btn btn-outline m-1">
                     {{ user.username }}
                     <form method="post" enctype="multipart/form-data">
-                    <div class="avatar">
-                        <div class="ring-primary ring-offset-base-100 w-8 rounded-full ring-2 ring-offset-2 ml-2">
-                            {% if user.profile.image %}
-                                <img src="{{ user.profile.image.url }}" alt="{{ user.username }}'s profile">
-                            {% elif user.socialaccount_set.exists and user.socialaccount_set.first.get_avatar_url %}
-                                <img src="{{ user.socialaccount_set.first.get_avatar_url }}" alt="{{ user.username }}'s profile">
-                            {% else %}
-                                <img src="{% static 'participant/images/profile.jpg' %}" alt="Default profile">
-                            {% endif %}
+                        <div class="avatar">
+                            <div class="ring-primary ring-offset-base-100 w-8 rounded-full ring-2 ring-offset-2 ml-2">
+                                {% if user.profile.image %}
+                                    <img src="{{ user.profile.image.url }}" alt="{{ user.username }}'s profile">
+                                {% elif user.socialaccount_set.exists and user.socialaccount_set.first.get_avatar_url %}
+                                    <img src="{{ user.socialaccount_set.first.get_avatar_url }}"
+                                         alt="{{ user.username }}'s profile">
+                                {% else %}
+                                    <img src="{% static 'participant/images/profile.jpg' %}" alt="Default profile">
+                                {% endif %}
+                            </div>
                         </div>
-                    </div>
                     </form>
                 </label>
-                <ul tabindex="0" class="menu dropdown-content bg-base-100 rounded-box z-[1] w-52 p-2 shadow">
-                    <li>
-                        <form action="{% url 'account_logout' %}" method="post" style="display: inline;">
-                            {% csrf_token %}
-                            <button type="submit" class="btn btn-error btn-block text-white">Log out</button>
-                        </form>
-                    </li>
+                <ul tabindex="0" class="menu dropdown-content bg-base-100 rounded-box w-40 p-2 shadow">
+                    <form action="{% url 'account_logout' %}" method="post" style="display: inline;">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-error text-white items-center ml-2">
+                        Log out
+                        <svg class="w-6 h-6 text-gray-800 dark:text-white ml-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 12H4m12 0-4 4m4-4-4-4m3-4h2a3 3 0 0 1 3 3v10a3 3 0 0 1-3 3h-2"/>
+                        </svg>
+                        </button>
+                    </form>
                 </ul>
             </div>
         {% else %}
             <span class="mr-2 text-sm">Have an account?</span>
             <a href="{% url 'account_login' %}" class="btn btn-primary text-white">Log in</a>
         {% endif %}
-<div class="m-4 ml-4">
+        <div class="m-4 ml-4">
             <label class="grid cursor-pointer place-items-center">
                 <input
                         type="checkbox"
                         id="theme-toggle"
                         class="toggle theme-controller bg-base-content col-span-2 col-start-1 row-start-1"
-                        />
+                />
                 <svg
                         class="stroke-base-100 fill-base-100 col-start-1 row-start-1"
                         xmlns="http://www.w3.org/2000/svg"
@@ -94,7 +96,7 @@
                     <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
                 </svg>
             </label>
-            </div>
+        </div>
 
     </div>
 </div>
@@ -112,24 +114,24 @@
     {% endif %}
 </div>
 
-    {% block content %} {% endblock %}
+{% block content %} {% endblock %}
 </body>
 </html>
 
 <script>
     const themeToggle = document.querySelector('.theme-controller');
-    
+
     function setTheme(theme) {
         document.documentElement.setAttribute('data-theme', theme);
         localStorage.setItem('theme', theme);
         themeToggle.checked = theme === 'dark';
     }
-    
+
     document.addEventListener('DOMContentLoaded', () => {
         const savedTheme = localStorage.getItem('theme') || 'dark';
         setTheme(savedTheme);
     });
-    
+
     themeToggle.addEventListener('change', (e) => {
         const newTheme = e.target.checked ? 'dark' : 'light';
         setTheme(newTheme);
