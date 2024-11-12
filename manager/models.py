@@ -145,7 +145,7 @@ class Queue(models.Model):
         """
         Get all participants whose state is not 'waiting'.
         """
-        return self.participant_set.exclude(state='waiting')
+        return self.participant_set.exclude(state='waiting').count()
 
     def get_number_waiting_now(self):
         """Return the number of participants currently waiting."""
@@ -173,6 +173,25 @@ class Queue(models.Model):
             if p.get_wait_time() is not None
         ]
         return max(waiting_times) if waiting_times else 0
+
+    def get_average_service_duration(self):
+        """Calculate the average service duration for participants in minutes."""
+        service_durations = [
+            p.get_service_duration() for p in
+            self.participant_set.filter(state='completed')
+            if p.get_service_duration() is not None
+        ]
+        return math.ceil(sum(service_durations) / len(
+            service_durations)) if service_durations else 0
+
+    def get_max_service_duration(self):
+        """Get the maximum service duration for participants in minutes."""
+        service_durations = [
+            p.get_service_duration() for p in
+            self.participant_set.filter(state='completed')
+            if p.get_service_duration() is not None
+        ]
+        return max(service_durations) if service_durations else 0
 
     def __str__(self) -> str:
         """Return a string representation of the queue."""
