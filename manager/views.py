@@ -458,6 +458,16 @@ class StatisticsView(LoginRequiredMixin, generic.TemplateView):
 
         context['queue'] = queue
         context['participant_set'] = participant_set
+        context['waitlisted'] = queue.get_number_waitlisted()
+        context['currently_waiting'] = queue.get_number_waiting_now()
+        context['currently_serving'] = queue.get_number_serving_now()
+        context['average_wait_time'] = queue.get_average_waiting_time()
+        context['max_wait_time'] = queue.get_max_waiting_time()
+        context[
+            'average_service_duration'] = queue.get_average_service_duration()
+        context['max_service_duration'] = queue.get_max_service_duration()
+        context['peak_line_length'] = queue.get_peak_line_length()
+        context['avg_line_length'] = queue.get_avg_line_length()
         return context
 
 
