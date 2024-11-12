@@ -193,6 +193,7 @@ class KioskView(generic.FormView):
         # Retrieve the queue object based on the queue_code from the URL
         self.queue = get_object_or_404(Queue, code=kwargs['queue_code'])
         self.participant_handler = ParticipantHandlerFactory.get_handler(self.queue.category)
+        print(self.participant_handler)
         return super().dispatch(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):
@@ -256,8 +257,10 @@ def sse_queue_status(request, participant_code):
                         'participant': [
                             {
                                 'name': participant.name,
+                                'phone': participant.phone,
+                                'email': participant.email,
                                 'position': participant.position,
-                                'estimated_wait_time': participant.calculate_estimated_wait_time()
+                                'estimated_wait_time': participant.calculate_estimated_wait_time(),
                             }
                         ]
                     }
