@@ -12,6 +12,7 @@ from manager.models import Queue
 from manager.views import logger
 from .forms import ReservationForm
 from participant.utils.participant_handler import ParticipantHandlerFactory
+from manager.utils.category_handler import CategoryHandlerFactory
 import time
 from django.http import StreamingHttpResponse
 import json
@@ -192,8 +193,7 @@ class KioskView(generic.FormView):
     def dispatch(self, request, *args, **kwargs):
         # Retrieve the queue object based on the queue_code from the URL
         self.queue = get_object_or_404(Queue, code=kwargs['queue_code'])
-        self.participant_handler = ParticipantHandlerFactory.get_handler(self.queue.category)
-        print(self.participant_handler)
+        self.handler = CategoryHandlerFactory.get_handler(self.queue.category)
         return super().dispatch(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):
@@ -206,7 +206,7 @@ class KioskView(generic.FormView):
         # Create a new participant associated with the queue
         form_data = form.cleaned_data.copy()
         form_data['queue'] = self.queue
-        participant = self.participant_handler.create_participant(
+        participant = self.handler.create_participant(
             form_data,
         )
         participant.save()

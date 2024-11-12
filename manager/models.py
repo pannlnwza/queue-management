@@ -166,7 +166,6 @@ class Resource(models.Model):
     assigned_to = models.ForeignKey('participant.Participant', on_delete=models.SET_NULL, null=True, blank=True,
                                     related_name='resource_assignment')
 
-
     def assign_to_participant(self, participant, capacity=1) -> None:
         """
         Assigns this resource to the given participant if it is available
@@ -197,8 +196,6 @@ class Resource(models.Model):
         Checks if this resource is currently assigned to a participant.
         """
         return self.assigned_to is not None
-
-
 
     def __str__(self):
         """Return a string representation of the table."""

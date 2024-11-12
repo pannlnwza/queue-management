@@ -10,8 +10,6 @@
 
             <form method="post" class="space-y-4">
                 {% csrf_token %}
-
-                {% csrf_token %}
                 {{ form.as_p }}  <!-- Render the form fields, including the phone field -->
                 <button type="submit" class="btn btn-primary w-full mt-4">Create Reservation</button>
             </form>
