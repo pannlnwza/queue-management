@@ -71,7 +71,7 @@ class Participant(models.Model):
         """Calculate the wait time for the participant."""
         if self.state == 'waiting':
             return int((timezone.localtime() - self.joined_at).total_seconds() / 60)
-        elif self.state == 'serving' and self.service_started_at:
+        elif self.service_started_at:
             return int((self.service_started_at - self.joined_at).total_seconds() / 60)
 
     def get_service_duration(self):

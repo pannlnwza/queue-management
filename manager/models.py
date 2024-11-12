@@ -159,7 +159,7 @@ class Queue(models.Model):
         """Calculate the average waiting time for participants in minutes."""
         waiting_times = [
             p.get_wait_time() for p in
-            self.participant_set.all()
+            self.participant_set.exclude(state='waiting')
             if p.get_wait_time() is not None
         ]
         return math.ceil(
@@ -169,7 +169,7 @@ class Queue(models.Model):
         """Calculate the maximum waiting time for participants in minutes."""
         waiting_times = [
             p.get_wait_time() for p in
-            self.participant_set.all()
+            self.participant_set.exclude(state='waiting')
             if p.get_wait_time() is not None
         ]
         return max(waiting_times) if waiting_times else 0
@@ -208,10 +208,8 @@ class Queue(models.Model):
         """Calculate the average line length (average number of participants waiting) in the queue."""
         line_lengths = QueueLineLength.objects.filter(queue=self)
         total_records = line_lengths.count()
-
         if total_records == 0:
             return 0
-
         total_line_length = sum(record.line_length for record in line_lengths)
         return math.ceil(total_line_length / total_records)
 
