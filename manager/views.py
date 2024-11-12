@@ -459,6 +459,21 @@ class StatisticsView(LoginRequiredMixin, generic.TemplateView):
         context['participant_set'] = participant_set
         return context
 
+class QueueSettingsView(LoginRequiredMixin, generic.TemplateView):
+    template_name = 'manager/settings.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        queue_id = self.kwargs.get('queue_id')
+        queue = get_object_or_404(Queue, id=queue_id)
+        handler = CategoryHandlerFactory.get_handler(queue.category)
+        queue = handler.get_queue_object(queue_id)
+        participant_set = handler.get_participant_set(queue_id)
+
+        context['queue'] = queue
+        context['participant_set'] = participant_set
+        return context
+
 
 def signup(request):
     """
