@@ -141,12 +141,6 @@ class Queue(models.Model):
         """
         return f"{settings.SITE_DOMAIN}/welcome/{self.code}/"
 
-    def get_number_waitlisted(self):
-        """
-        Get all participants whose state is not 'waiting'.
-        """
-        return self.participant_set.exclude(state='waiting').count()
-
     def get_number_waiting_now(self):
         """Return the number of participants currently waiting."""
         return self.participant_set.filter(state='waiting').count()

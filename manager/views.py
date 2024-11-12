@@ -458,7 +458,7 @@ class StatisticsView(LoginRequiredMixin, generic.TemplateView):
 
         context['queue'] = queue
         context['participant_set'] = participant_set
-        context['waitlisted'] = queue.get_number_waitlisted()
+        context['waitlisted'] = queue.get_number_of_participants()
         context['currently_waiting'] = queue.get_number_waiting_now()
         context['currently_serving'] = queue.get_number_serving_now()
         context['average_wait_time'] = queue.get_average_waiting_time()
