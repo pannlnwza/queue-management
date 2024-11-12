@@ -469,6 +469,7 @@ class StatisticsView(LoginRequiredMixin, generic.TemplateView):
         context['max_service_duration'] = queue.get_max_service_duration()
         context['peak_line_length'] = queue.get_peak_line_length()
         context['avg_line_length'] = queue.get_avg_line_length()
+        context['dropoff_percentage'] = queue.get_dropoff_percentage()
         return context
 
 

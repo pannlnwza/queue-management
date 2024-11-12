@@ -14,6 +14,7 @@ class Participant(models.Model):
         ('waiting', 'Waiting'),
         ('serving', 'Serving'),
         ('completed', 'Completed'),
+        ('cancelled', 'Cancelled')
     ]
 
     name = models.CharField(max_length=30)

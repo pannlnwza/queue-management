@@ -86,11 +86,26 @@
                 <div class="card-body">
                     <h2 class="card-title">Total visits last 7 days</h2>
                     <div class="w-full">
+
+                        <!-- Completed Progress -->
                         <div class="flex items-center gap-2 mb-2">
-                            <progress class="progress progress-primary w-full" value="75" max="100"></progress>
-                            <span class="text-sm">8</span>
+                            <progress class="progress progress-primary w-full" value="{{ served_percentage }}" max="100"></progress>
+                            <span class="text-sm">{{ served_percentage }}</span>
                         </div>
-                        <div class="flex gap-4 text-sm">
+
+                        <!-- Dropout Progress -->
+                        <div class="flex items-center gap-2 mb-2">
+                            <progress class="progress progress-secondary w-full" value="{{ dropoff_percentage }}" max="100"></progress>
+                            <span class="text-sm">{{ dropoff_percentage }}</span>
+                        </div>
+
+                        <!-- Unattended Progress -->
+                        <div class="flex items-center gap-2 mb-2">
+                            <progress class="progress progress-ghost w-full" value="{{ unattended_percentage }}" max="100"></progress>
+                            <span class="text-sm">{{ unattended_count }}</span>
+                        </div>
+
+                        <div class="flex gap-4 text-sm mt-2">
                             <span class="flex items-center gap-1">
                                 <div class="badge badge-primary"></div>
                                 Completed
@@ -103,17 +118,17 @@
                                 <div class="badge badge-ghost"></div>
                                 Unattended
                             </span>
-                        </div>
-                    </div>
-                </div>
             </div>
+        </div>
+    </div>
+</div>
 
             <!-- Donut Charts -->
             <div class="grid grid-cols-2 gap-4">
                 <div class="card bg-base-200">
                     <div class="card-body">
                         <h2 class="card-title">Dropoffs</h2>
-                        <div class="radial-progress" style="--value:75;">75%</div>
+                        <div class="radial-progress" style="--value:{{ dropoff_percentage }};">{{ dropoff_percentage }}%</div>
                     </div>
                 </div>
                 <div class="card bg-base-200">

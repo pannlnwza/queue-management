@@ -149,9 +149,17 @@ class Queue(models.Model):
         """Return the number of participants served."""
         return self.participant_set.filter(state='completed').count()
 
+    def get_number_dropoff(self):
+        """Return the number of dropout participants."""
+        return self.participant_set.filter(state='cancelled').count()
+
     def get_served_percentage(self):
         """Return percentage of participants served."""
         return int((self.get_number_served() / self.get_number_of_participants()) * 100)
+
+    def get_dropoff_percentage(self):
+        """Return percentage of dropout participants."""
+        return int((self.get_number_dropoff() / self.get_number_of_participants()) * 100)
 
     def get_average_waiting_time(self):
         """Calculate the average waiting time for participants in minutes."""
