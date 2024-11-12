@@ -1,8 +1,8 @@
 from django.urls import path
 
-from manager.views import CreateQView, ManageQueuesView, EditQueueView, QueueDashboardView, add_participant_slot, \
+from manager.views import CreateQView, EditQueueView, add_participant_slot, \
     notify_participant, delete_queue, delete_participant, ManageWaitlist, serve_participant, complete_participant, \
-    edit_participant, ParticipantListView, StatisticsView, YourQueueView
+    edit_participant, ParticipantListView, StatisticsView, YourQueueView, add_participant
 
 from participant.utils.data_stream import data_stream
 from manager.utils.queue_data import get_restaurant_queue_data, get_general_queue_data
@@ -10,7 +10,6 @@ from manager.utils.queue_data import get_restaurant_queue_data, get_general_queu
 app_name = 'manager'
 urlpatterns = [
     path('create', CreateQView.as_view(), name='create_q'),
-    path('dashboard/<int:pk>/', QueueDashboardView.as_view(), name='dashboard'),
     path('delete_participant/<int:participant_id>/', delete_participant, name='delete_participant'),
     path('queue/<int:pk>/edit/', EditQueueView.as_view(), name='edit_queue'),
     path('delete_queue/<int:queue_id>/', delete_queue, name='delete_queue'),
@@ -25,4 +24,5 @@ urlpatterns = [
     path('statistics/<int:queue_id>/', StatisticsView.as_view(), name='statistics'),
     path('participants/<int:queue_id>', ParticipantListView.as_view(), name='participant_list'),
     path('queue/', YourQueueView.as_view(), name='your-queue'),
+    path('add_participant/<int:queue_id>/', add_participant, name='add_participant')
 ]

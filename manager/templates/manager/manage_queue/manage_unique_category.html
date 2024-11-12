@@ -34,10 +34,79 @@
             </ul>
         </div>
 
-
         <div class="flex justify-between items-center mb-5">
             <h1 class="text-2xl font-bold antialiased font-sans">Queue Manager</h1>
+            <div class="ml-auto">
+                <label for="viewModal" class="btn btn-primary cursor-pointer">View {{ resource_name }}</label>
+            </div>
         </div>
+
+        <input type="checkbox" id="viewModal" class="modal-toggle"/>
+        <div class="modal">
+            <div style="max-width:570px; max-height: 600px" class="modal-box relative h-full w-full p-10">
+                <label for="viewModal" class="btn btn-sm btn-square btn-ghost absolute right-2 top-2">✕</label>
+                <div class="flex items-center gap-2 mx-3 my-1">
+                    <h2 class="font-semibold text-2xl">{{ resource_name| title }}s</h2>
+                    <a href="#" class="btn btn-xs no-animation mt-0.5">
+                        Edit</a>
+                </div>
+                <div class="divider"></div>
+
+                <div class="flex items-center gap-2 mx-3 mb-4 mt-1">
+                    <span class="inline-block w-2.5 h-2.5 bg-green-500 rounded-full"></span>
+                    <div class="text-xs opacity-80 mr-2">{{ available_resource| length }} available</div>
+                    <span class="inline-block w-2.5 h-2.5 bg-orange-500 rounded-full"></span>
+                    <div class="text-xs opacity-80 mr-2">{{ busy_resource| length }} busy</div>
+                    <span class="inline-block w-2.5 h-2.5 bg-red-500 rounded-full"></span>
+                    <div class="text-xs opacity-80">{{ unavailable_resource| length }} unavailable</div>
+                </div>
+
+                <div class="overflow-hidden">
+                    <table class="table w-full m-auto">
+                        <thead>
+                        <tr>
+                            <td class="text-xs font-medium text-gray-500 uppercase">Name</td>
+                            <td class="text-xs font-medium text-gray-500 uppercase">Assigned to</td>
+                            <td class="text-xs font-medium text-gray-500 uppercase">Status</td>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for resource in resources %}
+                            <tr>
+                                <td>
+                                    <div>
+                                        <div class="font-semibold text-lg">{{ resource.name }}</div>
+                                        {% if queue.category.lower == 'hospital' %}
+                                            <div class="text-sm opacity-50">{{ resource.get_specialty_display }}</div>
+                                        {% elif queue.category.lower == 'restaurant' %}
+                                            <div class="text-sm opacity-50">capacity: {{ resource.capacity }}</div>
+                                        {% endif %}
+
+                                    </div>
+                                </td>
+                                <td>
+                                    {{ resource.assigned_to.name|default:"-" }}
+                                </td>
+                                <td>
+                                    <div class="flex items-center gap-2">
+                                        {% if resource.status == "available" %}
+                                            <span class="inline-block w-2.5 h-2.5 bg-green-500 rounded-full"></span>
+                                        {% elif resource.status == "busy" %}
+                                            <span class="inline-block w-2.5 h-2.5 bg-orange-500 rounded-full"></span>
+                                        {% elif resource.status == "unavailable" %}
+                                            <span class="inline-block w-2.5 h-2.5 bg-red-500 rounded-full"></span>
+                                        {% endif %}
+                                        <div class="font-semibold text-md">{{ resource.get_status_display }}</div>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
 
         <div class="form-control w-full max-w-xs mb-6">
             <div class="flex items-center gap-2">
@@ -84,10 +153,16 @@
                                 Position
                             </th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                {{ special_1 }}
+                            </th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 Notes
                             </th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 Waited
+                            </th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                {{ special_2 }}
                             </th>
                         </tr>
                         </thead>
@@ -113,6 +188,7 @@
                                     {% endif %}
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">{{ participant.position }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap"></td>
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     {% if participant.note %}
                                         <button class="btn btn-sm no-animation"
@@ -121,7 +197,8 @@
                                         </button>
                                     {% endif %}
                                 </td>
-                                <td class="px-6 py-4 whitespace-nowrap">{{ participant.get_wait_time }} min</td>
+                                <td class="px-6 py-4 whitespace-nowrap">{{ participant.waited }}</td>
+                                <td class="badge badge-primary justify-center flex mx-7 my-5"></td>
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <div class="flex gap-2">
                                         <button class="btn btn-warning btn-square btn-sm text-base-100 no-animation"
@@ -145,6 +222,7 @@
                                             </svg>
                                         </button>
                                     </div>
+
                                 </td>
                             </tr>
                         {% endfor %}
@@ -157,14 +235,16 @@
                 <div class="card-body">
                     <h2 class="card-title">Serving</h2>
                     <p class="text-info-content font-thin">
-                        {{ serving_list.count }} Participant{{ serving_list.count|pluralize:'s' }}</p>
+                        {{ serving_list.count }} Part{{ serving_list.count|pluralize:'y,ies' }}</p>
                     <table class="min-w-full bg-base-100 divide-y divide-gray-200">
                         <thead>
                         <tr>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 Name
                             </th>
-
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                {{ special_1 }}
+                            </th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 Notes
                             </th>
@@ -177,12 +257,21 @@
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 Served
                             </th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                {{ resource_name }}
+                            </th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                {{ special_2 }}
+                            </th>
                         </tr>
                         </thead>
                         <tbody id="serving-section" class="bg-base-100 divide-y divide-gray-200">
                         {% for participant in serving_list %}
                             <tr>
-                                <td class="px-6 py-4 whitespace-nowrap">{{ participant.name }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    {{ participant.name }}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap"></td>
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     {% if participant.note %}
                                         <button class="btn btn-sm no-animation"
@@ -191,9 +280,11 @@
                                         </button>
                                     {% endif %}
                                 </td>
-                                <td class="px-6 py-4 whitespace-nowrap">{{ participant.get_wait_time }} min</td>
-                                <td class="px-6 py-4 whitespace-nowrap">{{ participant.get_service_duration }} min</td>
+                                <td class="px-6 py-4 whitespace-nowrap">{{ participant.waited }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap">{{ participant.get_service_duration }}</td>
                                 <td class="px-6 py-4 whitespace-nowrap">{{ participant.service_started_at }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap">{{ participant.table.name }}</td>
+                                <td class="badge badge-primary justify-center flex mx-7 my-5">{{ participant.seating_preference }}</td>
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <button class="btn btn-success btn-square btn-sm text-base-100 no-animation"
                                             onclick="completeParticipant({{ participant.id }})">
@@ -217,11 +308,16 @@
             <div class="card w-full shadow bordered bg-base-100 overflow-x-auto">
                 <div class="card-body">
                     <h2 class="card-title">Completed</h2>
+                    <p class="text-info-content font-thin">
+                        {{ queue.get_participants_today }} participants today</p>
                     <table class="min-w-full bg-base-100 divide-y divide-gray-200">
                         <thead>
                         <tr>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 Name
+                            </th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                {{ special_1 }}
                             </th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 Notes
@@ -238,6 +334,12 @@
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 Completed
                             </th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                {{ resource_name }} Assigned
+                            </th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                {{ special_2 }}
+                            </th>
                         </tr>
                         </thead>
                         <tbody id="completed-section" class="bg-base-100 divide-y divide-gray-200">
@@ -245,6 +347,7 @@
                             <tr>
                                 <td id="name_{{ participant.id }}"
                                     class="px-6 py-4 whitespace-nowrap">{{ participant.name }}</td>
+                                <td id="party_size_{{ participant.id }}" class="px-6 py-4 whitespace-nowrap"></td>
                                 <td id="notes_{{ participant.id }}" class="px-6 py-4 whitespace-nowrap">
                                     {% if participant.note %}
                                         <button class="btn btn-sm no-animation"
@@ -254,11 +357,14 @@
                                     {% endif %}
                                 </td>
                                 <td id="waited_{{ participant.id }}"
-                                    class="px-6 py-4 whitespace-nowrap">{{ participant.waited }} min
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap">{{ participant.get_service_duration }} min</td>
+                                    class="px-6 py-4 whitespace-nowrap">{{ participant.waited }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap">{{ participant.get_service_duration }}</td>
                                 <td class="px-6 py-4 whitespace-nowrap">{{ participant.service_started_at }}</td>
                                 <td class="px-6 py-4 whitespace-nowrap">{{ participant.service_completed_at }}</td>
+                                <td id="table_{{ participant.id }}"
+                                    class="px-6 py-4 whitespace-nowrap">{{ participant.table.name }}</td>
+                                <td id="seating_{{ participant.id }}"
+                                    class="badge badge-primary justify-center flex mx-7 my-5">{{ participant.seating_preference }}</td>
                             </tr>
                         {% endfor %}
                         </tbody>
@@ -266,155 +372,96 @@
                 </div>
             </div>
         </div>
+    </div>
 
-        <input type="checkbox" id="notify_modal" class="modal-toggle"/>
-        <div class="modal">
-            <div class="modal-box relative  p-10">
-                <label for="notify_modal" class="btn btn-sm btn-square btn-ghost absolute right-2 top-2">✕</label>
+    <input type="checkbox" id="notify_modal" class="modal-toggle"/>
+    <div class="modal">
+        <div class="modal-box relative  p-10">
+            <label for="notify_modal" class="btn btn-sm btn-square btn-ghost absolute right-2 top-2">✕</label>
 
-                <div class="flex items-center gap-2 my-1">
-                    <h2 class="font-semibold text-2xl">Notify Participant</h2>
-                </div>
-                <div class="form-control">
-                    <label class="label">
-                        <span class="label-text">Message (Optional)</span>
-                    </label>
-                    <textarea id="message" class="textarea textarea-bordered w-full h-24"
-                              placeholder="Type your message here..."></textarea>
-                </div>
-                <div class="modal-action">
-                    <button class="btn btn-primary no-animation" onclick="sendNotification()">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="size-4">
-                            <path d="M3.6 1.7A.75.75 0 1 0 2.4.799a6.978 6.978 0 0 0-1.123 2.247.75.75 0 1 0 1.44.418c.187-.644.489-1.24.883-1.764ZM13.6.799a.75.75 0 1 0-1.2.9 5.48 5.48 0 0 1 .883 1.765.75.75 0 1 0 1.44-.418A6.978 6.978 0 0 0 13.6.799Z"/>
-                            <path fill-rule="evenodd"
-                                  d="M8 1a4 4 0 0 1 4 4v2.379c0 .398.158.779.44 1.06l1.267 1.268a1 1 0 0 1 .293.707V11a1 1 0 0 1-1 1h-2a3 3 0 1 1-6 0H3a1 1 0 0 1-1-1v-.586a1 1 0 0 1 .293-.707L3.56 8.44A1.5 1.5 0 0 0 4 7.38V5a4 4 0 0 1 4-4Zm0 12.5A1.5 1.5 0 0 1 6.5 12h3A1.5 1.5 0 0 1 8 13.5Z"
-                                  clip-rule="evenodd"/>
-                        </svg>
-                        Notify
-                    </button>
-                </div>
+            <div class="flex items-center gap-2 my-1">
+                <h2 class="font-semibold text-2xl">Notify Participant</h2>
+            </div>
+            <div class="form-control">
+                <label class="label">
+                    <span class="label-text">Message (Optional)</span>
+                </label>
+                <textarea id="message" class="textarea textarea-bordered w-full h-24"
+                          placeholder="Type your message here..."></textarea>
+            </div>
+            <div class="modal-action">
+                <button class="btn btn-primary no-animation" onclick="sendNotification()">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="size-4">
+                        <path d="M3.6 1.7A.75.75 0 1 0 2.4.799a6.978 6.978 0 0 0-1.123 2.247.75.75 0 1 0 1.44.418c.187-.644.489-1.24.883-1.764ZM13.6.799a.75.75 0 1 0-1.2.9 5.48 5.48 0 0 1 .883 1.765.75.75 0 1 0 1.44-.418A6.978 6.978 0 0 0 13.6.799Z"/>
+                        <path fill-rule="evenodd"
+                              d="M8 1a4 4 0 0 1 4 4v2.379c0 .398.158.779.44 1.06l1.267 1.268a1 1 0 0 1 .293.707V11a1 1 0 0 1-1 1h-2a3 3 0 1 1-6 0H3a1 1 0 0 1-1-1v-.586a1 1 0 0 1 .293-.707L3.56 8.44A1.5 1.5 0 0 0 4 7.38V5a4 4 0 0 1 4-4Zm0 12.5A1.5 1.5 0 0 1 6.5 12h3A1.5 1.5 0 0 1 8 13.5Z"
+                              clip-rule="evenodd"/>
+                    </svg>
+                    Notify
+                </button>
             </div>
         </div>
+    </div>
 
 
-        <script>
-            const queue_id = {{ queue.id }};
-            const updateInterval = 30000;
 
-            document.addEventListener('DOMContentLoaded', function () {
-                fetchData();
-                setInterval(fetchData, updateInterval);
-            });
+    <script>
+        const queue_id = {{ queue.id }};
+        const updateInterval = 30000;
 
-            function fetchData() {
-                fetch(`/manager/general-updates/${queue_id}/`)
-                    .then(response => {
-                        if (!response.ok) throw new Error('Network response was not ok');
-                        return response.json();
-                    })
-                    .then(data => {
-                        updateWaitingList(data.waiting_list);
-                        updateServingList(data.serving_list);
-                        updateCompletedList(data.completed_list);
-                    })
-                    .catch(error => console.error('Error fetching data:', error));
-            }
+        document.addEventListener('DOMContentLoaded', function () {
+            fetchData();
+            setInterval(fetchData, updateInterval);
+        });
 
-            function updateWaitingList(waitingList) {
-                const waitingSection = document.getElementById('waiting-section');
-                waitingSection.innerHTML = '';
-
-                waitingList.forEach(participant => {
-                    const row = createWaitingRow(participant);
-                    waitingSection.appendChild(row);
-                });
-            }
-
-            function updateServingList(servingList) {
-                const servingSection = document.getElementById('serving-section');
-                servingSection.innerHTML = '';
-
-                servingList.forEach(participant => {
-                    const row = createServingRow(participant);
-                    servingSection.appendChild(row);
-                });
-            }
-
-            function updateCompletedList(completedList) {
-                const completedSection = document.getElementById('completed-section');
-                completedSection.innerHTML = '';
-
-                completedList.forEach(participant => {
-                    const row = createCompletedRow(participant);
-                    completedSection.appendChild(row);
-                });
-            }
-
-            function openNotifyModal(button) {
-                const participantId = button.getAttribute("data-participant-id");
-                document.getElementById("notify_modal").checked = true;
-                window.selectedParticipantId = participantId;
-            }
-
-            function sendNotification() {
-                const message = document.getElementById("message").value;
-                const participantId = window.selectedParticipantId;
-
-                if (!participantId) {
-                    alert("Please select a participant to notify.");
-                    return;
-                }
-
-                fetch(`/manager/notify/${participantId}/`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRFToken': '{{ csrf_token }}',
-                    },
-                    body: JSON.stringify({message: message})
+        function fetchData() {
+            fetch(`/manager/restaurant-updates/${queue_id}/`)
+                .then(response => {
+                    if (!response.ok) throw new Error('Network response was not ok');
+                    return response.json();
                 })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.status === 'success') {
-                            alert('Notification sent successfully!');
-                            document.getElementById("notify_modal").checked = false;
-                        } else {
-                            alert('There was an error sending the notification');
-                        }
-                    });
-            }
+                .then(data => {
+                    updateWaitingList(data.waiting_list);
+                    updateServingList(data.serving_list);
+                    updateCompletedList(data.completed_list);
+                })
+                .catch(error => console.error('Error fetching data:', error));
+        }
 
+        function updateWaitingList(waitingList) {
+            const waitingSection = document.getElementById('waiting-section');
+            waitingSection.innerHTML = '';
 
-            function filterParticipants() {
-                const searchQuery = document.getElementById('searchInput').value.toLowerCase();
-                const waitingRows = document.querySelectorAll('tr[id^="waiting-"]');
-                const servingRows = document.querySelectorAll('tr[id^="serving-"]');
-                const completedRows = document.querySelectorAll('tr[id^="completed-"]');
+            waitingList.forEach(participant => {
+                const row = createWaitingRow(participant);
+                waitingSection.appendChild(row);
+            });
+        }
 
-                filterRows(waitingRows, searchQuery);
-                filterRows(servingRows, searchQuery);
-                filterRows(completedRows, searchQuery);
-            }
+        function updateServingList(servingList) {
+            const servingSection = document.getElementById('serving-section');
+            servingSection.innerHTML = '';
 
-            function filterRows(rows, query) {
-                rows.forEach(row => {
-                    const nameCell = row.querySelector('td:first-child');
-                    if (nameCell) {
-                        const name = nameCell.textContent.toLowerCase();
-                        row.style.display = name.includes(query) ? '' : 'none';
-                    }
-                });
-            }
+            servingList.forEach(participant => {
+                const row = createServingRow(participant);
+                servingSection.appendChild(row);
+            });
+        }
 
-            function resetSearch() {
-                document.getElementById('searchInput').value = '';
-                filterParticipants();
-            }
+        function updateCompletedList(completedList) {
+            const completedSection = document.getElementById('completed-section');
+            completedSection.innerHTML = '';
 
-            function createNotesModal(participant) {
-                const modalId = `notes-modal-${participant.id}`;
-                const notesHTML = participant.notes
-                    ? `
+            completedList.forEach(participant => {
+                const row = createCompletedRow(participant);
+                completedSection.appendChild(row);
+            });
+        }
+
+        function createNotesModal(participant) {
+            const modalId = `notes-modal-${participant.id}`;
+            const notesHTML = participant.notes
+                ? `
                 <button class="btn btn-sm no-animation" onclick="document.getElementById('${modalId}').showModal()">
                     View Note
                 </button>
@@ -438,19 +485,85 @@
                         <button>close</button>
                     </form>
                 </dialog>`
-                    : '';
+                : '';
 
-                return notesHTML;
+            return notesHTML;
+        }
+
+        function filterParticipants() {
+            const searchQuery = document.getElementById('searchInput').value.toLowerCase();
+            const waitingRows = document.querySelectorAll('tr[id^="waiting-"]');
+            const servingRows = document.querySelectorAll('tr[id^="serving-"]');
+            const completedRows = document.querySelectorAll('tr[id^="completed-"]');
+
+            filterRows(waitingRows, searchQuery);
+            filterRows(servingRows, searchQuery);
+            filterRows(completedRows, searchQuery);
+        }
+
+        function filterRows(rows, query) {
+            rows.forEach(row => {
+                const nameCell = row.querySelector('td:first-child');
+                if (nameCell) {
+                    const name = nameCell.textContent.toLowerCase();
+                    row.style.display = name.includes(query) ? '' : 'none';
+                }
+            });
+        }
+
+        function resetSearch() {
+            document.getElementById('searchInput').value = '';
+            filterParticipants();
+        }
+
+        function toggleModal() {
+            const modal = document.getElementById('resource_modal');
+            modal.classList.toggle('modal-open');
+        }
+
+        function openNotifyModal(button) {
+            const participantId = button.getAttribute("data-participant-id");
+            document.getElementById("notify_modal").checked = true;
+            window.selectedParticipantId = participantId;
+        }
+
+        function sendNotification() {
+            const message = document.getElementById("message").value;
+            const participantId = window.selectedParticipantId;
+
+            if (!participantId) {
+                alert("Please select a participant to notify.");
+                return;
             }
 
-            function createWaitingRow(participant) {
-                const row = document.createElement('tr');
-                row.id = `waiting-${participant.id}`;
+            fetch(`/manager/notify/${participantId}/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}',
+                },
+                body: JSON.stringify({message: message})
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        alert('Notification sent successfully!');
+                        document.getElementById("notify_modal").checked = false;
+                    } else {
+                        alert('There was an error sending the notification');
+                    }
+                });
+        }
 
-                let notifiedBadge = '';
 
-                if (participant.is_notified) {
-                    notifiedBadge = `
+        function createWaitingRow(participant) {
+            const row = document.createElement('tr');
+            row.id = `waiting-${participant.id}`;
+
+            let notifiedBadge = '';
+
+            if (participant.is_notified) {
+                notifiedBadge = `
                 <div class="flex items-center">
                     <div class="tooltip" data-tip="Notified at">
                     <span class="bg-amber-100 text-yellow-500 text-sm inline-flex items-center px-2 py-1">
@@ -463,16 +576,18 @@
                 </div>
                 </div>
             `;
-                }
+            }
 
-                row.innerHTML = `
+            row.innerHTML = `
             <td class="px-6 py-4 whitespace-nowrap">
                 ${participant.name || '-'}
                 ${notifiedBadge}
             </td>
             <td class="px-6 py-4 whitespace-nowrap">${participant.position || '-'}</td>
+            <td class="px-6 py-4 whitespace-nowrap">${participant.special_1 ? `${participant.special_1}` : '-'}</td>
             <td class="px-6 py-4 whitespace-nowrap">${createNotesModal(participant)}</td>
             <td class="px-6 py-4 whitespace-nowrap">${participant.waited || '0'} min</td>
+            <td class="badge badge-primary justify-center flex mx-7 my-5">${participant.special_2 || '-'}</td>
             <td class="px-6 py-4 whitespace-nowrap">
                 <div class="flex gap-2">
                     <button class="btn btn-warning btn-square btn-sm text-base-100 no-animation"
@@ -492,19 +607,22 @@
 
             </td>
         `;
-                return row;
-            }
+            return row;
+        }
 
-            function createServingRow(participant) {
-                const row = document.createElement('tr');
-                row.id = `serving-${participant.id}`;
+        function createServingRow(participant) {
+            const row = document.createElement('tr');
+            row.id = `serving-${participant.id}`;
 
-                row.innerHTML = `
-            <td class="px-6 py-4 whitespace-nowrap">${participant.name || ''}</td>
+            row.innerHTML = `
+            <td class="px-6 py-4 whitespace-nowrap">${participant.name || '-'}</td>
+            <td class="px-6 py-4 whitespace-nowrap">${participant.special_1 ? `${participant.special_1}` : '-'}</td>
             <td class="px-6 py-4 whitespace-nowrap">${createNotesModal(participant)}</td>
             <td class="px-6 py-4 whitespace-nowrap">${participant.waited || '0'} min</td>
             <td class="px-6 py-4 whitespace-nowrap">${participant.service_duration || '0'} min</td>
-            <td class="px-6 py-4 whitespace-nowrap">${participant.served || ''}</td>
+            <td class="px-6 py-4 whitespace-nowrap">${participant.served || '-'}</td>
+            <td class="px-6 py-4 whitespace-nowrap">${participant.resource || '-'}</td>
+            <td class="badge badge-primary justify-center flex mx-7 my-5">${participant.special_2 || '-'}</td>
             <td class="px-6 py-4 whitespace-nowrap">
                 <button class="btn btn-success btn-square btn-sm text-base-100 no-animation"
                         onclick="completeParticipant(${participant.id})">
@@ -514,62 +632,62 @@
                 </button>
             </td>
         `;
-                return row;
-            }
+            return row;
+        }
 
+        function createCompletedRow(participant) {
+            const row = document.createElement('tr');
+            row.id = `completed-${participant.id}`;
 
-            function createCompletedRow(participant) {
-                const row = document.createElement('tr');
-                row.id = `completed-${participant.id}`;
+            row.innerHTML = `
+            <td class="px-6 py-4 whitespace-nowrap">${participant.name || '-'}</td>
+            <td class="px-6 py-4 whitespace-nowrap">${participant.special_1 ? `${participant.special_1}` : '-'}</td>
+            <td class="px-6 py-4 whitespace-nowrap">${createNotesModal(participant)}</td>
+            <td class="px-6 py-4 whitespace-nowrap">${participant.waited || '0'} min</td>
+            <td class="px-6 py-4 whitespace-nowrap">${participant.service_duration || '0'} min</td>
+            <td class="px-6 py-4 whitespace-nowrap">${participant.served || '-'}</td>
+            <td class="px-6 py-4 whitespace-nowrap">${participant.completed || '-'}</td>
+            <td class="px-6 py-4 whitespace-nowrap">${participant.resource_served || '-'}</td>
+            <td class="badge badge-primary justify-center flex mx-7 my-5">${participant.special_2 || '-'}</td>
 
-                row.innerHTML = `
-        <td class="px-6 py-4 whitespace-nowrap">${participant.name || ''}</td>
-        <td class="px-6 py-4 whitespace-nowrap">
-            ${createNotesModal(participant)}
-        </td>
-        <td class="px-6 py-4 whitespace-nowrap">${participant.waited || '0'} min</td>
-        <td class="px-6 py-4 whitespace-nowrap">${participant.service_duration || '0'} min</td>
-        <td class="px-6 py-4 whitespace-nowrap">${participant.served || ''}</td>
-        <td class="px-6 py-4 whitespace-nowrap">${participant.completed || ''}</td>
+        `;
+            return row;
+        }
 
-    `;
-                return row;
-            }
-
-            function serveParticipant(id) {
-                fetch(`/manager/serve/${id}/`, {
-                    method: 'POST',
-                    headers: {
-                        'X-CSRFToken': '{{ csrf_token }}',
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({id})
+        function serveParticipant(id) {
+            fetch(`/manager/serve/${id}/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({id})
+            })
+                .then(response => {
+                    if (!response.ok) throw new Error('Network response was not ok');
+                    fetchData();
                 })
-                    .then(response => {
-                        if (!response.ok) throw new Error('Network response was not ok');
-                        fetchData();
-                    })
-                    .catch(error => console.error('Error serving participant:', error));
-            }
+                .catch(error => console.error('Error serving participant:', error));
+        }
 
-            function completeParticipant(id) {
-                fetch(`/manager/complete/${id}/`, {
-                    method: 'POST',
-                    headers: {
-                        'X-CSRFToken': '{{ csrf_token }}',
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({id})
+        function completeParticipant(id) {
+            fetch(`/manager/complete/${id}/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({id})
+            })
+                .then(response => {
+                    if (!response.ok) throw new Error('Network response was not ok');
+                    fetchData();
                 })
-                    .then(response => {
-                        if (!response.ok) throw new Error('Network response was not ok');
-                        fetchData();
-                    })
-                    .catch(error => console.error('Error completing participant:', error));
-            }
+                .catch(error => console.error('Error completing participant:', error));
+        }
 
 
-        </script>
+    </script>
 
 
 {% endblock %}

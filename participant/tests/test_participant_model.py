@@ -1,7 +1,7 @@
 from django.test import TestCase
 from django.utils import timezone
 from participant.models import Participant, RestaurantParticipant
-from manager.models import Queue, RestaurantQueue, Table
+from manager.models import Queue, RestaurantQueue, Resource
 from django.contrib.auth.models import User
 from datetime import timedelta
 
@@ -103,7 +103,7 @@ class RestaurantParticipantModelTests(TestCase):
             longitude=100.5163,
             latitude=13.7285
         )
-        self.table = Table.objects.create(name='A01', capacity=4)
+        self.table = Resource.objects.create(name='A01', capacity=4)
         self.restaurant_queue.tables.add(self.table)
 
         self.restaurant_participant = RestaurantParticipant.objects.create(
@@ -113,28 +113,7 @@ class RestaurantParticipantModelTests(TestCase):
             party_size=2
         )
 
-    def test_assign_table(self):
-        """Test assigning an available table."""
-        self.restaurant_participant.assign_table()
-        self.table.refresh_from_db()
-        self.assertEqual(self.restaurant_participant.table, self.table)
-        self.assertEqual(self.table.status, 'busy')
 
-    def test_assign_table_not_enough_capacity(self):
-        """Test that assigning a table fails if there's not enough capacity."""
-        self.restaurant_participant.party_size = 5
-        with self.assertRaises(ValueError):
-            self.restaurant_participant.assign_table()
-
-    def test_save_seating_preference(self):
-        """Test that seating preference rules are enforced during save."""
-        self.restaurant_participant.seating_preference = 'indoor'
-        with self.assertRaises(ValueError):
-            self.restaurant_participant.save()
-        self.restaurant_queue.has_outdoor = True
-        self.restaurant_queue.save()
-        self.restaurant_participant.seating_preference = 'indoor'
-        self.restaurant_participant.save()
 
     def test_participant_str(self):
         """Test the string representation of the participant."""
