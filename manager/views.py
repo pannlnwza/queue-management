@@ -16,7 +16,7 @@ from django.views import generic
 from django.views.decorators.http import require_http_methods
 
 from manager.forms import QueueForm
-from manager.models import Queue
+from manager.models import Queue, QueueLineLength
 from manager.utils.category_handler import CategoryHandlerFactory
 from participant.models import Participant, Notification
 
@@ -248,6 +248,7 @@ def add_participant(request, queue_id):
         'party_size': party_size
     }
     handler.create_participant(data)
+    queue.record_line_length()
     return redirect('manager:participant_list', queue_id)
 
 

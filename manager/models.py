@@ -193,9 +193,42 @@ class Queue(models.Model):
         ]
         return max(service_durations) if service_durations else 0
 
+    def record_line_length(self):
+        """Records the current line length when a participant joins the queue."""
+        line_length = self.participant_set.filter(state='waiting').count()
+        QueueLineLength.objects.create(queue=self, line_length=line_length)
+
+    def get_peak_line_length(self):
+        """Calculate the peak line length (maximum number of participants waiting) in the queue."""
+        peak_record = QueueLineLength.objects.filter(queue=self).order_by(
+            '-line_length').first()
+        return peak_record.line_length if peak_record else 0
+
+    def get_avg_line_length(self):
+        """Calculate the average line length (average number of participants waiting) in the queue."""
+        line_lengths = QueueLineLength.objects.filter(queue=self)
+        total_records = line_lengths.count()
+
+        if total_records == 0:
+            return 0
+
+        total_line_length = sum(record.line_length for record in line_lengths)
+        return math.ceil(total_line_length / total_records)
+
     def __str__(self) -> str:
         """Return a string representation of the queue."""
         return self.name
+
+
+class QueueLineLength(models.Model):
+    """Records the number of participants in the queue at a given time."""
+
+    queue = models.ForeignKey('Queue', on_delete=models.CASCADE)
+    timestamp = models.DateTimeField(auto_now_add=True)
+    line_length = models.PositiveIntegerField()
+
+    def __str__(self):
+        return f"{self.queue.name} at {self.timestamp}: {self.line_length} participants waiting"
 
 
 class Resource(models.Model):
