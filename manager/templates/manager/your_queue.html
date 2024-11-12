@@ -58,6 +58,7 @@
             </tr>
         </thead>
         <tbody id="tableBody" class="divide-y divide-gray-200">
+        {% if authorized_queues %}
             {% for queue in authorized_queues %}
                 <tr class="hover:bg-gray-100 cursor-pointer" onclick="handleRowClick(event, '{{ queue.id }}')">
                     <td class="w-10 px-2 py-4">
@@ -113,6 +114,7 @@
                     </td>
                 </tr>
             {% endfor %}
+        {% endif %}
         </tbody>
     </table>
 </div>
