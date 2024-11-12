@@ -145,9 +145,13 @@ class Queue(models.Model):
         """Return the number of participants currently waiting."""
         return self.participant_set.filter(state='waiting').count()
 
-    def get_number_serving_now(self):
-        """Return the number of participants currently being served."""
-        return self.participant_set.filter(state='serving').count()
+    def get_number_served(self):
+        """Return the number of participants served."""
+        return self.participant_set.filter(state='completed').count()
+
+    def get_served_percentage(self):
+        """Return percentage of participants served."""
+        return int((self.get_number_served() / self.get_number_of_participants()) * 100)
 
     def get_average_waiting_time(self):
         """Calculate the average waiting time for participants in minutes."""
