@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en" data-theme="light">
 <head>
@@ -30,11 +31,19 @@
 {#                </label>#}
                 <label tabindex="0" class="btn btn-outline m-1">
                     {{ user.username }}
-                    {% if user.profile.image %}
-                        <img src="{{ user.profile.image.url }}" alt="Profile Image" style="width:50px; height:50px; border-radius:50%;" />
-                    {% else %}
-                        <img src="default-image-url.jpg" alt="Default Profile Image" style="width:50px; height:50px; border-radius:50%;" />
-                    {% endif %}
+                    <form method="post" enctype="multipart/form-data">
+                    <div class="avatar">
+                        <div class="ring-primary ring-offset-base-100 w-8 rounded-full ring-2 ring-offset-2 ml-2">
+                            {% if user.profile.image %}
+                                <img src="{{ user.profile.image.url }}" alt="{{ user.username }}'s profile">
+                            {% elif user.socialaccount_set.exists and user.socialaccount_set.first.get_avatar_url %}
+                                <img src="{{ user.socialaccount_set.first.get_avatar_url }}" alt="{{ user.username }}'s profile">
+                            {% else %}
+                                <img src="{% static 'participant/images/profile.jpg' %}" alt="Default profile">
+                            {% endif %}
+                        </div>
+                    </div>
+                    </form>
                 </label>
                 <ul tabindex="0" class="menu dropdown-content bg-base-100 rounded-box z-[1] w-52 p-2 shadow">
                     <li>
