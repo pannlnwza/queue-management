@@ -393,7 +393,9 @@ class QueueSettingsView(LoginRequiredMixin, generic.TemplateView):
         context['queue'] = queue
         context['resources'] = resources
         context['participant_set'] = participant_set
-        context['authorized_users'] = queue.authorized_user.all()
+        category_context = handler.add_resource_attributes(queue)
+        if category_context:
+            context.update(category_context)
         return context
 
 

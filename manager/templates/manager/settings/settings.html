@@ -35,132 +35,144 @@
     <div class="flex justify-between items-center mb-5">
         <h1 class="text-2xl font-bold antialiased font-sans">Queue Settings</h1>
     </div>
-    <div class="max-w-2xl mx-3">
-                <div class="space-y-5">
+    <div>
 
-                    <div class="form-control my-3">
-                        <span class="label-text font-medium px-1 mb-2">Logo</span>
-                        <div class="flex items-center gap-4">
-                            <img src="{{ queue.get_logo_url }}" alt="Queue Logo"
-                                 class="w-20 h-20 object-cover rounded-md border border-base-300"
-                                 onerror="this.src='/static/default-logo.png'"/>
-
-                            <div class="flex flex-col">
-                                <input type="file" name="logo" accept="image/*"
-                                       class="file-input file-input-sm file-input-bordered w-full max-w-xs"/>
-                                <span class="text-xs text-base-content/60 mt-1 ml-1">Upload a new logo to replace the existing one.</span>
-                            </div>
+    <div class="flex justify-between items-start space-x-6">
+        <!-- Left Section: Settings Form -->
+        <div class="card border-2 border-base-200 max-w-4xl w-full px-7 pt-3 pb-7">
+            <div class="space-y-5">
+                <div class="form-control my-3">
+                    <span class="label-text font-medium px-1 mb-2">Logo</span>
+                    <div class="flex items-center gap-4">
+                        <img src="{{ queue.get_logo_url }}" alt="Queue Logo"
+                             class="w-20 h-20 object-cover rounded-md border border-base-300"
+                             onerror="this.src='/static/default-logo.png'"/>
+                        <div class="flex flex-col">
+                            <input type="file" name="logo" accept="image/*"
+                                   class="file-input file-input-sm file-input-bordered w-full max-w-xs"/>
+                            <span class="text-xs text-base-content/60 mt-1 ml-1">Upload a new logo to replace the existing one.</span>
                         </div>
                     </div>
-                    <div class="divider"></div>
+                </div>
+                <div class="divider"></div>
 
-                    <!-- Queue Name -->
-                    <div class="form-control my-3">
-                        <span class="label-text font-medium px-1 mb-2">Name*</span>
-                        <input type="text" checked class="input input-bordered w-full max-w-xs" required/>
-                    </div>
-                    <div class="divider"></div>
+                <!-- Queue Name -->
+                <div class="form-control my-3">
+                    <span class="label-text font-medium px-1 mb-2">Name*</span>
+                    <input type="text" checked class="input input-bordered w-full max-w-xs" required/>
+                </div>
+                <div class="divider"></div>
 
-                    <div class="form-control my-3">
-                        <label class="label cursor-pointer flex items-center space-x-2">
-                            <span class="label-text font-medium">Status</span>
-                            <input type="checkbox" name="is_closed" {% if not queue.is_closed %}checked{% endif %}
-                                   class="toggle toggle-success"/>
+                <div class="form-control my-3">
+                    <label class="label cursor-pointer flex items-center space-x-2">
+                        <span class="label-text font-medium">Status</span>
+                        <input type="checkbox" name="is_closed" {% if not queue.is_closed %}checked{% endif %}
+                               class="toggle toggle-success"/>
+                    </label>
+                    <span class="label-text-alt text-base-content/60 mx-1">Toggle to mark the queue as opened or closed.</span>
+                </div>
+                <div class="divider"></div>
+
+                <div class="form-control my-3">
+                    <span class="label-text font-medium px-1 mb-2">Description</span>
+                    <textarea class="textarea textarea-bordered w-full max-w-lg" rows="3"
+                              placeholder="Provide a description of the queue..."></textarea>
+                </div>
+                <div class="divider"></div>
+
+
+                <!-- Hours Section -->
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text font-medium">Start hour</span>
                         </label>
-                        <span class="label-text-alt text-base-content/60 mx-1">Toggle to mark the queue as opened or closed.</span>
+                        <input type="time" value="07:00" class="input input-bordered"/>
                     </div>
-                    <div class="divider"></div>
-
-                    <div class="form-control my-3">
-                        <span class="label-text font-medium px-1 mb-2">Description</span>
-                        <textarea class="textarea textarea-bordered w-full max-w-lg" rows="3"
-                                  placeholder="Provide a description of the queue..."></textarea>
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text font-medium">End hour</span>
+                        </label>
+                        <input type="time" value="22:00" class="input input-bordered"/>
                     </div>
-                    <div class="divider"></div>
-
-
-                    <!-- Hours Section -->
-                    <div class="grid grid-cols-2 gap-4">
-                        <div class="form-control">
-                            <label class="label">
-                                <span class="label-text font-medium">Start hour</span>
-                            </label>
-                            <input type="time" value="07:00" class="input input-bordered"/>
-                        </div>
-                        <div class="form-control">
-                            <label class="label">
-                                <span class="label-text font-medium">End hour</span>
-                            </label>
-                            <input type="time" value="22:00" class="input input-bordered"/>
-                        </div>
-                    </div>
-
-                <div class="divider"></div>
-
-                    <div class="form-control my-4">
-                        <label for="map" class="label-text font-medium px-1">Location</label>
-                        <span class="label-text-alt text-base-content/60 mx-1">Mark location by dragging the blue marker</span>
-                        <div id="map" class="mt-4 rounded-md border border-base-300" style="height: 400px;"></div>
-                        <p id="locationError" class="text-red-500 text-sm mt-2" style="display:none;">Please select a
-                            location on the map.</p>
-                    </div>
-
-                    <!-- Hidden Inputs for Latitude and Longitude -->
-                    <input type="hidden" name="latitude" id="id_latitude" value="{{ queue.latitude }}" required>
-                    <input type="hidden" name="longitude" id="id_longitude" value="{{ queue.longitude }}" required>
-
-
                 </div>
+
                 <div class="divider"></div>
 
-                        <div class="card card-compact border-2 border-base-200 bg-base-100 cursor-pointer my-2" onclick="window.location.href='/manager/settings/{{ queue.id }}/resources'">
+                <!-- Resources Card -->
+                <div class="card card-compact border-2 border-base-200 bg-base-100 cursor-pointer my-2"
+                     onclick="window.location.href='/manager/settings/{{ queue.id }}/resources'">
                     <div class="card-body">
                         <div class="flex items-center justify-between">
                             <div class="flex items-center gap-4">
-                                <div>
-                                    <h2 class="card-title">Resources<span class="badge badge-sm">{{ resources | length }}</span></h2>
-                                    <p class="text-base-content/70">Create and manage your resources.</p>
-                                </div>
+                                <h2 class="card-title">{{ resource_name |title }}s<span
+                                        class="badge badge-sm">{{ resources | length }}</span></h2>
+                                <p class="text-base-content/70">Create and manage your resources.</p>
                             </div>
                             <div class="text-base-content/70">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                                     stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                          d="M9 5l7 7-7 7"/>
                                 </svg>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <div class="card card-compact border-2 border-base-200 bg-base-100 cursor-pointer my-2" onclick="window.location.href='/qr-serve'">
+                <!-- Services Card -->
+                <div class="card card-compact border-2 border-base-200 bg-base-100 cursor-pointer my-2"
+                     onclick="window.location.href='/qr-serve'">
                     <div class="card-body">
                         <div class="flex items-center justify-between">
                             <div class="flex items-center gap-4">
-                                <div>
-                                    <h2 class="card-title">Services<span class="badge badge-sm">{{ resources| length }}</span></h2>
-                                    <p class="text-base-content/70">Create and manage your services.</p>
-                                </div>
+                                <h2 class="card-title">Services<span
+                                        class="badge badge-sm">{{ resources| length }}</span></h2>
+                                <p class="text-base-content/70">Create and manage your services.</p>
                             </div>
                             <div class="text-base-content/70">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                                     stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                          d="M9 5l7 7-7 7"/>
                                 </svg>
                             </div>
                         </div>
                     </div>
                 </div>
+
+
+            </div>
+        </div>
+
+<div class="flex flex-col w-full space-y-4">
+        <!-- Location Card -->
+        <div class="card border-2 border-base-200 px-7 pt-2 pb-5 h-auto">
+            <div class="form-control my-4">
+                <label for="map" class="label-text font-medium px-1">Location</label>
+                <span class="label-text-alt text-base-content/60 mx-1">Mark location by dragging the blue marker</span>
+
+                <!-- Map Container with Fixed Height -->
+                <div id="map" class="mt-4 rounded-md border border-base-300" style="height: 400px;"></div>
+                <p id="locationError" class="text-red-500 text-sm mt-2" style="display:none;">Please select a location on the map.</p>
             </div>
 
-        <!-- Action Buttons -->
-        <div class="flex gap-4 mt-3">
-            <button class="btn btn-primary">Save</button>
+            <!-- Hidden Inputs for Latitude and Longitude -->
+            <input type="hidden" name="latitude" id="id_latitude" value="{{ queue.latitude }}" required>
+            <input type="hidden" name="longitude" id="id_longitude" value="{{ queue.longitude }}" required>
         </div>
+
+        <!-- Save Button -->
+        <button class="btn btn-primary self-start">Save</button>
+    </div>
+</div>
+</div>
+
+
     </body>
-
-
 
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-
 
     <script>
         var initialLat = {{ queue.latitude|default:13.7563 }};
@@ -182,7 +194,6 @@
             document.getElementById('id_latitude').value = lat;
             document.getElementById('id_longitude').value = lng;
         });
-
-
     </script>
+
 {% endblock %}
