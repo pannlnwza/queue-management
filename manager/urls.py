@@ -2,7 +2,7 @@ from django.urls import path
 
 from manager.views import CreateQView, ManageQueuesView, EditQueueView, QueueDashboardView, add_participant_slot, \
     notify_participant, delete_queue, delete_participant, ManageWaitlist, serve_participant, complete_participant, \
-    edit_participant, ParticipantListView, StatisticsView, YourQueueView
+    edit_participant, ParticipantListView, StatisticsView, YourQueueView, edit_profile
 
 from participant.utils.data_stream import data_stream
 from manager.utils.queue_data import get_restaurant_queue_data, get_general_queue_data
@@ -25,4 +25,5 @@ urlpatterns = [
     path('statistics/<int:queue_id>/', StatisticsView.as_view(), name='statistics'),
     path('participants/<int:queue_id>', ParticipantListView.as_view(), name='participant_list'),
     path('queue/', YourQueueView.as_view(), name='your-queue'),
+    path('<int:queue_id>/edit_profile', edit_profile, name='edit_profile'),
 ]

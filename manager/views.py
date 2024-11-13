@@ -558,6 +558,28 @@ def login_view(request):
     return render(request, 'account/login.html')
 
 
+@login_required
+def edit_profile(request, queue_id):
+    if request.method == 'POST':
+        # Get the current user
+        user = request.user
+        # Update user profile fields from POST data
+        user.username = request.POST.get('username')
+        user.email = request.POST.get('email')
+        user.first_name = request.POST.get('first_name')
+        user.last_name = request.POST.get('last_name')
+
+        # Save the changes
+        user.save()
+        messages.success(request, 'Profile updated successfully!')
+
+        # Redirect with the queue_id
+        return redirect('edit_profile', queue_id=queue_id)
+
+    # Render the profile edit page, pass queue_id in the context
+    return render(request, 'manager/edit_profile.html', {'queue_id': queue_id})
+
+
 def get_client_ip(request):
     """Retrieve the client's IP address from the request."""
     return (
