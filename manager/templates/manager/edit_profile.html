@@ -1,34 +1,150 @@
+{#{% extends 'sidebar_manage.html' %}#}
+{##}
+{#{% block content %}#}
+{#<div class="container mx-auto my-8 px-4 sm:px-6 lg:px-8">#}
+{#    <h1 class="text-3xl font-bold text-gray-900 mb-6">Edit Profile</h1>#}
+{#    <!-- Display success message if the profile is updated -->#}
+{#    {% if messages %}#}
+{#    <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-6" role="alert">#}
+{#        <ul>#}
+{#            {% for message in messages %}#}
+{#            <li>{{ message }}</li>#}
+{#            {% endfor %}#}
+{#        </ul>#}
+{#    </div>#}
+{#    {% endif %}#}
+{#    <form method="POST" class="max-w-md mx-auto">#}
+{#        {% csrf_token %}#}
+{#        <div class="mb-4">#}
+{#            <label for="profile_image" class="block text-gray-700 font-bold mb-2">Profile Image:</label>#}
+{#            <div class="flex justify-center">#}
+{#                <label for="profile_image" class="cursor-pointer">#}
+{#                    <div class="bg-gray-200 rounded-full h-32 w-32 flex items-center justify-center">#}
+{#                        <svg class="h-16 w-16 text-gray-500" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">#}
+{#                            <path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clip-rule="evenodd"></path>#}
+{#                        </svg>#}
+{#                    </div>#}
+{#                </label>#}
+{#                <input type="file" id="profile_image" name="profile_image" class="hidden">#}
+{#            </div>#}
+{#        </div>#}
+{#        <div class="mb-4">#}
+{#            <label for="username" class="block text-gray-700 font-bold mb-2">Username:</label>#}
+{#            <input type="text" id="username" name="username" value="{{ user.username }}" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>#}
+{#        </div>#}
+{#        <div class="mb-4">#}
+{#            <label for="email" class="block text-gray-700 font-bold mb-2">Email</label>#}
+{#            <input type="email" id="email" name="email" value="{{ user.email }}" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>#}
+{#        </div>#}
+{#        <div class="mb-4">#}
+{#            <label for="phone" class="block text-gray-700 font-bold mb-2">Phone:</label>#}
+{#            <input type="tel" id="phone" name="phone" value="{{ user.phone }}" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">#}
+{#        </div>#}
+{#        <div class="mb-4">#}
+{#            <label for="first_name" class="block text-gray-700 font-bold mb-2">First Name:</label>#}
+{#            <input type="text" id="first_name" name="first_name" value="{{ user.first_name }}" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">#}
+{#        </div>#}
+{#        <div class="mb-4">#}
+{#            <label for="last_name" class="block text-gray-700 font-bold mb-2">Last Name:</label>#}
+{#            <input type="text" id="last_name" name="last_name" value="{{ user.last_name }}" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">#}
+{#        </div>#}
+{##}
+{#        <div class="flex justify-between">#}
+{#            <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">Update Profile</button>#}
+{#            <a href="{% url 'manager:manage_waitlist' queue_id %}" class="text-blue-500 hover:text-blue-700">Back to Profile</a>#}
+{#        </div>#}
+{#    </form>#}
+{#</div>#}
+{#{% endblock %}#}
+{##}
+
+
 {% extends 'sidebar_manage.html' %}
 
 {% block content %}
-    <h1>Edit Profile</h1>
 
-    <!-- Display success message if the profile is updated -->
-    {% if messages %}
-        <ul>
-            {% for message in messages %}
+
+<div class="card bg-base-100 shadow-xl border-2 border-gray-300 rounded-lg">
+    <div class="card-body">
+        <h1 class="text-2xl font-bold mb-6">Edit Profile</h1>
+
+        <!-- Display success message if the profile is updated -->
+        {% if messages %}
+        <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-6" role="alert">
+            <ul>
+                {% for message in messages %}
                 <li>{{ message }}</li>
-            {% endfor %}
-        </ul>
-    {% endif %}
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
 
-    <form method="POST">
-        {% csrf_token %}
-        <label for="username">Username:</label>
-        <input type="text" id="username" name="username" value="{{ user.username }}" required><br>
+        <form method="POST" class="space-y-6">
+            {% csrf_token %}
 
-        <label for="email">Email:</label>
-        <input type="email" id="email" name="email" value="{{ user.email }}" required><br>
+            <!-- Personal Data Section with thin outline -->
+            <section class="mb-6 border-2 border-gray-300 p-4 rounded-lg w-1/2 ml-4">
+                <h2 class="text-xl font-semibold mb-4">Personal Data</h2>
 
-        <label for="first_name">First Name:</label>
-        <input type="text" id="first_name" name="first_name" value="{{ user.first_name }}"><br>
+                <div class="grid grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <label for="username" class="block text-gray-700 font-bold mb-2">Username:</label>
+                        <input type="text" id="username" name="username" value="{{ user.username }}" class="input input-bordered w-full" required>
+                    </div>
+                    <div>
+                        <label for="email" class="block text-gray-700 font-bold mb-2">Email:</label>
+                        <input type="email" id="email" name="email" value="{{ user.email }}" class="input input-bordered w-full" required>
+                    </div>
+                </div>
 
-        <label for="last_name">Last Name:</label>
-        <input type="text" id="last_name" name="last_name" value="{{ user.last_name }}"><br>
+                <div class="grid grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <label for="first_name" class="block text-gray-700 font-bold mb-2">First Name:</label>
+                        <input type="text" id="first_name" name="first_name" value="{{ user.first_name }}" class="input input-bordered w-full">
+                    </div>
+                    <div>
+                        <label for="last_name" class="block text-gray-700 font-bold mb-2">Last Name:</label>
+                        <input type="text" id="last_name" name="last_name" value="{{ user.last_name }}" class="input input-bordered w-full">
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <label for="phone" class="block text-gray-700 font-bold mb-2">Phone:</label>
+                        <input type="tel" id="phone" name="phone" value="{{ user.phone }}" class="input input-bordered w-full">
+                    </div>
+                </div>
+            </section>
 
-        <button type="submit">Update Profile</button>
-    </form>
+            <section class="mb-6 border-2 border-gray-300 p-4 rounded-lg w-1/2 ml-4">
+                <h2 class="text-xl font-semibold mb-4">Profile Image</h2>
 
-    <a href="{% url 'manager:manage_waitlist' queue_id %}">Back to Profile</a>
+                <div class="mb-4 flex justify-center">
+                    <label for="profile_image" class="cursor-pointer">
+                        <div class="bg-gray-200 rounded-full h-24 w-24 flex items-center justify-center">
+                            <svg class="h-12 w-12 text-gray-500" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                                <path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clip-rule="evenodd"></path>
+                            </svg>
+                        </div>
+                    </label>
+                    <input type="file" id="profile_image" name="profile_image" class="hidden">
+                </div>
+
+{#                {% if user.profile_image %}#}
+                    <div class="flex justify-center">
+                        <button type="button" class="btn btn-danger mt-2" id="remove-image-button">Remove Image</button>
+                    </div>
+{#                {% endif %}#}
+            </section>
+
+            <div class="flex space-x-4 mt-4 ml-5">
+                <button type="submit" class="btn btn-primary w-48">Update Profile</button>
+                <a href="{% url 'manager:manage_waitlist' queue_id %}" class="btn w-48">Back</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+
 
 {% endblock %}
