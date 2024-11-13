@@ -1,7 +1,6 @@
 import json
 import logging
 from datetime import timedelta
-from unicodedata import category
 
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, user_logged_in, user_logged_out, user_login_failed
@@ -12,13 +11,13 @@ from django.contrib.auth.models import User
 from django.dispatch import receiver
 from django.http import JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
-from django.urls import reverse_lazy, reverse
+from django.urls import reverse_lazy
 from django.utils import timezone
 from django.views import generic
 from django.views.decorators.http import require_http_methods
 
 from manager.forms import QueueForm
-from manager.models import Queue
+from manager.models import Queue, Resource
 from manager.utils.category_handler import CategoryHandlerFactory
 from participant.models import Participant, Notification
 
@@ -59,6 +58,7 @@ class CreateQView(LoginRequiredMixin, generic.CreateView):
         queue.authorized_user.add(self.request.user)
 
         return redirect(self.success_url)
+
 
 @login_required
 def add_participant_slot(request, queue_id):
@@ -333,7 +333,7 @@ class ParticipantListView(LoginRequiredMixin, generic.TemplateView):
         context['time_filter_option_display'] = time_filter_options_display.get(time_filter_option, 'All time')
         context['state_filter_option'] = state_filter_option
         context['state_filter_option_display'] = state_filter_options_display.get(state_filter_option, 'Any state')
-        category_context = handler.add_context_attributes(handler.get_queue_object(queue_id))
+        category_context = handler.add_context_attributes(queue)
         if category_context:
             context.update(category_context)
         return context
@@ -358,7 +358,7 @@ class YourQueueView(LoginRequiredMixin, generic.TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         user = self.request.user
-        authorized_queues = Queue.objects.filter(authorized_user=user)
+        authorized_queues = Queue.objects.filter(created_by=user)
         context['authorized_queues'] = authorized_queues
         return context
 
@@ -378,8 +378,9 @@ class StatisticsView(LoginRequiredMixin, generic.TemplateView):
         context['participant_set'] = participant_set
         return context
 
+
 class QueueSettingsView(LoginRequiredMixin, generic.TemplateView):
-    template_name = 'manager/settings.html'
+    template_name = 'manager/settings/settings.html'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -388,11 +389,78 @@ class QueueSettingsView(LoginRequiredMixin, generic.TemplateView):
         handler = CategoryHandlerFactory.get_handler(queue.category)
         queue = handler.get_queue_object(queue_id)
         participant_set = handler.get_participant_set(queue_id)
-
+        resources = Resource.objects.filter(queue=queue)
         context['queue'] = queue
+        context['resources'] = resources
         context['participant_set'] = participant_set
         context['authorized_users'] = queue.authorized_user.all()
         return context
+
+
+class ResourceSettings(LoginRequiredMixin, generic.TemplateView):
+    template_name = 'manager/settings/resource_settings.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        queue_id = self.kwargs.get('queue_id')
+        queue = get_object_or_404(Queue, id=queue_id)
+        handler = CategoryHandlerFactory.get_handler(queue.category)
+        queue = handler.get_queue_object(queue_id)
+        resources = Resource.objects.filter(queue=queue)
+        participant_set = handler.get_participant_set(queue_id)
+        context['participant_set'] = participant_set
+        context['resource_status'] = Resource.TABLE_STATUS
+        context['queue'] = queue
+        context['resources'] = resources
+        category_context = handler.add_resource_attributes(queue)
+        if category_context:
+            context.update(category_context)
+        return context
+
+
+@login_required
+@require_http_methods(["POST"])
+def edit_resource(request, resource_id):
+    resource = get_object_or_404(Resource, id=resource_id)
+    handler = CategoryHandlerFactory.get_handler(resource.queue.category)
+    data = {
+        'name': request.POST.get('name'),
+        'special': request.POST.get('special'),
+        'assigned_to': request.POST.get('assigned_to'),
+        'status': request.POST.get('status'),
+    }
+
+    handler.edit_resource(resource, data)
+    return redirect('manager:resources', resource.queue.id)
+
+
+@login_required
+@require_http_methods(["POST"])
+def add_resource(request, queue_id):
+    queue = get_object_or_404(Queue, id=queue_id)
+    handler = CategoryHandlerFactory.get_handler(queue.category)
+    queue = handler.get_queue_object(queue_id)
+    data = {
+        'name': request.POST.get('name'),
+        'special': request.POST.get('special'),
+        'status': request.POST.get('status'),
+        'queue': queue,
+    }
+    handler.add_resource(data)
+    return redirect('manager:resources', queue_id)
+
+
+@login_required
+@require_http_methods(["DELETE"])
+def delete_resource(request, resource_id):
+    resource = get_object_or_404(Resource, id=resource_id)
+    logger.info(f"Deleting resource {resource_id} from queue {resource.queue.id}")
+
+    if request.user != resource.queue.created_by:
+        return JsonResponse({'error': 'Unauthorized.'}, status=403)
+    resource.delete()
+    logger.info(f"Resource {resource_id} is deleted.")
+    return JsonResponse({'message': 'Resource deleted successfully.'})
 
 
 @require_http_methods(["POST"])
@@ -407,7 +475,6 @@ def check_username(request):
         return JsonResponse({'exists': user_exists})
     else:
         return JsonResponse({'error': 'No username provided'}, status=400)
-
 
 
 def signup(request):

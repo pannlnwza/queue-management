@@ -3,7 +3,7 @@ from abc import ABC, abstractmethod
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 
-from manager.models import RestaurantQueue, Queue, BankQueue, HospitalQueue, Doctor
+from manager.models import RestaurantQueue, Queue, BankQueue, HospitalQueue, Doctor, Resource
 from manager.utils.helpers import extract_data_variables
 from participant.models import RestaurantParticipant, Participant, HospitalParticipant, BankParticipant
 
@@ -74,6 +74,18 @@ class CategoryHandler(ABC):
     def update_participant(self, participant, data):
         pass
 
+    @abstractmethod
+    def add_resource_attributes(self, queue):
+        pass
+
+    @abstractmethod
+    def add_resource(self, queue):
+        pass
+
+    @abstractmethod
+    def edit_resource(self, resource, data):
+        pass
+
 
 class GeneralQueueHandler(CategoryHandler):
     def create_queue(self, data):
@@ -139,6 +151,15 @@ class GeneralQueueHandler(CategoryHandler):
     def get_special_column(self):
         pass
 
+    def add_resource_attributes(self, queue):
+        pass
+
+    def add_resource(self, queue):
+        pass
+
+    def edit_resource(self, resource, data):
+        pass
+
 
 class RestaurantQueueHandler(CategoryHandler):
     def create_queue(self, data):
@@ -167,13 +188,14 @@ class RestaurantQueueHandler(CategoryHandler):
     def get_queue_object(self, queue_id):
         return get_object_or_404(RestaurantQueue, id=queue_id)
 
-    def assign_to_resource(self, participant):
+    def assign_to_resource(self, participant, resource=None):
         queue = participant.queue
-        resource = queue.get_available_resource(required_capacity=participant.party_size)
-        if resource:
-            resource.assign_to_participant(participant, capacity=participant.party_size)
-        else:
-            raise ValueError("No available resources")
+        resource = resource or queue.get_available_resource(required_capacity=participant.party_size)
+
+        if not resource:
+            raise ValueError('No resource available.')
+        resource.assign_to_participant(participant, capacity=participant.party_size)
+        participant.save()
 
     def get_template_name(self):
         return 'manager/manage_queue/manage_unique_category.html'
@@ -252,6 +274,39 @@ class RestaurantQueueHandler(CategoryHandler):
             'is_notified': participant.is_notified
         }
 
+    def add_resource_attributes(self, queue):
+        return {
+            'resource_name': 'Table',
+            'special_column': 'Capacity',
+        }
+
+    def add_resource(self, data):
+        name = data.get('name')
+        capacity = data.get('special')
+        status = data.get('status')
+        queue = data.get('queue')
+        table = Resource.objects.create(name=name, capacity=capacity, status=status, queue=queue)
+        queue.tables.add(table)
+        queue.save()
+
+    def edit_resource(self, resource, data):
+        resource.name = data.get('name', resource.name)
+        resource.capacity = data.get('special', resource.capacity)
+        resource.status = data.get('status', resource.status)
+        assigned_to = data.get('assigned_to', resource.assigned_to)
+
+        try:
+            participant = get_object_or_404(RestaurantParticipant, id=assigned_to) if assigned_to else None
+            if participant and (not resource.assigned_to or int(assigned_to) != int(resource.assigned_to.id)):
+                resource.free()
+                self.assign_to_resource(participant, resource)
+            elif not participant and resource.assigned_to:
+                resource.free()
+
+        except RestaurantParticipant.DoesNotExist:
+            print(f"Participant with ID {assigned_to} does not exist.")
+        resource.save()
+
 
 class HospitalQueueHandler(CategoryHandler):
     def create_queue(self, data):
@@ -286,18 +341,18 @@ class HospitalQueueHandler(CategoryHandler):
         """
         return get_object_or_404(HospitalQueue, id=queue_id)
 
-    def assign_to_resource(self, participant):
+    def assign_to_resource(self, participant, resource=None):
         """
         Assigns a doctor to a hospital participant based on their medical field and priority.
         """
         queue = self.get_queue_object(participant.queue.id)
-        doctor = queue.doctors.filter(specialty=participant.medical_field, status='available').first()
-        if doctor:
-            doctor.assign_to_participant(participant)
-            participant.resource = doctor
-            participant.save()
-        else:
+        doctor = resource or queue.doctors.filter(specialty=participant.medical_field, status='available').first()
+
+        if not doctor:
             raise ValueError("No available doctor for the specified specialty.")
+        resource.assign_to_participant(participant)
+        participant.resource = resource
+        participant.save()
 
     def get_template_name(self):
         """
@@ -390,6 +445,42 @@ class HospitalQueueHandler(CategoryHandler):
             'is_notified': participant.is_notified
         }
 
+    def add_resource_attributes(self, queue):
+        return {
+            'resource_name': 'Doctor',
+            'resources': Doctor.objects.filter(queue=queue),
+            'special_column': 'Specialty',
+            'special_choice': Doctor.MEDICAL_SPECIALTY_CHOICES,
+        }
+
+    def add_resource(self, data):
+        name = data.get('name')
+        medical_field = data.get('special')
+        status = data.get('status')
+        queue = data.get('queue')
+        doctor = Doctor.objects.create(name=name, specialty=medical_field, status=status, queue=queue)
+        queue.doctors.add(doctor)
+        queue.save()
+
+    def edit_resource(self, resource, data):
+        doctor = get_object_or_404(Doctor, id=resource.id)
+        doctor.name = data.get('name', doctor.name)
+        doctor.specialty = data.get('special', doctor.specialty)
+        doctor.status = data.get('status', doctor.status)
+        assigned_to = data.get('assigned_to', doctor.assigned_to)
+
+        try:
+            participant = get_object_or_404(HospitalParticipant, id=assigned_to) if assigned_to else None
+            if participant and (not doctor.assigned_to or int(assigned_to) != int(doctor.assigned_to.id)):
+                resource.free()
+                self.assign_to_resource(participant, doctor)
+            elif not participant and doctor.assigned_to:
+                doctor.free()
+
+        except RestaurantParticipant.DoesNotExist:
+            print(f"Participant with ID {assigned_to} does not exist.")
+        doctor.save()
+
 
 class BankQueueHandler(CategoryHandler):
     def create_queue(self, data):
@@ -417,13 +508,15 @@ class BankQueueHandler(CategoryHandler):
     def get_queue_object(self, queue_id):
         return get_object_or_404(BankQueue, id=queue_id)
 
-    def assign_to_resource(self, participant):
-        queue = participant.queue
-        resource = queue.get_available_resource()
-        if resource:
-            resource.assign_to_participant(participant)
-        else:
-            raise ValueError("No available resources")
+    def assign_to_resource(self, participant, resource=None):
+        queue = self.get_queue_object(participant.queue.id)
+        counter = resource or queue.counters.filter(service=participant.service_type, status='available').first()
+
+        if not counter:
+            raise ValueError("No available counter for the specified specialty.")
+        resource.assign_to_participant(participant)
+        participant.resource = resource
+        participant.save()
 
     def complete_service(self, participant):
         if participant.state == 'serving':
@@ -499,3 +592,29 @@ class BankQueueHandler(CategoryHandler):
             'resource_served': participant.resource_assigned,
             'is_notified': participant.is_notified
         }
+
+    def add_resource_attributes(self, queue):
+        return {
+            'resource_name': 'Counter',
+        }
+
+    def add_resource(self, queue):
+        pass
+
+    def edit_resource(self, resource, data):
+        resource.name = data.get('name', resource.name)
+        resource.medical_field = data.get('special', resource.medical_field)
+        resource.status = data.get('status', resource.status)
+        assigned_to = data.get('assigned_to', resource.assigned_to)
+
+        try:
+            participant = get_object_or_404(HospitalParticipant, id=assigned_to) if assigned_to else None
+            if participant and (not resource.assigned_to or int(assigned_to) != int(resource.assigned_to.id)):
+                resource.free()
+                self.assign_to_resource(participant, resource)
+            elif not participant and resource.assigned_to:
+                resource.free()
+
+        except RestaurantParticipant.DoesNotExist:
+            print(f"Participant with ID {assigned_to} does not exist.")
+        resource.save()

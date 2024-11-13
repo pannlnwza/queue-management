@@ -47,7 +47,7 @@
                 <label for="viewModal" class="btn btn-sm btn-square btn-ghost absolute right-2 top-2">✕</label>
                 <div class="flex items-center gap-2 mx-3 my-1">
                     <h2 class="font-semibold text-2xl">{{ resource_name| title }}s</h2>
-                    <a href="#" class="btn btn-xs no-animation mt-0.5">
+                    <a href="{% url 'manager:resources' queue_id %}" class="btn btn-xs no-animation mt-0.5">
                         Edit</a>
                 </div>
                 <div class="divider"></div>

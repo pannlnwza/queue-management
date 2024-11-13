@@ -1,14 +1,12 @@
 import math
-import string
 import random
+import string
 
-from django.db.models import ManyToManyField
-from django.utils import timezone
+from django.conf import settings
+from django.contrib.auth.models import User
 from django.db import models
 from django.templatetags.static import static
-from django.contrib.auth.models import User
-from django.urls import reverse
-from django.conf import settings
+from django.utils import timezone
 
 
 class Queue(models.Model):
@@ -159,7 +157,7 @@ class Resource(models.Model):
     queue = models.ForeignKey(Queue, on_delete=models.CASCADE, blank=True, null=True)
     assigned_to = models.ForeignKey('participant.Participant', on_delete=models.SET_NULL, null=True, blank=True,
                                     related_name='resource_assignment')
-
+    count = models.PositiveIntegerField(default=0)
 
     def assign_to_participant(self, participant, capacity=1) -> None:
         """
@@ -168,10 +166,11 @@ class Resource(models.Model):
         """
         if self.status != 'available':
             raise ValueError("This resource is not available.")
-        if self.capacity < capacity:
+        if int(self.capacity) < int(capacity):
             raise ValueError("This resource cannot accommodate the party size.")
 
         self.status = 'busy'
+        self.count += 1
         self.assigned_to = participant
         self.save()
         participant.resource = self
@@ -183,6 +182,8 @@ class Resource(models.Model):
         """
         if self.status == 'busy' and self.assigned_to:
             self.status = 'available'
+            self.assigned_to.resource = None
+            self.assigned_to.save()
             self.assigned_to = None
             self.save()
 
@@ -191,8 +192,6 @@ class Resource(models.Model):
         Checks if this resource is currently assigned to a participant.
         """
         return self.assigned_to is not None
-
-
 
     def __str__(self):
         """Return a string representation of the table."""
@@ -221,8 +220,8 @@ class Doctor(Resource):
 
 
 class RestaurantQueue(Queue):
-    has_outdoor = models.BooleanField(default=False)
     tables = models.ManyToManyField(Resource)
+
 
 class BankQueue(Queue):
     """Represents a queue specifically for bank services."""
@@ -230,6 +229,7 @@ class BankQueue(Queue):
 
     def __str__(self):
         return f"Bank Queue: {self.name}"
+
 
 class HospitalQueue(Queue):
     doctors = models.ManyToManyField(Doctor)
