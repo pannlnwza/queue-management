@@ -10,7 +10,21 @@
 
             <form method="post" class="space-y-4">
                 {% csrf_token %}
-                {{ form.as_p }}  <!-- Render the form fields, including the phone field -->
+{#                {{ form.name.label }}#}
+{#                {{ form.name }}#}
+{#                {{ form.phone }}#}
+{#                {{ form.email }}#}
+{#                {% if queue.category == 'restaurant' %}#}
+{#                    {{ form.party_size }}#}
+{#                    {{ form.seating_preference }}#}
+{#                {% elif queue.category == 'hospital' %}#}
+{#                    {{ form.medical_field }}#}
+{#                    {{ form.priority }}#}
+{#                {% elif queue.category == 'bank' %}#}
+{#                    {{ form.service_type }}#}
+{#                {% endif %}#}
+{#                {{ form.note }}#}
+                {{ form.as_p }}
                 <button type="submit" class="btn btn-primary w-full mt-4">Create Reservation</button>
             </form>
         </div>

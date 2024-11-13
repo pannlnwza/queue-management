@@ -11,7 +11,6 @@ from participant.models import Participant, Notification
 from manager.models import Queue
 from manager.views import logger
 from .forms import ReservationForm
-from participant.utils.participant_handler import ParticipantHandlerFactory
 from manager.utils.category_handler import CategoryHandlerFactory
 import time
 from django.http import StreamingHttpResponse
@@ -195,6 +194,11 @@ class KioskView(generic.FormView):
         self.queue = get_object_or_404(Queue, code=kwargs['queue_code'])
         self.handler = CategoryHandlerFactory.get_handler(self.queue.category)
         return super().dispatch(request, *args, **kwargs)
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['queue'] = self.queue
+        return kwargs
 
     def get_context_data(self, **kwargs):
         # Add the queue object to the context for rendering

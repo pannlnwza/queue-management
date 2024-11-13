@@ -166,7 +166,6 @@ class HospitalParticipant(Participant):
     priority = models.CharField(max_length=10, choices=PRIORITY_CHOICES,
                                 default='normal')
 
-
     def __str__(self):
         return f"Hospital Participant: {self.name}"
 
