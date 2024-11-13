@@ -3,7 +3,7 @@ from django import forms
 from participant.models import RestaurantParticipant, HospitalParticipant, BankParticipant
 
 
-class ReservationForm(forms.Form):
+class KioskForm(forms.Form):
     # Common fields for all categories
     name = forms.CharField(
         widget=forms.TextInput(attrs={'class': 'input input-bordered w-full', 'placeholder': 'Enter Your Name'}),

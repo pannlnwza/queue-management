@@ -10,7 +10,7 @@ from django.views import generic
 from participant.models import Participant, Notification
 from manager.models import Queue
 from manager.views import logger
-from .forms import ReservationForm
+from .forms import KioskForm
 from manager.utils.category_handler import CategoryHandlerFactory
 import time
 from django.http import StreamingHttpResponse
@@ -187,7 +187,7 @@ def welcome(request, queue_code):
 
 class KioskView(generic.FormView):
     template_name = 'participant/kiosk.html'
-    form_class = ReservationForm
+    form_class = KioskForm
 
     def dispatch(self, request, *args, **kwargs):
         # Retrieve the queue object based on the queue_code from the URL
