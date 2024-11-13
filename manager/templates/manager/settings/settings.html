@@ -36,10 +36,6 @@
         <h1 class="text-2xl font-bold antialiased font-sans">Queue Settings</h1>
     </div>
     <div class="max-w-2xl mx-3">
-        <!-- Tabs -->
-        <div role="tablist" class="tabs tabs-bordered">
-            <input type="radio" name="settings_tab" role="tab" class="tab" aria-label="General Settings" checked/>
-            <div role="tabpanel" class="tab-content pt-2">
                 <div class="space-y-5">
 
                     <div class="form-control my-3">
@@ -98,7 +94,8 @@
                             <input type="time" value="22:00" class="input input-bordered"/>
                         </div>
                     </div>
-                    <div class="divider"></div>
+
+                <div class="divider"></div>
 
                     <div class="form-control my-4">
                         <label for="map" class="label-text font-medium px-1">Location</label>
@@ -115,124 +112,50 @@
 
                 </div>
                 <div class="divider"></div>
-            </div>
 
-
-
-
-            <input type="radio" name="settings_tab" role="tab" class="tab" aria-label="Resources"/>
-            <div role="tabpanel" class="tab-content p-6">
-                <!-- Resources Tab -->
-                <div class="space-y-6">
-                    <!-- Resources Section -->
-                    <div class="form-control">
-                        <label class="label">
-                            <span class="label-text font-medium">Resources</span>
-                            <span class="label-text-alt text-base-content/60">Select how you want to display your resources in the calendar</span>
-                        </label>
-                        <div class="space-y-2 mt-2">
-                            <label class="label cursor-pointer justify-start gap-4">
-                                <input type="checkbox" class="checkbox checkbox-primary"/>
-                                <span class="label-text">Show resources as separate columns</span>
-                            </label>
-                            <label class="label cursor-pointer justify-start gap-4">
-                                <input type="checkbox" checked class="checkbox checkbox-primary"/>
-                                <span class="label-text">Show unavailable resources</span>
-                            </label>
-                            <label class="label cursor-pointer justify-start gap-4">
-                                <input type="checkbox" checked class="checkbox checkbox-primary"/>
-                                <span class="label-text">Show unassigned column</span>
-                            </label>
+                        <div class="card card-compact border-2 border-base-200 bg-base-100 cursor-pointer my-2" onclick="window.location.href='/manager/settings/{{ queue.id }}/resources'">
+                    <div class="card-body">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-4">
+                                <div>
+                                    <h2 class="card-title">Resources<span class="badge badge-sm">{{ resources | length }}</span></h2>
+                                    <p class="text-base-content/70">Create and manage your resources.</p>
+                                </div>
+                            </div>
+                            <div class="text-base-content/70">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                                </svg>
+                            </div>
                         </div>
-                    </div>
-
-                    <!-- Grouping Section -->
-                    <div class="form-control">
-                        <label class="label">
-                            <span class="label-text font-medium">Grouping</span>
-                            <span class="label-text-alt text-base-content/60">Enable this to group multiple similar bookings together in the calendar</span>
-                        </label>
-                        <label class="label cursor-pointer justify-start gap-4">
-                            <input type="checkbox" class="checkbox checkbox-primary"/>
-                            <span class="label-text">Group similar visits</span>
-                        </label>
-                        <select class="select select-bordered w-full mt-2" disabled>
-                            <option>Match resources</option>
-                        </select>
                     </div>
                 </div>
-            </div>
 
-            <input type="radio" name="settings_tab" role="tab" class="tab" aria-label="Services"/>
-            <div role="tabpanel" class="tab-content p-6">
-                <!-- Calendar Tab -->
-                <div class="space-y-6">
-                    <!-- Hours Section -->
-                    <div class="grid grid-cols-2 gap-4">
-                        <div class="form-control">
-                            <label class="label">
-                                <span class="label-text font-medium">Start hour</span>
-                            </label>
-                            <input type="time" value="07:00" class="input input-bordered"/>
-                        </div>
-                        <div class="form-control">
-                            <label class="label">
-                                <span class="label-text font-medium">End hour</span>
-                            </label>
-                            <input type="time" value="22:00" class="input input-bordered"/>
+                <div class="card card-compact border-2 border-base-200 bg-base-100 cursor-pointer my-2" onclick="window.location.href='/qr-serve'">
+                    <div class="card-body">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-4">
+                                <div>
+                                    <h2 class="card-title">Services<span class="badge badge-sm">{{ resources| length }}</span></h2>
+                                    <p class="text-base-content/70">Create and manage your services.</p>
+                                </div>
+                            </div>
+                            <div class="text-base-content/70">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                                </svg>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
 
         <!-- Action Buttons -->
         <div class="flex gap-4 mt-3">
             <button class="btn btn-primary">Save</button>
         </div>
-    </div>
     </body>
 
-    <input type="checkbox" id="addModal" class="modal-toggle"/>
-    <div class="modal" role="dialog">
-        <div class="modal-box max-w-md">
-            <h3 class="text-lg font-bold">Add Authorized User</h3>
-            <p class="py-2">Enter a username to add as an authorized user:</p>
-
-            <form id="addUserForm">
-                {% csrf_token %}
-                <div class="form-control">
-                    <input
-                            type="text"
-                            name="username"
-                            id="username"
-                            placeholder="Enter username..."
-                            class="input input-bordered w-full"
-                            required
-                    />
-                </div>
-
-                <p id="error-message" class="text-red-500 text-sm mt-2" style="display: none;"></p>
-
-                <div class="modal-action">
-                    <!-- Close Button -->
-                    <label for="addModal" class="btn">Cancel</label>
-                    <button type="submit" class="btn btn-primary">Add User</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <div id="inviteModal" class="modal" role="dialog">
-        <div class="modal-box">
-            <h3 class="text-lg font-bold">Invite Link</h3>
-            <p class="py-4">Share this link with authorized users to invite them to the queue.</p>
-            <input type="text" id="inviteLink" class="input input-bordered w-full" readonly>
-            <div class="modal-action">
-                <label for="inviteModal" class="btn">Close</label>
-            </div>
-        </div>
-    </div>
 
 
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
