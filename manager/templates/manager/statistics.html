@@ -84,9 +84,14 @@
             <!-- Total Visits -->
             <div class="card bg-base-200">
                 <div class="card-body">
-                    <h2 class="card-title">Total visits last 7 days</h2>
-                    <div class="h-32">
-                        <canvas id="visitsChart"></canvas>
+                    <h2 class="card-title flex items-center gap-2">
+                        Total visits last 7 days
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="w-4 h-4 stroke-current"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    </h2>
+                    <div class="total-visits-container">
+                        <div class="h-16">
+                            <canvas id="visitsChart"></canvas>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -209,7 +214,7 @@ document.addEventListener('DOMContentLoaded', function() {
         },
         cutout: '75%',
         maintainAspectRatio: false,
-        spacing: 2  // Add space between segments
+        spacing: 2
     };
 
     // Create Dropoffs chart
@@ -246,39 +251,49 @@ document.addEventListener('DOMContentLoaded', function() {
         options: commonDonutOptions
     });
 
-    // Create Visits Stacked Bar chart
+    // Create Visits Horizontal Bar chart
     new Chart(visitsChartCtx, {
         type: 'bar',
         data: {
-            labels: ['Total Visits'],
+            labels: [''],
             datasets: [
                 {
                     label: 'Completed',
-                    data: [60],
-                    backgroundColor: 'hsl(var(--p))', // primary color
+                    data: [1],
+                    backgroundColor: '#4C1D95', // Deep purple
                     borderWidth: 0,
-                    borderRadius: 4,
+                    borderRadius: {
+                        topLeft: 4,
+                        bottomLeft: 4
+                    },
+                    barPercentage: 0.8
                 },
                 {
                     label: 'Dropoff',
-                    data: [25],
-                    backgroundColor: 'hsl(var(--s))', // secondary color
+                    data: [1],
+                    backgroundColor: '#FCA5A5', // Light red/coral
                     borderWidth: 0,
-                    borderRadius: 4,
+                    barPercentage: 0.8
                 },
                 {
-                    label: 'Unattended',
-                    data: [15],
-                    backgroundColor: 'rgb(209, 213, 219)', // gray-300
+                    label: 'Unhandled',
+                    data: [3],
+                    backgroundColor: '#E5E7EB', // Light gray
                     borderWidth: 0,
-                    borderRadius: 4,
+                    borderRadius: {
+                        topRight: 4,
+                        bottomRight: 4
+                    },
+                    barPercentage: 0.8
                 }
             ]
         },
         options: {
+            indexAxis: 'y',
             plugins: {
                 legend: {
-                    position: 'bottom',
+                    position: 'top',
+                    align: 'start',
                     labels: {
                         usePointStyle: true,
                         pointStyle: 'circle',
@@ -289,28 +304,39 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                 },
                 tooltip: {
-                    callbacks: {
-                        label: function(context) {
-                            return `${context.dataset.label}: ${context.raw}%`;
-                        }
-                    }
+                    enabled: false
                 }
             },
             scales: {
                 x: {
                     stacked: true,
-                    display: false
+                    display: true,
+                    grid: {
+                        display: false
+                    },
+                    ticks: {
+                        display: false
+                    }
                 },
                 y: {
                     stacked: true,
-                    display: false,
-                    max: 100
+                    display: false
                 }
             },
-            maintainAspectRatio: false,
-            barThickness: 20
+            maintainAspectRatio: false
         }
     });
+
+    // Add total visits number
+    const totalVisitsDiv = document.createElement('div');
+    totalVisitsDiv.className = 'text-2xl font-bold mb-4';
+    totalVisitsDiv.textContent = '5';
+    document.querySelector('.total-visits-container').prepend(totalVisitsDiv);
+
+    // Add percentage label
+    const percentageDiv = document.createElement('div');
+    percentageDiv.className = 'percentage-label';
+    document.querySelector('.total-visits-container').appendChild(percentageDiv);
 });
     </script>
 {% endblock %}
