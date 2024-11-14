@@ -162,26 +162,37 @@ class Queue(models.Model):
         return self.participant_set.filter(state='completed').count()
 
     def get_number_dropoff(self):
-        """Return the number of dropout participants."""
-        return self.participant_set.filter(state='cancelled').count()
+        """Return the number of dropout participants (cancelled, no-shows, and removed)."""
+        return self.participant_set.filter(state__in=['cancelled', 'no-shows', 'removed']).count()
 
     def get_served_percentage(self):
         """Return percentage of participants served."""
-        return round((
-                                 self.get_number_served() / self.get_number_of_participants()) * 100,
-                     2)
+        return round((self.get_number_served() / self.get_number_of_participants()) * 100, 2)
 
     def get_dropoff_percentage(self):
         """Return percentage of dropout participants."""
-        return round((
-                                 self.get_number_dropoff() / self.get_number_of_participants()) * 100,
-                     2)
+        return round((self.get_number_dropoff() / self.get_number_of_participants()) * 100, 2)
 
     def get_unattended_percentage(self):
         """Return percentage of unattended participants."""
         return round(
             100 - self.get_dropoff_percentage() - self.get_served_percentage(),
             2)
+
+    def get_cancelled_percentage(self) -> float:
+        return self._get_substate_percentage('cancelled')
+
+    def get_no_shows_percentage(self) -> float:
+        return self._get_substate_percentage('no-shows')
+
+    def get_removed_percentage(self) -> float:
+        return self._get_substate_percentage('removed')
+
+    def _get_substate_percentage(self, state: str) -> float:
+        dropoff_total = self.get_number_dropoff()
+        return round((self.participant_set.filter(
+            state=state).count() / dropoff_total) * 100,
+                     2) if dropoff_total else 0
 
     def get_average_waiting_time(self):
         """Calculate the average waiting time for participants in minutes."""
