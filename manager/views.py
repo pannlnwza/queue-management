@@ -472,6 +472,9 @@ class StatisticsView(LoginRequiredMixin, generic.TemplateView):
         context['avg_line_length'] = queue.get_avg_line_length()
         context['dropoff_percentage'] = queue.get_dropoff_percentage()
         context['unattended_percentage'] = queue.get_unattended_percentage()
+        context['cancelled_percentage'] = queue.get_cancelled_percentage()
+        context['no_shows_percentage'] = queue.get_no_shows_percentage()
+        context['removed_percentage'] = queue.get_removed_percentage()
         return context
 
 
