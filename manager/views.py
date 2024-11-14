@@ -558,48 +558,7 @@ def login_view(request):
     return render(request, 'account/login.html')
 
 
-# class EditProfileView(LoginRequiredMixin, generic.UpdateView):
-#     model = UserProfile
-#     template_name = 'manager/edit_profile.html'
-#     context_object_name = 'profile'
-#     fields = ['phone_no', 'image', 'first_name', 'last_name']
-#
-#     def get_success_url(self):
-#         queue_id = self.kwargs.get('queue_id')  # Get the queue_id from the URL
-#         return reverse_lazy('manager:manage_waitlist', kwargs={'queue_id': queue_id})
-#
-#     def get_object(self, queryset=None):
-#         """
-#         Return the user profile for the currently logged-in user,
-#         or create one if it does not exist.
-#         """
-#         return create_or_update_profile(user=self.request.user)
-#
-#     def form_valid(self, form):
-#         """Override form_valid to update both User and UserProfile models."""
-#         # Update the User model (username, email, first_name, etc.)
-#         user = self.request.user
-#         user.username = form.cleaned_data.get('username', user.username)  # Make sure to handle 'username'
-#         user.email = form.cleaned_data.get('email', user.email)
-#         user.first_name = form.cleaned_data.get('first_name', user.first_name) or ''
-#         user.last_name = form.cleaned_data.get('last_name', user.last_name) or ''
-#         user.save()
-#
-#         # Update the UserProfile fields
-#         profile = self.get_object()  # Get the UserProfile
-#         profile.phone_no = form.cleaned_data.get('phone_no', profile.phone_no)
-#         profile.image = form.cleaned_data.get('image', profile.image)
-#         profile.save()
-#
-#         return super().form_valid(form)
-#
-#
-#     def get_context_data(self, **kwargs):
-#         """Include additional context."""
-#         context = super().get_context_data(**kwargs)
-#         queue_id = self.kwargs.get('queue_id')  # Get queue_id from the URL
-#         context['queue_id'] = queue_id  # Add it to the context for use in the template
-#         return context
+
 
 class EditProfileView(LoginRequiredMixin, generic.UpdateView):
     model = UserProfile
