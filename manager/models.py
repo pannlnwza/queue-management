@@ -162,8 +162,8 @@ class Queue(models.Model):
         return self.participant_set.filter(state='completed').count()
 
     def get_number_dropoff(self):
-        """Return the number of dropout participants (cancelled, no-shows, and removed)."""
-        return self.participant_set.filter(state__in=['cancelled', 'no-shows', 'removed']).count()
+        """Return the number of dropout participants (cancelled, and removed)."""
+        return self.participant_set.filter(state__in=['cancelled', 'removed']).count()
 
     def get_served_percentage(self):
         """Return percentage of participants served."""
@@ -181,9 +181,6 @@ class Queue(models.Model):
 
     def get_cancelled_percentage(self) -> float:
         return self._get_substate_percentage('cancelled')
-
-    def get_no_shows_percentage(self) -> float:
-        return self._get_substate_percentage('no-shows')
 
     def get_removed_percentage(self) -> float:
         return self._get_substate_percentage('removed')

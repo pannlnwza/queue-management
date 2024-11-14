@@ -15,7 +15,6 @@ class Participant(models.Model):
         ('serving', 'Serving'),
         ('completed', 'Completed'),
         ('cancelled', 'Cancelled'),
-        ('no-shows', 'No-shows'),
         ('removed', 'Removed')
     ]
 
