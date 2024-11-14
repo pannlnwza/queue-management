@@ -4,7 +4,7 @@ from manager.utils.queue_data import get_restaurant_queue_data, get_general_queu
 from manager.views import CreateQView, add_participant_slot, \
     notify_participant, delete_queue, delete_participant, ManageWaitlist, serve_participant, complete_participant, \
     edit_participant, ParticipantListView, StatisticsView, YourQueueView, add_participant, QueueSettingsView, \
-    check_username, ResourceSettings, edit_resource, add_resource, delete_resource
+    check_username, ResourceSettings, edit_resource, add_resource, delete_resource, WaitingFull
 
 app_name = 'manager'
 urlpatterns = [
@@ -29,4 +29,5 @@ urlpatterns = [
     path('edit_resource/<int:resource_id>/', edit_resource, name='edit_resource'),
     path('add_resource/<int:queue_id>/', add_resource, name='add_resource'),
     path('delete_resource/<int:resource_id>/', delete_resource, name='delete_resource'),
+    path('waiting_fullscreen', WaitingFull.as_view(), name='waiting_full')
 ]

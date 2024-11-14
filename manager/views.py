@@ -1,6 +1,7 @@
 import json
 import logging
 from datetime import timedelta
+from lib2to3.fixes.fix_input import context
 
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, user_logged_in, user_logged_out, user_login_failed
@@ -350,6 +351,14 @@ class ParticipantListView(LoginRequiredMixin, generic.TemplateView):
         elif time_filter_option == 'this_year':
             return now.replace(month=1, day=1)
         return None
+
+
+class WaitingFull(LoginRequiredMixin, generic.TemplateView):
+    template_name = 'manager/manage_queue/waiting_full.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        return context
 
 
 class YourQueueView(LoginRequiredMixin, generic.TemplateView):
