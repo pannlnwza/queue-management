@@ -1,6 +1,8 @@
 import math
 import string
 import random
+
+from django.db.models import ManyToManyField
 from django.utils import timezone
 from django.db import models
 from django.templatetags.static import static
@@ -26,19 +28,24 @@ class Queue(models.Model):
 
     name = models.CharField(max_length=50)
     description = models.TextField(max_length=60)
-    created_by = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
-    authorized_user = models.ManyToManyField(User, related_name='queues', blank=True)
+    created_by = models.ForeignKey(User, on_delete=models.CASCADE, null=True,
+                                   blank=True)
+    authorized_user = models.ManyToManyField(User, related_name='queues',
+                                             blank=True)
     open_time = models.DateTimeField(null=True, blank=True)
     close_time = models.DateTimeField(null=True, blank=True)
     estimated_wait_time_per_turn = models.PositiveIntegerField(default=0)
     average_service_duration = models.PositiveIntegerField(default=0)
     created_at = models.DateTimeField(default=timezone.localtime)
     is_closed = models.BooleanField(default=False)
-    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='normal')
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES,
+                              default='normal')
     category = models.CharField(max_length=20, choices=CATEGORY_CHOICES)
     logo = models.ImageField(upload_to='queue_logos/', blank=True, null=True)
     completed_participants_count = models.PositiveIntegerField(default=0)
     code = models.CharField(max_length=6, unique=True, editable=False)
+    latitude = models.FloatField()
+    longitude = models.FloatField()
 
     def save(self, *args, **kwargs):
         """Generate a unique ticket code for the participant if not already."""
@@ -55,19 +62,31 @@ class Queue(models.Model):
             if not Queue.objects.filter(code=code).exists():
                 return code
 
+    def has_resources(self):
+        return self.category != 'general'
+
+    def get_resources_by_status(self, status):
+        return self.resource_set.filter(
+            status=status
+        )
+
     def update_estimated_wait_time_per_turn(self, time_taken: int) -> None:
         """Update the estimated wait time per turn based on the time taken for a turn."""
-        total_time = (self.estimated_wait_time_per_turn * self.completed_participants_count) + time_taken
+        total_time = (
+                             self.estimated_wait_time_per_turn * self.completed_participants_count) + time_taken
         self.completed_participants_count += 1
-        self.estimated_wait_time_per_turn = math.ceil(total_time / self.completed_participants_count)
+        self.estimated_wait_time_per_turn = math.ceil(
+            total_time / self.completed_participants_count)
         self.save()
 
     def calculate_average_service_duration(self, serve_time: int):
         """Update the average serve duration based on recent serve time."""
         if self.completed_participants_count > 0:
-            total_serve_time = (self.average_service_duration * self.completed_participants_count) + serve_time
+            total_serve_time = (
+                                       self.average_service_duration * self.completed_participants_count) + serve_time
             self.completed_participants_count += 1
-            self.average_service_duration = math.ceil(total_serve_time / self.completed_participants_count)
+            self.average_service_duration = math.ceil(
+                total_serve_time / self.completed_participants_count)
         else:
             self.average_service_duration = serve_time
             self.completed_participants_count += 1
@@ -91,19 +110,23 @@ class Queue(models.Model):
         if self.logo:
             return self.logo.url
         default_logos = {
-            'restaurant': static('participant/images/restaurant_default_logo.png'),
+            'restaurant': static(
+                'participant/images/restaurant_default_logo.png'),
             'bank': static('participant/images/bank_default_logo.jpg'),
             'general': static('participant/images/general_default_logo.png'),
             'hospital': static('participant/images/hospital_default_logo.jpg'),
-            'service center': static('participant/images/service_center_default_logo.png')
+            'service center': static(
+                'participant/images/service_center_default_logo.png')
         }
         return default_logos.get(str(self.category))
 
-    def edit(self, name: str = None, description: str = None, is_closed: bool = None, status: str = None) -> None:
+    def edit(self, name: str = None, description: str = None,
+             is_closed: bool = None, status: str = None) -> None:
         """Edit the queue's name, description, or closed status."""
         if name:
             if not (1 <= len(name) <= 255):
-                raise ValueError("The name must be between 1 and 255 characters.")
+                raise ValueError(
+                    "The name must be between 1 and 255 characters.")
             self.name = name
         if description is not None:
             self.description = description
@@ -112,6 +135,16 @@ class Queue(models.Model):
         if status in dict(self.STATUS_CHOICES):
             self.status = status
         self.save()
+
+    def get_available_resource(self, required_capacity=1):
+        """
+        Fetch an available resource for the specified queue.
+        It finds a resource with enough capacity that is currently empty.
+        """
+        return self.resource_set.filter(
+            status='available',
+            capacity__gte=required_capacity
+        ).first()
 
     def get_join_link(self):
         """
@@ -124,61 +157,111 @@ class Queue(models.Model):
         return self.name
 
 
-class Table(models.Model):
-    TABLE_STATUS = [
-        ('empty', 'Empty'),
+class Resource(models.Model):
+    RESOURCE_STATUS = [
+        ('available', 'Available'),
         ('busy', 'Busy'),
         ('unavailable', 'Unavailable'),
     ]
 
     name = models.CharField(max_length=50, unique=True)
     capacity = models.PositiveIntegerField(default=1)
-    status = models.CharField(choices=TABLE_STATUS, max_length=15, default='empty')
-    party = models.ForeignKey('participant.RestaurantParticipant', on_delete=models.SET_NULL, null=True, blank=True,
-                              related_name='table_assignment')
+    status = models.CharField(choices=RESOURCE_STATUS, max_length=15,
+                              default='available')
+    queue = models.ForeignKey(Queue, on_delete=models.CASCADE, blank=True,
+                              null=True)
+    assigned_to = models.ForeignKey('participant.Participant',
+                                    on_delete=models.SET_NULL, null=True,
+                                    blank=True,
+                                    related_name='resource_assignment')
 
-    def assign_to_party(self, participant) -> None:
-        """Assigns this table to the given participant if it is available and the capacity matches the party size."""
-        if self.status == 'empty' and self.capacity >= participant.party_size:
-            self.status = 'busy'
-            self.party = participant
-            self.save()
-            participant.table = self
-            participant.save()
-        elif self.capacity < participant.party_size:
-            raise ValueError("This table cannot accommodate the party size.")
-        else:
-            raise ValueError("This table is not available.")
+    def assign_to_participant(self, participant, capacity=1) -> None:
+        """
+        Assigns this resource to the given participant if it is available
+        and the capacity matches the participant's needs.
+        """
+        if self.status != 'available':
+            raise ValueError("This resource is not available.")
+        if self.capacity < capacity:
+            raise ValueError(
+                "This resource cannot accommodate the party size.")
+
+        self.status = 'busy'
+        self.assigned_to = participant
+        self.save()
+        participant.resource = self
+        participant.save()
 
     def free(self) -> None:
-        """Frees the table, making it available for new assignments."""
-        if self.status == 'busy':
-            self.status = 'empty'
-            self.party = None
+        """
+        Frees the resource, making it available for new assignments.
+        """
+        if self.status == 'busy' and self.assigned_to:
+            self.status = 'available'
+            self.assigned_to = None
             self.save()
 
     def is_assigned(self) -> bool:
-        """Checks if this table has an assigned participant."""
-        return self.party is not None
-
-    def change_party(self, new_participant) -> None:
         """
-        Reassigns the table to a new participant if it is available and matches the capacity requirements.
+        Checks if this resource is currently assigned to a participant.
         """
-        if self.is_assigned():
-            if self.party.queue != new_participant.queue:
-                raise ValueError("The new participant must be in the same queue as the current assignment.")
-            self.free()
-        self.assign_to_party(new_participant)
+        return self.assigned_to is not None
 
     def __str__(self):
         """Return a string representation of the table."""
         return f"{self.name} (Status: {self.status}, Capacity: {self.capacity})"
 
 
+class Doctor(Resource):
+    """Represents a doctor in the hospital queue system."""
+    MEDICAL_SPECIALTY_CHOICES = [
+        ('cardiology', 'Cardiology'),
+        ('neurology', 'Neurology'),
+        ('orthopedics', 'Orthopedics'),
+        ('dermatology', 'Dermatology'),
+        ('pediatrics', 'Pediatrics'),
+        ('general', 'General Medicine'),
+        ('emergency', 'Emergency'),
+        ('psychiatry', 'Psychiatry'),
+        ('surgery', 'Surgery'),
+        ('oncology', 'Oncology'),
+    ]
+
+    specialty = models.CharField(max_length=100,
+                                 choices=MEDICAL_SPECIALTY_CHOICES,
+                                 default='general')
+
+    def __str__(self):
+        return f"Doctor {self.name} - Specialty: {self.get_specialty_display()}"
+
+
+class Counter(Resource):
+    """Represent a counter in the bank."""
+    pass
+
+
+class Table(Resource):
+    """Represent a table in the restaurant."""
+    pass
+
+
 class RestaurantQueue(Queue):
-    tables = models.ManyToManyField(Table)
+    """Represents a queue specifically for restaurant."""
     has_outdoor = models.BooleanField(default=False)
+    resources = models.ManyToManyField(Table)
+
+
+class BankQueue(Queue):
+    """Represents a queue specifically for bank services."""
+    resources = models.ManyToManyField(Counter)
+
+    def __str__(self):
+        return f"Bank Queue: {self.name}"
+
+
+class HospitalQueue(Queue):
+    """Represents a queue specifically for hospital services."""
+    resources = models.ManyToManyField(Doctor)
 
 
 class UserProfile(models.Model):
