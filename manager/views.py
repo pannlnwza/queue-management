@@ -192,6 +192,7 @@ def delete_participant(request, participant_id):
         return JsonResponse({'error': 'Unauthorized.'}, status=403)
 
     queue = participant.queue
+    participant.state = 'removed'
     participant.delete()
     logger.info(f"Participant {participant_id} is deleted.")
 
