@@ -85,32 +85,8 @@
             <div class="card bg-base-200">
                 <div class="card-body">
                     <h2 class="card-title">Total visits last 7 days</h2>
-                    <div class="w-full">
-                        <!-- Stacked Progress Bar -->
-                        <div class="flex items-center gap-2 mb-2">
-                              <div class="w-full bg-gray-200 rounded-full h-2.5 flex">
-                                <div class="bg-primary full h-2.5" style="width: {{ served_percentage }}%;"></div>
-                                <div class="bg-secondary full h-2.5" style="width: {{ dropoff_percentage }}%;"></div>
-                                <div class="bg-gray-300 full h-2.5" style="width: {{ unattended_percentage }}%;"></div>
-                              </div>
-                              <span class="text-sm">{{ waitlisted }}</span>
-                        </div>
-
-                        <!-- Labels for each section -->
-                        <div class="flex gap-4 text-sm mt-2">
-                            <span class="flex items-center gap-1">
-                                <div class="badge badge-primary"></div>
-                                Completed ({{ served_percentage }}%)
-                            </span>
-                            <span class="flex items-center gap-1">
-                                <div class="badge badge-secondary"></div>
-                                Dropoff ({{ dropoff_percentage }}%)
-                            </span>
-                            <span class="flex items-center gap-1">
-                                <div class="badge badge-ghost bg-gray-300"></div>
-                                Unattended ({{ unattended_percentage }}%)
-                            </span>
-                        </div>
+                    <div class="h-32">
+                        <canvas id="visitsChart"></canvas>
                     </div>
                 </div>
             </div>
@@ -119,13 +95,17 @@
                 <div class="card bg-base-200">
                     <div class="card-body">
                         <h2 class="card-title">Dropoffs</h2>
-                        <div class="radial-progress mt-2" style="--value:{{ dropoff_percentage }};">{{ dropoff_percentage }}%</div>
+                        <div class="h-40">
+                            <canvas id="dropoffsChart"></canvas>
+                        </div>
                     </div>
                 </div>
                 <div class="card bg-base-200">
                     <div class="card-body">
                         <h2 class="card-title">Visit creator</h2>
-                        <div class="radial-progress mt-2" style="--value:60;">60%</div>
+                        <div class="h-40">
+                            <canvas id="visitCreatorChart"></canvas>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -205,4 +185,132 @@
         </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+document.addEventListener('DOMContentLoaded', function() {
+    const dropoffsCtx = document.getElementById('dropoffsChart').getContext('2d');
+    const visitCreatorCtx = document.getElementById('visitCreatorChart').getContext('2d');
+    const visitsChartCtx = document.getElementById('visitsChart').getContext('2d');
+
+    // Common options for donut charts
+    const commonDonutOptions = {
+        plugins: {
+            legend: {
+                position: 'bottom',
+                labels: {
+                    padding: 15,
+                    usePointStyle: true,
+                    pointStyle: 'circle',
+                    font: {
+                        size: 11
+                    }
+                }
+            }
+        },
+        cutout: '75%',
+        maintainAspectRatio: false,
+        spacing: 2  // Add space between segments
+    };
+
+    // Create Dropoffs chart
+    new Chart(dropoffsCtx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Cancelled', 'Removed'],
+            datasets: [{
+                data: [60, 40],
+                backgroundColor: [
+                    '#FFA726', // Orange for Cancelled
+                    '#AB47BC'  // Purple for Removed
+                ],
+                borderWidth: 0
+            }]
+        },
+        options: commonDonutOptions
+    });
+
+    // Create Visit Creator chart
+    new Chart(visitCreatorCtx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Staff', 'Guest'],
+            datasets: [{
+                data: [65, 35],
+                backgroundColor: [
+                    '#E91E63', // Pink for Staff
+                    '#81C784'  // Green for Guest
+                ],
+                borderWidth: 0
+            }]
+        },
+        options: commonDonutOptions
+    });
+
+    // Create Visits Stacked Bar chart
+    new Chart(visitsChartCtx, {
+        type: 'bar',
+        data: {
+            labels: ['Total Visits'],
+            datasets: [
+                {
+                    label: 'Completed',
+                    data: [60],
+                    backgroundColor: 'hsl(var(--p))', // primary color
+                    borderWidth: 0,
+                    borderRadius: 4,
+                },
+                {
+                    label: 'Dropoff',
+                    data: [25],
+                    backgroundColor: 'hsl(var(--s))', // secondary color
+                    borderWidth: 0,
+                    borderRadius: 4,
+                },
+                {
+                    label: 'Unattended',
+                    data: [15],
+                    backgroundColor: 'rgb(209, 213, 219)', // gray-300
+                    borderWidth: 0,
+                    borderRadius: 4,
+                }
+            ]
+        },
+        options: {
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        usePointStyle: true,
+                        pointStyle: 'circle',
+                        padding: 15,
+                        font: {
+                            size: 11
+                        }
+                    }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return `${context.dataset.label}: ${context.raw}%`;
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    stacked: true,
+                    display: false
+                },
+                y: {
+                    stacked: true,
+                    display: false,
+                    max: 100
+                }
+            },
+            maintainAspectRatio: false,
+            barThickness: 20
+        }
+    });
+});
+    </script>
 {% endblock %}
