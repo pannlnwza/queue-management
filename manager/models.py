@@ -157,6 +157,10 @@ class Queue(models.Model):
         """Return the number of participants currently waiting."""
         return self.participant_set.filter(state='waiting').count()
 
+    def get_number_serving_now(self):
+        """Return the number of participants currently serving."""
+        return self.participant_set.filter(state='serving').count()
+
     def get_number_served(self):
         """Return the number of participants served."""
         return self.participant_set.filter(state='completed').count()

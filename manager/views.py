@@ -461,7 +461,8 @@ class StatisticsView(LoginRequiredMixin, generic.TemplateView):
         context['participant_set'] = participant_set
         context['waitlisted'] = queue.get_number_of_participants()
         context['currently_waiting'] = queue.get_number_waiting_now()
-        context['serving'] = queue.get_number_served()
+        context['currently_serving'] = queue.get_number_serving_now()
+        context['served'] = queue.get_number_served()
         context['served_percentage'] = queue.get_served_percentage()
         context['average_wait_time'] = queue.get_average_waiting_time()
         context['max_wait_time'] = queue.get_max_waiting_time()
@@ -473,7 +474,6 @@ class StatisticsView(LoginRequiredMixin, generic.TemplateView):
         context['dropoff_percentage'] = queue.get_dropoff_percentage()
         context['unattended_percentage'] = queue.get_unattended_percentage()
         context['cancelled_percentage'] = queue.get_cancelled_percentage()
-        context['no_shows_percentage'] = queue.get_no_shows_percentage()
         context['removed_percentage'] = queue.get_removed_percentage()
         return context
 

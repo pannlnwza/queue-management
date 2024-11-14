@@ -55,9 +55,9 @@
             </div>
 
             <div class="stat bg-base-200 rounded-box">
-                <div class="stat-title">Serving</div>
-                <div class="text-2xl stat-value">{{ serving }}</div>
-                <div class="stat-desc">{{ served_percentage }}% serve rate</div>
+                <div class="stat-title">Served</div>
+                <div class="text-2xl stat-value">{{ served}}</div>
+                <div class="stat-desc">{{ currently_serving }} serving now</div>
             </div>
 
             <div class="stat bg-base-200 rounded-box">
@@ -86,7 +86,6 @@
                 <div class="card-body">
                     <h2 class="card-title flex items-center gap-2">
                         Total visits last 7 days
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="w-4 h-4 stroke-current"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                     </h2>
                     <div class="total-visits-container">
                         <div class="h-16">
@@ -189,154 +188,149 @@
             </div>
         </div>
     </div>
-
+</div>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
-document.addEventListener('DOMContentLoaded', function() {
-    const dropoffsCtx = document.getElementById('dropoffsChart').getContext('2d');
-    const visitCreatorCtx = document.getElementById('visitCreatorChart').getContext('2d');
-    const visitsChartCtx = document.getElementById('visitsChart').getContext('2d');
+        document.addEventListener('DOMContentLoaded', function() {
+            const dropoffsCtx = document.getElementById('dropoffsChart').getContext('2d');
+            const visitCreatorCtx = document.getElementById('visitCreatorChart').getContext('2d');
+            const visitsChartCtx = document.getElementById('visitsChart').getContext('2d');
 
-    // Common options for donut charts
-    const commonDonutOptions = {
-        plugins: {
-            legend: {
-                position: 'bottom',
-                labels: {
-                    padding: 15,
-                    usePointStyle: true,
-                    pointStyle: 'circle',
-                    font: {
-                        size: 11
-                    }
-                }
-            }
-        },
-        cutout: '75%',
-        maintainAspectRatio: false,
-        spacing: 2
-    };
-
-    // Create Dropoffs chart
-    new Chart(dropoffsCtx, {
-        type: 'doughnut',
-        data: {
-            labels: ['Cancelled', 'Removed'],
-            datasets: [{
-                data: [60, 40],
-                backgroundColor: [
-                    '#FFA726', // Orange for Cancelled
-                    '#AB47BC'  // Purple for Removed
-                ],
-                borderWidth: 0
-            }]
-        },
-        options: commonDonutOptions
-    });
-
-    // Create Visit Creator chart
-    new Chart(visitCreatorCtx, {
-        type: 'doughnut',
-        data: {
-            labels: ['Staff', 'Guest'],
-            datasets: [{
-                data: [65, 35],
-                backgroundColor: [
-                    '#E91E63', // Pink for Staff
-                    '#81C784'  // Green for Guest
-                ],
-                borderWidth: 0
-            }]
-        },
-        options: commonDonutOptions
-    });
-
-    // Create Visits Horizontal Bar chart
-    new Chart(visitsChartCtx, {
-        type: 'bar',
-        data: {
-            labels: [''],
-            datasets: [
-                {
-                    label: 'Completed',
-                    data: [1],
-                    backgroundColor: '#4C1D95', // Deep purple
-                    borderWidth: 0,
-                    borderRadius: {
-                        topLeft: 4,
-                        bottomLeft: 4
-                    },
-                    barPercentage: 0.8
-                },
-                {
-                    label: 'Dropoff',
-                    data: [1],
-                    backgroundColor: '#FCA5A5', // Light red/coral
-                    borderWidth: 0,
-                    barPercentage: 0.8
-                },
-                {
-                    label: 'Unhandled',
-                    data: [3],
-                    backgroundColor: '#E5E7EB', // Light gray
-                    borderWidth: 0,
-                    borderRadius: {
-                        topRight: 4,
-                        bottomRight: 4
-                    },
-                    barPercentage: 0.8
-                }
-            ]
-        },
-        options: {
-            indexAxis: 'y',
-            plugins: {
-                legend: {
-                    position: 'top',
-                    align: 'start',
-                    labels: {
-                        usePointStyle: true,
-                        pointStyle: 'circle',
-                        padding: 15,
-                        font: {
-                            size: 11
+            const commonDonutOptions = {
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            padding: 15,
+                            usePointStyle: true,
+                            pointStyle: 'circle',
+                            font: {
+                                size: 11
+                            }
                         }
                     }
                 },
-                tooltip: {
-                    enabled: false
-                }
-            },
-            scales: {
-                x: {
-                    stacked: true,
-                    display: true,
-                    grid: {
-                        display: false
-                    },
-                    ticks: {
-                        display: false
-                    }
+                cutout: '75%',
+                maintainAspectRatio: false,
+                spacing: 2
+            };
+
+            new Chart(dropoffsCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Cancelled', 'Removed'],
+                    datasets: [{
+                        data: [{{ cancelled_percentage }}, {{ removed_percentage }}],
+                        backgroundColor: [
+                            '#FFA726',
+                            '#AB47BC'
+                        ],
+                        borderWidth: 0
+                    }]
                 },
-                y: {
-                    stacked: true,
-                    display: false
+                options: commonDonutOptions
+            });
+
+            new Chart(visitCreatorCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Staff', 'Guest'],
+                    datasets: [{
+                        data: [65, 35],
+                        backgroundColor: [
+                            '#E91E63',
+                            '#81C784'
+                        ],
+                        borderWidth: 0
+                    }]
+                },
+                options: commonDonutOptions
+            });
+
+            new Chart(visitsChartCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['Completed', 'Dropoff', 'Unhandled'],
+                    datasets: [
+                        {
+                            label: 'Completed',
+                            data: [{{ queue.get_number_served }}],
+                            backgroundColor: '#00A96E',
+                            borderWidth: 0,
+                            borderRadius: {
+                                topLeft: 4,
+                                bottomLeft: 4
+                            },
+                            barPercentage: 0.8
+                        },
+                        {
+                            label: 'Dropoff',
+                            data: [{{ queue.get_number_dropoff }}],
+                            backgroundColor: '#FF5861',
+                            borderWidth: 0,
+                            barPercentage: 0.8
+                        },
+                        {
+                            label: 'Unhandled',
+                            data: [{{ queue.get_number_waiting_now }}],
+                            backgroundColor: '#E5E7EB',
+                            borderWidth: 0,
+                            borderRadius: {
+                                topRight: 4,
+                                bottomRight: 4
+                            },
+                            barPercentage: 0.8
+                        }
+                    ]
+                },
+                options: {
+                    indexAxis: 'y',
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            align: 'start',
+                            labels: {
+                                usePointStyle: true,
+                                pointStyle: 'circle',
+                                padding: 15,
+                                font: {
+                                    size: 11
+                                }
+                            }
+                        },
+                        tooltip: {
+                            enabled: false
+                        }
+                    },
+                    scales: {
+                        x: {
+                            stacked: true,
+                            display: true,
+                            grid: {
+                                display: false
+                            },
+                            ticks: {
+                                display: false
+                            }
+                        },
+                        y: {
+                            stacked: true,
+                            display: false
+                        }
+                    },
+                    maintainAspectRatio: false
                 }
-            },
-            maintainAspectRatio: false
-        }
-    });
+            });
 
-    // Add total visits number
-    const totalVisitsDiv = document.createElement('div');
-    totalVisitsDiv.className = 'text-2xl font-bold mb-4';
-    totalVisitsDiv.textContent = '5';
-    document.querySelector('.total-visits-container').prepend(totalVisitsDiv);
+            const totalVisitsDiv = document.createElement('div');
+            totalVisitsDiv.className = 'text-2xl font-bold mb-4';
+            totalVisitsDiv.textContent = '{{ queue.get_number_of_participants }}';
+            document.querySelector('.total-visits-container').prepend(totalVisitsDiv);
 
-    // Add percentage label
-    const percentageDiv = document.createElement('div');
-    percentageDiv.className = 'percentage-label';
-    document.querySelector('.total-visits-container').appendChild(percentageDiv);
-});
+            const percentageDiv = document.createElement('div');
+            percentageDiv.className = 'percentage-label';
+            document.querySelector('.total-visits-container').appendChild(percentageDiv);
+        });
     </script>
+
 {% endblock %}
