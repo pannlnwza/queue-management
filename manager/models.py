@@ -9,6 +9,7 @@ from django.templatetags.static import static
 from django.contrib.auth.models import User
 from django.urls import reverse
 from django.conf import settings
+from manager.utils.helpers import format_duration
 
 
 class Queue(models.Model):
@@ -28,15 +29,18 @@ class Queue(models.Model):
 
     name = models.CharField(max_length=50)
     description = models.TextField(max_length=60)
-    created_by = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
-    authorized_user = models.ManyToManyField(User, related_name='queues', blank=True)
+    created_by = models.ForeignKey(User, on_delete=models.CASCADE, null=True,
+                                   blank=True)
+    authorized_user = models.ManyToManyField(User, related_name='queues',
+                                             blank=True)
     open_time = models.DateTimeField(null=True, blank=True)
     close_time = models.DateTimeField(null=True, blank=True)
     estimated_wait_time_per_turn = models.PositiveIntegerField(default=0)
     average_service_duration = models.PositiveIntegerField(default=0)
     created_at = models.DateTimeField(default=timezone.localtime)
     is_closed = models.BooleanField(default=False)
-    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='normal')
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES,
+                              default='normal')
     category = models.CharField(max_length=20, choices=CATEGORY_CHOICES)
     logo = models.ImageField(upload_to='queue_logos/', blank=True, null=True)
     completed_participants_count = models.PositiveIntegerField(default=0)
@@ -69,17 +73,21 @@ class Queue(models.Model):
 
     def update_estimated_wait_time_per_turn(self, time_taken: int) -> None:
         """Update the estimated wait time per turn based on the time taken for a turn."""
-        total_time = (self.estimated_wait_time_per_turn * self.completed_participants_count) + time_taken
+        total_time = (
+                                 self.estimated_wait_time_per_turn * self.completed_participants_count) + time_taken
         self.completed_participants_count += 1
-        self.estimated_wait_time_per_turn = math.ceil(total_time / self.completed_participants_count)
+        self.estimated_wait_time_per_turn = math.ceil(
+            total_time / self.completed_participants_count)
         self.save()
 
     def calculate_average_service_duration(self, serve_time: int):
         """Update the average serve duration based on recent serve time."""
         if self.completed_participants_count > 0:
-            total_serve_time = (self.average_service_duration * self.completed_participants_count) + serve_time
+            total_serve_time = (
+                                           self.average_service_duration * self.completed_participants_count) + serve_time
             self.completed_participants_count += 1
-            self.average_service_duration = math.ceil(total_serve_time / self.completed_participants_count)
+            self.average_service_duration = math.ceil(
+                total_serve_time / self.completed_participants_count)
         else:
             self.average_service_duration = serve_time
             self.completed_participants_count += 1
@@ -103,19 +111,23 @@ class Queue(models.Model):
         if self.logo:
             return self.logo.url
         default_logos = {
-            'restaurant': static('participant/images/restaurant_default_logo.png'),
+            'restaurant': static(
+                'participant/images/restaurant_default_logo.png'),
             'bank': static('participant/images/bank_default_logo.jpg'),
             'general': static('participant/images/general_default_logo.png'),
             'hospital': static('participant/images/hospital_default_logo.jpg'),
-            'service center': static('participant/images/service_center_default_logo.png')
+            'service center': static(
+                'participant/images/service_center_default_logo.png')
         }
         return default_logos.get(str(self.category))
 
-    def edit(self, name: str = None, description: str = None, is_closed: bool = None, status: str = None) -> None:
+    def edit(self, name: str = None, description: str = None,
+             is_closed: bool = None, status: str = None) -> None:
         """Edit the queue's name, description, or closed status."""
         if name:
             if not (1 <= len(name) <= 255):
-                raise ValueError("The name must be between 1 and 255 characters.")
+                raise ValueError(
+                    "The name must be between 1 and 255 characters.")
             self.name = name
         if description is not None:
             self.description = description
@@ -155,15 +167,21 @@ class Queue(models.Model):
 
     def get_served_percentage(self):
         """Return percentage of participants served."""
-        return round((self.get_number_served() / self.get_number_of_participants()) * 100, 2)
+        return round((
+                                 self.get_number_served() / self.get_number_of_participants()) * 100,
+                     2)
 
     def get_dropoff_percentage(self):
         """Return percentage of dropout participants."""
-        return round(( self.get_number_dropoff() / self.get_number_of_participants()) * 100, 2)
+        return round((
+                                 self.get_number_dropoff() / self.get_number_of_participants()) * 100,
+                     2)
 
     def get_unattended_percentage(self):
         """Return percentage of unattended participants."""
-        return round(100 - self.get_dropoff_percentage() - self.get_served_percentage(), 2)
+        return round(
+            100 - self.get_dropoff_percentage() - self.get_served_percentage(),
+            2)
 
     def get_average_waiting_time(self):
         """Calculate the average waiting time for participants in minutes."""
@@ -172,8 +190,9 @@ class Queue(models.Model):
             self.participant_set.exclude(state='waiting')
             if p.get_wait_time() is not None
         ]
-        return math.ceil(
+        average_wait_time = math.ceil(
             sum(waiting_times) / len(waiting_times)) if waiting_times else 0
+        return format_duration(average_wait_time)
 
     def get_max_waiting_time(self):
         """Calculate the maximum waiting time for participants in minutes."""
@@ -182,7 +201,8 @@ class Queue(models.Model):
             self.participant_set.exclude(state='waiting')
             if p.get_wait_time() is not None
         ]
-        return max(waiting_times) if waiting_times else 0
+        max_wait_time = max(waiting_times) if waiting_times else 0
+        return format_duration(max_wait_time)
 
     def get_average_service_duration(self):
         """Calculate the average service duration for participants in minutes."""
@@ -191,8 +211,9 @@ class Queue(models.Model):
             self.participant_set.filter(state='completed')
             if p.get_service_duration() is not None
         ]
-        return math.ceil(sum(service_durations) / len(
+        average_service_time = math.ceil(sum(service_durations) / len(
             service_durations)) if service_durations else 0
+        return format_duration(average_service_time)
 
     def get_max_service_duration(self):
         """Get the maximum service duration for participants in minutes."""
@@ -201,7 +222,8 @@ class Queue(models.Model):
             self.participant_set.filter(state='completed')
             if p.get_service_duration() is not None
         ]
-        return max(service_durations) if service_durations else 0
+        max_service_time = max(service_durations) if service_durations else 0
+        return format_duration(max_service_time)
 
     def record_line_length(self):
         """Records the current line length when a participant joins the queue."""
@@ -248,11 +270,14 @@ class Resource(models.Model):
 
     name = models.CharField(max_length=50, unique=True)
     capacity = models.PositiveIntegerField(default=1)
-    status = models.CharField(choices=TABLE_STATUS, max_length=15, default='available')
-    queue = models.ForeignKey(Queue, on_delete=models.CASCADE, blank=True, null=True)
-    assigned_to = models.ForeignKey('participant.Participant', on_delete=models.SET_NULL, null=True, blank=True,
+    status = models.CharField(choices=TABLE_STATUS, max_length=15,
+                              default='available')
+    queue = models.ForeignKey(Queue, on_delete=models.CASCADE, blank=True,
+                              null=True)
+    assigned_to = models.ForeignKey('participant.Participant',
+                                    on_delete=models.SET_NULL, null=True,
+                                    blank=True,
                                     related_name='resource_assignment')
-
 
     def assign_to_participant(self, participant, capacity=1) -> None:
         """
@@ -262,7 +287,8 @@ class Resource(models.Model):
         if self.status != 'available':
             raise ValueError("This resource is not available.")
         if self.capacity < capacity:
-            raise ValueError("This resource cannot accommodate the party size.")
+            raise ValueError(
+                "This resource cannot accommodate the party size.")
 
         self.status = 'busy'
         self.assigned_to = participant
@@ -285,8 +311,6 @@ class Resource(models.Model):
         """
         return self.assigned_to is not None
 
-
-
     def __str__(self):
         """Return a string representation of the table."""
         return f"{self.name} (Status: {self.status}, Capacity: {self.capacity})"
@@ -307,7 +331,9 @@ class Doctor(Resource):
         ('oncology', 'Oncology'),
     ]
 
-    specialty = models.CharField(max_length=100, choices=MEDICAL_SPECIALTY_CHOICES, default='general')
+    specialty = models.CharField(max_length=100,
+                                 choices=MEDICAL_SPECIALTY_CHOICES,
+                                 default='general')
 
     def __str__(self):
         return f"Doctor {self.name} - Specialty: {self.get_specialty_display()}"
@@ -317,12 +343,14 @@ class RestaurantQueue(Queue):
     has_outdoor = models.BooleanField(default=False)
     tables = models.ManyToManyField(Resource)
 
+
 class BankQueue(Queue):
     """Represents a queue specifically for bank services."""
     counters = models.ManyToManyField(Resource)
 
     def __str__(self):
         return f"Bank Queue: {self.name}"
+
 
 class HospitalQueue(Queue):
     doctors = models.ManyToManyField(Doctor)
