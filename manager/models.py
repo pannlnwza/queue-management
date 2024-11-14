@@ -28,15 +28,18 @@ class Queue(models.Model):
 
     name = models.CharField(max_length=50)
     description = models.TextField(max_length=60)
-    created_by = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
-    authorized_user = models.ManyToManyField(User, related_name='queues', blank=True)
+    created_by = models.ForeignKey(User, on_delete=models.CASCADE, null=True,
+                                   blank=True)
+    authorized_user = models.ManyToManyField(User, related_name='queues',
+                                             blank=True)
     open_time = models.DateTimeField(null=True, blank=True)
     close_time = models.DateTimeField(null=True, blank=True)
     estimated_wait_time_per_turn = models.PositiveIntegerField(default=0)
     average_service_duration = models.PositiveIntegerField(default=0)
     created_at = models.DateTimeField(default=timezone.localtime)
     is_closed = models.BooleanField(default=False)
-    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='normal')
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES,
+                              default='normal')
     category = models.CharField(max_length=20, choices=CATEGORY_CHOICES)
     logo = models.ImageField(upload_to='queue_logos/', blank=True, null=True)
     completed_participants_count = models.PositiveIntegerField(default=0)
@@ -69,17 +72,21 @@ class Queue(models.Model):
 
     def update_estimated_wait_time_per_turn(self, time_taken: int) -> None:
         """Update the estimated wait time per turn based on the time taken for a turn."""
-        total_time = (self.estimated_wait_time_per_turn * self.completed_participants_count) + time_taken
+        total_time = (
+                             self.estimated_wait_time_per_turn * self.completed_participants_count) + time_taken
         self.completed_participants_count += 1
-        self.estimated_wait_time_per_turn = math.ceil(total_time / self.completed_participants_count)
+        self.estimated_wait_time_per_turn = math.ceil(
+            total_time / self.completed_participants_count)
         self.save()
 
     def calculate_average_service_duration(self, serve_time: int):
         """Update the average serve duration based on recent serve time."""
         if self.completed_participants_count > 0:
-            total_serve_time = (self.average_service_duration * self.completed_participants_count) + serve_time
+            total_serve_time = (
+                                       self.average_service_duration * self.completed_participants_count) + serve_time
             self.completed_participants_count += 1
-            self.average_service_duration = math.ceil(total_serve_time / self.completed_participants_count)
+            self.average_service_duration = math.ceil(
+                total_serve_time / self.completed_participants_count)
         else:
             self.average_service_duration = serve_time
             self.completed_participants_count += 1
@@ -103,19 +110,23 @@ class Queue(models.Model):
         if self.logo:
             return self.logo.url
         default_logos = {
-            'restaurant': static('participant/images/restaurant_default_logo.png'),
+            'restaurant': static(
+                'participant/images/restaurant_default_logo.png'),
             'bank': static('participant/images/bank_default_logo.jpg'),
             'general': static('participant/images/general_default_logo.png'),
             'hospital': static('participant/images/hospital_default_logo.jpg'),
-            'service center': static('participant/images/service_center_default_logo.png')
+            'service center': static(
+                'participant/images/service_center_default_logo.png')
         }
         return default_logos.get(str(self.category))
 
-    def edit(self, name: str = None, description: str = None, is_closed: bool = None, status: str = None) -> None:
+    def edit(self, name: str = None, description: str = None,
+             is_closed: bool = None, status: str = None) -> None:
         """Edit the queue's name, description, or closed status."""
         if name:
             if not (1 <= len(name) <= 255):
-                raise ValueError("The name must be between 1 and 255 characters.")
+                raise ValueError(
+                    "The name must be between 1 and 255 characters.")
             self.name = name
         if description is not None:
             self.description = description
@@ -147,7 +158,7 @@ class Queue(models.Model):
 
 
 class Resource(models.Model):
-    TABLE_STATUS = [
+    RESOURCE_STATUS = [
         ('available', 'Available'),
         ('busy', 'Busy'),
         ('unavailable', 'Unavailable'),
@@ -155,11 +166,14 @@ class Resource(models.Model):
 
     name = models.CharField(max_length=50, unique=True)
     capacity = models.PositiveIntegerField(default=1)
-    status = models.CharField(choices=TABLE_STATUS, max_length=15, default='available')
-    queue = models.ForeignKey(Queue, on_delete=models.CASCADE, blank=True, null=True)
-    assigned_to = models.ForeignKey('participant.Participant', on_delete=models.SET_NULL, null=True, blank=True,
+    status = models.CharField(choices=RESOURCE_STATUS, max_length=15,
+                              default='available')
+    queue = models.ForeignKey(Queue, on_delete=models.CASCADE, blank=True,
+                              null=True)
+    assigned_to = models.ForeignKey('participant.Participant',
+                                    on_delete=models.SET_NULL, null=True,
+                                    blank=True,
                                     related_name='resource_assignment')
-
 
     def assign_to_participant(self, participant, capacity=1) -> None:
         """
@@ -169,7 +183,8 @@ class Resource(models.Model):
         if self.status != 'available':
             raise ValueError("This resource is not available.")
         if self.capacity < capacity:
-            raise ValueError("This resource cannot accommodate the party size.")
+            raise ValueError(
+                "This resource cannot accommodate the party size.")
 
         self.status = 'busy'
         self.assigned_to = participant
@@ -192,8 +207,6 @@ class Resource(models.Model):
         """
         return self.assigned_to is not None
 
-
-
     def __str__(self):
         """Return a string representation of the table."""
         return f"{self.name} (Status: {self.status}, Capacity: {self.capacity})"
@@ -214,25 +227,41 @@ class Doctor(Resource):
         ('oncology', 'Oncology'),
     ]
 
-    specialty = models.CharField(max_length=100, choices=MEDICAL_SPECIALTY_CHOICES, default='general')
+    specialty = models.CharField(max_length=100,
+                                 choices=MEDICAL_SPECIALTY_CHOICES,
+                                 default='general')
 
     def __str__(self):
         return f"Doctor {self.name} - Specialty: {self.get_specialty_display()}"
 
 
+class Counter(Resource):
+    """Represent a counter in the bank."""
+    pass
+
+
+class Table(Resource):
+    """Represent a table in the restaurant."""
+    pass
+
+
 class RestaurantQueue(Queue):
+    """Represents a queue specifically for restaurant."""
     has_outdoor = models.BooleanField(default=False)
-    tables = models.ManyToManyField(Resource)
+    resources = models.ManyToManyField(Table)
+
 
 class BankQueue(Queue):
     """Represents a queue specifically for bank services."""
-    counters = models.ManyToManyField(Resource)
+    resources = models.ManyToManyField(Counter)
 
     def __str__(self):
         return f"Bank Queue: {self.name}"
 
+
 class HospitalQueue(Queue):
-    doctors = models.ManyToManyField(Doctor)
+    """Represents a queue specifically for hospital services."""
+    resources = models.ManyToManyField(Doctor)
 
 
 class UserProfile(models.Model):
