@@ -1,7 +1,7 @@
 from django.test import TestCase
 from django.utils import timezone
 from participant.models import Participant, RestaurantParticipant
-from manager.models import Queue, RestaurantQueue, Resource
+from manager.models import Queue, RestaurantQueue, Table, Counter, Doctor
 from django.contrib.auth.models import User
 from datetime import timedelta
 
@@ -103,8 +103,8 @@ class RestaurantParticipantModelTests(TestCase):
             longitude=100.5163,
             latitude=13.7285
         )
-        self.table = Resource.objects.create(name='A01', capacity=4)
-        self.restaurant_queue.tables.add(self.table)
+        self.table = Table.objects.create(name='A01', capacity=4)
+        self.restaurant_queue.resources.add(self.table)
 
         self.restaurant_participant = RestaurantParticipant.objects.create(
             name='Alice Doe',
@@ -112,8 +112,6 @@ class RestaurantParticipantModelTests(TestCase):
             position=1,
             party_size=2
         )
-
-
 
     def test_participant_str(self):
         """Test the string representation of the participant."""
