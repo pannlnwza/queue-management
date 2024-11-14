@@ -4,7 +4,7 @@ import string
 from django.contrib.auth.models import User
 from django.db import models
 from django.utils import timezone
-from manager.models import RestaurantQueue
+from manager.models import RestaurantQueue, BankQueue, Resource, HospitalQueue
 from datetime import timedelta
 
 
@@ -24,11 +24,16 @@ class Participant(models.Model):
     position = models.PositiveIntegerField(null=True)  # why null? right now
     note = models.TextField(max_length=150, null=True, blank=True)
     code = models.CharField(max_length=6, unique=True, editable=False)
-    state = models.CharField(max_length=10, choices=PARTICIPANT_STATE, default='waiting')
+    state = models.CharField(max_length=10, choices=PARTICIPANT_STATE,
+                             default='waiting')
     service_started_at = models.DateTimeField(null=True, blank=True)
     service_completed_at = models.DateTimeField(null=True, blank=True)
     waited = models.PositiveIntegerField(default=0)
     visits = models.PositiveIntegerField(default=1)
+    resource = models.ForeignKey(Resource, on_delete=models.CASCADE,
+                                 blank=True, null=True)
+    resource_assigned = models.CharField(max_length=20, null=True, blank=True)
+    is_notified = models.BooleanField(default=False)
 
     def save(self, *args, **kwargs):
         """Generate a unique ticket code for the participant if not already."""
@@ -66,30 +71,49 @@ class Participant(models.Model):
     def get_wait_time(self):
         """Calculate the wait time for the participant."""
         if self.state == 'waiting':
-            return int((timezone.localtime() - self.joined_at).total_seconds() / 60)
+            return int(
+                (timezone.localtime() - self.joined_at).total_seconds() / 60)
         elif self.state == 'serving' and self.service_started_at:
-            return int((self.service_started_at - self.joined_at).total_seconds() / 60)
+            return int((
+                                   self.service_started_at - self.joined_at).total_seconds() / 60)
 
     def get_service_duration(self):
         """Calculate the duration of service for the participant."""
         if self.state == 'serving' and self.service_started_at:
-            return int((timezone.localtime() - self.service_started_at).total_seconds() / 60)
+            return int((
+                                   timezone.localtime() - self.service_started_at).total_seconds() / 60)
         elif self.state == 'completed':
             if self.service_started_at and self.service_completed_at:
-                return int((self.service_completed_at - self.service_started_at).total_seconds() / 60)
+                return int((
+                                       self.service_completed_at - self.service_started_at).total_seconds() / 60)
         return 0
+
+    def assign_to_resource(self, required_capacity=None):
+        """
+        Assigns this participant to an available resource based on the queue category.
+        """
+        queue = self.queue
+        resource = queue.get_available_resource(
+            required_capacity=required_capacity)
+
+        if resource:
+            resource.status = 'busy'
+            resource.save()
+            self.resource = resource
+            self.save()
+        else:
+            raise ValueError("No available resources")
 
     @staticmethod
     def remove_old_completed_participants():
         """Remove participants whose service completed 30 days ago"""
         cutoff_time = timezone.localtime() - timedelta(days=30)
-        Participant.objects.filter(state='completed', service_completed_at__lte=cutoff_time).delete()
+        Participant.objects.filter(state='completed',
+                                   service_completed_at__lte=cutoff_time).delete()
 
     def __str__(self) -> str:
         """Return a string representation of the participant."""
         return f"{self.name} - {self.state}"
-
-
 
 
 class RestaurantParticipant(Participant):
@@ -99,34 +123,57 @@ class RestaurantParticipant(Participant):
         ('indoor', 'Indoor'),
         ('outdoor', 'Outdoor'),
     ]
-
-    table = models.ForeignKey('manager.Table', on_delete=models.SET_NULL, null=True, blank=True)
-    table_served = models.CharField(max_length=20, null=True, blank=True)
     party_size = models.PositiveIntegerField(default=1)
-    seating_preference = models.CharField(max_length=20, choices=SEATING_PREFERENCES, default='first_available')
+    seating_preference = models.CharField(max_length=20,
+                                          choices=SEATING_PREFERENCES,
+                                          default='first_available')
 
-    def assign_table(self):
-        """Assign an available table to the participant based on party size."""
-        if not isinstance(self.queue, RestaurantQueue):
-            raise ValueError("This participant is not in a restaurant queue.")
 
-        available_tables = self.queue.tables.filter(status='empty', capacity__gte=self.party_size)
-        if available_tables.exists():
-            table_to_assign = available_tables.first()
-            table_to_assign.assign_to_party(self)
-            self.table = table_to_assign
-            self.save()
-        else:
-            raise ValueError("No available tables for this party size.")
+class BankParticipant(Participant):
+    """Represents a participant in a bank queue with specific service complexity and service type needs."""
 
-    def save(self, *args, **kwargs):
-        """Override save method to enforce seating preference rules based on the queue's availability."""
-        if self.queue and isinstance(self.queue, RestaurantQueue):
-            if not self.queue.has_outdoor:
-                if self.seating_preference not in ['first_available']:
-                    raise ValueError(
-                        "Seating preference can only be 'First Available' for queues without outdoor seating.")
-        super().save(*args, **kwargs)
+    SERVICE_TYPE_CHOICES = [
+        ('account_services', 'Account Services'),
+        ('loan_services', 'Loan Services'),
+        ('investment_services', 'Investment Services'),
+        ('customer_support', 'Customer Support'),
+    ]
+
+    service_type = models.CharField(
+        max_length=20,
+        choices=SERVICE_TYPE_CHOICES,
+        default='account_services',
+    )
+
+
+class HospitalParticipant(Participant):
+    """Represents a participant in a hospital queue."""
+    MEDICAL_FIELD_CHOICES = [
+        ('cardiology', 'Cardiology'),
+        ('neurology', 'Neurology'),
+        ('orthopedics', 'Orthopedics'),
+        ('dermatology', 'Dermatology'),
+        ('pediatrics', 'Pediatrics'),
+        ('general', 'General Medicine'),
+        ('emergency', 'Emergency'),
+        ('psychiatry', 'Psychiatry'),
+        ('surgery', 'Surgery'),
+        ('oncology', 'Oncology'),
+    ]
+
+    PRIORITY_CHOICES = [
+        ('urgent', 'Urgent'),
+        ('normal', 'Normal'),
+        ('low', 'Low'),
+    ]
+    medical_field = models.CharField(max_length=50,
+                                     choices=MEDICAL_FIELD_CHOICES,
+                                     default='general')
+    priority = models.CharField(max_length=10, choices=PRIORITY_CHOICES,
+                                default='normal')
+
+    def __str__(self):
+        return f"Hospital Participant: {self.name}"
 
 
 class Notification(models.Model):
@@ -135,7 +182,6 @@ class Notification(models.Model):
     message = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
     is_read = models.BooleanField(default=False)
-
 
     def __str__(self):
         return f"Notification for {self.participant}: {self.message}"

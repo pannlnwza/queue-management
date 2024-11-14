@@ -219,7 +219,7 @@ class KioskView(generic.FormView):
         # Optional: Log or print errors for debugging
         print(form.errors)
         return super().form_invalid(form)
-
+      
 
 class QRcodeView(generic.DetailView):
     model = Participant
@@ -263,3 +263,4 @@ class CheckQueueView(generic.DetailView):
         queue = participant.queue
         context['queue'] = queue
         return context
+      

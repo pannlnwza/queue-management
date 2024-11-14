@@ -4,4 +4,7 @@ from manager.models import *
 
 admin.site.register(Queue)
 admin.site.register(RestaurantQueue)
-admin.site.register(Table)
+admin.site.register(BankQueue)
+admin.site.register(HospitalQueue)
+admin.site.register(Resource)
+admin.site.register(Doctor)
