@@ -155,7 +155,7 @@
                                                         email: '{{ participant.email|default:'' }}',
                                                         notes: '{{ participant.note }}',
                                                         state: '{{ participant.state }}',
-                                                        resource: '{{ participant.resource }}',
+                                                        resource: '{{ participant.resource.id }}',
                                                         party_size: '{{ participant.party_size|default:'' }}',
                                                         seating_preference: '{{ participant.seating_preference|default:'' }}',
                                                         medical_field: '{{ participant.medical_field|default:'' }}',
@@ -261,8 +261,11 @@
                                         <span class="label-text">{{ resource_name }}</span>
                                     </label>
                                     <select id="edit_resource" name="resource" class="select select-bordered w-full">
+                                    <option></option>
                                         {% for value in resources %}
-                                            <option value="{{ value.id }}">{{ value.name }}</option>
+                                            <option value="{{ value.id }}">{{ value.name }}
+                                                ({{ value.get_status_display }})
+                                            </option>
                                         {% endfor %}
                                     </select>
                                 </div>
@@ -354,7 +357,7 @@
                                         <span class="label-text">{{ resource_name }}</span>
                                     </label>
                                     <select id="edit_resource" name="resource" class="select select-bordered w-full">
-                                        <option>------</option>
+                                        <option></option>
                                         {% for value in resources %}
                                             <option value="{{ value.id }}">{{ value.name }}
                                                 ({{ value.get_status_display }})

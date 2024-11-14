@@ -196,12 +196,14 @@ class Resource(models.Model):
         """
         Frees the resource, making it available for new assignments.
         """
-        if self.status == 'busy' and self.assigned_to:
-            self.status = 'available'
-            self.assigned_to.resource = None
-            self.assigned_to.save()
-            self.assigned_to = None
-            self.save()
+        if self.assigned_to:
+            participant = self.assigned_to
+            participant.resource = None
+            participant.save()
+
+        self.status = 'available'
+        self.assigned_to = None
+        self.save()
 
     def is_assigned(self) -> bool:
         """

@@ -329,7 +329,7 @@ class ParticipantListView(LoginRequiredMixin, generic.TemplateView):
         context['queue'] = handler.get_queue_object(queue_id)
         context['participant_set'] = participant_set
         context['participant_state'] = Participant.PARTICIPANT_STATE
-        context['resources'] = queue.resource_set.all()
+        context['resources'] = queue.resources.all()
         context['time_filter_option'] = time_filter_option
         context['time_filter_option_display'] = time_filter_options_display.get(time_filter_option, 'All time')
         context['state_filter_option'] = state_filter_option
@@ -420,7 +420,7 @@ class ResourceSettings(LoginRequiredMixin, generic.TemplateView):
         resources = Resource.objects.filter(queue=queue)
         participant_set = handler.get_participant_set(queue_id)
         context['participant_set'] = participant_set
-        context['resource_status'] = Resource.TABLE_STATUS
+        context['resource_status'] = Resource.RESOURCE_STATUS
         context['queue'] = queue
         context['resources'] = resources
         category_context = handler.add_resource_attributes(queue)
