@@ -7,6 +7,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.exceptions import PermissionDenied
+from django.db import transaction
 from django.dispatch import receiver
 from django.http import Http404, JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
@@ -14,7 +15,7 @@ from django.urls import reverse_lazy, reverse
 from django.utils import timezone
 from django.views import generic
 from django.views.decorators.http import require_http_methods
-from manager.forms import QueueForm, CustomUserCreationForm
+from manager.forms import QueueForm, CustomUserCreationForm, EditProfileForm
 from participant.utils.participant_handler import ParticipantHandlerFactory
 from participant.models import Participant, Notification
 from manager.models import Queue, UserProfile
@@ -557,47 +558,97 @@ def login_view(request):
     return render(request, 'account/login.html')
 
 
+# class EditProfileView(LoginRequiredMixin, generic.UpdateView):
+#     model = UserProfile
+#     template_name = 'manager/edit_profile.html'
+#     context_object_name = 'profile'
+#     fields = ['phone_no', 'image', 'first_name', 'last_name']
+#
+#     def get_success_url(self):
+#         queue_id = self.kwargs.get('queue_id')  # Get the queue_id from the URL
+#         return reverse_lazy('manager:manage_waitlist', kwargs={'queue_id': queue_id})
+#
+#     def get_object(self, queryset=None):
+#         """
+#         Return the user profile for the currently logged-in user,
+#         or create one if it does not exist.
+#         """
+#         return create_or_update_profile(user=self.request.user)
+#
+#     def form_valid(self, form):
+#         """Override form_valid to update both User and UserProfile models."""
+#         # Update the User model (username, email, first_name, etc.)
+#         user = self.request.user
+#         user.username = form.cleaned_data.get('username', user.username)  # Make sure to handle 'username'
+#         user.email = form.cleaned_data.get('email', user.email)
+#         user.first_name = form.cleaned_data.get('first_name', user.first_name) or ''
+#         user.last_name = form.cleaned_data.get('last_name', user.last_name) or ''
+#         user.save()
+#
+#         # Update the UserProfile fields
+#         profile = self.get_object()  # Get the UserProfile
+#         profile.phone_no = form.cleaned_data.get('phone_no', profile.phone_no)
+#         profile.image = form.cleaned_data.get('image', profile.image)
+#         profile.save()
+#
+#         return super().form_valid(form)
+#
+#
+#     def get_context_data(self, **kwargs):
+#         """Include additional context."""
+#         context = super().get_context_data(**kwargs)
+#         queue_id = self.kwargs.get('queue_id')  # Get queue_id from the URL
+#         context['queue_id'] = queue_id  # Add it to the context for use in the template
+#         return context
+
 class EditProfileView(LoginRequiredMixin, generic.UpdateView):
     model = UserProfile
     template_name = 'manager/edit_profile.html'
     context_object_name = 'profile'
-    fields = ['phone_no', 'image', 'first_name', 'last_name']
+    form_class = EditProfileForm
 
     def get_success_url(self):
-        queue_id = self.kwargs.get('queue_id')  # Get the queue_id from the URL
-        return reverse_lazy('manager:manage_waitlist', kwargs={'queue_id': queue_id})
+        queue_id = self.kwargs.get('queue_id')
+        return reverse_lazy('manager:edit_profile', kwargs={'queue_id': queue_id})
 
     def get_object(self, queryset=None):
-        """
-        Return the user profile for the currently logged-in user,
-        or create one if it does not exist.
-        """
-        return create_or_update_profile(user=self.request.user)
+        profile, created = UserProfile.objects.get_or_create(user=self.request.user)
+        return profile
 
     def form_valid(self, form):
-        """Override form_valid to update both User and UserProfile models."""
-        # Update the User model (username, email, first_name, etc.)
-        user = self.request.user
-        user.username = form.cleaned_data.get('username', user.username)  # Make sure to handle 'username'
-        user.email = form.cleaned_data.get('email', user.email)
-        user.first_name = form.cleaned_data.get('first_name', user.first_name)
-        user.last_name = form.cleaned_data.get('last_name', user.last_name)
-        user.save()
+        """Handle both User and UserProfile updates"""
+        # Start a transaction to ensure both models are updated or neither is
+        with transaction.atomic():
+            # Update User model
+            user = self.request.user
+            user.username = form.cleaned_data['username']
+            user.email = form.cleaned_data['email']
+            user.first_name = form.cleaned_data.get('first_name', user.first_name) or ''
+            user.last_name = form.cleaned_data.get('last_name', user.last_name) or ''
+            user.save()
 
-        # Update the UserProfile fields
-        profile = self.get_object()  # Get the UserProfile
-        profile.phone_no = form.cleaned_data.get('phone_no', profile.phone_no)
-        profile.image = form.cleaned_data.get('image', profile.image)
-        profile.save()
+            # Update UserProfile model
+            profile = form.save(commit=False)
+            profile.user = user
 
-        return super().form_valid(form)
+            # Handle phone field specifically
+            if 'phone' in form.cleaned_data:
+                profile.phone = form.cleaned_data['phone']
 
+            # Handle image upload
+            if 'image' in form.cleaned_data and form.cleaned_data['image']:
+                profile.image = form.cleaned_data['image']
+
+            profile.save()
+
+            messages.success(self.request, 'Profile updated successfully.')
+            return super().form_valid(form)
 
     def get_context_data(self, **kwargs):
-        """Include additional context."""
         context = super().get_context_data(**kwargs)
-        queue_id = self.kwargs.get('queue_id')  # Get queue_id from the URL
-        context['queue_id'] = queue_id  # Add it to the context for use in the template
+        queue_id = self.kwargs.get('queue_id')
+        context['queue_id'] = queue_id
+        context['user'] = self.request.user
         return context
 
 
