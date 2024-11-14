@@ -184,9 +184,12 @@ class RestaurantQueue(Queue):
 class UserProfile(models.Model):
     """Represents a user profile in the system."""
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-    image = models.ImageField(upload_to='profile_images/', default='queue_logos/profile.jpg')
+    image = models.ImageField(upload_to='profile_images/', default='profile_images/profile.jpg')
     google_picture = models.URLField(blank=True, null=True)
-    phone_no = models.CharField(max_length=15)
+    phone_no = models.CharField(max_length=15, blank=True, null=True)
+    email = models.EmailField(blank=True, null=True)
+    first_name = models.CharField(max_length=30, blank=True, null=True)
+    last_name = models.CharField(max_length=30, blank=True, null=True)
 
     def __str__(self) -> str:
         """Return a string representation of the user profile."""
