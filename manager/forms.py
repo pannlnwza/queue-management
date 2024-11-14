@@ -1,5 +1,7 @@
 from django import forms
 from .models import Queue  # Assuming Queue model is in the same app
+from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth.models import User
 
 class QueueForm(forms.ModelForm):
     """
@@ -20,3 +22,17 @@ class QueueForm(forms.ModelForm):
             'category': forms.Select(attrs={'class': 'select select-bordered w-full max-w-xs m-2'}),
             'logo': forms.ClearableFileInput(attrs={'class': 'file-input w-full max-w-xs m-2', 'accept': 'image/*'}),
         }
+
+class CustomUserCreationForm(UserCreationForm):
+    email = forms.EmailField(required=True)
+
+    class Meta:
+        model = User
+        fields = ("username", "email", "password1", "password2")
+
+    def save(self, commit=True):
+        user = super(CustomUserCreationForm, self).save(commit=False)
+        user.email = self.cleaned_data["email"]
+        if commit:
+            user.save()
+        return user

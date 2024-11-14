@@ -14,8 +14,7 @@ from django.urls import reverse_lazy, reverse
 from django.utils import timezone
 from django.views import generic
 from django.views.decorators.http import require_http_methods
-
-from manager.forms import QueueForm
+from manager.forms import QueueForm, CustomUserCreationForm
 from participant.utils.participant_handler import ParticipantHandlerFactory
 from participant.models import Participant, Notification
 from manager.models import Queue, UserProfile
@@ -496,7 +495,7 @@ def signup(request):
     Handles the signup process, creating a new user and profile if the provided data is valid.
     """
     if request.method == 'POST':
-        form = UserCreationForm(request.POST)
+        form = CustomUserCreationForm(request.POST)
         if form.is_valid():
             user = form.save()
             username = form.cleaned_data.get('username')
@@ -520,7 +519,7 @@ def signup(request):
                     logger.error(f'Error signup: {error}')
 
     else:
-        form = UserCreationForm()
+        form = CustomUserCreationForm()
 
     return render(request, 'account/signup.html', {'form': form})
 
@@ -558,27 +557,41 @@ def login_view(request):
     return render(request, 'account/login.html')
 
 
-@login_required
-def edit_profile(request, queue_id):
-    if request.method == 'POST':
-        # Get the current user
-        user = request.user
-        # Update user profile fields from POST data
-        user.username = request.POST.get('username')
-        user.email = request.POST.get('email')
-        user.first_name = request.POST.get('first_name')
-        user.last_name = request.POST.get('last_name')
+class EditProfileView(LoginRequiredMixin, generic.UpdateView):
+    model = UserProfile
+    template_name = 'manager/edit_profile.html'
+    context_object_name = 'profile'
 
-        # Save the changes
+    # Fields to be updated
+    fields = ['email', 'first_name', 'last_name', 'phone_no', 'image']
+
+    # Define the success URL after updating the profile
+    success_url = reverse_lazy('manager:your-queue')
+
+    def get_object(self, queryset=None):
+        """
+        Overriding get_object to return the UserProfile for the current logged-in user.
+        """
+        return self.request.user.userprofile
+
+    def form_valid(self, form):
+        """Override form_valid to update the user model as well"""
+        # Update the User model
+        user = self.request.user
+        user.email = form.cleaned_data['email']
+        user.first_name = form.cleaned_data['first_name']
+        user.last_name = form.cleaned_data['last_name']
         user.save()
-        messages.success(request, 'Profile updated successfully!')
 
-        # Redirect with the queue_id
-        return redirect('edit_profile', queue_id=queue_id)
+        messages.success(self.request, 'Profile updated successfully!')
+        return super().form_valid(form)
 
-    # Render the profile edit page, pass queue_id in the context
-    return render(request, 'manager/edit_profile.html', {'queue_id': queue_id})
-
+    def get_context_data(self, **kwargs):
+        """Include queue_id in the context."""
+        context = super().get_context_data(**kwargs)
+        queue_id = self.kwargs.get('queue_id')  # Get queue_id from the URL
+        context['queue_id'] = queue_id  # Add it to the context for use in the template
+        return context
 
 def get_client_ip(request):
     """Retrieve the client's IP address from the request."""
