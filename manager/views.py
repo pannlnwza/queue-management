@@ -566,9 +566,7 @@ class EditProfileView(LoginRequiredMixin, generic.UpdateView):
 
     def form_valid(self, form):
         """Handle both User and UserProfile updates"""
-        # Start a transaction to ensure both models are updated or neither is
         with transaction.atomic():
-            # Update User model
             user = self.request.user
             user.username = form.cleaned_data['username']
             user.email = form.cleaned_data['email']
@@ -576,20 +574,14 @@ class EditProfileView(LoginRequiredMixin, generic.UpdateView):
             user.last_name = form.cleaned_data.get('last_name', user.last_name) or ''
             user.save()
 
-            # Update UserProfile model
             profile = form.save(commit=False)
             profile.user = user
-
-            # Handle phone field specifically
             if 'phone' in form.cleaned_data:
                 profile.phone = form.cleaned_data['phone']
-
-            # Handle image upload
             if 'image' in form.cleaned_data and form.cleaned_data['image']:
                 profile.image = form.cleaned_data['image']
 
             profile.save()
-
             messages.success(self.request, 'Profile updated successfully.')
             return super().form_valid(form)
 
