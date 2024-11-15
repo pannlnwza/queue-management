@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Token Generator</title>
+  <link href="https://cdn.jsdelivr.net/npm/daisyui@2.51.0/dist/full.css" rel="stylesheet" type="text/css" />
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body>
+  <div class="flex justify-center min-w-screen p-10">
+    <!-- Adjusted grid columns for receipt-like layout -->
+    <div class="grid grid-cols-[4fr_2fr] gap-6 w-full max-w-7xl">
+      <!-- Left side (wider section) with taller height -->
+      <div class="card bg-base-100 border-2 border-base-300 h-[40rem]">
+        <div class="card-body">
+          <div class="form-control">
+            <input type="text" placeholder="Search" class="input input-bordered" />
+          </div>
+          <div class="tabs mt-4">
+            <a class="tab tab-lifted tab-active">Upcoming</a>
+            <a class="tab tab-lifted">No show</a>
+            <a class="tab tab-lifted">Done</a>
+          </div>
+          <div class="overflow-y-auto h-[30rem] mt-4">
+            <table class="table w-full">
+              <thead>
+                <tr>
+                  <th>Token</th>
+                  <th>Waited</th>
+                  <th>Joined at</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>023</td>
+                  <td>20 Oct, 2021</td>
+                  <td>02:40 PM</td>
+                </tr>
+                <tr>
+                  <td>024</td>
+                  <td>20 Oct, 2021</td>
+                  <td>02:55 PM</td>
+                </tr>
+                <tr>
+                  <td>025</td>
+                  <td>20 Oct, 2021</td>
+                  <td>03:20 PM</td>
+                </tr>
+                <tr>
+                  <td>026</td>
+                  <td>20 Oct, 2021</td>
+                  <td>03:40 PM</td>
+                </tr>
+                <tr>
+                  <td>027</td>
+                  <td>20 Oct, 2021</td>
+                  <td>04:10 PM</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right side (narrower section) with dynamic height -->
+      <div class="card bg-base-100 border-2 border-base-300 max-h-[37rem] overflow-y-auto">
+        <div class="card-body">
+          <div class="text-gray-500 mx-auto">Current Ticket for</div>
+          <div class="font-semibold mx-auto">Deposit....</div>
+          <div class="divider"></div>
+
+          <div class="text-gray-500 mx-auto">John Doe</div>
+          <div class="text-5xl font-bold mx-auto mb-5">M005</div>
+
+          <!-- Wait Time Section -->
+          <div class="flex flex-col items-center mb-4">
+            <div class="text-gray-500">Waited for</div>
+            <div class="text-2xl font-bold">8 min</div>
+          </div>
+          <div class="divider"></div>
+
+          <!-- Buttons Section -->
+          <div class="flex flex-col items-center gap-4 mt-4">
+            <button class="btn btn-success">Done & Next</button>
+            <button class="btn btn-error">No Show</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
