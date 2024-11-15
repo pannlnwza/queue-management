@@ -83,34 +83,39 @@
 <script>
     const eventSource = new EventSource('/status/{{ participant.code }}/sse');
 
-    eventSource.onmessage = function(event) {
-        try {
-            const data = JSON.parse(event.data);
-            console.log("Received data:", data);
+eventSource.onmessage = function(event) {
+    try {
+        const data = JSON.parse(event.data);
+        console.log("Received data:", data);
 
-            // Update each part of the page as data is received
-            document.getElementById('participantName').innerText = data.participant[0].name;
-            document.getElementById('position').innerText = data.participant[0].position;
-            document.getElementById('participantPhone').innerText = data.participant[0].phone;
-            document.getElementById('participantEmail').innerText = data.participant[0].email;
-            document.getElementById('waitTime').innerText = data.participant[0].estimated_wait_time;
+        // Access data directly as it is a single object, not an array
+        document.getElementById('participantName').innerText = data.name || 'N/A';
+        document.getElementById('position').innerText = data.position || 'N/A';
+        document.getElementById('participantPhone').innerText = data.phone || 'N/A';
+        document.getElementById('participantEmail').innerText = data.email || 'N/A';
+        document.getElementById('waitTime').innerText = data.waited || 'N/A';
+        document.getElementById('partySize').innerText = data.special_1 || 'N/A';
+        document.getElementById('seatingPreference').innerText = data.special_2 || 'N/A';
 
-            if (data.participant[0].position === 1) {
-                // Show a special message if the participant is in position 1
-                document.getElementById('turn-is-here-message').style.display = 'block';
-                document.getElementById('ETA-message').style.display = 'none';
-            } else {
-                // Hide the message if the participant is not in position 1
-                document.getElementById('turn-is-here-message').style.display = 'none';
-                document.getElementById('ETA-message').style.display = 'block';
-            }
-        } catch (error) {
-            console.error("Error parsing JSON data:", error);
+
+        if (data.position === 1) {
+            // Show a special message if the participant is in position 1
+            document.getElementById('turn-is-here-message').style.display = 'block';
+            document.getElementById('ETA-message').style.display = 'none';
+        } else {
+            // Hide the message if the participant is not in position 1
+            document.getElementById('turn-is-here-message').style.display = 'none';
+            document.getElementById('ETA-message').style.display = 'block';
         }
-    };
+    } catch (error) {
+        console.error("Error parsing JSON data:", error);
+    }
+};
 
-    eventSource.onerror = function(error) {
-        console.error("Error in SSE connection:", error);
-    };
+eventSource.onerror = function(error) {
+    console.error("Error in SSE connection:", error);
+};
+
+
 </script>
 {% endblock %}
