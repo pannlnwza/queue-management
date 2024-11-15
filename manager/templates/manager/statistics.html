@@ -87,11 +87,15 @@
                     <h2 class="card-title flex items-center gap-2">
                         Total visits last 7 days
                     </h2>
+                    {% if queue.get_number_served == 0 and queue.get_number_dropoff == 0 and queue.get_number_waiting_now == 0 %}
+                    <p class="text-center text-gray-500 flex justify-center items-center">No data available</p>
+                    {% else %}
                     <div class="total-visits-container">
                         <div class="h-16">
                             <canvas id="visitsChart"></canvas>
                         </div>
                     </div>
+                    {% endif %}
                 </div>
             </div>
             <!-- Donut Charts -->
@@ -99,9 +103,13 @@
                 <div class="card bg-base-200">
                     <div class="card-body">
                         <h2 class="card-title">Dropoffs</h2>
+                         {% if cancelled_percentage == 0 and removed_percentage == 0 %}
+                        <p class="text-center text-gray-500 flex justify-center items-center">No data available</p>
+                        {% else %}
                         <div class="h-40">
                             <canvas id="dropoffsChart"></canvas>
                         </div>
+                        {% endif %}
                     </div>
                 </div>
                 <div class="card bg-base-200">
@@ -117,42 +125,8 @@
 
         <!-- Tables -->
         <div class="grid gap-6">
-            <!-- Users Table -->
-            <div class="card bg-base-200">
-                <div class="card-body">
-                    <h2 class="card-title mb-4">Users</h2>
-                    <div class="overflow-x-auto">
-                        <table class="table">
-                            <thead>
-                                <tr>
-                                    <th>NAME</th>
-                                    <th>TOTAL</th>
-                                    <th>SERVED</th>
-                                    <th>WAITLISTED</th>
-                                    <th>DROPOFF</th>
-                                    <th>COMPLETED</th>
-                                    <th>AVG WAIT TIME</th>
-                                    <th>AVG SERVE TIME</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td>panxi</td>
-                                    <td>8</td>
-                                    <td>5</td>
-                                    <td>7</td>
-                                    <td>1</td>
-                                    <td>5</td>
-                                    <td>17 hours</td>
-                                    <td>4 hours</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-
             <!-- Tables Section -->
+            {% for resource in queue.resources %}
             <div class="card bg-base-200">
                 <div class="card-body">
                     <h2 class="card-title mb-4">Tables</h2>
@@ -172,14 +146,14 @@
                             </thead>
                             <tbody>
                                 <tr>
-                                    <td>Table 1</td>
-                                    <td>2</td>
-                                    <td>1</td>
-                                    <td>2</td>
-                                    <td>0</td>
-                                    <td>1</td>
-                                    <td>2 hours, 52 minutes</td>
-                                    <td>7 hours</td>
+                                    <td>{{ resource.name }}</td>
+                                    <td>{{ resource.total }}</td>
+                                    <td>{{ resource.served }}</td>
+                                    <td>{{ resource.waitlisted }}</td>
+                                    <td>{{ resource.dropoff }}</td>
+                                    <td>{{ resource.completed }}</td>
+                                    <td>{{ resource.avg_wait_time }}</td>
+                                    <td>{{ resource.avg_serve_time }}</td>
                                 </tr>
                             </tbody>
                         </table>

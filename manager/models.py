@@ -329,6 +329,34 @@ class Resource(models.Model):
         """
         return self.assigned_to is not None
 
+    @property
+    def total(self):
+        return 0
+
+    @property
+    def served(self):
+        return 0
+
+    @property
+    def waitlisted(self):
+        return 0
+
+    @property
+    def dropoff(self):
+        return 0
+
+    @property
+    def completed(self):
+        return 0
+
+    @property
+    def avg_wait_time(self):
+        return 0
+
+    @property
+    def avg_serve_time(self):
+        return 0
+
     def __str__(self):
         """Return a string representation of the table."""
         return f"{self.name} (Status: {self.status}, Capacity: {self.capacity})"
@@ -370,11 +398,13 @@ class Table(Resource):
 class RestaurantQueue(Queue):
     has_outdoor = models.BooleanField(default=False)
     resources = models.ManyToManyField(Table)
+    resource_name = 'Tables'
 
 
 class BankQueue(Queue):
     """Represents a queue specifically for bank services."""
     resources = models.ManyToManyField(Counter)
+    resource_name = 'Counters'
 
     def __str__(self):
         return f"Bank Queue: {self.name}"
@@ -382,6 +412,7 @@ class BankQueue(Queue):
 
 class HospitalQueue(Queue):
     resources = models.ManyToManyField(Doctor)
+    resource_name = 'Doctors'
 
 
 class UserProfile(models.Model):
