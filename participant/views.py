@@ -15,6 +15,7 @@ from manager.utils.category_handler import CategoryHandlerFactory
 import time
 from django.http import StreamingHttpResponse
 import json
+from .models import RestaurantParticipant
 
 
 # Create your views here.
@@ -214,6 +215,7 @@ class KioskView(generic.FormView):
             form_data,
         )
         participant.save()
+
         # self.queue.update_participants_positions()
         messages.success(self.request, f"You have successfully joined {self.queue.name}.")
         return redirect('participant:queue_status', participant.code)
@@ -252,22 +254,12 @@ def sse_queue_status(request, participant_code):
         last_position = None
         while True:
             try:
-                participant = get_object_or_404(Participant, code=participant_code)
-                queue = participant.queue
+                queue = get_object_or_404(Participant, code=participant_code).queue
+                handler = CategoryHandlerFactory.get_handler(queue.category)
+                participant = handler.get_participant_set(queue.id).get(code=participant_code)
                 if participant.position != last_position:
                     # Prepare the data to send in the SSE stream
-                    data = {
-                        'queue_name': queue.name,
-                        'participant': [
-                            {
-                                'name': participant.name,
-                                'phone': participant.phone,
-                                'email': participant.email,
-                                'position': participant.position,
-                                'estimated_wait_time': participant.calculate_estimated_wait_time(),
-                            }
-                        ]
-                    }
+                    data = handler.get_participant_data(participant)
                     message = json.dumps(data)
 
                     yield f"data: {message}\n\n"
