@@ -11,8 +11,11 @@
                       <path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0M3.124 7.5A8.969 8.969 0 0 1 5.292 3m13.416 0a8.969 8.969 0 0 1 2.168 4.5" />
                     </svg>
                 </div>
-                <div id="turn-is-here-message" style="display: none;">
-                    <p class="text-green-600 font-bold mb-4">Your turn is almost here!</p>
+                <div id="first-in-queue-message" style="display: none;">
+                    <p class="text-cyan-600 font-bold mb-4">You're the first in queue! Please get ready.</p>
+                </div>
+                <div id="is-notified-message" style="display: none;">
+                    <p class="text-green-600 font-bold mb-4">Your turn is here!</p>
                 </div>
                 <div id="ETA-message" style="display: none;">
                     <p class="text-gray-600 font-bold mb-4">Your current position is <span id="position"></span></p>
@@ -117,20 +120,21 @@ eventSource.onmessage = function(event) {
         document.getElementById('special_1').innerText = data.special_1 || 'N/A';
         document.getElementById('special_2').innerText = data.special_2 || 'N/A';
 
+        document.getElementById('first-in-queue-message').style.display = 'none';
+        document.getElementById('ETA-message').style.display = 'none';
+        document.getElementById('is-notified-message').style.display = 'none';
 
-
-        if (data.position === 1) {
-            // Show a special message if the participant is in position 1
-            document.getElementById('turn-is-here-message').style.display = 'block';
-            document.getElementById('ETA-message').style.display = 'none';
+        if (data.hasOwnProperty('is_notified') && data.is_notified === true) {
+            document.getElementById('is-notified-message').style.display = 'block';
+        } else if (data.position === 1) {
+            document.getElementById('first-in-queue-message').style.display = 'block';
         } else {
-            // Hide the message if the participant is not in position 1
-            document.getElementById('turn-is-here-message').style.display = 'none';
             document.getElementById('ETA-message').style.display = 'block';
         }
     } catch (error) {
         console.error("Error parsing JSON data:", error);
     }
+
 };
 
 eventSource.onerror = function(error) {
