@@ -1,6 +1,7 @@
 from django.urls import path
-from participant.views import mark_notification_as_read, RestaurantQueueView, GeneralQueueView, HospitalQueueView, \
-    BankQueueView, ServiceCenterQueueView, BrowseQueueView, welcome, HomePageView, KioskView, QueueStatusView, sse_queue_status
+from participant.views import (mark_notification_as_read, RestaurantQueueView, GeneralQueueView, HospitalQueueView, \
+    BankQueueView, ServiceCenterQueueView, BrowseQueueView, welcome, HomePageView, KioskView, QueueStatusView,
+                               sse_queue_status, leave_queue)
 
 
 from participant.utils.data_stream import data_stream
@@ -12,7 +13,7 @@ urlpatterns = [
     path('kiosk/<str:queue_code>', KioskView.as_view(), name='kiosk'),
     path('welcome/<str:queue_code>/', welcome, name='welcome'),
     path('status/<str:participant_code>', QueueStatusView.as_view(), name='queue_status'),
-    # path('status/<str:participant_code>/leave'),
+    path('status/<str:participant_code>/leave', leave_queue, name='leave_queue'),
     path('status/<str:participant_code>/sse', sse_queue_status, name='sse_queue_status'),
     path('api/data-stream/', data_stream, name='data_stream'),
     path('queues/restaurant/', RestaurantQueueView.as_view(), name='restaurant_queues'),
@@ -21,4 +22,5 @@ urlpatterns = [
     path('queues/bank/', BankQueueView.as_view(), name='bank_queues'),
     path('queues/service_center/', ServiceCenterQueueView.as_view(), name='service_center_queues'),
     path('mark-as-read/<int:notification_id>/', mark_notification_as_read, name='mark_notification_as_read'),
+
 ]

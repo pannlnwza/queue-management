@@ -276,3 +276,7 @@ def sse_queue_status(request, participant_code):
     response['Cache-Control'] = 'no-cache'
 
     return response
+
+
+def leave_queue(request, participant_code):
+    return render(request, 'leave.html')
