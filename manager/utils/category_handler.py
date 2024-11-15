@@ -511,6 +511,7 @@ class BankQueueHandler(CategoryHandler):
             phone=participant_info['phone'],
             note=participant_info['note'],
             queue=participant_info['queue'],
+            participant_category=participant_info['special_1'],
             service_type=participant_info['special_2'],
             position=queue_length + 1
         )
@@ -556,16 +557,17 @@ class BankQueueHandler(CategoryHandler):
         Returns restaurant-specific attributes for the context.
         """
         return {
-            'special_1': None,
+            'special_1': 'Customer Category',
             'special_2': 'Service Type',
             'resource_name': 'Counter',
-            'special_1_choices': None,
+            'special_1_choices': BankParticipant.PARTICIPANT_CATEGORY_CHOICES,
             'special_2_choices': BankParticipant.SERVICE_TYPE_CHOICES
         }
 
     def update_participant(self, participant, data):
         participant.name = data.get('name', participant.name)
         participant.phone = data.get('phone', participant.phone)
+        participant.participant_category = data.get('special_1', participant.participant_category)
         participant.service_type = data.get('special_2', participant.service_type)
         participant.note = data.get('notes') or ""
         new_state = data.get('state')
@@ -590,7 +592,7 @@ class BankQueueHandler(CategoryHandler):
             'name': participant.name,
             'phone': participant.phone,
             'position': participant.position,
-            'special_1': None,
+            'special_1': participant.get_participant_category_display(),
             'special_2': participant.get_service_type_display(),
             'notes': participant.note,
             'waited': participant.waited if participant.state == 'completed' else participant.get_wait_time(),
@@ -610,23 +612,28 @@ class BankQueueHandler(CategoryHandler):
             'resource_name': 'Counter',
         }
 
-    def add_resource(self, queue):
-        pass
+    def add_resource(self, data):
+        name = data.get('name')
+        status = data.get('status')
+        queue = data.get('queue')
+        counter = Counter.objects.create(name=name, status=status, queue=queue)
+        queue.resources.add(counter)
+        queue.save()
 
     def edit_resource(self, resource, data):
-        resource.name = data.get('name', resource.name)
-        resource.medical_field = data.get('special', resource.medical_field)
-        resource.status = data.get('status', resource.status)
-        assigned_to = data.get('assigned_to', resource.assigned_to)
+        counter = get_object_or_404(Counter, id=resource.id)
+        counter.name = data.get('name', counter.name)
+        counter.status = data.get('status', counter.status)
+        assigned_to = data.get('assigned_to', counter.assigned_to)
 
         try:
             participant = get_object_or_404(BankParticipant, id=assigned_to) if assigned_to else None
-            if participant and (not resource.assigned_to or int(assigned_to) != int(resource.assigned_to.id)):
+            if participant and (not counter.assigned_to or int(assigned_to) != int(counter.assigned_to.id)):
                 resource.free()
-                self.assign_to_resource(participant, resource)
-            elif not participant and resource.assigned_to:
-                resource.free()
+                self.assign_to_resource(participant, counter)
+            elif not participant and counter.assigned_to:
+                counter.free()
 
         except BankParticipant.DoesNotExist:
             print(f"Participant with ID {assigned_to} does not exist.")
-        resource.save()
+        counter.save()

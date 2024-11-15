@@ -160,7 +160,8 @@
                                                         seating_preference: '{{ participant.seating_preference|default:'' }}',
                                                         medical_field: '{{ participant.medical_field|default:'' }}',
                                                         priority: '{{ participant.priority|default:'' }}',
-                                                        service_type: '{{ participant.service_type|default:'' }}'
+                                                        service_type: '{{ participant.service_type|default:'' }}',
+                                                        participant_category: '{{ participant.participant_category }}'
                                                         }, '{{ queue.category }}')">
                                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"
                                                  fill="currentColor" class="size-4">
@@ -498,7 +499,10 @@
                         special2Element.value = participant.priority || '';
                     }
                 } else if (category === 'bank') {
-
+                    const special1Element = document.getElementById('edit_special_1');
+                    if (special1Element) {
+                        special1Element.value = participant.participant_category || '';
+                    }
                     const special2Element = document.getElementById('edit_special_2');
                     if (special2Element) {
                         special2Element.value = participant.service_type || '';

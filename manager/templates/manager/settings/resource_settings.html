@@ -224,8 +224,8 @@
                                 <span class="label-text">Assigned to</span>
                             </label>
                             <select id="assigned_to" name="assigned_to" class="select select-bordered w-full">
+                            <option></option>
                                 {% for participant in participant_set %}
-                                    <option></option>
                                     <option value="{{ participant.id }}">{{ participant.name }}</option>
                                 {% endfor %}
                             </select>
