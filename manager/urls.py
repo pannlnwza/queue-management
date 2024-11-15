@@ -4,7 +4,7 @@ from manager.utils.queue_data import get_restaurant_queue_data, get_general_queu
 from manager.views import CreateQView, add_participant_slot, \
     notify_participant, delete_queue, delete_participant, ManageWaitlist, serve_participant, complete_participant, \
     edit_participant, ParticipantListView, StatisticsView, YourQueueView, add_participant, QueueSettingsView, \
-    check_username, ResourceSettings, edit_resource, add_resource, delete_resource, WaitingFull
+    ResourceSettings, edit_resource, add_resource, delete_resource, WaitingFull, edit_queue
 
 app_name = 'manager'
 urlpatterns = [
@@ -24,10 +24,10 @@ urlpatterns = [
     path('queue/', YourQueueView.as_view(), name='your-queue'),
     path('add_participant/<int:queue_id>/', add_participant, name='add_participant'),
     path('settings/<int:queue_id>', QueueSettingsView.as_view(), name='queue_settings'),
-    path('check_username/', check_username, name='check_username'),
     path('settings/<int:queue_id>/resources/', ResourceSettings.as_view(), name='resources'),
     path('edit_resource/<int:resource_id>/', edit_resource, name='edit_resource'),
     path('add_resource/<int:queue_id>/', add_resource, name='add_resource'),
     path('delete_resource/<int:resource_id>/', delete_resource, name='delete_resource'),
-    path('waiting_fullscreen', WaitingFull.as_view(), name='waiting_full')
+    path('waiting_fullscreen', WaitingFull.as_view(), name='waiting_full'),
+    path('edit_queue/<int:queue_id>', edit_queue, name='edit_queue')
 ]

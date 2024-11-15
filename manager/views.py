@@ -1,7 +1,8 @@
 import json
 import logging
-from datetime import timedelta
+from datetime import timedelta, datetime
 from lib2to3.fixes.fix_input import context
+from os import close
 
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, user_logged_in, user_logged_out, user_login_failed
@@ -474,18 +475,40 @@ def delete_resource(request, resource_id):
     return JsonResponse({'message': 'Resource deleted successfully.'})
 
 
-@require_http_methods(["POST"])
-def check_username(request):
-    try:
-        data = json.loads(request.body)
-        username = data.get('username')
-    except json.JSONDecodeError:
-        return JsonResponse({'error': 'Invalid JSON'}, status=400)
-    if username:
-        user_exists = User.objects.filter(username=username).exists()
-        return JsonResponse({'exists': user_exists})
-    else:
-        return JsonResponse({'error': 'No username provided'}, status=400)
+def edit_queue(request, queue_id):
+    queue = get_object_or_404(Queue, id=queue_id)
+    handler = CategoryHandlerFactory.get_handler(queue.category)
+    queue = handler.get_queue_object(queue_id)
+    if request.method == 'POST':
+        name = request.POST.get('name')
+        description = request.POST.get('description')
+        status = request.POST.get('is_closed')
+        latitude = request.POST.get('latitude')
+        longitude = request.POST.get('longitude')
+        open_time = request.POST.get('open_time')
+        close_time = request.POST.get('close_time')
+        logo = request.FILES.get('logo', None)
+
+        queue.name = name
+        queue.description = description
+        queue.latitude = latitude
+        queue.longitude = longitude
+        queue.is_closed = False if status == 'on' else True
+        try:
+            if open_time:
+                queue.open_time = datetime.strptime(open_time, "%H:%M").time()
+            if close_time:
+                queue.close_time = datetime.strptime(close_time, "%H:%M").time()
+        except ValueError as e:
+            print(f"Error while parsing time: {e}")
+            messages.error(request, 'Invalid time format. Please use HH:MM format.')
+            return redirect('manager:queue_settings', queue_id=queue_id)
+        queue.is_closed = False if status == 'on' else True
+        if logo:
+            queue.logo = logo
+        queue.save()
+        messages.success(request, 'Queue settings updated successfully.')
+        return redirect('manager:queue_settings', queue_id)
 
 
 def signup(request):
