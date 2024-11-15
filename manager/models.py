@@ -74,7 +74,7 @@ class Queue(models.Model):
     def update_estimated_wait_time_per_turn(self, time_taken: int) -> None:
         """Update the estimated wait time per turn based on the time taken for a turn."""
         total_time = (
-                                 self.estimated_wait_time_per_turn * self.completed_participants_count) + time_taken
+                             self.estimated_wait_time_per_turn * self.completed_participants_count) + time_taken
         self.completed_participants_count += 1
         self.estimated_wait_time_per_turn = math.ceil(
             total_time / self.completed_participants_count)
@@ -84,7 +84,7 @@ class Queue(models.Model):
         """Update the average serve duration based on recent serve time."""
         if self.completed_participants_count > 0:
             total_serve_time = (
-                                           self.average_service_duration * self.completed_participants_count) + serve_time
+                                       self.average_service_duration * self.completed_participants_count) + serve_time
             self.completed_participants_count += 1
             self.average_service_duration = math.ceil(
                 total_serve_time / self.completed_participants_count)
@@ -167,21 +167,27 @@ class Queue(models.Model):
 
     def get_number_dropoff(self):
         """Return the number of dropout participants (cancelled, and removed)."""
-        return self.participant_set.filter(state__in=['cancelled', 'removed']).count()
+        return self.participant_set.filter(
+            state__in=['cancelled', 'removed']).count()
 
     def get_served_percentage(self):
         """Return percentage of participants served."""
-        return round((self.get_number_served() / self.get_number_of_participants()) * 100, 2)
+        num_participants = self.get_number_of_participants()
+        return round((self.get_number_served() / num_participants) * 100,
+                     2) if num_participants else 0
 
     def get_dropoff_percentage(self):
         """Return percentage of dropout participants."""
-        return round((self.get_number_dropoff() / self.get_number_of_participants()) * 100, 2)
+        num_participants = self.get_number_of_participants()
+        return round((self.get_number_dropoff() / num_participants) * 100,
+                     2) if num_participants else 0
 
     def get_unattended_percentage(self):
         """Return percentage of unattended participants."""
+        num_participants = self.get_number_of_participants()
         return round(
             100 - self.get_dropoff_percentage() - self.get_served_percentage(),
-            2)
+            2) if num_participants else 0
 
     def get_cancelled_percentage(self) -> float:
         return self._get_substate_percentage('cancelled')
@@ -274,7 +280,7 @@ class QueueLineLength(models.Model):
 
 
 class Resource(models.Model):
-    TABLE_STATUS = [
+    RESOURCE_STATUS = [
         ('available', 'Available'),
         ('busy', 'Busy'),
         ('unavailable', 'Unavailable'),
@@ -282,7 +288,7 @@ class Resource(models.Model):
 
     name = models.CharField(max_length=50, unique=True)
     capacity = models.PositiveIntegerField(default=1)
-    status = models.CharField(choices=TABLE_STATUS, max_length=15,
+    status = models.CharField(choices=RESOURCE_STATUS, max_length=15,
                               default='available')
     queue = models.ForeignKey(Queue, on_delete=models.CASCADE, blank=True,
                               null=True)
@@ -351,21 +357,31 @@ class Doctor(Resource):
         return f"Doctor {self.name} - Specialty: {self.get_specialty_display()}"
 
 
+class Counter(Resource):
+    """Represent a counter in the bank."""
+    pass
+
+
+class Table(Resource):
+    """Represent a table in the restaurant."""
+    pass
+
+
 class RestaurantQueue(Queue):
     has_outdoor = models.BooleanField(default=False)
-    tables = models.ManyToManyField(Resource)
+    resources = models.ManyToManyField(Table)
 
 
 class BankQueue(Queue):
     """Represents a queue specifically for bank services."""
-    counters = models.ManyToManyField(Resource)
+    resources = models.ManyToManyField(Counter)
 
     def __str__(self):
         return f"Bank Queue: {self.name}"
 
 
 class HospitalQueue(Queue):
-    doctors = models.ManyToManyField(Doctor)
+    resources = models.ManyToManyField(Doctor)
 
 
 class UserProfile(models.Model):
