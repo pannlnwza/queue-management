@@ -98,18 +98,16 @@
                     {% endif %}
                 </div>
             </div>
+
+
             <!-- Donut Charts -->
             <div class="grid grid-cols-2 gap-4">
                 <div class="card bg-base-200">
                     <div class="card-body">
                         <h2 class="card-title">Dropoffs</h2>
-                         {% if cancelled_percentage == 0 and removed_percentage == 0 %}
-                        <p class="text-center text-gray-500 flex justify-center items-center">No data available</p>
-                        {% else %}
                         <div class="h-40">
                             <canvas id="dropoffsChart"></canvas>
                         </div>
-                        {% endif %}
                     </div>
                 </div>
                 <div class="card bg-base-200">
@@ -125,11 +123,11 @@
 
         <!-- Tables -->
         <div class="grid gap-6">
+
             <!-- Tables Section -->
-            {% for resource in queue.resources %}
             <div class="card bg-base-200">
                 <div class="card-body">
-                    <h2 class="card-title mb-4">Tables</h2>
+                    <h2 class="card-title mb-4">{{ queue.resource_name }}</h2>
                     <div class="overflow-x-auto">
                         <table class="table">
                             <thead>
@@ -145,16 +143,25 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr>
-                                    <td>{{ resource.name }}</td>
-                                    <td>{{ resource.total }}</td>
-                                    <td>{{ resource.served }}</td>
-                                    <td>{{ resource.waitlisted }}</td>
-                                    <td>{{ resource.dropoff }}</td>
-                                    <td>{{ resource.completed }}</td>
-                                    <td>{{ resource.avg_wait_time }}</td>
-                                    <td>{{ resource.avg_serve_time }}</td>
-                                </tr>
+                                {% if queue.resource_set.all %}
+                                    {% for resource in queue.resource_set.all %}
+                                    <tr>
+                                        <td>{{ resource.name }}</td>
+                                        <td>{{ resource.total }}</td>
+                                        <td>{{ resource.served }}</td>
+                                        <td>{{ resource.waitlisted }}</td>
+                                        <td>{{ resource.dropoff }}</td>
+                                        <td>{{ resource.completed }}</td>
+                                        <td>{{ resource.avg_wait_time }}</td>
+                                        <td>{{ resource.avg_serve_time }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                {% else %}
+                                    <tr><td colspan="8" style="height: 20px;"></td></tr>
+                                    <tr>
+                                        <td colspan="8" class="text-center mt-6">No {{ queue.resource_name }} Available</td>
+                                    </tr>
+                                {% endif %}
                             </tbody>
                         </table>
                     </div>
