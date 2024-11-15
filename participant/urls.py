@@ -12,6 +12,7 @@ urlpatterns = [
     path('kiosk/<str:queue_code>', KioskView.as_view(), name='kiosk'),
     path('welcome/<str:queue_code>/', welcome, name='welcome'),
     path('status/<str:participant_code>', QueueStatusView.as_view(), name='queue_status'),
+    # path('status/<str:participant_code>/leave'),
     path('status/<str:participant_code>/sse', sse_queue_status, name='sse_queue_status'),
     path('api/data-stream/', data_stream, name='data_stream'),
     path('queues/restaurant/', RestaurantQueueView.as_view(), name='restaurant_queues'),
