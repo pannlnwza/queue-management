@@ -6,13 +6,11 @@
 <div class="max-w-md mx-auto p-4">
     <div class="card bg-base-100 shadow-xl">
         <div class="card-body">
-            <h2 class="card-title text-2xl mb-4">Reservation for {{ queue.name }}</h2>
+            <h2 class="card-title text-2xl mb-4">Kiosk for {{ queue.name }}</h2>
 
             <form method="post" class="space-y-4">
                 {% csrf_token %}
-
-                {% csrf_token %}
-                {{ form.as_p }}  <!-- Render the form fields, including the phone field -->
+                {{ form.as_p }}
                 <button type="submit" class="btn btn-primary w-full mt-4">Create Reservation</button>
             </form>
         </div>

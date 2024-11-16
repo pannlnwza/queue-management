@@ -1,17 +1,24 @@
 from datetime import datetime, timedelta
-
+import qrcode
+from io import BytesIO
+import base64
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
+from django.urls import reverse
 from django.views import generic
 
 from participant.models import Participant, Notification
 from manager.models import Queue
 from manager.views import logger
-from .forms import ReservationForm
-from participant.utils.participant_handler import ParticipantHandlerFactory
+from .forms import KioskForm
+from manager.utils.category_handler import CategoryHandlerFactory
+import time
+from django.http import StreamingHttpResponse
+import json
+from .models import RestaurantParticipant
 
 
 # Create your views here.
@@ -184,13 +191,18 @@ def welcome(request, queue_code):
 
 class KioskView(generic.FormView):
     template_name = 'participant/kiosk.html'
-    form_class = ReservationForm
+    form_class = KioskForm
 
     def dispatch(self, request, *args, **kwargs):
         # Retrieve the queue object based on the queue_code from the URL
         self.queue = get_object_or_404(Queue, code=kwargs['queue_code'])
-        self.participant_handler = ParticipantHandlerFactory.get_handler(self.queue.category)
+        self.handler = CategoryHandlerFactory.get_handler(self.queue.category)
         return super().dispatch(request, *args, **kwargs)
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['queue'] = self.queue
+        return kwargs
 
     def get_context_data(self, **kwargs):
         # Add the queue object to the context for rendering
@@ -202,14 +214,139 @@ class KioskView(generic.FormView):
         # Create a new participant associated with the queue
         form_data = form.cleaned_data.copy()
         form_data['queue'] = self.queue
-        participant = self.participant_handler.create_participant(
+        participant = self.handler.create_participant(
             form_data,
         )
         participant.save()
-        messages.success(self.request, f"You have successfully joined {self.queue.name}.")
-        return redirect('participant:home')
+
+        # messages.success(self.request, f"You have successfully joined {self.queue.name}.")
+        return redirect('participant:qrcode',
+                        queue_code=self.kwargs['queue_code'],
+                        participant_id=participant.id)
+
 
     def form_invalid(self, form):
         # Optional: Log or print errors for debugging
         print(form.errors)
         return super().form_invalid(form)
+
+
+class QueueStatusView(generic.TemplateView):
+    template_name = 'participant/status.html'
+
+    def get_context_data(self, **kwargs):
+        """Add the queue and participants context to template."""
+        context = super().get_context_data(**kwargs)
+        # look for 'participant_code' in the url
+        participant_code = kwargs['participant_code']
+        # get the participant
+        participant = get_object_or_404(Participant,code=participant_code)
+        # get the queue
+        queue = participant.queue
+        # add in context data
+        context['queue'] = queue
+        context['participant'] = participant
+        # Get the list of all participants in the same queue
+        participants_in_queue = queue.participant_set.all().order_by('joined_at')
+        context['participants_in_queue'] = participants_in_queue
+        return context
+
+
+def sse_queue_status(request, participant_code):
+    """Server-sent Events endpoint to stream the queue status."""
+
+    def event_stream():
+        last_data = None
+        while True:
+            try:
+                queue = get_object_or_404(Participant, code=participant_code).queue
+                handler = CategoryHandlerFactory.get_handler(queue.category)
+                participant = handler.get_participant_set(queue.id).get(code=participant_code)
+
+                current_data = handler.get_participant_data(participant)
+                if last_data != current_data:
+                    # Prepare the data to send in the SSE stream
+
+                    message = json.dumps(current_data)
+
+                    yield f"data: {message}\n\n"
+                    last_data = current_data
+                time.sleep(5)
+            except Exception as e:
+                print("Error in event stream:", e)
+                break
+
+    response = StreamingHttpResponse(event_stream(), content_type='text/event-stream')
+
+    # Remove 'Connection: keep-alive' and set necessary headers for SSE
+    response['Cache-Control'] = 'no-cache'
+
+    return response
+
+
+def participant_leave(request, participant_code):
+    """Participant chose to leave the queue."""
+    try:
+        participant = Participant.objects.get(code=participant_code)
+    except Participant.DoesNotExist:
+        messages.error(request, "Couldn't find the participant in the queue.")
+        logger.error(f"Couldn't find participant with {participant_code}")
+        return redirect('participant:home')
+    queue = participant.queue
+
+    try:
+        participant.delete()
+
+        messages.success(request, f"We are sorry to see you leave {participant.name}. See you next time!")
+        logger.info(
+            f"Participant {participant.name} successfully left queue: {queue.name}.")
+    except Exception as e:
+        messages.error(request, f"Error removing participant: {e}")
+        logger.error(
+            f"Failed to delete participant {participant_code} from queue: {queue.name} code: {queue.code} ")
+    return redirect('participant:welcome', queue_code=queue.code)
+
+
+class QRcodeView(generic.DetailView):
+    model = Participant
+    template_name = 'participant/qrcode.html'
+    context_object_name = 'participant'
+    pk_url_kwarg = 'participant_id'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        participant = self.get_object()
+        context['queue'] = participant.queue
+        context['queue_code'] = self.kwargs.get('queue_code')
+
+        # Generate QR code and convert to base64
+        check_queue_url = self.request.build_absolute_uri(
+            reverse('participant:check_queue', args=[participant.id])
+        )
+
+        # Generate QR code
+        qr = qrcode.QRCode(version=1, box_size=10, border=5)
+        qr.add_data(check_queue_url)
+        qr.make(fit=True)
+        img = qr.make_image(fill='black', back_color='white')
+
+        # Convert image to base64
+        buffer = BytesIO()
+        img.save(buffer, format='PNG')
+        qr_image = base64.b64encode(buffer.getvalue()).decode()
+
+        context['qr_image'] = qr_image
+        return context
+
+class CheckQueueView(generic.DetailView):
+    model = Participant
+    template_name = 'participant/status.html'
+    context_object_name = 'participant'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        participant = self.get_object()
+        queue = participant.queue
+        context['queue'] = queue
+        return context
+      

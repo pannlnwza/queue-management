@@ -26,7 +26,7 @@ class Participant(models.Model):
     phone = models.CharField(max_length=20, null=True, blank=True)
     queue = models.ForeignKey('manager.Queue', on_delete=models.CASCADE)
     joined_at = models.DateTimeField(auto_now_add=True)
-    position = models.PositiveIntegerField(null=True)  # why null? right now
+    position = models.PositiveIntegerField()
     note = models.TextField(max_length=150, null=True, blank=True)
     code = models.CharField(max_length=6, unique=True, editable=False)
     state = models.CharField(max_length=10, choices=PARTICIPANT_STATE,
@@ -45,10 +45,13 @@ class Participant(models.Model):
         """Generate a unique ticket code for the participant if not already."""
         if not self.pk:
             self.code = self.generate_unique_queue_code()
+        if not self.position:  # Only set position if it's not already set
+            last_position = Participant.objects.aggregate(models.Max('position'))['position__max'] or 0
+            self.position = last_position + 1
         super().save(*args, **kwargs)
 
     @staticmethod
-    def generate_unique_queue_code(length=6):
+    def generate_unique_queue_code(length=12):
         """Generate a unique code for each participant."""
         characters = string.ascii_uppercase + string.digits
         while True:
@@ -80,18 +83,15 @@ class Participant(models.Model):
             return int(
                 (timezone.localtime() - self.joined_at).total_seconds() / 60)
         elif self.service_started_at:
-            return int((
-                                   self.service_started_at - self.joined_at).total_seconds() / 60)
+            return int((self.service_started_at - self.joined_at).total_seconds() / 60)
 
     def get_service_duration(self):
         """Calculate the duration of service for the participant."""
         if self.state == 'serving' and self.service_started_at:
-            return int((
-                                   timezone.localtime() - self.service_started_at).total_seconds() / 60)
+            return int((timezone.localtime() - self.service_started_at).total_seconds() / 60)
         elif self.state == 'completed':
             if self.service_started_at and self.service_completed_at:
-                return int((
-                                       self.service_completed_at - self.service_started_at).total_seconds() / 60)
+                return int((self.service_completed_at - self.service_started_at).total_seconds() / 60)
         return 0
 
     def assign_to_resource(self, required_capacity=None):

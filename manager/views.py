@@ -5,8 +5,9 @@ from unicodedata import category
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, user_logged_in, user_logged_out, user_login_failed
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.core.exceptions import PermissionDenied
+from django.db import transaction
 from django.dispatch import receiver
 from django.http import JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
@@ -14,11 +15,12 @@ from django.urls import reverse_lazy, reverse
 from django.utils import timezone
 from django.views import generic
 from django.views.decorators.http import require_http_methods
-
-from manager.forms import QueueForm
-from manager.models import Queue, QueueLineLength
-from manager.utils.category_handler import CategoryHandlerFactory
+from manager.forms import QueueForm, CustomUserCreationForm, EditProfileForm
 from participant.models import Participant, Notification
+from manager.models import Queue, UserProfile, QueueLineLength
+from manager.utils.queue_handler import QueueHandlerFactory
+from manager.utils.category_handler import CategoryHandlerFactory
+
 
 logger = logging.getLogger('queue')
 
@@ -479,44 +481,61 @@ class StatisticsView(LoginRequiredMixin, generic.TemplateView):
         return context
 
 
+def create_or_update_profile(user, profile_image=None):
+    """
+    Helper function to create or update user profile
+    """
+    try:
+        profile, created = UserProfile.objects.get_or_create(user=user)
+        if profile_image:
+            profile.image = profile_image
+            profile.save()
+        return profile
+
+    except Exception as e:
+        logger.error(f'Error creating/updating profile for user {user.username}: {str(e)}')
+        return None
+
+
 def signup(request):
     """
     Register a new user.
-    Handles the signup process, creating a new user if the provided data is valid.
-
-    :param request: The HTTP request object containing user signup data.
-    :returns: Redirects to the queue index page on successful signup.
-    :raises ValueError: If form data is invalid, displays an error message in the signup form.
+    Handles the signup process, creating a new user and profile if the provided data is valid.
     """
     if request.method == 'POST':
-        form = UserCreationForm(request.POST)
+        form = CustomUserCreationForm(request.POST)
         if form.is_valid():
             user = form.save()
             username = form.cleaned_data.get('username')
             raw_passwd = form.cleaned_data.get('password1')
+
+            profile = create_or_update_profile(user)
+            if not profile:
+                messages.error(request, 'Error creating user profile. Please contact support.')
+
             user = authenticate(username=username, password=raw_passwd)
-            if user is not None:  # Add check to ensure authentication worked
+            if user is not None:
                 login(request, user)
-                logger.info(f'New user signed up: {username}')
-                # Only redirect to the home page without showing a message
+                logger.info(f'New user signed up with profile: {username}')
                 return redirect('participant:home')
             else:
                 logger.error(f'Failed to authenticate user after signup: {username}')
-                # Handle authentication failure
                 messages.error(request, 'Error during signup process. Please try again.')
         else:
-            # Add form errors to messages to display them to the user
             for field, errors in form.errors.items():
                 for error in errors:
                     logger.error(f'Error signup: {error}')
-    else:
-        form = UserCreationForm()
 
-        # Render the signup form with any error messages
+    else:
+        form = CustomUserCreationForm()
+
     return render(request, 'account/signup.html', {'form': form})
 
 
 def login_view(request):
+    """
+    Handle user login and update profile if needed
+    """
     if request.method == 'POST':
         username = request.POST.get('username')
         password = request.POST.get('password')
@@ -525,11 +544,70 @@ def login_view(request):
 
         if user is not None:
             login(request, user)
-            return redirect('manager:your-queue')  # No success message, just redirect
+
+            if hasattr(user, 'socialaccount_set') and user.socialaccount_set.exists():
+                social_account = user.socialaccount_set.first()
+                if social_account.provider == 'google':
+                    extra_data = social_account.extra_data
+                    profile_image_url = extra_data.get('picture')
+                    if profile_image_url:
+                        profile = create_or_update_profile(user)
+                        if profile:
+                            profile.google_picture = profile_image_url
+                            profile.save()
+            else:
+                create_or_update_profile(user)
+
+            return redirect('manager:your-queue')
         else:
             messages.error(request, 'Invalid username or password.')
 
     return render(request, 'account/login.html')
+
+
+
+
+class EditProfileView(LoginRequiredMixin, generic.UpdateView):
+    model = UserProfile
+    template_name = 'manager/edit_profile.html'
+    context_object_name = 'profile'
+    form_class = EditProfileForm
+
+    def get_success_url(self):
+        queue_id = self.kwargs.get('queue_id')
+        return reverse_lazy('manager:edit_profile', kwargs={'queue_id': queue_id})
+
+    def get_object(self, queryset=None):
+        profile, created = UserProfile.objects.get_or_create(user=self.request.user)
+        return profile
+
+    def form_valid(self, form):
+        """Handle both User and UserProfile updates"""
+        with transaction.atomic():
+            user = self.request.user
+            user.username = form.cleaned_data['username']
+            user.email = form.cleaned_data['email']
+            user.first_name = form.cleaned_data.get('first_name', user.first_name) or ''
+            user.last_name = form.cleaned_data.get('last_name', user.last_name) or ''
+            user.save()
+
+            profile = form.save(commit=False)
+            profile.user = user
+            if 'phone' in form.cleaned_data:
+                profile.phone = form.cleaned_data['phone']
+            if 'image' in form.cleaned_data and form.cleaned_data['image']:
+                profile.image = form.cleaned_data['image']
+
+            profile.save()
+            messages.success(self.request, 'Profile updated successfully.')
+            return super().form_valid(form)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        queue_id = self.kwargs.get('queue_id')
+        context['queue_id'] = queue_id
+        context['user'] = self.request.user
+        return context
 
 
 def get_client_ip(request):
