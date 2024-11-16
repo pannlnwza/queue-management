@@ -177,7 +177,7 @@ class RestaurantQueueHandler(CategoryHandler):
             phone=participant_info['phone'],
             note=participant_info['note'],
             queue=participant_info['queue'],
-            party_size=participant_info['party_size'],
+            party_size=participant_info['special_1'],
             seating_preference=participant_info['special_2'],
             position=queue_length + 1
         )
@@ -258,6 +258,7 @@ class RestaurantQueueHandler(CategoryHandler):
             'id': participant.id,
             'name': participant.name,
             'phone': participant.phone,
+            'email': participant.email,
             'position': participant.position,
             'notes': participant.note,
             'waited': participant.waited if participant.state == 'completed' else participant.get_wait_time(),
@@ -440,6 +441,7 @@ class HospitalQueueHandler(CategoryHandler):
             'id': participant.id,
             'name': participant.name,
             'phone': participant.phone,
+            'email': participant.email,
             'position': participant.position,
             'notes': participant.note,
             'medical_field': participant.get_medical_field_display(),
@@ -591,6 +593,7 @@ class BankQueueHandler(CategoryHandler):
             'id': participant.id,
             'name': participant.name,
             'phone': participant.phone,
+            'email': participant.email,
             'position': participant.position,
             'special_1': participant.get_participant_category_display(),
             'special_2': participant.get_service_type_display(),

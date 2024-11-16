@@ -1,10 +1,13 @@
 from django.urls import path
 
+
+
+from participant.utils.data_stream import data_stream
 from manager.utils.queue_data import get_restaurant_queue_data, get_general_queue_data
 from manager.views import CreateQView, add_participant_slot, \
     notify_participant, delete_queue, delete_participant, ManageWaitlist, serve_participant, complete_participant, \
     edit_participant, ParticipantListView, StatisticsView, YourQueueView, add_participant, QueueSettingsView, \
-    ResourceSettings, edit_resource, add_resource, delete_resource, WaitingFull, edit_queue
+    ResourceSettings, edit_resource, add_resource, delete_resource, WaitingFull, edit_queue, EditProfileView
 
 app_name = 'manager'
 urlpatterns = [
@@ -29,5 +32,7 @@ urlpatterns = [
     path('add_resource/<int:queue_id>/', add_resource, name='add_resource'),
     path('delete_resource/<int:resource_id>/', delete_resource, name='delete_resource'),
     path('waiting_fullscreen', WaitingFull.as_view(), name='waiting_full'),
-    path('edit_queue/<int:queue_id>', edit_queue, name='edit_queue')
+    path('edit_queue/<int:queue_id>', edit_queue, name='edit_queue'),
+    path('edit-profile/<int:queue_id>/', EditProfileView.as_view(), name='edit_profile'),
+    path('add_participant/<int:queue_id>/', add_participant, name='add_participant')
 ]
