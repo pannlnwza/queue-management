@@ -2,7 +2,7 @@
 {% load custom_filters %}
 {% load static %}
 
-{% block content %}{% include 'navbar.html' %}
+{% block content %}
     <main class="flex items-center justify-center min-h-screen">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-4xl">
             <a href="{% url 'manager:your-queue' %}" class="card bg-base-100 shadow-xl hover:shadow-2xl hover:bg-primary/30 transform hover:scale-105 transition duration-300">

@@ -1,0 +1,103 @@
+{% extends 'sidebar_manage.html' %}
+{% load static %}
+
+{% block content %}
+
+    <div class="card bg-base-100 shadow-xl border-2 border-gray-300 rounded-lg">
+        <div class="card-body">
+            <h1 class="text-2xl font-bold mb-6">Edit Profile</h1>
+
+            {% if messages %}
+                <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-6" role="alert">
+                    <ul>
+                        {% for message in messages %}
+                            <li>{{ message }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            {% endif %}
+
+            <form method="POST" class="space-y-6" enctype="multipart/form-data">
+                {% csrf_token %}
+
+                {# Profile image #}
+                <section class="mb-6 border-2 border-gray-300 p-4 rounded-lg w-1/2 ml-4">
+                    <h2 class="text-xl font-semibold mb-4">Profile Image</h2>
+
+                    <div class="mb-4 flex justify-center">
+                        <label for="profile_image" class="cursor-pointer">
+                            <div class="bg-gray-200 rounded-full h-24 w-24 flex items-center justify-center">
+                                {% if user.profile.image %}
+                                    <img src="{{ user.profile.image.url }}" alt="{{ user.username }}'s profile"
+                                         class="rounded-full h-24 w-24 object-cover">
+                                {% elif user.socialaccount_set.exists and user.socialaccount_set.first.get_avatar_url %}
+                                    <img src="{{ user.socialaccount_set.first.get_avatar_url }}"
+                                         alt="{{ user.username }}'s social profile"
+                                         class="rounded-full h-24 w-24 object-cover">
+                                {% else %}
+                                    <img src="{% static 'participant/images/profile.jpg' %}" alt="Default profile"
+                                         class="rounded-full h-24 w-24 object-cover">
+                                {% endif %}
+                            </div>
+                        </label>
+
+                        <input type="file" id="profile_image" name="profile_image" class="hidden">
+                    </div>
+
+                    <div class="flex justify-center">
+                        <button type="button" class="btn btn-danger mt-2" id="remove-image-button">remove image</button>
+                    </div>
+                </section>
+
+                {# Personal data #}
+                <section class="mb-6 border-2 border-gray-300 p-4 rounded-lg w-1/2 ml-4">
+                    <h2 class="text-xl font-semibold mb-4">Personal Data</h2>
+
+                    <div class="grid grid-cols-2 gap-4 mb-4">
+                        <div>
+                            <label for="username" class="block text-gray-700 font-bold mb-2">
+                                <span class="text-500">*</span>Username:
+                            </label>
+                            <input type="text" id="username" name="username" placeholder="username"
+                                   value="{{ user.username }}" class="input input-bordered w-full" required>
+                        </div>
+                        <div>
+                            <label for="email" class="block text-gray-700 font-bold mb-2">
+                                <span class="text-500">*</span>Email:
+                            </label>
+                            <input type="email" id="email" name="email" placeholder="example@gmail.com"
+                                   value="{{ user.email }}" class="input input-bordered w-full" required>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4 mb-4">
+                        <div>
+                            <label for="first_name" class="block text-gray-700 font-bold mb-2">First Name:</label>
+                            <input type="text" id="first_name" name="first_name" placeholder="first name"
+                                   value="{{ user.first_name }}" class="input input-bordered w-full">
+                        </div>
+                        <div>
+                            <label for="last_name" class="block text-gray-700 font-bold mb-2">Last Name:</label>
+                            <input type="text" id="last_name" name="last_name" placeholder="last name"
+                                   value="{{ user.last_name }}" class="input input-bordered w-full">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4 mb-4">
+                        <div>
+                            <label for="phone" class="block text-gray-700 font-bold mb-2">Phone no:</label>
+                            <input type="tel" id="phone" name="phone" value="{{ profile.phone }}"
+                                   class="input input-bordered w-full">
+                        </div>
+                    </div>
+                </section>
+
+                <div class="flex space-x-4 mt-4 ml-5">
+                    <button type="submit" class="btn btn-primary w-48">Update Profile</button>
+                    <a href="{% url 'manager:manage_waitlist' queue_id %}" class="btn w-48">Back</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+{% endblock %}

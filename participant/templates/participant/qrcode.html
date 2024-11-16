@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token }}">
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.14/dist/full.min.css" rel="stylesheet" type="text/css" />
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    {% block title %}<title>Qr code</title>{% endblock %}
+</head>
+<body>
+<div class="min-h-screen bg-gradient-to-b from-blue-500 to-blue-700 flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl shadow-xl max-w-md w-full p-8">
+        <div class="text-center mb-6">
+            <h1 class="text-4xl font-bold text-blue-700 tracking-wide">{{ queue.name }}</h1>
+        </div>
+
+        <div class="text-center mb-6">
+            <h2 class="text-4xl font-bold text-gray-800 mb-2">check your queue</h2>
+{#            <p class="text-2xl font-bold text-gray-800 mb-2">SCAN HERE</p>#}
+        </div>
+
+        <div class="bg-white rounded-xl p-4 shadow-inner mx-auto mb-6">
+            <img src="data:image/png;base64,{{ qr_image }}"
+                 alt="QR Code"
+                 class="w-full max-w-[250px] mx-auto">
+        </div>
+
+        <div class="text-center">
+            <p class="text-sm text-gray-500">
+                or
+                <a href="{% url 'participant:check_queue' pk=participant.id %}"
+                   class="text-blue-600 hover:text-blue-800 underline">
+                    click here!
+                </a>
+            </p>
+            <p class="text-2xl font-bold text-gray-800 mb-2">SCAN HERE</p>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>
