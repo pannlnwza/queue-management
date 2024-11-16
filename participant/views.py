@@ -235,7 +235,7 @@ class QueueStatusView(generic.TemplateView):
         # look for 'participant_code' in the url
         participant_code = kwargs['participant_code']
         # get the participant
-        participant = get_object_or_404(Participant ,code=participant_code)
+        participant = get_object_or_404(Participant,code=participant_code)
         # get the queue
         queue = participant.queue
         # add in context data
@@ -251,20 +251,21 @@ def sse_queue_status(request, participant_code):
     """Server-sent Events endpoint to stream the queue status."""
 
     def event_stream():
-        last_position = None
+        last_data = None
         while True:
             try:
                 queue = get_object_or_404(Participant, code=participant_code).queue
                 handler = CategoryHandlerFactory.get_handler(queue.category)
                 participant = handler.get_participant_set(queue.id).get(code=participant_code)
-                if participant.position != last_position:
+
+                current_data = handler.get_participant_data(participant)
+                if last_data != current_data:
                     # Prepare the data to send in the SSE stream
-                    data = handler.get_participant_data(participant)
-                    message = json.dumps(data)
+
+                    message = json.dumps(current_data)
 
                     yield f"data: {message}\n\n"
-
-                    last_position = participant.position
+                    last_data = current_data
                 time.sleep(5)
             except Exception as e:
                 print("Error in event stream:", e)
@@ -278,5 +279,24 @@ def sse_queue_status(request, participant_code):
     return response
 
 
-def leave_queue(request, participant_code):
-    return render(request, 'leave.html')
+def participant_leave(request, participant_code):
+    """Participant chose to leave the queue."""
+    try:
+        participant = Participant.objects.get(code=participant_code)
+    except Participant.DoesNotExist:
+        messages.error(request, "Couldn't find the participant in the queue.")
+        logger.error(f"Couldn't find participant with {participant_code}")
+        return redirect('participant:home')
+    queue = participant.queue
+
+    try:
+        participant.delete()
+
+        messages.success(request, f"We are sorry to see you leave {participant.name}. See you next time!")
+        logger.info(
+            f"Participant {participant.name} successfully left queue: {queue.name}.")
+    except Exception as e:
+        messages.error(request, f"Error removing participant: {e}")
+        logger.error(
+            f"Failed to delete participant {participant_code} from queue: {queue.name} code: {queue.code} ")
+    return redirect('participant:welcome', queue_code=queue.code)
