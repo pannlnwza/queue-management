@@ -1,6 +1,6 @@
 from django.urls import path
 
-from manager.views import CreateQView, EditQueueView, add_participant_slot, \
+from manager.views import CreateQView, EditQueueView, \
     notify_participant, delete_queue, delete_participant, ManageWaitlist, serve_participant, complete_participant, \
     edit_participant, ParticipantListView, StatisticsView, YourQueueView, add_participant, EditProfileView
 
@@ -13,7 +13,6 @@ urlpatterns = [
     path('delete_participant/<int:participant_id>/', delete_participant, name='delete_participant'),
     path('queue/<int:pk>/edit/', EditQueueView.as_view(), name='edit_queue'),
     path('delete_queue/<int:queue_id>/', delete_queue, name='delete_queue'),
-    path('queue/<int:queue_id>/add-participant/', add_participant_slot, name='add_participant_slot'),
     path('notify/<int:participant_id>/', notify_participant, name='notify_participant'),
     path('manage/<int:queue_id>/', ManageWaitlist.as_view(), name='manage_waitlist'),
     path('serve/<int:participant_id>/', serve_participant, name='serve_participant'),

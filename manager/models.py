@@ -359,7 +359,7 @@ class Resource(models.Model):
         Checks if this resource is currently assigned to a participant.
         """
         return self.assigned_to is not None
-      
+
     @property
     def total(self):
         """Return the total number of participants assigned to this resource."""
@@ -471,7 +471,7 @@ class HospitalQueue(Queue):
     resources = models.ManyToManyField(Doctor)
     resource_name = 'Doctors'
 
-    
+
 class UserProfile(models.Model):
     """Represents a user profile in the system."""
     user = models.OneToOneField(User, on_delete=models.CASCADE)
