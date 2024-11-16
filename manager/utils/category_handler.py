@@ -307,13 +307,14 @@ class RestaurantQueueHandler(CategoryHandler):
 
         try:
             participant = get_object_or_404(RestaurantParticipant, id=assigned_to) if assigned_to else None
-            if participant and (not resource.assigned_to or int(assigned_to) != int(resource.assigned_to.id)):
+            if participant:
+                if not resource.assigned_to or int(assigned_to) != int(resource.assigned_to.id):
+                    resource.free()
+                    self.assign_to_resource(participant, resource)
+            elif not assigned_to and resource.assigned_to:
                 resource.free()
-                self.assign_to_resource(participant, resource)
-            elif not participant and resource.assigned_to:
-                resource.free()
-            elif not assigned_to:
-                resource.free()
+            elif not assigned_to and not resource.assigned_to:
+                pass
 
         except RestaurantParticipant.DoesNotExist:
             print(f"Participant with ID {assigned_to} does not exist.")
@@ -495,15 +496,18 @@ class HospitalQueueHandler(CategoryHandler):
 
         try:
             participant = get_object_or_404(HospitalParticipant, id=assigned_to) if assigned_to else None
-            if participant and (not doctor.assigned_to or int(assigned_to) != int(doctor.assigned_to.id)):
+            if participant:
+                if not resource.assigned_to or int(assigned_to) != int(resource.assigned_to.id):
+                    resource.free()
+                    self.assign_to_resource(participant, resource)
+            elif not assigned_to and resource.assigned_to:
                 resource.free()
-                self.assign_to_resource(participant, doctor)
-            elif not participant and doctor.assigned_to:
-                doctor.free()
+            elif not assigned_to and not resource.assigned_to:
+                pass
 
         except HospitalParticipant.DoesNotExist:
             print(f"Participant with ID {assigned_to} does not exist.")
-        doctor.save()
+        resource.save()
 
 
 class BankQueueHandler(CategoryHandler):
@@ -648,12 +652,15 @@ class BankQueueHandler(CategoryHandler):
 
         try:
             participant = get_object_or_404(BankParticipant, id=assigned_to) if assigned_to else None
-            if participant and (not counter.assigned_to or int(assigned_to) != int(counter.assigned_to.id)):
+            if participant:
+                if not resource.assigned_to or int(assigned_to) != int(resource.assigned_to.id):
+                    resource.free()
+                    self.assign_to_resource(participant, resource)
+            elif not assigned_to and resource.assigned_to:
                 resource.free()
-                self.assign_to_resource(participant, counter)
-            elif not participant and counter.assigned_to:
-                counter.free()
+            elif not assigned_to and not resource.assigned_to:
+                pass
 
         except BankParticipant.DoesNotExist:
             print(f"Participant with ID {assigned_to} does not exist.")
-        counter.save()
+        resource.save()
