@@ -234,7 +234,7 @@ class RestaurantQueueHandler(CategoryHandler):
     def update_participant(self, participant, data):
         participant.name = data.get('name', participant.name)
         participant.phone = data.get('phone', participant.phone)
-        participant.party_size = data.get('party_size', participant.party_size)
+        participant.party_size = data.get('special_1', participant.party_size)
         participant.seating_preference = data.get('special_2', participant.seating_preference)
         participant.note = data.get('notes') or ""
         new_state = data.get('state')

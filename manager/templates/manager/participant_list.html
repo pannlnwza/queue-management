@@ -279,7 +279,7 @@
                                         <div class="space-x-2">
                                             {% for size in '1234567'|make_list %}
                                                 <label class="radio join-item">
-                                                    <input id="edit_special_1" type="radio" name="party_size"
+                                                    <input id="edit_special_1" type="radio" name="special_1"
                                                            value="{{ size }}" class="radio"/>
                                                     <span>{{ size }}</span>
                                                 </label>
@@ -483,7 +483,7 @@
                 }
 
                 if (category === 'restaurant') {
-                    const partySizeRadios = document.getElementsByName('edit_special_1');
+                    const partySizeRadios = document.getElementsByName('special_1');
                     partySizeRadios.forEach(radio => {
                         radio.checked = (radio.value === (participant.party_size || '').toString());
                     });

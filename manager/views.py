@@ -14,7 +14,7 @@ from django.contrib.auth.models import User
 from django.dispatch import receiver
 from django.http import JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
-from django.urls import reverse_lazy
+from django.urls import reverse_lazy, reverse
 from django.utils import timezone
 from django.views import generic
 from django.views.decorators.http import require_http_methods
@@ -67,15 +67,79 @@ class CreateQView(LoginRequiredMixin, generic.CreateView):
         return redirect(self.success_url)
 
 
-@login_required
-def add_participant_slot(request, queue_id):
-    """Staff adds a participant to the queue and generates a queue code."""
-    queue = get_object_or_404(Queue, id=queue_id)
-    last_position = queue.participant_set.count()
-    Participant.objects.create(
-        position=last_position + 1,
-        queue=queue)
-    return redirect('manager:dashboard', queue_id)
+class EditQueueView(LoginRequiredMixin, generic.UpdateView):
+    """
+    Edit an existing queue.
+
+    Allows authenticated users to change the queue's name, delete participants,
+    or close the queue.
+
+    :param model: The model to use for editing the queue.
+    :param form_class: The form class for queue editing.
+    :param template_name: The name of the template to render.
+    """
+    model = Queue
+    form_class = QueueForm
+    template_name = 'manager/edit_queue.html'
+
+    def dispatch(self, request, *args, **kwargs):
+        """
+        Check if the user is the creator of the queue before allowing access.
+        """
+        queue = self.get_object()
+        if queue.created_by != request.user:
+            messages.error(self.request,
+                           "You do not have permission to edit this queue.")
+            logger.warning(
+                f"Unauthorized attempt to access edit queue page for queue: {queue.name} by user: {request.user}")
+            return redirect('manager:manage_queues')
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_success_url(self):
+        """redirect user back to manage queues page, if the edit was saved successfully."""
+        return reverse('manager:manage_queues')
+
+    def get_context_data(self, **kwargs):
+        """
+        Add additional context data to the template.
+
+        :param kwargs: Additional keyword arguments passed to the method.
+        :returns: The updated context dictionary.
+        """
+        context = super().get_context_data(**kwargs)
+        queue = self.object
+        context['participants'] = queue.participant_set.all()
+        return context
+
+    def post(self, request, *args, **kwargs):
+        """
+        Handle POST requests to update the queue and manage participants.
+
+        :param request: The HTTP request object containing data for the queue and participants.
+        :returns: Redirects to the success URL after processing.
+        """
+        self.object = self.get_object()
+
+        if request.POST.get('action') == 'queue_status':
+            return self.queue_status_handler()
+        if request.POST.get('action') == 'edit_queue':
+            name = request.POST.get('name')
+            description = request.POST.get('description')
+            is_closed = request.POST.get('is_closed') == 'true'
+            try:
+                self.object.edit(name=name, description=description,
+                                 is_closed=is_closed)
+                messages.success(self.request, "Queue updated successfully.")
+            except ValueError as e:
+                messages.error(self.request, str(e))
+        return super().post(request, *args, **kwargs)
+
+    def queue_status_handler(self):
+        """Close the queue."""
+        self.object.is_closed = not self.object.is_closed
+        self.object.save()
+        messages.success(self.request, "Queue status updated successfully.")
+        return redirect('manager:manage_queues')
 
 
 @require_http_methods(["POST"])
@@ -159,7 +223,6 @@ def add_participant(request, queue_id):
     note = request.POST.get('note', "")
     special_1 = request.POST.get('special_1')
     special_2 = request.POST.get('special_2')
-    party_size = request.POST.get('party_size')
 
     queue = get_object_or_404(Queue, id=queue_id)
     handler = CategoryHandlerFactory.get_handler(queue.category)
@@ -172,7 +235,6 @@ def add_participant(request, queue_id):
         'queue': queue,
         'special_1': special_1,
         'special_2': special_2,
-        'party_size': party_size
     }
     handler.create_participant(data)
     queue.record_line_length()
