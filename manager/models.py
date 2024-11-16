@@ -9,6 +9,7 @@ from django.templatetags.static import static
 from django.contrib.auth.models import User
 from django.urls import reverse
 from django.conf import settings
+from django.apps import apps
 from manager.utils.helpers import format_duration
 
 
@@ -331,31 +332,43 @@ class Resource(models.Model):
 
     @property
     def total(self):
-        return 0
+        Participant = apps.get_model('participant', 'Participant')
+        return Participant.objects.filter(resource=self).count()
 
     @property
     def served(self):
-        return 0
-
-    @property
-    def waitlisted(self):
-        return 0
+        Participant = apps.get_model('participant', 'Participant')
+        return Participant.objects.filter(resource=self, state__in=['serving', 'completed']).count()
 
     @property
     def dropoff(self):
-        return 0
+        Participant = apps.get_model('participant', 'Participant')
+        return Participant.objects.filter(resource=self, state__in=['removed', 'cancelled']).count()
 
     @property
     def completed(self):
-        return 0
+        Participant = apps.get_model('participant', 'Participant')
+        return Participant.objects.filter(resource=self, state='completed').count()
 
     @property
     def avg_wait_time(self):
-        return 0
+        Participant = apps.get_model('participant', 'Participant')
+        participants = Participant.objects.filter(resource=self, state__in=['serving', 'completed'])
+        wait_times = [p.get_wait_time() for p in participants if
+                      p.get_wait_time() is not None]
+        average_wait_time = math.ceil(
+            sum(wait_times) / len(wait_times)) if wait_times else 0
+        return average_wait_time
 
     @property
     def avg_serve_time(self):
-        return 0
+        Participant = apps.get_model('participant', 'Participant')
+        participants = Participant.objects.filter(resource=self, state='completed')
+        serve_times = [p.get_service_duration() for p in participants if
+                       p.get_service_duration() is not None]
+        average_serve_time = math.ceil(
+            sum(serve_times) / len(serve_times)) if serve_times else 0
+        return average_serve_time
 
     def __str__(self):
         """Return a string representation of the table."""
