@@ -31,7 +31,7 @@ class ParticipantModelTests(TestCase):
     def test_generate_unique_queue_code(self):
         """Test that a unique queue code is generated for each participant."""
         code = self.participant.code
-        self.assertEqual(len(code), 6)
+        self.assertEqual(len(code), 12)
         self.assertTrue(code.isalnum())
         self.assertEqual(Participant.objects.filter(code=code).count(), 1)
 

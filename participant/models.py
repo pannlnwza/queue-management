@@ -170,8 +170,6 @@ class HospitalParticipant(Participant):
         return f"Hospital Participant: {self.name}"
 
 
-
-
 class Notification(models.Model):
     queue = models.ForeignKey('manager.Queue', on_delete=models.CASCADE)
     participant = models.ForeignKey(Participant, on_delete=models.CASCADE)
