@@ -157,7 +157,6 @@
                                                         state: '{{ participant.state }}',
                                                         resource: '{{ participant.resource.id }}',
                                                         party_size: '{{ participant.party_size|default:'' }}',
-                                                        seating_preference: '{{ participant.seating_preference|default:'' }}',
                                                         medical_field: '{{ participant.medical_field|default:'' }}',
                                                         priority: '{{ participant.priority|default:'' }}',
                                                         service_type: '{{ participant.service_type|default:'' }}',
@@ -488,7 +487,7 @@
                         radio.checked = (radio.value === (participant.party_size || '').toString());
                     });
                     const special2Element = document.getElementById('edit_special_2');
-                    if (special2Element) special2Element.value = participant.seating_preference || '';
+                    if (special2Element) special2Element.value = participant.service_type || '';
                 } else if (category === 'hospital') {
                     const special1Element = document.getElementById('edit_special_1');
                     if (special1Element) {

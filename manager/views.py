@@ -302,7 +302,8 @@ def serve_participant(request, participant_id):
             }, status=400)
 
         participant.queue.update_estimated_wait_time_per_turn(participant.get_wait_time())
-        handler.assign_to_resource(participant)
+        if not participant.resource:
+            handler.assign_to_resource(participant)
         participant.start_service()
         participant.save()
         logger.info(f"Participant {participant_id} started service in queue {participant.queue.id}.")

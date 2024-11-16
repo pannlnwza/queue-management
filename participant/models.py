@@ -124,15 +124,16 @@ class Participant(models.Model):
 
 class RestaurantParticipant(Participant):
     """Represents a participant in a restaurant queue with table assignment capabilities."""
-    SEATING_PREFERENCES = [
-        ('first_available', 'First Available'),
-        ('indoor', 'Indoor'),
-        ('outdoor', 'Outdoor'),
+    SERVICE_TYPE_CHOICE = [
+        ('dine_in', 'Dine-in'),
+        ('takeout', 'Takeout'),
+        ('delivery', 'Delivery'),
+        ('drive_thru', 'Drive-thru'),
     ]
     party_size = models.PositiveIntegerField(default=1)
-    seating_preference = models.CharField(max_length=20,
-                                          choices=SEATING_PREFERENCES,
-                                          default='first_available')
+    service_type = models.CharField(max_length=20,
+                                    choices=SERVICE_TYPE_CHOICE,
+                                    default='dine_in')
 
 
 class BankParticipant(Participant):

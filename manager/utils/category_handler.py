@@ -178,7 +178,7 @@ class RestaurantQueueHandler(CategoryHandler):
             note=participant_info['note'],
             queue=participant_info['queue'],
             party_size=participant_info['special_1'],
-            seating_preference=participant_info['special_2'],
+            service_type=participant_info['special_2'],
             position=queue_length + 1,
             created_by='staff'
         )
@@ -225,17 +225,17 @@ class RestaurantQueueHandler(CategoryHandler):
         """
         return {
             'special_1': 'Party Size',
-            'special_2': 'Seating Preference',
+            'special_2': 'Service Type',
             'resource_name': 'Table',
             'special_1_choices': None,
-            'special_2_choices': RestaurantParticipant.SEATING_PREFERENCES
+            'special_2_choices': RestaurantParticipant.SERVICE_TYPE_CHOICE
         }
 
     def update_participant(self, participant, data):
         participant.name = data.get('name', participant.name)
         participant.phone = data.get('phone', participant.phone)
         participant.party_size = data.get('special_1', participant.party_size)
-        participant.seating_preference = data.get('special_2', participant.seating_preference)
+        participant.service_type = data.get('special_2', participant.service_type)
         participant.note = data.get('notes') or ""
         new_state = data.get('state')
         participant.email = data.get('email', participant.email)
@@ -246,13 +246,21 @@ class RestaurantQueueHandler(CategoryHandler):
         else:
             table_id = data.get('resource')
             if table_id:
-                queue = self.get_queue_object(participant.queue.id)
-                table = get_object_or_404(queue.resources, id=table_id)
-                table.assign_to_participant(participant=participant, capacity=int(participant.party_size))
-                table.save()
+                table = get_object_or_404(Table, id=table_id)
+                table.assign_to_participant(participant=participant)
+                participant.resource = table
+                participant.service_started_at = timezone.localtime()
+                participant.save()
+
+            else:
+                if participant.resource:
+                    participant.resource.free()
+                    participant.resource = None
+                    participant.state = 'waiting'
+                    participant.service_started_at = None
+                participant.save()
             participant.state = new_state
-            participant.service_started_at = timezone.localtime()
-        participant.save()
+            participant.save()
 
     def get_participant_data(self, participant):
         return {
@@ -266,7 +274,7 @@ class RestaurantQueueHandler(CategoryHandler):
             'completed': participant.service_completed_at.strftime(
                 '%d %b. %Y %H:%M') if participant.service_completed_at else None,
             'special_1': f"{participant.party_size} people",
-            'special_2': participant.get_seating_preference_display(),
+            'special_2': participant.get_service_type_display(),
             'service_duration': participant.get_service_duration(),
             'served': participant.service_started_at.strftime(
                 '%d %b. %Y %H:%M') if participant.service_started_at else None,
@@ -423,7 +431,6 @@ class HospitalQueueHandler(CategoryHandler):
                 doctor = get_object_or_404(Doctor, id=doctor_id)
                 doctor.assign_to_participant(participant=participant)
                 participant.resource = doctor
-                participant.state = 'busy'
                 participant.service_started_at = timezone.localtime()
                 participant.save()
 
@@ -586,10 +593,17 @@ class BankQueueHandler(CategoryHandler):
             if counter_id:
                 counter = get_object_or_404(Counter, id=counter_id)
                 counter.assign_to_participant(participant=participant)
-                counter.save()
-            participant.state = new_state
-            participant.service_started_at = timezone.localtime()
-        participant.save()
+                participant.resource = counter
+                participant.service_started_at = timezone.localtime()
+                participant.save()
+
+            else:
+                if participant.resource:
+                    participant.resource.free()
+                    participant.resource = None
+                    participant.state = 'waiting'
+                    participant.service_started_at = None
+                participant.save()
 
     def get_participant_data(self, participant):
         return {
