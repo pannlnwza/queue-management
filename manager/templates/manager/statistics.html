@@ -105,9 +105,13 @@
                 <div class="card bg-base-200">
                     <div class="card-body">
                         <h2 class="card-title">Dropoffs</h2>
+                        {% if cancelled_percentage == 0 and removed_percentage == 0 %}
+                        <p class="text-center text-gray-500 flex justify-center items-center">No data available</p>
+                        {% else %}
                         <div class="h-40">
                             <canvas id="dropoffsChart"></canvas>
                         </div>
+                        {% endif %}
                     </div>
                 </div>
                 <div class="card bg-base-200">
@@ -173,8 +177,6 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            const dropoffsCtx = document.getElementById('dropoffsChart').getContext('2d');
-            const visitCreatorCtx = document.getElementById('visitCreatorChart').getContext('2d');
             const visitsChartCtx = document.getElementById('visitsChart').getContext('2d');
 
             const commonDonutOptions = {
@@ -196,37 +198,39 @@
                 spacing: 2
             };
 
-            new Chart(dropoffsCtx, {
-                type: 'doughnut',
-                data: {
-                    labels: ['Cancelled', 'Removed'],
-                    datasets: [{
-                        data: [{{ cancelled_percentage }}, {{ removed_percentage }}],
-                        backgroundColor: [
-                            '#FFA726',
-                            '#AB47BC'
-                        ],
-                        borderWidth: 0
-                    }]
-                },
-                options: commonDonutOptions
-            });
+            const dropoffsCanvas = document.getElementById('dropoffsChart');
+            if (dropoffsCanvas) {
+                const dropoffsCtx = dropoffsCanvas.getContext('2d');
+                new Chart(dropoffsCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Cancelled', 'Removed'],
+                        datasets: [{
+                            data: [{{ cancelled_percentage }}, {{ removed_percentage }}],
+                            backgroundColor: ['#FFA726', '#AB47BC'],
+                            borderWidth: 0,
+                        }],
+                    },
+                    options: commonDonutOptions,
+                });
+            }
 
-            new Chart(visitCreatorCtx, {
-                type: 'doughnut',
-                data: {
-                    labels: ['Staff', 'Guest'],
-                    datasets: [{
-                        data: [65, 35],
-                        backgroundColor: [
-                            '#E91E63',
-                            '#81C784'
-                        ],
-                        borderWidth: 0
-                    }]
-                },
-                options: commonDonutOptions
-            });
+            const visitCreatorCanvas = document.getElementById('visitCreatorChart');
+            if (visitCreatorCanvas) {
+                const visitCreatorCtx = visitCreatorCanvas.getContext('2d');
+                new Chart(visitCreatorCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Staff', 'Guest'],
+                        datasets: [{
+                            data: [65, 35],
+                            backgroundColor: ['#E91E63', '#81C784'],
+                            borderWidth: 0,
+                        }],
+                    },
+                    options: commonDonutOptions,
+                });
+            }
 
             new Chart(visitsChartCtx, {
                 type: 'bar',
