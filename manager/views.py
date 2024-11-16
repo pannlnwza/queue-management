@@ -466,8 +466,7 @@ class StatisticsView(LoginRequiredMixin, generic.TemplateView):
         context['served_percentage'] = queue.get_served_percentage()
         context['average_wait_time'] = queue.get_average_waiting_time()
         context['max_wait_time'] = queue.get_max_waiting_time()
-        context[
-            'average_service_duration'] = queue.get_average_service_duration()
+        context['average_service_duration'] = queue.get_average_service_duration()
         context['max_service_duration'] = queue.get_max_service_duration()
         context['peak_line_length'] = queue.get_peak_line_length()
         context['avg_line_length'] = queue.get_avg_line_length()
@@ -475,6 +474,8 @@ class StatisticsView(LoginRequiredMixin, generic.TemplateView):
         context['unattended_percentage'] = queue.get_unattended_percentage()
         context['cancelled_percentage'] = queue.get_cancelled_percentage()
         context['removed_percentage'] = queue.get_removed_percentage()
+        context['guest'] = queue.get_number_created_by_guest()
+        context['staff'] = queue.get_number_created_by_staff()
         return context
 
 

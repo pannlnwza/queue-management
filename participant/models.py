@@ -17,7 +17,10 @@ class Participant(models.Model):
         ('cancelled', 'Cancelled'),
         ('removed', 'Removed')
     ]
-
+    CREATE_BY = [
+        ('guest', 'Guest'),
+        ('staff', 'Staff')
+    ]
     name = models.CharField(max_length=30)
     email = models.EmailField(max_length=50, null=True, blank=True)
     phone = models.CharField(max_length=20, null=True, blank=True)
@@ -36,6 +39,7 @@ class Participant(models.Model):
                                  blank=True, null=True)
     resource_assigned = models.CharField(max_length=20, null=True, blank=True)
     is_notified = models.BooleanField(default=False)
+    created_by = models.CharField(max_length=10, choices=CREATE_BY, default='guest')
 
     def save(self, *args, **kwargs):
         """Generate a unique ticket code for the participant if not already."""

@@ -166,6 +166,14 @@ class Queue(models.Model):
         """Return the number of participants served."""
         return self.participant_set.filter(state='completed').count()
 
+    def get_number_created_by_guest(self):
+        """Return the number user join by link."""
+        return self.participant_set.filter(created_by='guest').count()
+
+    def get_number_created_by_staff(self):
+        """Return the number user join by staff."""
+        return self.participant_set.filter(created_by='staff').count()
+
     def get_number_dropoff(self):
         """Return the number of dropout participants (cancelled, and removed)."""
         return self.participant_set.filter(
@@ -368,7 +376,7 @@ class Resource(models.Model):
                       p.get_wait_time() is not None]
         average_wait_time = math.ceil(
             sum(wait_times) / len(wait_times)) if wait_times else 0
-        return average_wait_time
+        return format_duration(average_wait_time)
 
     @property
     def avg_serve_time(self):
@@ -380,7 +388,7 @@ class Resource(models.Model):
                        p.get_service_duration() is not None]
         average_serve_time = math.ceil(
             sum(serve_times) / len(serve_times)) if serve_times else 0
-        return average_serve_time
+        return format_duration(average_serve_time)
 
     def __str__(self):
         """Return a string representation of the table."""
