@@ -193,7 +193,7 @@
                 <div class="p-4 space-y-4">
                     <div class="drawer-header flex justify-between items-center">
                         <h2 class="text-lg font-bold">Edit {{ resource_name | title }}</h2>
-                        <label for="editDrawer" class="btn btn-sm btn-circle">✕</label>
+                        <label for="editDrawer" class="btn btn-sm btn-square btn-ghost">✕</label>
                     </div>
                     <hr class="border-base-300"/>
 
@@ -209,7 +209,7 @@
                         {% if queue.category == 'restaurant' %}
                             <div class="form-control w-full">
                                 <label class="label"><span class="label-text">{{ special_column }}</span></label>
-                                <input type="text" id="edit_special" name="special" class="input input-bordered w-full"
+                                <input type="number" id="edit_special" name="special" class="input input-bordered w-full"
                                        required/>
                             </div>
                         {% elif queue.category == 'hospital' %}
