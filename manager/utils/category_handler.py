@@ -158,7 +158,8 @@ class RestaurantQueueHandler(CategoryHandler):
             queue=participant_info['queue'],
             party_size=participant_info['special_1'],
             seating_preference=participant_info['special_2'],
-            position=queue_length + 1
+            position=queue_length + 1,
+            created_by='staff'
         )
 
     def get_participant_set(self, queue_id):
@@ -272,7 +273,8 @@ class HospitalQueueHandler(CategoryHandler):
             queue=participant_info['queue'],
             medical_field=participant_info['special_1'],
             priority=participant_info['special_2'],
-            position=queue_length + 1
+            position=queue_length + 1,
+            created_by='staff'
         )
 
     def get_participant_set(self, queue_id):
@@ -410,7 +412,8 @@ class BankQueueHandler(CategoryHandler):
             note=participant_info['note'],
             queue=participant_info['queue'],
             service_type=participant_info['special_2'],
-            position=queue_length + 1
+            position=queue_length + 1,
+            created_by='staff'
         )
 
     def get_participant_set(self, queue_id):

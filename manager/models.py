@@ -9,6 +9,8 @@ from django.templatetags.static import static
 from django.contrib.auth.models import User
 from django.urls import reverse
 from django.conf import settings
+from django.apps import apps
+from manager.utils.helpers import format_duration
 
 
 class Queue(models.Model):
@@ -158,39 +160,9 @@ class Queue(models.Model):
         """
         return f"{settings.SITE_DOMAIN}/welcome/{self.code}/"
 
-    def is_open_now(self):
-        """Check if the queue is currently open."""
-        import datetime
-        now = datetime.datetime.now()
-        today = now.strftime('%A')
-        current_time = now.time()
-
-        if hours := self.opening_hours.filter(day=today).first():
-            return hours.opening_time <= current_time <= hours.closing_time
-        return False
-
     def __str__(self) -> str:
         """Return a string representation of the queue."""
         return self.name
-
-
-class OpeningHours(models.Model):
-    queue = models.ForeignKey(Queue, on_delete=models.CASCADE, related_name="opening_hours")
-    day = models.CharField(max_length=10, choices=[
-        ('Monday', 'Monday'),
-        ('Tuesday', 'Tuesday'),
-        ('Wednesday', 'Wednesday'),
-        ('Thursday', 'Thursday'),
-        ('Friday', 'Friday'),
-        ('Saturday', 'Saturday'),
-        ('Sunday', 'Sunday'),
-    ])
-    opening_time = models.TimeField()
-    closing_time = models.TimeField()
-
-    class Meta:
-        unique_together = ('queue', 'day')
-
 
 class Resource(models.Model):
     RESOURCE_STATUS = [
@@ -241,6 +213,58 @@ class Resource(models.Model):
         Checks if this resource is currently assigned to a participant.
         """
         return self.assigned_to is not None
+      
+    @property
+    def total(self):
+        """Return the total number of participants assigned to this resource."""
+        Participant = apps.get_model('participant', 'Participant')
+        return Participant.objects.filter(resource=self).count()
+
+    @property
+    def served(self):
+        """Return the number of participants who are currently being served or have completed service at this resource."""
+        Participant = apps.get_model('participant', 'Participant')
+        return Participant.objects.filter(resource=self, state__in=['serving',
+                                                                    'completed']).count()
+
+    @property
+    def dropoff(self):
+        """Return the number of participants who have been removed or cancelled from this resource."""
+        Participant = apps.get_model('participant', 'Participant')
+        return Participant.objects.filter(resource=self, state__in=['removed',
+                                                                    'cancelled']).count()
+
+    @property
+    def completed(self):
+        """Return the number of participants who have completed service at this resource."""
+        Participant = apps.get_model('participant', 'Participant')
+        return Participant.objects.filter(resource=self,
+                                          state='completed').count()
+
+    @property
+    def avg_wait_time(self):
+        """Calculate the average wait time for participants in the 'serving' or 'completed' states at this resource."""
+        Participant = apps.get_model('participant', 'Participant')
+        participants = Participant.objects.filter(resource=self,
+                                                  state__in=['serving',
+                                                             'completed'])
+        wait_times = [p.get_wait_time() for p in participants if
+                      p.get_wait_time() is not None]
+        average_wait_time = math.ceil(
+            sum(wait_times) / len(wait_times)) if wait_times else 0
+        return format_duration(average_wait_time)
+
+    @property
+    def avg_serve_time(self):
+        """Calculate the average service duration for participants in the 'completed' state at this resource."""
+        Participant = apps.get_model('participant', 'Participant')
+        participants = Participant.objects.filter(resource=self,
+                                                  state='completed')
+        serve_times = [p.get_service_duration() for p in participants if
+                       p.get_service_duration() is not None]
+        average_serve_time = math.ceil(
+            sum(serve_times) / len(serve_times)) if serve_times else 0
+        return format_duration(average_serve_time)
 
     def __str__(self):
         """Return a string representation of the table."""
@@ -284,11 +308,13 @@ class RestaurantQueue(Queue):
     """Represents a queue specifically for restaurant."""
     has_outdoor = models.BooleanField(default=False)
     resources = models.ManyToManyField(Table)
+    resource_name = 'Tables'
 
 
 class BankQueue(Queue):
     """Represents a queue specifically for bank services."""
     resources = models.ManyToManyField(Counter)
+    resource_name = 'Counters'
 
     def __str__(self):
         return f"Bank Queue: {self.name}"
@@ -297,8 +323,9 @@ class BankQueue(Queue):
 class HospitalQueue(Queue):
     """Represents a queue specifically for hospital services."""
     resources = models.ManyToManyField(Doctor)
+    resource_name = 'Doctors'
 
-
+    
 class UserProfile(models.Model):
     """Represents a user profile in the system."""
     user = models.OneToOneField(User, on_delete=models.CASCADE)

@@ -17,9 +17,8 @@ from django.views import generic
 from django.views.decorators.http import require_http_methods
 from manager.forms import QueueForm, CustomUserCreationForm, EditProfileForm
 from participant.models import Participant, Notification
-from manager.models import Queue, UserProfile
+from manager.models import Queue, UserProfile, QueueLineLength
 from manager.utils.queue_handler import QueueHandlerFactory
-from manager.models import Queue
 from manager.utils.category_handler import CategoryHandlerFactory
 
 
@@ -177,6 +176,7 @@ def delete_participant(request, participant_id):
         return JsonResponse({'error': 'Unauthorized.'}, status=403)
 
     queue = participant.queue
+    participant.state = 'removed'
     participant.delete()
     logger.info(f"Participant {participant_id} is deleted.")
 
@@ -231,6 +231,7 @@ def add_participant(request, queue_id):
         'special_2': special_2,
     }
     handler.create_participant(data)
+    queue.record_line_length()
     return redirect('manager:participant_list', queue_id)
 
 
@@ -440,6 +441,23 @@ class StatisticsView(LoginRequiredMixin, generic.TemplateView):
 
         context['queue'] = queue
         context['participant_set'] = participant_set
+        context['waitlisted'] = queue.get_number_of_participants()
+        context['currently_waiting'] = queue.get_number_waiting_now()
+        context['currently_serving'] = queue.get_number_serving_now()
+        context['served'] = queue.get_number_served()
+        context['served_percentage'] = queue.get_served_percentage()
+        context['average_wait_time'] = queue.get_average_waiting_time()
+        context['max_wait_time'] = queue.get_max_waiting_time()
+        context['average_service_duration'] = queue.get_average_service_duration()
+        context['max_service_duration'] = queue.get_max_service_duration()
+        context['peak_line_length'] = queue.get_peak_line_length()
+        context['avg_line_length'] = queue.get_avg_line_length()
+        context['dropoff_percentage'] = queue.get_dropoff_percentage()
+        context['unhandled_percentage'] = queue.get_unhandled_percentage()
+        context['cancelled_percentage'] = queue.get_cancelled_percentage()
+        context['removed_percentage'] = queue.get_removed_percentage()
+        context['guest_percentage'] = queue.get_guest_percentage()
+        context['staff_percentage'] = queue.get_staff_percentage()
         return context
 
 

@@ -18,9 +18,10 @@
         <label for="my-drawer-2" class="drawer-overlay"></label>
         <div class="menu p-4 min-h-full bg-base-100 text-base-content flex flex-col items-center">
             <div class="avatar placeholder mb-4">
-                <div class="bg-pink-400 text-bg-base-100 rounded w-10">
-                    <span>Kuy</span>
-                </div>
+                <img src="{{ queue.get_logo_url }}"
+                 alt="{{ queue.name }} logo"
+                 class="rounded-lg object-cover flex-shrink-0"
+                 style="max-width: 50px; max-height: 50px;">
             </div>
             <ul class="space-y-4 justify-center">
                 <li><a href="{% url 'manager:manage_waitlist' queue_id %}"
