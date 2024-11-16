@@ -444,8 +444,22 @@ class YourQueueView(LoginRequiredMixin, generic.TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         user = self.request.user
+        state_filter = self.request.GET.get('state_filter', 'any_state')
         authorized_queues = Queue.objects.filter(created_by=user)
+
+        state_filter_options = {
+            'any_state': 'Any state',
+            'open': 'Open',
+            'closed': 'Closed',
+        }
+
+        if state_filter == 'open':
+            authorized_queues = authorized_queues.filter(is_closed=False)
+        elif state_filter == 'closed':
+            authorized_queues = authorized_queues.filter(is_closed=True)
+
         context['authorized_queues'] = authorized_queues
+        context['selected_state_filter'] = state_filter_options.get(state_filter)
         return context
 
 
@@ -596,6 +610,7 @@ def edit_queue(request, queue_id):
         open_time = request.POST.get('open_time')
         close_time = request.POST.get('close_time')
         logo = request.FILES.get('logo', None)
+
 
         queue.name = name
         queue.description = description

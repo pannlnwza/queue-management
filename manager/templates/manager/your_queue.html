@@ -1,231 +1,288 @@
 {% extends 'sidebar_home.html' %}
 
 {% block content %}
-        <div class="flex justify-between items-center mb-5">
-                <h1 class="text-2xl font-bold antialiased font-sans">Your Queue</h1>
-                <div class="ml-auto">
-                    <a class="btn btn-primary" href="{% url 'manager:create_q' %}">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="size-4">
-                          <path fill-rule="evenodd" d="M8 15A7 7 0 1 0 8 1a7 7 0 0 0 0 14Zm.75-10.25v2.5h2.5a.75.75 0 0 1 0 1.5h-2.5v2.5a.75.75 0 0 1-1.5 0v-2.5h-2.5a.75.75 0 0 1 0-1.5h2.5v-2.5a.75.75 0 0 1 1.5 0Z" clip-rule="evenodd" />
-                        </svg>
-                        Create Queue
-                    </a>
-                </div>
-            </div>
+    <div class="flex justify-between items-center mb-5">
+        <h1 class="text-2xl font-bold antialiased font-sans">Your Queue</h1>
+        <div class="ml-auto">
+            <a class="btn btn-primary" href="{% url 'manager:create_q' %}">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="size-4">
+                    <path fill-rule="evenodd"
+                          d="M8 15A7 7 0 1 0 8 1a7 7 0 0 0 0 14Zm.75-10.25v2.5h2.5a.75.75 0 0 1 0 1.5h-2.5v2.5a.75.75 0 0 1-1.5 0v-2.5h-2.5a.75.75 0 0 1 0-1.5h2.5v-2.5a.75.75 0 0 1 1.5 0Z"
+                          clip-rule="evenodd"/>
+                </svg>
+                Create Queue
+            </a>
+        </div>
+    </div>
     <div class="flex items-center mb-4">
-    <!-- Search Form -->
-    <form action="#" method="get" class="flex items-center w-2/3 max-w-xs">
-        <label class="input input-bordered flex items-center w-full">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
-              <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
-            </svg>
-            <input type="text" name="search" placeholder="Search" class="pl-2 w-full text-sm" value="{{ request.GET.search|default:'' }}" />
-        </label>
-    </form>
+        <form class="flex items-center w-2/3 max-w-xs">
+            <label class="input input-bordered flex items-center w-full">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                     stroke="currentColor" class="w-5 h-5">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"/>
+                </svg>
+                <input type="text" name="search" placeholder="Search" class="pl-2 w-full text-sm"
+                       id="searchInput" oninput="queueSearch()"/>
+            </label>
+        </form>
 
-    <!-- Filter Dropdown -->
-    <details class="dropdown ml-1">
-        <summary class="btn no-animation flex items-center" id="selectedTimeFilter">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="w-4 h-4 mr-1">
-              <path d="M5.75 7.5a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5ZM5 10.25a.75.75 0 1 1 1.5 0 .75.75 0 0 1-1.5 0ZM10.25 7.5a.75.75 0 1 0 0 1.5.75.75.75 0 0 0 0-1.5ZM7.25 8.25a.75.75 0 1 1 1.5 0 .75.75 0 0 1-1.5 0ZM8 9.5A.75.75 0 1 0 8 11a.75.75 0 0 0 0-1.5Z" />
-              <path fill-rule="evenodd" d="M4.75 1a.75.75 0 0 0-.75.75V3a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2V1.75a.75.75 0 0 0-1.5 0V3h-5V1.75A.75.75 0 0 0 4.75 1ZM3.5 7a1 1 0 0 1 1-1h7a1 1 0 0 1 1 1v4.5a1 1 0 0 1-1 1h-7a1 1 0 0 1-1-1V7Z" clip-rule="evenodd" />
-            </svg>
-            Any state
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="w-4 h-4 ml-1">
-              <path fill-rule="evenodd" d="M4.22 6.22a.75.75 0 0 1 1.06 0L8 8.94l2.72-2.72a.75.75 0 1 1 1.06 1.06l-3.25 3.25a.75.75 0 0 1-1.06 0L4.22 7.28a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd" />
-            </svg>
-        </summary>
-        <ul class="menu dropdown-content bg-base-100 rounded-box z-[1] w-52 p-2 shadow">
-            <li><a href="?search={{ request.GET.search }}&time_filter=any_state">Any state</a></li>
-            <li><a href="?search={{ request.GET.search }}&time_filter=active">Active</a></li>
-            <li><a href="?search={{ request.GET.search }}&time_filter=inactive">Inactive</a></li>
-        </ul>
-    </details>
-</div>
+        <details class="dropdown ml-1">
+            <summary class="btn no-animation flex items-center" id="selectedTimeFilter">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="w-4 h-4 mr-1">
+                    <path d="M5.75 7.5a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5ZM5 10.25a.75.75 0 1 1 1.5 0 .75.75 0 0 1-1.5 0ZM10.25 7.5a.75.75 0 1 0 0 1.5.75.75.75 0 0 0 0-1.5ZM7.25 8.25a.75.75 0 1 1 1.5 0 .75.75 0 0 1-1.5 0ZM8 9.5A.75.75 0 1 0 8 11a.75.75 0 0 0 0-1.5Z"/>
+                    <path fill-rule="evenodd"
+                          d="M4.75 1a.75.75 0 0 0-.75.75V3a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2V1.75a.75.75 0 0 0-1.5 0V3h-5V1.75A.75.75 0 0 0 4.75 1ZM3.5 7a1 1 0 0 1 1-1h7a1 1 0 0 1 1 1v4.5a1 1 0 0 1-1 1h-7a1 1 0 0 1-1-1V7Z"
+                          clip-rule="evenodd"/>
+                </svg>
+                {{ selected_state_filter }}
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="w-4 h-4 ml-1">
+                    <path fill-rule="evenodd"
+                          d="M4.22 6.22a.75.75 0 0 1 1.06 0L8 8.94l2.72-2.72a.75.75 0 1 1 1.06 1.06l-3.25 3.25a.75.75 0 0 1-1.06 0L4.22 7.28a.75.75 0 0 1 0-1.06Z"
+                          clip-rule="evenodd"/>
+                </svg>
+            </summary>
+            <ul class="menu dropdown-content bg-base-100 rounded-box z-[1] w-52 p-2 shadow">
+                <li><a href="?state_filter=any_state">Any state</a></li>
+                <li><a href="?state_filter=open">Open</a></li>
+                <li><a href="?state_filter=closed">Closed</a></li>
+            </ul>
+        </details>
+    </div>
 
 
-<div class="overflow-x-auto">
-    <table class="table min-w-full bg-base-100 divide-y divide-gray-200" id="participantTable">
-        <thead>
+    <div class="overflow-x-auto">
+        <table class="table min-w-full bg-base-100 divide-y divide-gray-200" id="participantTable">
+            <thead>
             <tr>
                 <th class="w-10 px-2 py-3"></th>
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">State</th>
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Serving</th>
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Waiting</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Wait time</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Wait time
+                </th>
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"></th>
             </tr>
-        </thead>
-        <tbody id="tableBody" class="divide-y divide-gray-200">
-        {% if authorized_queues %}
-            {% for queue in authorized_queues %}
-                <tr class="hover:bg-gray-100 cursor-pointer" onclick="handleRowClick(event, '{{ queue.id }}')">
-                    <td class="w-10 px-2 py-4">
-                        <div class="form-control max-w-sm">
-                            <label class="label cursor-pointer">
-                                <input type="checkbox" class="checkbox checkbox-primary border-base-content" />
-                            </label>
-                        </div>
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap">
-                        <div class="flex items-center space-x-3">
-                            <div class="avatar">
-                                <div class="w-9 rounded-full">
-                                    <img src="https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.webp" />
+            </thead>
+            <tbody id="tableBody" class="divide-y divide-gray-200">
+            {% if authorized_queues %}
+                {% for queue in authorized_queues %}
+                    <tr class="hover:bg-gray-100 cursor-pointer" onclick="handleRowClick(event, '{{ queue.id }}')">
+                        <td class="w-10 px-2 py-4">
+                            <div class="form-control max-w-sm">
+                                <label class="label cursor-pointer">
+                                    <input type="checkbox" class="checkbox checkbox-primary border-base-content"/>
+                                </label>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="flex items-center space-x-3">
+                                <div class="avatar">
+                                    <div class="w-9 rounded-full">
+                                        <img src="https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.webp"/>
+                                    </div>
                                 </div>
+                                <span class="font-semibold">{{ queue.name }}</span>
                             </div>
-                            <span class="font-semibold">{{ queue.name }}</span>
-                        </div>
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap">{{ queue.waiting }}</td>
-                    <td class="px-6 py-4 whitespace-nowrap">{{ queue.state }}</td>
-                    <td class="px-6 py-4 whitespace-nowrap">{{ queue.serving }}</td>
-                    <td class="px-6 py-4 whitespace-nowrap">{{ queue.waiting }}</td>
-                    <td class="px-6 py-4 whitespace-nowrap">{{ queue.wait_time }}</td>
-                    <td class="px-6 py-4 whitespace-nowrap">
-                        <div class="dropdown dropdown-left dropdown-end z-100">
-                            <div tabindex="0" role="button" class="btn btn-square btn-sm btn-ghost" onclick="event.stopPropagation();">
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="size-5">
-                                    <path d="M3 10a1.5 1.5 0 1 1 3 0 1.5 1.5 0 0 1-3 0ZM8.5 10a1.5 1.5 0 1 1 3 0 1.5 1.5 0 0 1-3 0ZM15.5 8.5a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3Z" />
-                                </svg>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">{{ queue.get_category_display }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            {% if queue.is_closed %}
+                                <span class="badge badge-error text-base-100">Closed</span>
+                            {% else %}
+                                <span class="badge badge-success text-base-100">Open</span>
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">{{ queue.get_number_serving_now }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">{{ queue.get_number_waiting_now }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">{{ queue.estimated_wait_time }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="dropdown dropdown-left dropdown-end z-100">
+                                <div tabindex="0" role="button" class="btn btn-square btn-sm btn-ghost"
+                                     onclick="event.stopPropagation();">
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"
+                                         class="size-5">
+                                        <path d="M3 10a1.5 1.5 0 1 1 3 0 1.5 1.5 0 0 1-3 0ZM8.5 10a1.5 1.5 0 1 1 3 0 1.5 1.5 0 0 1-3 0ZM15.5 8.5a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3Z"/>
+                                    </svg>
+                                </div>
+                                <ul tabindex="0"
+                                    class="dropdown-content menu bg-base-100 rounded-box z-100 w-52 p-2 shadow">
+                                    <li>
+                                        <a href="{% url 'manager:queue_settings' queue.id %}">
+                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"
+                                                 fill="currentColor" class="size-5">
+                                                <path d="m5.433 13.917 1.262-3.155A4 4 0 0 1 7.58 9.42l6.92-6.918a2.121 2.121 0 0 1 3 3l-6.92 6.918c-.383.383-.84.685-1.343.886l-3.154 1.262a.5.5 0 0 1-.65-.65Z"/>
+                                                <path d="M3.5 5.75c0-.69.56-1.25 1.25-1.25H10A.75.75 0 0 0 10 3H4.75A2.75 2.75 0 0 0 2 5.75v9.5A2.75 2.75 0 0 0 4.75 18h9.5A2.75 2.75 0 0 0 17 15.25V10a.75.75 0 0 0-1.5 0v5.25c0 .69-.56 1.25-1.25 1.25h-9.5c-.69 0-1.25-.56-1.25-1.25v-9.5Z"/>
+                                            </svg>
+                                            Edit
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a id="participantDetail" class="text-red-500 z-100"
+                                           onclick="openDeleteModal({{ queue.id }}); event.stopPropagation();">
+                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"
+                                                 fill="currentColor" class="size-5">
+                                                <path fill-rule="evenodd"
+                                                      d="M8.75 1A2.75 2.75 0 0 0 6 3.75v.443c-.795.077-1.584.176-2.365.298a.75.75 0 1 0 .23 1.482l.149-.022.841 10.518A2.75 2.75 0 0 0 7.596 19h4.807a2.75 2.75 0 0 0 2.742-2.53l.841-10.52.149.023a.75.75 0 0 0 .23-1.482A41.03 41.03 0 0 0 14 4.193V3.75A2.75 2.75 0 0 0 11.25 1h-2.5ZM10 4c.84 0 1.673.025 2.5.075V3.75c0-.69-.56-1.25-1.25-1.25h-2.5c-.69 0-1.25.56-1.25 1.25v.325C8.327 4.025 9.16 4 10 4ZM8.58 7.72a.75.75 0 0 0-1.5.06l.3 7.5a.75.75 0 1 0 1.5-.06l-.3-7.5Zm4.34.06a.75.75 0 1 0-1.5-.06l-.3 7.5a.75.75 0 1 0 1.5.06l.3-7.5Z"
+                                                      clip-rule="evenodd"/>
+                                            </svg>
+                                            Delete
+                                        </a>
+                                    </li>
+                                </ul>
                             </div>
-                            <ul tabindex="0" class="dropdown-content menu bg-base-100 rounded-box z-100 w-52 p-2 shadow">
-                                <li>
-                                    <a href="{% url 'manager:queue_settings' queue.id %}">
-                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="size-5">
-                                            <path d="m5.433 13.917 1.262-3.155A4 4 0 0 1 7.58 9.42l6.92-6.918a2.121 2.121 0 0 1 3 3l-6.92 6.918c-.383.383-.84.685-1.343.886l-3.154 1.262a.5.5 0 0 1-.65-.65Z" />
-                                            <path d="M3.5 5.75c0-.69.56-1.25 1.25-1.25H10A.75.75 0 0 0 10 3H4.75A2.75 2.75 0 0 0 2 5.75v9.5A2.75 2.75 0 0 0 4.75 18h9.5A2.75 2.75 0 0 0 17 15.25V10a.75.75 0 0 0-1.5 0v5.25c0 .69-.56 1.25-1.25 1.25h-9.5c-.69 0-1.25-.56-1.25-1.25v-9.5Z" />
-                                        </svg>Edit
-                                    </a>
-                                </li>
-                                <li>
-                                    <a id="participantDetail" class="text-red-500 z-100" onclick="openDeleteModal({{ queue.id }}); event.stopPropagation();">
-                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="size-5">
-                                            <path fill-rule="evenodd" d="M8.75 1A2.75 2.75 0 0 0 6 3.75v.443c-.795.077-1.584.176-2.365.298a.75.75 0 1 0 .23 1.482l.149-.022.841 10.518A2.75 2.75 0 0 0 7.596 19h4.807a2.75 2.75 0 0 0 2.742-2.53l.841-10.52.149.023a.75.75 0 0 0 .23-1.482A41.03 41.03 0 0 0 14 4.193V3.75A2.75 2.75 0 0 0 11.25 1h-2.5ZM10 4c.84 0 1.673.025 2.5.075V3.75c0-.69-.56-1.25-1.25-1.25h-2.5c-.69 0-1.25.56-1.25 1.25v.325C8.327 4.025 9.16 4 10 4ZM8.58 7.72a.75.75 0 0 0-1.5.06l.3 7.5a.75.75 0 1 0 1.5-.06l-.3-7.5Zm4.34.06a.75.75 0 1 0-1.5-.06l-.3 7.5a.75.75 0 1 0 1.5.06l.3-7.5Z" clip-rule="evenodd" />
-                                        </svg>Delete
-                                    </a>
-                                </li>
-                            </ul>
-                        </div>
-                    </td>
-                </tr>
-            {% endfor %}
-        {% endif %}
-        </tbody>
-    </table>
-</div>
-
-
-       <!-- Delete Modal -->
-<input type="checkbox" id="deleteModal" class="modal-toggle" />
-<div class="modal">
-  <div class="modal-box">
-    <h3 class="font-bold text-lg">Are you sure you want to delete this record?</h3>
-    <p class="py-4">This action cannot be undone.</p>
-    <div class="modal-action">
-      <button class="btn btn-error" id="confirmDeleteButton">Delete</button>
-      <label for="deleteModal" class="btn">Cancel</label>
+                        </td>
+                    </tr>
+                {% endfor %}
+            {% endif %}
+            </tbody>
+        </table>
     </div>
-  </div>
-</div>
 
-<!-- Edit Sidebar Drawer -->
-<div class="drawer drawer-end drawer-overlay z-100">
-    <input id="editDrawer" type="checkbox" class="drawer-toggle" />
-    <div class="drawer-side">
-        <label for="editDrawer" class="drawer-overlay"></label>
-        <div class="bg-base-100 min-h-full w-100">
-            <div class="p-4 space-y-4">
-                <div class="drawer-header">
-                    <h2 class="text-lg font-bold">Edit Queue</h2>
-                    <hr class="border-base-300" />
-                </div>
-                <form id="editForm" method="POST">
-                    {% csrf_token %}
-                    <input type="hidden" id="queue_id" name="queue_id">
-                    <div class="form-control w-full">
-                        <label class="label">
-                            <span class="label-text">Name*</span>
-                        </label>
-                        <input type="text" id="edit_name" name="name" class="input input-bordered w-full" />
-                    </div>
-                    <div class="form-control w-full">
-                        <label class="label">
-                            <span class="label-text">Description</span>
-                        </label>
-                        <textarea id="edit_description" name="description" class="textarea textarea-bordered w-full"></textarea>
 
-                    </div>
-                    <div class="form-control w-full">
-                        <label class="label">
-                            <span class="label-text">State</span>
-                        </label>
-                        <input type="tel" id="edit_state" name="state" class="input input-bordered w-full" />
-                    </div>
-                    <button type="submit" class="btn btn-primary">Submit</button>
-                </form>
+    <!-- Delete Modal -->
+    <input type="checkbox" id="deleteModal" class="modal-toggle"/>
+    <div class="modal">
+        <div class="modal-box">
+            <h3 class="font-bold text-lg">Are you sure you want to delete this record?</h3>
+            <p class="py-4">This action cannot be undone.</p>
+            <div class="modal-action">
+                <button class="btn btn-error" id="confirmDeleteButton">Delete</button>
+                <label for="deleteModal" class="btn">Cancel</label>
             </div>
         </div>
     </div>
-</div>
 
-<script>
-let deleteQueueId = null;
+    <!-- Edit Sidebar Drawer -->
+    <div class="drawer drawer-end drawer-overlay z-100">
+        <input id="editDrawer" type="checkbox" class="drawer-toggle"/>
+        <div class="drawer-side">
+            <label for="editDrawer" class="drawer-overlay"></label>
+            <div class="bg-base-100 min-h-full w-100">
+                <div class="p-4 space-y-4">
+                    <div class="drawer-header">
+                        <h2 class="text-lg font-bold">Edit Queue</h2>
+                        <hr class="border-base-300"/>
+                    </div>
+                    <form id="editForm" method="POST">
+                        {% csrf_token %}
+                        <input type="hidden" id="queue_id" name="queue_id">
+                        <div class="form-control w-full">
+                            <label class="label">
+                                <span class="label-text">Name*</span>
+                            </label>
+                            <input type="text" id="edit_name" name="name" class="input input-bordered w-full"/>
+                        </div>
+                        <div class="form-control w-full">
+                            <label class="label">
+                                <span class="label-text">Description</span>
+                            </label>
+                            <textarea id="edit_description" name="description"
+                                      class="textarea textarea-bordered w-full"></textarea>
 
-function deleteQueue(id) {
-    fetch(`/manager/delete_queue/${id}/`, {
-        method: 'DELETE',
-        headers: {
-            'X-CSRFToken': '{{ csrf_token }}',
-            'Content-Type': 'application/json'
+                        </div>
+                        <div class="form-control w-full">
+                            <label class="label">
+                                <span class="label-text">State</span>
+                            </label>
+                            <input type="tel" id="edit_state" name="state" class="input input-bordered w-full"/>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Submit</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let deleteQueueId = null;
+
+        function deleteQueue(id) {
+            fetch(`/manager/delete_queue/${id}/`, {
+                method: 'DELETE',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                    'Content-Type': 'application/json'
+                }
+            })
+                .then(response => {
+                    if (response.ok) {
+                        location.reload();
+                    } else {
+                        console.error("Failed to delete queue.");
+                        alert("Failed to delete queue. Please try again.");
+                    }
+                })
+                .catch(error => {
+                    console.error("Error:", error);
+                    alert("An error occurred. Please try again.");
+                });
         }
-    })
-        .then(response => {
-            if (response.ok) {
-                location.reload();
-            } else {
-                console.error("Failed to delete queue.");
-                alert("Failed to delete queue. Please try again.");
+
+        function openDeleteModal(queueId) {
+            deleteQueueId = queueId;
+            document.getElementById('deleteModal').checked = true;
+        }
+
+        document.getElementById('confirmDeleteButton').addEventListener('click', () => {
+            if (deleteQueueId) {
+                deleteQueue(deleteQueueId);
+                document.getElementById('deleteModal').checked = false;
             }
-        })
-        .catch(error => {
-            console.error("Error:", error);
-            alert("An error occurred. Please try again.");
         });
-}
 
-function openDeleteModal(queueId) {
-    deleteQueueId = queueId;
-    document.getElementById('deleteModal').checked = true;
-}
+        function openEditDrawer(element) {
+            const queueId = element.getAttribute('data-id');
+            const queueName = element.getAttribute('data-name');
+            const queueDescription = element.getAttribute('data-description');
 
-document.getElementById('confirmDeleteButton').addEventListener('click', () => {
-    if (deleteQueueId) {
-        deleteQueue(deleteQueueId);
-        document.getElementById('deleteModal').checked = false;
-    }
-});
+            document.getElementById('queue_id').value = queueId;
+            document.getElementById('edit_name').value = queueName || '';
+            document.getElementById('edit_description').value = queueDescription || '';
 
-function openEditDrawer(element) {
-    const queueId = element.getAttribute('data-id');
-    const queueName = element.getAttribute('data-name');
-    const queueDescription = element.getAttribute('data-description');
+            document.getElementById('editDrawer').checked = true;
+        }
 
-    document.getElementById('queue_id').value = queueId;
-    document.getElementById('edit_name').value = queueName || '';
-    document.getElementById('edit_description').value = queueDescription || '';
+        function handleRowClick(event, queueId) {
+            if (event.target.closest('.dropdown')) {
+                return;
+            }
+            location.href = `/manager/manage/${queueId}`;
+        }
 
-    document.getElementById('editDrawer').checked = true;
-}
+        document.addEventListener('DOMContentLoaded', function () {
+            const searchInput = document.getElementById('searchInput');
+            const queueItems = document.querySelectorAll('.queue-item');
 
-function handleRowClick(event, queueId) {
-    if (event.target.closest('.dropdown')) {
-        return;
-    }
-    location.href = `/manager/manage/${queueId}`;
-}
-</script>
+            searchInput.addEventListener('input', function () {
+                const searchTerm = searchInput.value.toLowerCase();
+                queueItems.forEach(item => {
+                    const name = item.getAttribute('data-name').toLowerCase();
+                    item.style.display = name.includes(searchTerm) ? '' : 'none';
+                });
+            });
+        });
+
+        function queueSearch() {
+            const searchValue = document.getElementById('searchInput').value.toLowerCase();
+
+            const rows = document.querySelectorAll('#participantTable tbody tr');
+
+            rows.forEach(row => {
+                const name = row.querySelector('td:nth-child(2)').textContent.toLowerCase();
+                const category = row.querySelector('td:nth-child(3)').textContent.toLowerCase();
+                const state = row.querySelector('td:nth-child(4)').textContent.toLowerCase();
+
+                if (name.includes(searchValue) || category.includes(searchValue) || state.includes(searchValue)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        }
+    </script>
 
 
 
