@@ -137,24 +137,6 @@ class EditQueueView(LoginRequiredMixin, generic.UpdateView):
         return redirect('manager:manage_queues')
 
 
-@login_required
-def add_participant_slot(request, queue_id):
-    """Staff adds a participant to the queue and generates a queue code."""
-    queue = get_object_or_404(Queue, id=queue_id)
-
-    if queue.is_full():
-        messages.error(request,
-                       f'Queue has exceeded the limit capacity ({queue.capacity}).')
-        logger.info(
-            f'{request.user} tried to add participants when the queue was already full.')
-        return redirect('queue:dashboard', queue_id)
-    last_position = queue.participant_set.count()
-    Participant.objects.create(
-        position=last_position + 1,
-        queue=queue)
-    return redirect('manager:dashboard', queue_id)
-
-
 @require_http_methods(["POST"])
 @login_required
 def notify_participant(request, participant_id):
@@ -233,9 +215,8 @@ def add_participant(request, queue_id):
     phone = request.POST.get('phone')
     email = request.POST.get('email')
     note = request.POST.get('note', "")
-    special_1 = request.POST.get('special_1')
+    special_1 = request.POST.get('party_size')
     special_2 = request.POST.get('special_2')
-    party_size = request.POST.get('party_size')
 
     queue = get_object_or_404(Queue, id=queue_id)
     handler = CategoryHandlerFactory.get_handler(queue.category)
@@ -248,7 +229,6 @@ def add_participant(request, queue_id):
         'queue': queue,
         'special_1': special_1,
         'special_2': special_2,
-        'party_size': party_size
     }
     handler.create_participant(data)
     return redirect('manager:participant_list', queue_id)
