@@ -427,7 +427,7 @@
         });
 
         function fetchData() {
-            fetch(`/manager/restaurant-updates/${queue_id}/`)
+            fetch(`/manager/unique-category-updates/${queue_id}/`)
                 .then(response => {
                     if (!response.ok) throw new Error('Network response was not ok');
                     return response.json();
