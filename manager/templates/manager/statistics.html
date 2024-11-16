@@ -94,6 +94,11 @@
                         <div class="h-16">
                             <canvas id="visitsChart"></canvas>
                         </div>
+                        <div class="percentage-info mt-4 text-center flex">
+                            <p><strong>Completed:</strong> {{ served_percentage }}%</p>
+                            <p><strong>Dropoff:</strong> {{ dropoff_percentage }}%</p>
+                            <p><strong>Unhandled:</strong> {{ unhandled_percentage }}%</p>
+                        </div>
                     </div>
                     {% endif %}
                 </div>
@@ -163,7 +168,7 @@
                                 {% else %}
                                     <tr><td colspan="8" style="height: 20px;"></td></tr>
                                     <tr>
-                                        <td colspan="8" class="text-center mt-6">No {{ queue.resource_name }} Available</td>
+                                        <td colspan="8" class="text-center mt-6">No Resources Available</td>
                                     </tr>
                                 {% endif %}
                             </tbody>
@@ -257,7 +262,7 @@
                         },
                         {
                             label: 'Unhandled',
-                            data: [{{ queue.get_number_waiting_now }}],
+                            data: [{{ queue.get_number_unhandled }}],
                             backgroundColor: '#E5E7EB',
                             borderWidth: 0,
                             borderRadius: {

@@ -179,6 +179,10 @@ class Queue(models.Model):
         return self.participant_set.filter(
             state__in=['cancelled', 'removed']).count()
 
+    def get_number_unhandled(self):
+        """Return the number of unhandled participants"""
+        return self.get_number_serving_now() + self.get_number_waiting_now()
+
     def get_served_percentage(self):
         """Return percentage of participants served."""
         num_participants = self.get_number_of_participants()
@@ -191,12 +195,11 @@ class Queue(models.Model):
         return round((self.get_number_dropoff() / num_participants) * 100,
                      2) if num_participants else 0
 
-    def get_unattended_percentage(self):
+    def get_unhandled_percentage(self):
         """Return percentage of unattended participants."""
         num_participants = self.get_number_of_participants()
-        return round(
-            100 - self.get_dropoff_percentage() - self.get_served_percentage(),
-            2) if num_participants else 0
+        return round(((self.get_number_waiting_now() + self.get_number_serving_now()) / num_participants) * 100,
+                     2) if num_participants else 0
 
     def get_cancelled_percentage(self) -> float:
         return self._get_substate_percentage('cancelled')
