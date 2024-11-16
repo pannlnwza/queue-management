@@ -141,9 +141,6 @@ SOCIALACCOUNT_PROVIDERS = {
 
 SITE_ID = 1
 
-GOOGLE_OAUTH_CLIENT_ID = config('GOOGLE_OAUTH_CLIENT_ID', default='your-default-client-id')
-GOOGLE_OAUTH_CLIENT_SECRET = config('GOOGLE_OAUTH_CLIENT_SECRET', default='your-default-client-secret')
-
 
 LOGIN_URL = 'account_login'
 LOGOUT_URL = 'account_logout'
