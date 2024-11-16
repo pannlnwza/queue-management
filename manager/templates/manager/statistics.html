@@ -46,126 +46,92 @@
             </select>
         </div>
 
-        <!-- Stats Cards -->
         <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-8">
             <div class="stat bg-base-200 rounded-box">
                 <div class="stat-title">Waitlisted</div>
-                <div class="stat-value">7</div>
-                <div class="stat-desc">2 waiting now</div>
+                <div class="text-2xl stat-value">{{ waitlisted }}</div>
+                <div class="stat-desc">{{ currently_waiting }} waiting now</div>
             </div>
 
             <div class="stat bg-base-200 rounded-box">
-                <div class="stat-title">Serving</div>
-                <div class="stat-value">5</div>
-                <div class="stat-desc">75% serve rate</div>
+                <div class="stat-title">Served</div>
+                <div class="text-2xl stat-value">{{ served}}</div>
+                <div class="stat-desc">{{ currently_serving }} serving now</div>
             </div>
 
             <div class="stat bg-base-200 rounded-box">
                 <div class="stat-title">Wait Time</div>
-                <div class="stat-value">18.5</div>
-                <div class="stat-desc">2.5h longest wait</div>
+                <div class="text-2xl stat-value">{{ average_wait_time }}</div>
+                <div class="stat-desc">{{ max_wait_time }} longest wait</div>
             </div>
 
             <div class="stat bg-base-200 rounded-box">
                 <div class="stat-title">Serve Duration</div>
-                <div class="stat-value">4.5</div>
-                <div class="stat-desc">12.6h longest serve duration</div>
+                <div class="text-2xl stat-value">{{ average_service_duration }}</div>
+                <div class="stat-desc">{{ max_service_duration }} longest serve duration</div>
             </div>
 
             <div class="stat bg-base-200 rounded-box">
                 <div class="stat-title">Peak Line Length</div>
-                <div class="stat-value">4</div>
-                <div class="stat-desc">3 avg</div>
+                <div class="text-2xl stat-value">{{ peak_line_length }}</div>
+                <div class="stat-desc">{{ avg_line_length }} on average</div>
             </div>
         </div>
 
-        <!-- Charts Section -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-            <!-- Total Visits -->
             <div class="card bg-base-200">
                 <div class="card-body">
-                    <h2 class="card-title">Total visits last 7 days</h2>
-                    <div class="w-full">
-                        <div class="flex items-center gap-2 mb-2">
-                            <progress class="progress progress-primary w-full" value="75" max="100"></progress>
-                            <span class="text-sm">8</span>
+                    <h2 class="card-title flex items-center gap-2">
+                        Total visits last 7 days
+                    </h2>
+                    {% if queue.get_number_served == 0 and queue.get_number_dropoff == 0 and queue.get_number_waiting_now == 0 %}
+                    <p class="text-center text-gray-500 flex justify-center items-center">No data available</p>
+                    {% else %}
+                    <div class="total-visits-container">
+                        <div class="h-16">
+                            <canvas id="visitsChart"></canvas>
                         </div>
-                        <div class="flex gap-4 text-sm">
-                            <span class="flex items-center gap-1">
-                                <div class="badge badge-primary"></div>
-                                Completed
-                            </span>
-                            <span class="flex items-center gap-1">
-                                <div class="badge badge-secondary"></div>
-                                Dropout
-                            </span>
-                            <span class="flex items-center gap-1">
-                                <div class="badge badge-ghost"></div>
-                                Unattended
-                            </span>
+                        <div class="percentage-info mt-4 text-center flex">
+                            <p><strong>Completed:</strong> {{ served_percentage }}%</p>
+                            <p><strong>Dropoff:</strong> {{ dropoff_percentage }}%</p>
+                            <p><strong>Unhandled:</strong> {{ unhandled_percentage }}%</p>
                         </div>
                     </div>
+                    {% endif %}
                 </div>
             </div>
 
-            <!-- Donut Charts -->
+
             <div class="grid grid-cols-2 gap-4">
                 <div class="card bg-base-200">
                     <div class="card-body">
                         <h2 class="card-title">Dropoffs</h2>
-                        <div class="radial-progress" style="--value:75;">75%</div>
+                        {% if cancelled_percentage == 0 and removed_percentage == 0 %}
+                        <p class="text-center text-gray-500 flex justify-center items-center">No data available</p>
+                        {% else %}
+                        <div class="h-40">
+                            <canvas id="dropoffsChart"></canvas>
+                        </div>
+                        {% endif %}
                     </div>
                 </div>
                 <div class="card bg-base-200">
                     <div class="card-body">
                         <h2 class="card-title">Visit creator</h2>
-                        <div class="radial-progress" style="--value:60;">60%</div>
+                        <div class="h-40">
+                            <canvas id="visitCreatorChart"></canvas>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Tables -->
-        <div class="grid gap-6">
-            <!-- Users Table -->
-            <div class="card bg-base-200">
-                <div class="card-body">
-                    <h2 class="card-title mb-4">Users</h2>
-                    <div class="overflow-x-auto">
-                        <table class="table">
-                            <thead>
-                                <tr>
-                                    <th>NAME</th>
-                                    <th>TOTAL</th>
-                                    <th>SERVED</th>
-                                    <th>WAITLISTED</th>
-                                    <th>DROPOFF</th>
-                                    <th>COMPLETED</th>
-                                    <th>AVG WAIT TIME</th>
-                                    <th>AVG SERVE TIME</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td>panxi</td>
-                                    <td>8</td>
-                                    <td>5</td>
-                                    <td>7</td>
-                                    <td>1</td>
-                                    <td>5</td>
-                                    <td>17 hours</td>
-                                    <td>4 hours</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
 
-            <!-- Tables Section -->
+        <div class="grid gap-6">
+
             <div class="card bg-base-200">
                 <div class="card-body">
-                    <h2 class="card-title mb-4">Tables</h2>
+                    <h2 class="card-title mb-4">{{ queue.resource_name }}</h2>
                     <div class="overflow-x-auto">
                         <table class="table">
                             <thead>
@@ -181,16 +147,25 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr>
-                                    <td>Table 1</td>
-                                    <td>2</td>
-                                    <td>1</td>
-                                    <td>2</td>
-                                    <td>0</td>
-                                    <td>1</td>
-                                    <td>2 hours, 52 minutes</td>
-                                    <td>7 hours</td>
-                                </tr>
+                                {% if queue.resource_set.all %}
+                                    {% for resource in queue.resource_set.all %}
+                                    <tr>
+                                        <td>{{ resource.name }}</td>
+                                        <td>{{ resource.total }}</td>
+                                        <td>{{ resource.served }}</td>
+                                        <td>{{ resource.total }}</td>
+                                        <td>{{ resource.dropoff }}</td>
+                                        <td>{{ resource.completed }}</td>
+                                        <td>{{ resource.avg_wait_time }}</td>
+                                        <td>{{ resource.avg_serve_time }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                {% else %}
+                                    <tr><td colspan="8" style="height: 20px;"></td></tr>
+                                    <tr>
+                                        <td colspan="8" class="text-center mt-6">No Resources Available</td>
+                                    </tr>
+                                {% endif %}
                             </tbody>
                         </table>
                     </div>
@@ -198,5 +173,149 @@
             </div>
         </div>
     </div>
+</div>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const visitsChartCtx = document.getElementById('visitsChart').getContext('2d');
+
+            const commonDonutOptions = {
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            padding: 15,
+                            usePointStyle: true,
+                            pointStyle: 'circle',
+                            font: {
+                                size: 11
+                            }
+                        }
+                    }
+                },
+                cutout: '75%',
+                maintainAspectRatio: false,
+                spacing: 2
+            };
+
+            const dropoffsCanvas = document.getElementById('dropoffsChart');
+            if (dropoffsCanvas) {
+                const dropoffsCtx = dropoffsCanvas.getContext('2d');
+                new Chart(dropoffsCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Cancelled', 'Removed'],
+                        datasets: [{
+                            data: [{{ cancelled_percentage }}, {{ removed_percentage }}],
+                            backgroundColor: ['#FFA726', '#AB47BC'],
+                            borderWidth: 0,
+                        }],
+                    },
+                    options: commonDonutOptions,
+                });
+            }
+
+            const visitCreatorCanvas = document.getElementById('visitCreatorChart');
+            if (visitCreatorCanvas) {
+                const visitCreatorCtx = visitCreatorCanvas.getContext('2d');
+                new Chart(visitCreatorCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Staff', 'Guest'],
+                        datasets: [{
+                            data: [{{ staff_percentage }}, {{ guest_percentage }}],
+                            backgroundColor: ['#E91E63', '#81C784'],
+                            borderWidth: 0,
+                        }],
+                    },
+                    options: commonDonutOptions,
+                });
+            }
+
+            new Chart(visitsChartCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['Completed', 'Dropoff', 'Unhandled'],
+                    datasets: [
+                        {
+                            label: 'Completed',
+                            data: [{{ queue.get_number_served }}],
+                            backgroundColor: '#00A96E',
+                            borderWidth: 0,
+                            borderRadius: {
+                                topLeft: 4,
+                                bottomLeft: 4
+                            },
+                            barPercentage: 1.2
+                        },
+                        {
+                            label: 'Dropoff',
+                            data: [{{ queue.get_number_dropoff }}],
+                            backgroundColor: '#FF5861',
+                            borderWidth: 0,
+                            barPercentage: 1.2
+                        },
+                        {
+                            label: 'Unhandled',
+                            data: [{{ queue.get_number_unhandled }}],
+                            backgroundColor: '#E5E7EB',
+                            borderWidth: 0,
+                            borderRadius: {
+                                topRight: 4,
+                                bottomRight: 4
+                            },
+                            barPercentage: 1.2
+                        }
+                    ]
+                },
+                options: {
+                    indexAxis: 'y',
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            align: 'start',
+                            labels: {
+                                usePointStyle: true,
+                                pointStyle: 'circle',
+                                padding: 15,
+                                font: {
+                                    size: 11
+                                }
+                            }
+                        },
+                        tooltip: {
+                            enabled: false
+                        }
+                    },
+                    scales: {
+                        x: {
+                            stacked: true,
+                            display: true,
+                            grid: {
+                                display: false
+                            },
+                            ticks: {
+                                display: false
+                            }
+                        },
+                        y: {
+                            stacked: true,
+                            display: false
+                        }
+                    },
+                    maintainAspectRatio: false
+                }
+            });
+
+            const totalVisitsDiv = document.createElement('div');
+            totalVisitsDiv.className = 'text-2xl font-bold mb-4';
+            totalVisitsDiv.textContent = '{{ queue.get_number_of_participants }}';
+            document.querySelector('.total-visits-container').prepend(totalVisitsDiv);
+
+            const percentageDiv = document.createElement('div');
+            percentageDiv.className = 'percentage-label';
+            document.querySelector('.total-visits-container').appendChild(percentageDiv);
+        });
+    </script>
 
 {% endblock %}

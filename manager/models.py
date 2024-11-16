@@ -6,6 +6,11 @@ from django.conf import settings
 from django.contrib.auth.models import User
 from django.db import models
 from django.templatetags.static import static
+from django.contrib.auth.models import User
+from django.urls import reverse
+from django.conf import settings
+from django.apps import apps
+from manager.utils.helpers import format_duration
 from django.utils import timezone
 
 
@@ -156,9 +161,154 @@ class Queue(models.Model):
         """
         return f"{settings.SITE_DOMAIN}/welcome/{self.code}/"
 
+    def get_number_waiting_now(self):
+        """Return the number of participants currently waiting."""
+        return self.participant_set.filter(state='waiting').count()
+
+    def get_number_serving_now(self):
+        """Return the number of participants currently serving."""
+        return self.participant_set.filter(state='serving').count()
+
+    def get_number_served(self):
+        """Return the number of participants served."""
+        return self.participant_set.filter(state='completed').count()
+
+    def get_number_created_by_guest(self):
+        """Return the number participants join by link."""
+        return self.participant_set.filter(created_by='guest').count()
+
+    def get_number_created_by_staff(self):
+        """Return the number participants join by staff."""
+        return self.participant_set.filter(created_by='staff').count()
+
+    def get_number_dropoff(self):
+        """Return the number of dropout participants (cancelled, and removed)."""
+        return self.participant_set.filter(
+            state__in=['cancelled', 'removed']).count()
+
+    def get_number_unhandled(self):
+        """Return the number of unhandled participants"""
+        return self.get_number_serving_now() + self.get_number_waiting_now()
+
+    def get_guest_percentage(self):
+        """Return percentage of participants join by link."""
+        num_participants = self.get_number_of_participants()
+        return round((self.get_number_created_by_guest() / num_participants) * 100,
+                     2) if num_participants else 0
+
+    def get_staff_percentage(self):
+        """Return percentage of participants join by staff."""
+        num_participants = self.get_number_of_participants()
+        return round(
+            (self.get_number_created_by_staff() / num_participants) * 100,
+            2) if num_participants else 0
+
+    def get_served_percentage(self):
+        """Return percentage of participants served."""
+        num_participants = self.get_number_of_participants()
+        return round((self.get_number_served() / num_participants) * 100,
+                     2) if num_participants else 0
+
+    def get_dropoff_percentage(self):
+        """Return percentage of dropout participants."""
+        num_participants = self.get_number_of_participants()
+        return round((self.get_number_dropoff() / num_participants) * 100,
+                     2) if num_participants else 0
+
+    def get_unhandled_percentage(self):
+        """Return percentage of unattended participants."""
+        num_participants = self.get_number_of_participants()
+        return round(((self.get_number_waiting_now() + self.get_number_serving_now()) / num_participants) * 100,
+                     2) if num_participants else 0
+
+    def get_cancelled_percentage(self) -> float:
+        return self._get_substate_percentage('cancelled')
+
+    def get_removed_percentage(self) -> float:
+        return self._get_substate_percentage('removed')
+
+    def _get_substate_percentage(self, state: str) -> float:
+        dropoff_total = self.get_number_dropoff()
+        return round((self.participant_set.filter(
+            state=state).count() / dropoff_total) * 100,
+                     2) if dropoff_total else 0
+
+    def get_average_waiting_time(self):
+        """Calculate the average waiting time for participants in minutes."""
+        waiting_times = [
+            p.get_wait_time() for p in
+            self.participant_set.exclude(state='waiting')
+            if p.get_wait_time() is not None
+        ]
+        average_wait_time = math.ceil(
+            sum(waiting_times) / len(waiting_times)) if waiting_times else 0
+        return format_duration(average_wait_time)
+
+    def get_max_waiting_time(self):
+        """Calculate the maximum waiting time for participants in minutes."""
+        waiting_times = [
+            p.get_wait_time() for p in
+            self.participant_set.exclude(state='waiting')
+            if p.get_wait_time() is not None
+        ]
+        max_wait_time = max(waiting_times) if waiting_times else 0
+        return format_duration(max_wait_time)
+
+    def get_average_service_duration(self):
+        """Calculate the average service duration for participants in minutes."""
+        service_durations = [
+            p.get_service_duration() for p in
+            self.participant_set.filter(state='completed')
+            if p.get_service_duration() is not None
+        ]
+        average_service_time = math.ceil(sum(service_durations) / len(
+            service_durations)) if service_durations else 0
+        return format_duration(average_service_time)
+
+    def get_max_service_duration(self):
+        """Get the maximum service duration for participants in minutes."""
+        service_durations = [
+            p.get_service_duration() for p in
+            self.participant_set.filter(state='completed')
+            if p.get_service_duration() is not None
+        ]
+        max_service_time = max(service_durations) if service_durations else 0
+        return format_duration(max_service_time)
+
+    def record_line_length(self):
+        """Records the current line length when a participant joins the queue."""
+        line_length = self.participant_set.filter(state='waiting').count()
+        QueueLineLength.objects.create(queue=self, line_length=line_length)
+
+    def get_peak_line_length(self):
+        """Calculate the peak line length (maximum number of participants waiting) in the queue."""
+        peak_record = QueueLineLength.objects.filter(queue=self).order_by(
+            '-line_length').first()
+        return peak_record.line_length if peak_record else 0
+
+    def get_avg_line_length(self):
+        """Calculate the average line length (average number of participants waiting) in the queue."""
+        line_lengths = QueueLineLength.objects.filter(queue=self)
+        total_records = line_lengths.count()
+        if total_records == 0:
+            return 0
+        total_line_length = sum(record.line_length for record in line_lengths)
+        return math.ceil(total_line_length / total_records)
+
     def __str__(self) -> str:
         """Return a string representation of the queue."""
         return self.name
+
+
+class QueueLineLength(models.Model):
+    """Records the number of participants in the queue at a given time."""
+
+    queue = models.ForeignKey('Queue', on_delete=models.CASCADE)
+    timestamp = models.DateTimeField(auto_now_add=True)
+    line_length = models.PositiveIntegerField()
+
+    def __str__(self):
+        return f"{self.queue.name} at {self.timestamp}: {self.line_length} participants waiting"
 
 
 class Resource(models.Model):
@@ -217,6 +367,58 @@ class Resource(models.Model):
         """
         return self.assigned_to is not None
 
+    @property
+    def total(self):
+        """Return the total number of participants assigned to this resource."""
+        Participant = apps.get_model('participant', 'Participant')
+        return Participant.objects.filter(resource=self).count()
+
+    @property
+    def served(self):
+        """Return the number of participants who are currently being served or have completed service at this resource."""
+        Participant = apps.get_model('participant', 'Participant')
+        return Participant.objects.filter(resource=self, state__in=['serving',
+                                                                    'completed']).count()
+
+    @property
+    def dropoff(self):
+        """Return the number of participants who have been removed or cancelled from this resource."""
+        Participant = apps.get_model('participant', 'Participant')
+        return Participant.objects.filter(resource=self, state__in=['removed',
+                                                                    'cancelled']).count()
+
+    @property
+    def completed(self):
+        """Return the number of participants who have completed service at this resource."""
+        Participant = apps.get_model('participant', 'Participant')
+        return Participant.objects.filter(resource=self,
+                                          state='completed').count()
+
+    @property
+    def avg_wait_time(self):
+        """Calculate the average wait time for participants in the 'serving' or 'completed' states at this resource."""
+        Participant = apps.get_model('participant', 'Participant')
+        participants = Participant.objects.filter(resource=self,
+                                                  state__in=['serving',
+                                                             'completed'])
+        wait_times = [p.get_wait_time() for p in participants if
+                      p.get_wait_time() is not None]
+        average_wait_time = math.ceil(
+            sum(wait_times) / len(wait_times)) if wait_times else 0
+        return format_duration(average_wait_time)
+
+    @property
+    def avg_serve_time(self):
+        """Calculate the average service duration for participants in the 'completed' state at this resource."""
+        Participant = apps.get_model('participant', 'Participant')
+        participants = Participant.objects.filter(resource=self,
+                                                  state='completed')
+        serve_times = [p.get_service_duration() for p in participants if
+                       p.get_service_duration() is not None]
+        average_serve_time = math.ceil(
+            sum(serve_times) / len(serve_times)) if serve_times else 0
+        return format_duration(average_serve_time)
+
     def __str__(self):
         """Return a string representation of the table."""
         return f"{self.name} (Status: {self.status}, Capacity: {self.capacity})"
@@ -259,12 +461,14 @@ class RestaurantQueue(Queue):
     """Represents a queue specifically for restaurant."""
     has_outdoor = models.BooleanField(default=False)
     resources = models.ManyToManyField(Table)
+    resource_name = 'Tables'
 
 
 
 class BankQueue(Queue):
     """Represents a queue specifically for bank services."""
     resources = models.ManyToManyField(Counter)
+    resource_name = 'Counters'
 
     def __str__(self):
         return f"Bank Queue: {self.name}"
@@ -273,6 +477,7 @@ class BankQueue(Queue):
 class HospitalQueue(Queue):
     """Represents a queue specifically for hospital services."""
     resources = models.ManyToManyField(Doctor)
+    resource_name = 'Doctors'
 
 
 class UserProfile(models.Model):
