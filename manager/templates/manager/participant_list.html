@@ -50,7 +50,7 @@
                         <path stroke-linecap="round" stroke-linejoin="round"
                               d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"/>
                     </svg>
-                    <input type="text" placeholder="Search" class="pl-2 w-full"/>
+                    <input type="text" placeholder="Search" id="searchInput" class="pl-2 w-full" oninput="participantSearch()"/>
                 </label>
             </div>
             <details class="dropdown">
@@ -261,7 +261,7 @@
                                         <span class="label-text">{{ resource_name }}</span>
                                     </label>
                                     <select id="edit_resource" name="resource" class="select select-bordered w-full">
-                                    <option></option>
+                                        <option></option>
                                         {% for value in resources %}
                                             <option value="{{ value.id }}">{{ value.name }}
                                                 ({{ value.get_status_display }})
@@ -512,6 +512,22 @@
                 form.action = `/manager/edit_participant/${participant.id}/`;
 
                 document.getElementById('editDrawer').checked = true;
+            }
+
+            function participantSearch() {
+                const searchValue = document.getElementById('searchInput').value.toLowerCase();
+
+                const rows = document.querySelectorAll('#participantTable tbody tr');
+
+                rows.forEach(row => {
+                    const name = row.querySelector('td:nth-child(2)').textContent.toLowerCase();
+
+                    if (name.includes(searchValue)) {
+                        row.style.display = '';
+                    } else {
+                        row.style.display = 'none';
+                    }
+                });
             }
         </script>
 
