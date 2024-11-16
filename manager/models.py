@@ -51,7 +51,7 @@ class Queue(models.Model):
         super().save(*args, **kwargs)
 
     @staticmethod
-    def generate_unique_queue_code(length=6):
+    def generate_unique_queue_code(length=12):
         """Generate a unique code for each participant."""
         characters = string.ascii_uppercase + string.digits
         while True:
