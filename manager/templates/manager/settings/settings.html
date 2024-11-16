@@ -40,7 +40,6 @@
         <form method="post" action="{% url 'manager:edit_queue' queue.id %}" class="space-y-6">
             {% csrf_token %}
             <div class="flex justify-between items-start space-x-6">
-                <!-- Left Section: Settings Form -->
                 <div class="card border-2 border-base-200 max-w-4xl w-full px-7 pt-3 pb-7">
                     <div class="space-y-5">
                         <div class="form-control my-3">
@@ -107,6 +106,7 @@
                         <div class="divider"></div>
 
                         <!-- Resources Card -->
+                        {% if queue.category != 'general' %}
                         <div class="card card-compact border-2 border-base-200 bg-base-100 cursor-pointer my-2"
                              onclick="window.location.href='/manager/settings/{{ queue.id }}/resources'">
                             <div class="card-body">
@@ -149,6 +149,7 @@
                                 </div>
                             </div>
                         </div>
+                    {% endif %}
 
 
                     </div>
