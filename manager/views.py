@@ -563,24 +563,24 @@ class EditProfileView(LoginRequiredMixin, generic.UpdateView):
 
     def form_valid(self, form):
         """Handle both User and UserProfile updates"""
-        with transaction.atomic():
-            user = self.request.user
-            user.username = form.cleaned_data['username']
-            user.email = form.cleaned_data['email']
-            user.first_name = form.cleaned_data.get('first_name', user.first_name) or ''
-            user.last_name = form.cleaned_data.get('last_name', user.last_name) or ''
-            user.save()
+        user = self.request.user
+        user.username = form.cleaned_data['username']
+        user.email = form.cleaned_data['email']
+        user.first_name = form.cleaned_data.get('first_name', user.first_name) or ''
+        user.last_name = form.cleaned_data.get('last_name', user.last_name) or ''
+        user.save()
 
-            profile = form.save(commit=False)
-            profile.user = user
-            if 'phone' in form.cleaned_data:
-                profile.phone = form.cleaned_data['phone']
-            if 'image' in form.cleaned_data and form.cleaned_data['image']:
-                profile.image = form.cleaned_data['image']
+        profile = form.save(commit=False)
+        profile.user = user
+        if 'phone' in form.cleaned_data:
+            profile.phone = form.cleaned_data['phone']
 
-            profile.save()
-            messages.success(self.request, 'Profile updated successfully.')
-            return super().form_valid(form)
+        if 'image' in form.cleaned_data and form.cleaned_data['image']:
+            profile.image = form.cleaned_data['image']
+
+        profile.save()
+        messages.success(self.request, 'Profile updated successfully.')
+        return super().form_valid(form)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
