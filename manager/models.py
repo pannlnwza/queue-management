@@ -332,28 +332,38 @@ class Resource(models.Model):
 
     @property
     def total(self):
+        """Return the total number of participants assigned to this resource."""
         Participant = apps.get_model('participant', 'Participant')
         return Participant.objects.filter(resource=self).count()
 
     @property
     def served(self):
+        """Return the number of participants who are currently being served or have completed service at this resource."""
         Participant = apps.get_model('participant', 'Participant')
-        return Participant.objects.filter(resource=self, state__in=['serving', 'completed']).count()
+        return Participant.objects.filter(resource=self, state__in=['serving',
+                                                                    'completed']).count()
 
     @property
     def dropoff(self):
+        """Return the number of participants who have been removed or cancelled from this resource."""
         Participant = apps.get_model('participant', 'Participant')
-        return Participant.objects.filter(resource=self, state__in=['removed', 'cancelled']).count()
+        return Participant.objects.filter(resource=self, state__in=['removed',
+                                                                    'cancelled']).count()
 
     @property
     def completed(self):
+        """Return the number of participants who have completed service at this resource."""
         Participant = apps.get_model('participant', 'Participant')
-        return Participant.objects.filter(resource=self, state='completed').count()
+        return Participant.objects.filter(resource=self,
+                                          state='completed').count()
 
     @property
     def avg_wait_time(self):
+        """Calculate the average wait time for participants in the 'serving' or 'completed' states at this resource."""
         Participant = apps.get_model('participant', 'Participant')
-        participants = Participant.objects.filter(resource=self, state__in=['serving', 'completed'])
+        participants = Participant.objects.filter(resource=self,
+                                                  state__in=['serving',
+                                                             'completed'])
         wait_times = [p.get_wait_time() for p in participants if
                       p.get_wait_time() is not None]
         average_wait_time = math.ceil(
@@ -362,8 +372,10 @@ class Resource(models.Model):
 
     @property
     def avg_serve_time(self):
+        """Calculate the average service duration for participants in the 'completed' state at this resource."""
         Participant = apps.get_model('participant', 'Participant')
-        participants = Participant.objects.filter(resource=self, state='completed')
+        participants = Participant.objects.filter(resource=self,
+                                                  state='completed')
         serve_times = [p.get_service_duration() for p in participants if
                        p.get_service_duration() is not None]
         average_serve_time = math.ceil(
