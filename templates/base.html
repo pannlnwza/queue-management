@@ -115,22 +115,5 @@
 </body>
 </html>
 
-<script>
-    const themeToggle = document.querySelector('.theme-controller');
+<script src="{% static 'manager/js/actions.js' %}"></script>
 
-    function setTheme(theme) {
-        document.documentElement.setAttribute('data-theme', theme);
-        localStorage.setItem('theme', theme);
-        themeToggle.checked = theme === 'dark';
-    }
-
-    document.addEventListener('DOMContentLoaded', () => {
-        const savedTheme = localStorage.getItem('theme') || 'dark';
-        setTheme(savedTheme);
-    });
-
-    themeToggle.addEventListener('change', (e) => {
-        const newTheme = e.target.checked ? 'dark' : 'light';
-        setTheme(newTheme);
-    });
-</script>
