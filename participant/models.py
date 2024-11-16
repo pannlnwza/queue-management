@@ -14,8 +14,13 @@ class Participant(models.Model):
         ('waiting', 'Waiting'),
         ('serving', 'Serving'),
         ('completed', 'Completed'),
+        ('cancelled', 'Cancelled'),
+        ('removed', 'Removed')
     ]
-
+    CREATE_BY = [
+        ('guest', 'Guest'),
+        ('staff', 'Staff')
+    ]
     name = models.CharField(max_length=30)
     email = models.EmailField(max_length=50, null=True, blank=True)
     phone = models.CharField(max_length=20, null=True, blank=True)
@@ -34,6 +39,7 @@ class Participant(models.Model):
                                  blank=True, null=True)
     resource_assigned = models.CharField(max_length=20, null=True, blank=True)
     is_notified = models.BooleanField(default=False)
+    created_by = models.CharField(max_length=10, choices=CREATE_BY, default='guest')
 
     def save(self, *args, **kwargs):
         """Generate a unique ticket code for the participant if not already."""
@@ -76,19 +82,16 @@ class Participant(models.Model):
         if self.state == 'waiting':
             return int(
                 (timezone.localtime() - self.joined_at).total_seconds() / 60)
-        elif self.state == 'serving' and self.service_started_at:
-            return int((
-                                   self.service_started_at - self.joined_at).total_seconds() / 60)
+        elif self.service_started_at:
+            return int((self.service_started_at - self.joined_at).total_seconds() / 60)
 
     def get_service_duration(self):
         """Calculate the duration of service for the participant."""
         if self.state == 'serving' and self.service_started_at:
-            return int((
-                                   timezone.localtime() - self.service_started_at).total_seconds() / 60)
+            return int((timezone.localtime() - self.service_started_at).total_seconds() / 60)
         elif self.state == 'completed':
             if self.service_started_at and self.service_completed_at:
-                return int((
-                                       self.service_completed_at - self.service_started_at).total_seconds() / 60)
+                return int((self.service_completed_at - self.service_started_at).total_seconds() / 60)
         return 0
 
     def assign_to_resource(self, required_capacity=None):
