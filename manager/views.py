@@ -474,8 +474,8 @@ class StatisticsView(LoginRequiredMixin, generic.TemplateView):
         context['unhandled_percentage'] = queue.get_unhandled_percentage()
         context['cancelled_percentage'] = queue.get_cancelled_percentage()
         context['removed_percentage'] = queue.get_removed_percentage()
-        context['guest'] = queue.get_number_created_by_guest()
-        context['staff'] = queue.get_number_created_by_staff()
+        context['guest_percentage'] = queue.get_guest_percentage()
+        context['staff_percentage'] = queue.get_staff_percentage()
         return context
 
 

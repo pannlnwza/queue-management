@@ -46,7 +46,6 @@
             </select>
         </div>
 
-        <!-- Stats Cards -->
         <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-8">
             <div class="stat bg-base-200 rounded-box">
                 <div class="stat-title">Waitlisted</div>
@@ -79,9 +78,7 @@
             </div>
         </div>
 
-        <!-- Charts Section -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-            <!-- Total Visits -->
             <div class="card bg-base-200">
                 <div class="card-body">
                     <h2 class="card-title flex items-center gap-2">
@@ -105,7 +102,6 @@
             </div>
 
 
-            <!-- Donut Charts -->
             <div class="grid grid-cols-2 gap-4">
                 <div class="card bg-base-200">
                     <div class="card-body">
@@ -130,10 +126,9 @@
             </div>
         </div>
 
-        <!-- Tables -->
+
         <div class="grid gap-6">
 
-            <!-- Tables Section -->
             <div class="card bg-base-200">
                 <div class="card-body">
                     <h2 class="card-title mb-4">{{ queue.resource_name }}</h2>
@@ -228,7 +223,7 @@
                     data: {
                         labels: ['Staff', 'Guest'],
                         datasets: [{
-                            data: [{{ staff }}, {{ guest }}],
+                            data: [{{ staff_percentage }}, {{ guest_percentage }}],
                             backgroundColor: ['#E91E63', '#81C784'],
                             borderWidth: 0,
                         }],
@@ -251,14 +246,14 @@
                                 topLeft: 4,
                                 bottomLeft: 4
                             },
-                            barPercentage: 0.8
+                            barPercentage: 1.2
                         },
                         {
                             label: 'Dropoff',
                             data: [{{ queue.get_number_dropoff }}],
                             backgroundColor: '#FF5861',
                             borderWidth: 0,
-                            barPercentage: 0.8
+                            barPercentage: 1.2
                         },
                         {
                             label: 'Unhandled',
@@ -269,7 +264,7 @@
                                 topRight: 4,
                                 bottomRight: 4
                             },
-                            barPercentage: 0.8
+                            barPercentage: 1.2
                         }
                     ]
                 },

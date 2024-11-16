@@ -167,11 +167,11 @@ class Queue(models.Model):
         return self.participant_set.filter(state='completed').count()
 
     def get_number_created_by_guest(self):
-        """Return the number user join by link."""
+        """Return the number participants join by link."""
         return self.participant_set.filter(created_by='guest').count()
 
     def get_number_created_by_staff(self):
-        """Return the number user join by staff."""
+        """Return the number participants join by staff."""
         return self.participant_set.filter(created_by='staff').count()
 
     def get_number_dropoff(self):
@@ -182,6 +182,19 @@ class Queue(models.Model):
     def get_number_unhandled(self):
         """Return the number of unhandled participants"""
         return self.get_number_serving_now() + self.get_number_waiting_now()
+
+    def get_guest_percentage(self):
+        """Return percentage of participants join by link."""
+        num_participants = self.get_number_of_participants()
+        return round((self.get_number_created_by_guest() / num_participants) * 100,
+                     2) if num_participants else 0
+
+    def get_staff_percentage(self):
+        """Return percentage of participants join by staff."""
+        num_participants = self.get_number_of_participants()
+        return round(
+            (self.get_number_created_by_staff() / num_participants) * 100,
+            2) if num_participants else 0
 
     def get_served_percentage(self):
         """Return percentage of participants served."""
