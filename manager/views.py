@@ -16,7 +16,6 @@ from django.utils import timezone
 from django.views import generic
 from django.views.decorators.http import require_http_methods
 from manager.forms import QueueForm, CustomUserCreationForm, EditProfileForm
-from participant.utils.participant_handler import ParticipantHandlerFactory
 from participant.models import Participant, Notification
 from manager.models import Queue, UserProfile
 from manager.utils.queue_handler import QueueHandlerFactory
