@@ -294,9 +294,48 @@ class Queue(models.Model):
         total_line_length = sum(record.line_length for record in line_lengths)
         return math.ceil(total_line_length / total_records)
 
+    def is_open_now(self):
+        """Check if the queue is currently open."""
+        import datetime
+        now = datetime.datetime.now()
+        today = now.strftime('%A')
+        current_time = now.time()
+
+        # Check today's opening hours
+        hours = self.opening_hours.filter(day=today).first()
+        if hours:
+            return hours.opening_time <= current_time <= hours.closing_time
+        return False
+
     def __str__(self) -> str:
         """Return a string representation of the queue."""
         return self.name
+
+
+class OpeningHours(models.Model):
+    queue = models.ForeignKey(
+        Queue, on_delete=models.CASCADE, related_name="opening_hours"
+    )
+    day = models.CharField(
+        max_length=10,
+        choices=[
+            ("Monday", "Monday"),
+            ("Tuesday", "Tuesday"),
+            ("Wednesday", "Wednesday"),
+            ("Thursday", "Thursday"),
+            ("Friday", "Friday"),
+            ("Saturday", "Saturday"),
+            ("Sunday", "Sunday"),
+        ],
+    )
+    opening_time = models.TimeField()
+    closing_time = models.TimeField()
+
+    class Meta:
+        unique_together = ("queue", "day")  # Ensure no duplicate entries for the same day
+
+    def __str__(self):
+        return f"{self.queue.name} - {self.day}: {self.opening_time} to {self.closing_time}"
 
 
 class QueueLineLength(models.Model):
