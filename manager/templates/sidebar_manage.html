@@ -50,7 +50,7 @@
                     </svg>
                 </a></li>
 
-                <li><a class="btn btn-square btn-ghost no-animation text-xl">
+                <li><a href="{% url 'manager:queue_settings' queue_id %}" class="btn btn-square btn-ghost no-animation text-xl">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                          stroke="currentColor" class="size-6">
                         <path stroke-linecap="round" stroke-linejoin="round"
@@ -177,10 +177,7 @@
 </style>
 <script>
     function copyToClipboard() {
-        // Get the text from the paragraph with id 'joinLink'
         const joinLink = document.getElementById("joinLink").innerText;
-
-        // Copy the text to clipboard
         navigator.clipboard.writeText(joinLink).then(() => {
             alert("Link copied to clipboard!");
         }).catch(err => {

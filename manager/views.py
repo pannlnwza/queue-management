@@ -1,6 +1,7 @@
+import json
 import logging
-from datetime import timedelta
-from unicodedata import category
+from datetime import timedelta, datetime
+from os import close
 
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, user_logged_in, user_logged_out, user_login_failed
@@ -8,6 +9,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.exceptions import PermissionDenied
 from django.db import transaction
+from django.contrib.auth.models import User
 from django.dispatch import receiver
 from django.http import JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
@@ -16,6 +18,8 @@ from django.utils import timezone
 from django.views import generic, View
 from django.views.decorators.http import require_http_methods
 from manager.forms import QueueForm, CustomUserCreationForm, EditProfileForm, OpeningHoursForm, LocationForm
+from manager.models import Queue, Resource
+
 from participant.models import Participant, Notification
 from manager.models import Queue, UserProfile, QueueLineLength
 from manager.utils.queue_handler import QueueHandlerFactory
@@ -271,8 +275,8 @@ def add_participant(request, queue_id):
     name = request.POST.get('name')
     phone = request.POST.get('phone')
     email = request.POST.get('email')
-    note = request.POST.get('note', "")
-    special_1 = request.POST.get('party_size')
+    note = request.POST.get('notes', "")
+    special_1 = request.POST.get('special_1')
     special_2 = request.POST.get('special_2')
 
     queue = get_object_or_404(Queue, id=queue_id)
@@ -338,6 +342,7 @@ class ManageWaitlist(LoginRequiredMixin, generic.TemplateView):
 
 
 @login_required
+@require_http_methods(["POST"])
 def serve_participant(request, participant_id):
     participant = get_object_or_404(Participant, id=participant_id)
     queue_id = participant.queue.id
@@ -346,14 +351,17 @@ def serve_participant(request, participant_id):
     participant = get_object_or_404(participant_set, id=participant_id)
 
     try:
+        data = json.loads(request.body) if request.body else {}
+        resource_id = data.get('resource_id', None)
+
         if participant.state != 'waiting':
             logger.warning(f"Cannot serve participant {participant_id} because they are in state: {participant.state}")
             return JsonResponse({
                 'error': f'{participant.name} cannot be served because they are currently in state: {participant.state}.'
             }, status=400)
 
+        handler.assign_to_resource(participant, resource_id=resource_id)
         participant.queue.update_estimated_wait_time_per_turn(participant.get_wait_time())
-        handler.assign_to_resource(participant)
         participant.start_service()
         participant.save()
         logger.info(f"Participant {participant_id} started service in queue {participant.queue.id}.")
@@ -363,15 +371,18 @@ def serve_participant(request, participant_id):
 
         return JsonResponse({
             'waiting_list': list(waiting_list),
-            'serving_list': list(serving_list)
+            'serving_list': list(serving_list),
+            'success': True
         })
+
+    except json.JSONDecodeError:
+        return JsonResponse({'error': 'Invalid JSON data.'}, status=400)
 
     except Exception as e:
         logger.error(f"Error serving participant {participant_id}: {str(e)}")
         return JsonResponse({
             'error': f'Error: {str(e)}'
         }, status=500)
-
 
 @login_required
 def complete_participant(request, participant_id):
@@ -450,12 +461,12 @@ class ParticipantListView(LoginRequiredMixin, generic.TemplateView):
         context['queue'] = handler.get_queue_object(queue_id)
         context['participant_set'] = participant_set
         context['participant_state'] = Participant.PARTICIPANT_STATE
-        context['resources'] = queue.resource_set.all()
+        context['resources'] = queue.resources.all()
         context['time_filter_option'] = time_filter_option
         context['time_filter_option_display'] = time_filter_options_display.get(time_filter_option, 'All time')
         context['state_filter_option'] = state_filter_option
         context['state_filter_option_display'] = state_filter_options_display.get(state_filter_option, 'Any state')
-        category_context = handler.add_context_attributes(handler.get_queue_object(queue_id))
+        category_context = handler.add_context_attributes(queue)
         if category_context:
             context.update(category_context)
         return context
@@ -474,14 +485,43 @@ class ParticipantListView(LoginRequiredMixin, generic.TemplateView):
         return None
 
 
+class WaitingFull(LoginRequiredMixin, generic.TemplateView):
+    template_name = 'manager/manage_queue/waiting_full.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        queue_id = self.kwargs.get('queue_id')
+        queue = get_object_or_404(Queue, id=queue_id)
+        handler = CategoryHandlerFactory.get_handler(queue.category)
+        queue = handler.get_queue_object(queue_id)
+        context['queue'] = queue
+
+        return context
+
+
 class YourQueueView(LoginRequiredMixin, generic.TemplateView):
     template_name = 'manager/your_queue.html'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         user = self.request.user
+
+        state_filter = self.request.GET.get('state_filter', 'any_state')
         authorized_queues = Queue.objects.filter(created_by=user)
+
+        state_filter_options = {
+            'any_state': 'Any state',
+            'open': 'Open',
+            'closed': 'Closed',
+        }
+
+        if state_filter == 'open':
+            authorized_queues = authorized_queues.filter(is_closed=False)
+        elif state_filter == 'closed':
+            authorized_queues = authorized_queues.filter(is_closed=True)
+
         context['authorized_queues'] = authorized_queues
+        context['selected_state_filter'] = state_filter_options.get(state_filter)
         return context
 
 
@@ -532,6 +572,127 @@ def create_or_update_profile(user, profile_image=None):
     except Exception as e:
         logger.error(f'Error creating/updating profile for user {user.username}: {str(e)}')
         return None
+
+
+class QueueSettingsView(LoginRequiredMixin, generic.TemplateView):
+    template_name = 'manager/settings/settings.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        queue_id = self.kwargs.get('queue_id')
+        queue = get_object_or_404(Queue, id=queue_id)
+        handler = CategoryHandlerFactory.get_handler(queue.category)
+        queue = handler.get_queue_object(queue_id)
+        participant_set = handler.get_participant_set(queue_id)
+        resources = Resource.objects.filter(queue=queue)
+        context['queue'] = queue
+        context['resources'] = resources
+        context['participant_set'] = participant_set
+        category_context = handler.add_resource_attributes(queue)
+        if category_context:
+            context.update(category_context)
+        return context
+
+
+class ResourceSettings(LoginRequiredMixin, generic.TemplateView):
+    template_name = 'manager/settings/resource_settings.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        queue_id = self.kwargs.get('queue_id')
+        queue = get_object_or_404(Queue, id=queue_id)
+        handler = CategoryHandlerFactory.get_handler(queue.category)
+        queue = handler.get_queue_object(queue_id)
+        resources = Resource.objects.filter(queue=queue)
+        participant_set = handler.get_participant_set(queue_id)
+        context['participant_set'] = participant_set
+        context['resource_status'] = Resource.RESOURCE_STATUS
+        context['queue'] = queue
+        context['resources'] = resources
+        category_context = handler.add_resource_attributes(queue)
+        if category_context:
+            context.update(category_context)
+        return context
+
+@login_required
+@require_http_methods(["POST"])
+def edit_resource(request, resource_id):
+    resource = get_object_or_404(Resource, id=resource_id)
+    handler = CategoryHandlerFactory.get_handler(resource.queue.category)
+    data = {
+        'name': request.POST.get('name'),
+        'special': request.POST.get('special'),
+        'assigned_to': request.POST.get('assigned_to'),
+        'status': request.POST.get('status'),
+    }
+    handler.edit_resource(resource, data)
+    return redirect('manager:resources', resource.queue.id)
+
+
+@login_required
+@require_http_methods(["POST"])
+def add_resource(request, queue_id):
+    queue = get_object_or_404(Queue, id=queue_id)
+    handler = CategoryHandlerFactory.get_handler(queue.category)
+    queue = handler.get_queue_object(queue_id)
+    data = {
+        'name': request.POST.get('name'),
+        'special': request.POST.get('special'),
+        'status': request.POST.get('status'),
+        'queue': queue,
+    }
+    handler.add_resource(data)
+    return redirect('manager:resources', queue_id)
+
+
+@login_required
+@require_http_methods(["DELETE"])
+def delete_resource(request, resource_id):
+    resource = get_object_or_404(Resource, id=resource_id)
+    logger.info(f"Deleting resource {resource_id} from queue {resource.queue.id}")
+
+    if request.user != resource.queue.created_by:
+        return JsonResponse({'error': 'Unauthorized.'}, status=403)
+    resource.delete()
+    logger.info(f"Resource {resource_id} is deleted.")
+    return JsonResponse({'message': 'Resource deleted successfully.'})
+
+
+def edit_queue(request, queue_id):
+    queue = get_object_or_404(Queue, id=queue_id)
+    handler = CategoryHandlerFactory.get_handler(queue.category)
+    queue = handler.get_queue_object(queue_id)
+    if request.method == 'POST':
+        name = request.POST.get('name')
+        description = request.POST.get('description')
+        status = request.POST.get('is_closed')
+        latitude = request.POST.get('latitude')
+        longitude = request.POST.get('longitude')
+        open_time = request.POST.get('open_time')
+        close_time = request.POST.get('close_time')
+        logo = request.FILES.get('logo', None)
+
+
+        queue.name = name
+        queue.description = description
+        queue.latitude = latitude
+        queue.longitude = longitude
+        queue.is_closed = False if status == 'on' else True
+        try:
+            if open_time:
+                queue.open_time = datetime.strptime(open_time, "%H:%M").time()
+            if close_time:
+                queue.close_time = datetime.strptime(close_time, "%H:%M").time()
+        except ValueError as e:
+            print(f"Error while parsing time: {e}")
+            messages.error(request, 'Invalid time format. Please use HH:MM format.')
+            return redirect('manager:queue_settings', queue_id=queue_id)
+        queue.is_closed = False if status == 'on' else True
+        if logo:
+            queue.logo = logo
+        queue.save()
+        messages.success(request, 'Queue settings updated successfully.')
+        return redirect('manager:queue_settings', queue_id)
 
 
 def signup(request):

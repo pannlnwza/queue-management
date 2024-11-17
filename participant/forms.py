@@ -32,7 +32,7 @@ class KioskForm(forms.Form):
                         label='Party Size',
                 )
                 self.fields['special_2'] = forms.ChoiceField(
-                    choices=RestaurantParticipant.SEATING_PREFERENCES,
+                    choices=RestaurantParticipant.SERVICE_TYPE_CHOICE,
                     widget=forms.Select(attrs={'class': 'select select-bordered w-full select-md max-w-xs'}),
                     required=False,
                     initial='first_available',

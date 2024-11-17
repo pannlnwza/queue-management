@@ -15,10 +15,9 @@
     <div class="drawer-side bordered shadow z-20">
         <label for="my-drawer-2" class="drawer-overlay"></label>
         <div class="menu p-4 min-h-full bg-base-100 text-base-content flex flex-col items-center">
-            <div class="">
-{#                    <span>Queue Management</<span>#}
-                <a href="{% url 'participant:home' %}">Queue Management</a>
-            </div>
+            <a href="{% url 'participant:home' %}">
+                <img src="{% static 'images/logo.ico' %}" alt="Queue Management Logo" class="p-2 w-[50px] h-auto">
+            </a>
 
         </div>
     </div>
@@ -29,6 +28,7 @@
             </svg>
         </button>
     </label>
+
     <div class="drawer-content overflow-x-auto w-full flex flex-col p-4 pl-6 ">
 
     {% block content %}
