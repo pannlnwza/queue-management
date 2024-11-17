@@ -13,9 +13,9 @@ from django.http import JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse_lazy, reverse
 from django.utils import timezone
-from django.views import generic
+from django.views import generic, View
 from django.views.decorators.http import require_http_methods
-from manager.forms import QueueForm, CustomUserCreationForm, EditProfileForm
+from manager.forms import QueueForm, CustomUserCreationForm, EditProfileForm, OpeningHoursForm, LocationForm
 from participant.models import Participant, Notification
 from manager.models import Queue, UserProfile, QueueLineLength
 from manager.utils.queue_handler import QueueHandlerFactory
@@ -24,6 +24,63 @@ from manager.utils.category_handler import CategoryHandlerFactory
 
 logger = logging.getLogger('queue')
 
+
+class MultiStepFormView(View):
+    def get(self, request, step):
+        if step == "1":
+            form = QueueForm()
+        elif step == "2":
+            form = OpeningHoursForm()
+        elif step == "3":
+            form = LocationForm()
+        else:
+            return redirect('manager:your-queue')
+
+        return render(request, f'manager/step_{step}.html', {'form': form, 'step': step})
+
+    def post(self, request, step):
+        if step == "1":
+            form = QueueForm(request.POST, request.FILES)
+            if form.is_valid():
+                request.session['queue_data'] = form.cleaned_data
+                return redirect('manager:create-queue-step', step="2")
+
+        elif step == "2":
+            form = OpeningHoursForm(request.POST)
+            if form.is_valid():
+                request.session['opening_hours_data'] = form.cleaned_data
+                return redirect('manager:create-queue-step', step="3")
+
+        elif step == "3":
+            form = LocationForm(request.POST)
+            if form.is_valid():
+                # Retrieve data from previous steps
+                queue_data = request.session.get('queue_data', {})
+                opening_hours_data = request.session.get('opening_hours_data', {})
+                location_data = form.cleaned_data
+
+                # Create queue
+                queue_category = queue_data['category']
+                handler = CategoryHandlerFactory.get_handler(queue_category)
+                queue_data['created_by'] = self.request.user
+
+                # Add opening hours to the queue data
+                queue_data['open_time'] = opening_hours_data.get('open_time', None)
+                queue_data['close_time'] = opening_hours_data.get('close_time', None)
+
+                # Create the queue using the handler
+                queue = handler.create_queue(queue_data)
+
+                # Handle location data (if provided)
+                if location_data.get('latitude') and location_data.get('longitude'):
+                    queue.latitude = location_data['latitude']
+                    queue.longitude = location_data['longitude']
+                    queue.save()
+
+
+                return redirect('manager:your-queue')  # Redirect to success or queue page
+
+        return render(request, f'manager/step_{step}.html', {'form': form, 'step': step})
 
 class CreateQView(LoginRequiredMixin, generic.CreateView):
     """
@@ -56,9 +113,9 @@ class CreateQView(LoginRequiredMixin, generic.CreateView):
 
         queue = handler.create_queue(queue_data)
 
-        queue.authorized_user.add(self.request.user)
-
         return redirect(self.success_url)
+
+
 
 
 class EditQueueView(LoginRequiredMixin, generic.UpdateView):
@@ -156,7 +213,7 @@ def delete_queue(request, queue_id):
     except Queue.DoesNotExist:
         return JsonResponse({'error': 'Queue not found.'}, status=404)
 
-    if request.user not in queue.authorized_user.all():
+    if request.user != queue.created_by:
         return JsonResponse({'error': 'Unauthorized.'}, status=403)
 
     try:
@@ -172,7 +229,7 @@ def delete_participant(request, participant_id):
     participant = get_object_or_404(Participant, id=participant_id)
     logger.info(f"Deleting participant {participant_id} from queue {participant.queue.id}")
 
-    if request.user not in participant.queue.authorized_user.all():
+    if request.user != participant.queue.created_by:
         return JsonResponse({'error': 'Unauthorized.'}, status=403)
 
     queue = participant.queue
@@ -256,7 +313,7 @@ class ManageWaitlist(LoginRequiredMixin, generic.TemplateView):
         handler = CategoryHandlerFactory.get_handler(queue.category)
         queue = handler.get_queue_object(queue_id)
 
-        if self.request.user not in queue.authorized_user.all():
+        if self.request.user != queue.created_by:
             logger.error(f"Unauthorized edit attempt on queue {queue.id} by user {self.request.user.id}")
             return JsonResponse({'error': 'Unauthorized.'}, status=403)
 
@@ -323,7 +380,7 @@ def complete_participant(request, participant_id):
     handler = CategoryHandlerFactory.get_handler(queue.category)
     participant = handler.get_participant_set(queue.id).filter(id=participant_id).first()
 
-    if request.user not in queue.authorized_user.all():
+    if request.user != queue.created_by:
         logger.error(f"Unauthorized edit attempt on queue {queue.id} by user {request.user.id}")
         return JsonResponse({'error': 'Unauthorized.'}, status=403)
 
@@ -423,7 +480,7 @@ class YourQueueView(LoginRequiredMixin, generic.TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         user = self.request.user
-        authorized_queues = Queue.objects.filter(authorized_user=user)
+        authorized_queues = Queue.objects.filter(created_by=user)
         context['authorized_queues'] = authorized_queues
         return context
 
