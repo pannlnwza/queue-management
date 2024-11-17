@@ -35,6 +35,29 @@ class QueueForm(forms.ModelForm):
 
         }
 
+
+class OpeningHoursForm(forms.Form):
+    day = forms.ChoiceField(
+        choices=[
+            ("Monday", "Monday"),
+            ("Tuesday", "Tuesday"),
+            ("Wednesday", "Wednesday"),
+            ("Thursday", "Thursday"),
+            ("Friday", "Friday"),
+            ("Saturday", "Saturday"),
+            ("Sunday", "Sunday"),
+        ],
+        required=False,
+    )
+    opening_time = forms.TimeField(required=False)
+    closing_time = forms.TimeField(required=False)
+
+
+class LocationForm(forms.Form):
+    latitude = forms.FloatField(required=False)
+    longitude = forms.FloatField(required=False)
+
+
 class CustomUserCreationForm(UserCreationForm):
     email = forms.EmailField(required=True)
 
