@@ -14,8 +14,7 @@ class QueueForm(forms.ModelForm):
 
     class Meta:
         model = Queue
-        fields = ['name', 'logo', 'description', 'category', 'latitude',
-                  'longitude']
+        fields = ['name', 'logo', 'description', 'category']
         labels = {
             'logo': 'Logo (Optional)'
         }
@@ -37,18 +36,6 @@ class QueueForm(forms.ModelForm):
 
 
 class OpeningHoursForm(forms.Form):
-    day = forms.ChoiceField(
-        choices=[
-            ("Monday", "Monday"),
-            ("Tuesday", "Tuesday"),
-            ("Wednesday", "Wednesday"),
-            ("Thursday", "Thursday"),
-            ("Friday", "Friday"),
-            ("Saturday", "Saturday"),
-            ("Sunday", "Sunday"),
-        ],
-        required=False,
-    )
     opening_time = forms.TimeField(required=False)
     closing_time = forms.TimeField(required=False)
 
