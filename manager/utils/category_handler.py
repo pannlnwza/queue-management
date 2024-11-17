@@ -189,13 +189,17 @@ class RestaurantQueueHandler(CategoryHandler):
     def get_queue_object(self, queue_id):
         return get_object_or_404(RestaurantQueue, id=queue_id)
 
-    def assign_to_resource(self, participant, resource=None):
+    def assign_to_resource(self, participant, resource_id=None):
         queue = participant.queue
-        resource = resource or queue.get_available_resource(required_capacity=participant.party_size)
 
+        if resource_id:
+            resource = get_object_or_404(Table, id=resource_id)
+        else:
+            resource = queue.get_available_resource(required_capacity=participant.party_size)
         if not resource:
             raise ValueError('No resource available.')
         resource.assign_to_participant(participant, capacity=participant.party_size)
+        participant.resource = resource
         participant.save()
 
     def get_template_name(self):
@@ -355,14 +359,16 @@ class HospitalQueueHandler(CategoryHandler):
         """
         return get_object_or_404(HospitalQueue, id=queue_id)
 
-    def assign_to_resource(self, participant, resource=None):
+    def assign_to_resource(self, participant, resource_id=None):
         """
         Assigns a doctor to a hospital participant based on their medical field and priority.
         """
-        doctor = resource or Doctor.objects.filter(specialty=participant.medical_field, status='available').first()
-
-        if not doctor:
-            raise ValueError("No available doctor for the specified specialty.")
+        if resource_id:
+            resource = get_object_or_404(Doctor, id=resource_id)
+        else:
+            resource = Doctor.objects.filter(specialty=participant.medical_field, status='available').first()
+        if not resource:
+            raise ValueError('No resource available.')
         resource.assign_to_participant(participant)
         participant.resource = resource
         participant.save()
@@ -538,12 +544,14 @@ class BankQueueHandler(CategoryHandler):
     def get_queue_object(self, queue_id):
         return get_object_or_404(BankQueue, id=queue_id)
 
-    def assign_to_resource(self, participant, resource=None):
-        queue = self.get_queue_object(participant.queue.id)
-        counter = resource or queue.resources.filter(service=participant.service_type, status='available').first()
+    def assign_to_resource(self, participant, resource_id=None):
+        if resource_id:
+            resource = get_object_or_404(Counter, id=resource_id)
+        else:
+            resource = Counter.objects.filter(status='available').first()
 
-        if not counter:
-            raise ValueError("No available counter for the specified specialty.")
+        if not resource:
+            raise ValueError('No resource available.')
         resource.assign_to_participant(participant)
         participant.resource = resource
         participant.save()

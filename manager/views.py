@@ -220,7 +220,7 @@ def add_participant(request, queue_id):
     name = request.POST.get('name')
     phone = request.POST.get('phone')
     email = request.POST.get('email')
-    note = request.POST.get('note', "")
+    note = request.POST.get('notes', "")
     special_1 = request.POST.get('special_1')
     special_2 = request.POST.get('special_2')
 
@@ -287,6 +287,7 @@ class ManageWaitlist(LoginRequiredMixin, generic.TemplateView):
 
 
 @login_required
+@require_http_methods(["POST"])
 def serve_participant(request, participant_id):
     participant = get_object_or_404(Participant, id=participant_id)
     queue_id = participant.queue.id
@@ -295,15 +296,17 @@ def serve_participant(request, participant_id):
     participant = get_object_or_404(participant_set, id=participant_id)
 
     try:
+        data = json.loads(request.body) if request.body else {}
+        resource_id = data.get('resource_id', None)
+
         if participant.state != 'waiting':
             logger.warning(f"Cannot serve participant {participant_id} because they are in state: {participant.state}")
             return JsonResponse({
                 'error': f'{participant.name} cannot be served because they are currently in state: {participant.state}.'
             }, status=400)
 
+        handler.assign_to_resource(participant, resource_id=resource_id)
         participant.queue.update_estimated_wait_time_per_turn(participant.get_wait_time())
-        if not participant.resource:
-            handler.assign_to_resource(participant)
         participant.start_service()
         participant.save()
         logger.info(f"Participant {participant_id} started service in queue {participant.queue.id}.")
@@ -313,15 +316,18 @@ def serve_participant(request, participant_id):
 
         return JsonResponse({
             'waiting_list': list(waiting_list),
-            'serving_list': list(serving_list)
+            'serving_list': list(serving_list),
+            'success': True
         })
+
+    except json.JSONDecodeError:
+        return JsonResponse({'error': 'Invalid JSON data.'}, status=400)
 
     except Exception as e:
         logger.error(f"Error serving participant {participant_id}: {str(e)}")
         return JsonResponse({
             'error': f'Error: {str(e)}'
         }, status=500)
-
 
 @login_required
 def complete_participant(request, participant_id):
@@ -551,20 +557,6 @@ class ResourceSettings(LoginRequiredMixin, generic.TemplateView):
         if category_context:
             context.update(category_context)
         return context
-
-class ServiceSettings(LoginRequiredMixin, generic.TemplateView):
-    template_name = 'manager/settings/service_settings.html'
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        queue_id = self.kwargs.get('queue_id')
-        queue = get_object_or_404(Queue, id=queue_id)
-        handler = CategoryHandlerFactory.get_handler(queue.category)
-        queue = handler.get_queue_object(queue_id)
-        context['queue'] = queue
-        return context
-
-
 
 @login_required
 @require_http_methods(["POST"])
