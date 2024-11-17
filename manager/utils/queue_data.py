@@ -58,7 +58,7 @@ def get_general_queue_data(request, queue_id):
 
 
 @login_required
-def get_restaurant_queue_data(request, queue_id):
+def get_unique_queue_category_data(request, queue_id):
     Participant.remove_old_completed_participants()
     queue = get_object_or_404(Queue, id=queue_id)
     handler = CategoryHandlerFactory.get_handler(queue.category)

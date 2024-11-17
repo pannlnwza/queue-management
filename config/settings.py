@@ -141,9 +141,6 @@ SOCIALACCOUNT_PROVIDERS = {
 
 SITE_ID = 1
 
-GOOGLE_OAUTH_CLIENT_ID = config('GOOGLE_OAUTH_CLIENT_ID', default='your-default-client-id')
-GOOGLE_OAUTH_CLIENT_SECRET = config('GOOGLE_OAUTH_CLIENT_SECRET', default='your-default-client-secret')
-
 
 LOGIN_URL = 'account_login'
 LOGOUT_URL = 'account_logout'
@@ -172,6 +169,10 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 
 STATIC_URL = 'static/'
+
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'static'),
+]
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
