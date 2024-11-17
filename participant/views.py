@@ -217,6 +217,7 @@ class KioskView(generic.FormView):
         participant = self.handler.create_participant(
             form_data,
         )
+        participant.created_by = 'guest'
         participant.save()
 
         # messages.success(self.request, f"You have successfully joined {self.queue.name}.")

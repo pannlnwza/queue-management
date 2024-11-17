@@ -28,9 +28,21 @@
             </div>
 
             <div class="form-group mb-4">
-                <label for="map">Queue Location (Mark location by dragging the blue marker)</label>
+                <label for="location">Queue Location</label>
+                <input
+                    type="text"
+                    id="locationInput"
+                    class="input input-bordered w-full mt-2"
+                    placeholder="Enter an address or location"
+                />
+                <p id="locationError" class="text-red-500 text-sm mt-2" style="display:none;">
+                    Please enter a valid address or mark a location on the map.
+                </p>
+            </div>
+
+            <div class="form-group mb-4">
+                <label>Mark location by dragging the blue marker</label>
                 <div id="map" class="mt-4" style="height: 400px;"></div>
-                <p id="locationError" class="text-red-500 text-sm mt-2" style="display:none;">Please select a location on the map.</p>
             </div>
 
             <input type="hidden" name="latitude" id="id_latitude" required>
@@ -43,7 +55,6 @@
 
 <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-
 <script>
     var map = L.map('map').setView([13.7563, 100.5018], 13);
 
@@ -51,16 +62,50 @@
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
     }).addTo(map);
 
-    var marker = L.marker([13.7563, 100.5018], {draggable: true}).addTo(map);
+    var marker = L.marker([13.7563, 100.5018], { draggable: true }).addTo(map);
 
-    marker.on('dragend', function(event) {
+    marker.on('dragend', function (event) {
         var lat = marker.getLatLng().lat;
         var lng = marker.getLatLng().lng;
         document.getElementById('id_latitude').value = lat;
         document.getElementById('id_longitude').value = lng;
     });
 
-    document.getElementById('queueForm').addEventListener('submit', function(event) {
+    function updateLocationFromText(address) {
+        var url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(
+            address
+        )}&format=json&limit=1`;
+
+        fetch(url)
+            .then((response) => response.json())
+            .then((data) => {
+                if (data.length > 0) {
+                    var lat = parseFloat(data[0].lat);
+                    var lng = parseFloat(data[0].lon);
+                    marker.setLatLng([lat, lng]);
+                    map.setView([lat, lng], 13);
+
+                    document.getElementById('id_latitude').value = lat;
+                    document.getElementById('id_longitude').value = lng;
+
+                    document.getElementById('locationError').style.display = 'none';
+                } else {
+                    document.getElementById('locationError').style.display = 'block';
+                }
+            })
+            .catch(() => {
+                document.getElementById('locationError').style.display = 'block';
+            });
+    }
+
+    document.getElementById('locationInput').addEventListener('keypress', function (event) {
+        if (event.key === 'Enter') {
+            event.preventDefault();
+            updateLocationFromText(event.target.value);
+        }
+    });
+
+    document.getElementById('queueForm').addEventListener('submit', function (event) {
         var latitude = document.getElementById('id_latitude').value;
         var longitude = document.getElementById('id_longitude').value;
 
