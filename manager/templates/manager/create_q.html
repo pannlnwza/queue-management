@@ -29,12 +29,57 @@
 
             <div class="form-group mb-4">
                 <label for="searchInput">Search for Queue Location</label>
-                <div class="flex items-center gap-2">
-                    <input type="text" id="searchInput" class="input input-bordered w-full mt-3"
+                <div class="relative mt-3">
+                    <input type="text"
+                           id="searchInput"
+                           class="input input-bordered w-full pr-12"
                            placeholder="Enter location to search">
-                    <button type="button" id="searchButton" class="btn btn-primary mt-3">
-                        Search
+                    <button type="button"
+                            id="searchButton"
+                            class="btn btn-ghost absolute right-2 top-1/2 -translate-y-1/2 p-2 h-auto min-h-0">
+                        <svg xmlns="http://www.w3.org/2000/svg"
+                             class="h-5 w-5"
+                             fill="none"
+                             viewBox="0 0 24 24"
+                             stroke="currentColor">
+                            <path stroke-linecap="round"
+                                  stroke-linejoin="round"
+                                  stroke-width="2"
+                                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        </svg>
                     </button>
+                </div>
+            </div>
+
+            <div class="form-group mb-4">
+                <label>Enter Latitude and Longitude (Optional)</label>
+                <div class="grid gap-4">
+                    <div class="flex gap-4">
+                        <input type="number"
+                               id="latitudeInput"
+                               class="input input-bordered w-full"
+                               placeholder="Latitude"
+                               step="any">
+                        <input type="number"
+                               id="longitudeInput"
+                               class="input input-bordered w-full"
+                               placeholder="Longitude"
+                               step="any">
+                        <button type="button"
+                                id="latLngSearchButton"
+                                class="w-10 h-10 flex items-center justify-center">
+                            <svg xmlns="http://www.w3.org/2000/svg"
+                                 class="h-5 w-5"
+                                 fill="none"
+                                 viewBox="0 0 24 24"
+                                 stroke="currentColor">
+                                <path stroke-linecap="round"
+                                      stroke-linejoin="round"
+                                      stroke-width="2"
+                                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                            </svg>
+                        </button>
+                    </div>
                 </div>
             </div>
 
@@ -62,11 +107,43 @@
 
     var marker = L.marker([13.7563, 100.5018], { draggable: true }).addTo(map);
 
-    marker.on('dragend', function () {
-        var lat = marker.getLatLng().lat;
-        var lng = marker.getLatLng().lng;
+    function updateInputsFromMarker() {
+        var lat = marker.getLatLng().lat.toFixed(6);
+        var lng = marker.getLatLng().lng.toFixed(6);
         document.getElementById('id_latitude').value = lat;
         document.getElementById('id_longitude').value = lng;
+        document.getElementById('latitudeInput').value = lat;
+        document.getElementById('longitudeInput').value = lng;
+    }
+
+    function updateMarkerFromInputs() {
+        var lat = parseFloat(document.getElementById('latitudeInput').value);
+        var lng = parseFloat(document.getElementById('longitudeInput').value);
+        if (!isNaN(lat) && !isNaN(lng)) {
+            marker.setLatLng([lat, lng]);
+            map.setView([lat, lng], 13);
+            document.getElementById('id_latitude').value = lat.toFixed(6);
+            document.getElementById('id_longitude').value = lng.toFixed(6);
+        } else {
+            alert("Please enter valid latitude and longitude.");
+        }
+    }
+
+    marker.on('dragend', updateInputsFromMarker);
+
+    document.getElementById('latitudeInput').addEventListener('change', updateMarkerFromInputs);
+    document.getElementById('longitudeInput').addEventListener('change', updateMarkerFromInputs);
+
+    document.getElementById('latLngSearchButton').addEventListener('click', function () {
+    const lat = document.getElementById('latitudeInput').value.trim();
+    const lng = document.getElementById('longitudeInput').value.trim();
+
+    if (!lat || !lng) {
+        alert("Please enter both latitude and longitude values.");
+        return;
+    }
+
+    updateMarkerFromInputs();
     });
 
     document.getElementById('searchButton').addEventListener('click', function () {
@@ -75,7 +152,7 @@
 
     document.getElementById('searchInput').addEventListener('keydown', function (event) {
         if (event.key === 'Enter') {
-            event.preventDefault(); // Prevent form submission
+            event.preventDefault();
             searchLocation();
         }
     });
@@ -97,8 +174,10 @@
 
                     map.setView([lat, lon], 13);
                     marker.setLatLng([lat, lon]);
-                    document.getElementById('id_latitude').value = lat;
-                    document.getElementById('id_longitude').value = lon;
+                    document.getElementById('id_latitude').value = lat.toFixed(6);
+                    document.getElementById('id_longitude').value = lon.toFixed(6);
+                    document.getElementById('latitudeInput').value = lat.toFixed(6);
+                    document.getElementById('longitudeInput').value = lon.toFixed(6);
                 } else {
                     alert("Location not found. Please try again.");
                 }
@@ -115,9 +194,7 @@
 
         if (!latitude || !longitude) {
             event.preventDefault();
-            document.getElementById('locationError').style.display = 'block';
-        } else {
-            document.getElementById('locationError').style.display = 'none';
+            alert("Please provide a location for the queue.");
         }
     });
 </script>
