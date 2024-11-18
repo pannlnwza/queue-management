@@ -28,11 +28,11 @@
     </div>
 
     <!-- Nearby queues -->
-    <section class="mb-12">
+    <section class="mb-12 text-bold">
         <h1>Nearby Queues</h1>
 
     {% if nearby_queues %}
-        <div class="queues">
+        <div class="queues flex gap-6">
             {% for queue in nearby_queues %}
                 <div class="queue-card">
                     <h2>{{ queue.name }}</h2>
