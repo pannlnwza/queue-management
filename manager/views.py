@@ -461,22 +461,6 @@ class StatisticsView(LoginRequiredMixin, generic.TemplateView):
         return context
 
 
-def create_or_update_profile(user, profile_image=None):
-    """
-    Helper function to create or update user profile
-    """
-    try:
-        profile, created = UserProfile.objects.get_or_create(user=user)
-        if profile_image:
-            profile.image = profile_image
-            profile.save()
-        return profile
-
-    except Exception as e:
-        logger.error(f'Error creating/updating profile for user {user.username}: {str(e)}')
-        return None
-
-
 def signup(request):
     """
     Register a new user.
@@ -489,7 +473,7 @@ def signup(request):
             username = form.cleaned_data.get('username')
             raw_passwd = form.cleaned_data.get('password1')
 
-            profile = create_or_update_profile(user)
+            profile, created = UserProfile.objects.get_or_create(user=user)
             if not profile:
                 messages.error(request, 'Error creating user profile. Please contact support.')
 
@@ -525,26 +509,26 @@ def login_view(request):
         if user is not None:
             login(request, user)
 
+
+            profile, created = UserProfile.objects.get_or_create(user=user)
+            if created:
+                logger.info(f'UserProfile created for user during login: {username}')
+
             if hasattr(user, 'socialaccount_set') and user.socialaccount_set.exists():
                 social_account = user.socialaccount_set.first()
                 if social_account.provider == 'google':
                     extra_data = social_account.extra_data
                     profile_image_url = extra_data.get('picture')
                     if profile_image_url:
-                        profile = create_or_update_profile(user)
-                        if profile:
-                            profile.google_picture = profile_image_url
-                            profile.save()
-            else:
-                create_or_update_profile(user)
+                        profile.google_picture = profile_image_url
+                        profile.save()
+                        logger.info(f'Google profile image updated for user: {username}')
 
             return redirect('manager:your-queue')
         else:
             messages.error(request, 'Invalid username or password.')
 
     return render(request, 'account/login.html')
-
-
 
 
 class EditProfileView(LoginRequiredMixin, generic.UpdateView):
@@ -588,6 +572,18 @@ class EditProfileView(LoginRequiredMixin, generic.UpdateView):
         context['queue_id'] = queue_id
         context['user'] = self.request.user
         return context
+
+def user_profile(request):
+    """
+    Add the UserProfile object of the logged-in user to the template context.
+    """
+    if request.user.is_authenticated:
+        try:
+            profile = UserProfile.objects.get(user=request.user)
+            return {'user_profile': profile}
+        except UserProfile.DoesNotExist:
+            return {'user_profile': None}
+    return {'user_profile': None}
 
 
 def get_client_ip(request):

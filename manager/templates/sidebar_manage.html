@@ -92,14 +92,6 @@
             <div class="dropdown dropdown-right dropdown-end mt-auto relative">
                 <label tabindex="0" class="btn btn-ghost btn-circle avatar relative">
                     <div class="ring-primary ring-offset-base-100 w-8 rounded-full ring-2 ring-offset-2">
-{#                        {% if user.profile.image %}#}
-{#                            <img src="{{ user.profile.image.url }}" alt="{{ user.username }}'s profile">#}
-{#                        {% elif user.socialaccount_set.exists and user.socialaccount_set.first.get_avatar_url %}#}
-{#                            <img src="{{ user.socialaccount_set.first.get_avatar_url }}"#}
-{#                                 alt="{{ user.username }}'s profile">#}
-{#                        {% else %}#}
-{#                            <img src="{% static 'participant/images/profile.jpg' %}" alt="Default profile">#}
-{#                        {% endif %}#}
                          <img src="{{ user.userprofile.get_profile_image }}" alt="{{ user.username }}'s profile"
                                      class="rounded-full h-24 w-24 object-cover">
                     </div>
