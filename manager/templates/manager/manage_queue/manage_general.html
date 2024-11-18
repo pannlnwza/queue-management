@@ -324,7 +324,7 @@
                 const waitingSection = document.getElementById('waiting-section');
                 waitingSection.innerHTML = '';
 
-                waitingList.forEach(participant => {
+                waitingList.slice(0,5).forEach(participant => {
                     const row = createWaitingRow(participant);
                     waitingSection.appendChild(row);
                 });
@@ -334,7 +334,7 @@
                 const servingSection = document.getElementById('serving-section');
                 servingSection.innerHTML = '';
 
-                servingList.forEach(participant => {
+                servingList.slice(0,5).forEach(participant => {
                     const row = createServingRow(participant);
                     servingSection.appendChild(row);
                 });
@@ -344,7 +344,7 @@
                 const completedSection = document.getElementById('completed-section');
                 completedSection.innerHTML = '';
 
-                completedList.forEach(participant => {
+                completedList.slice(0,5).forEach(participant => {
                     const row = createCompletedRow(participant);
                     completedSection.appendChild(row);
                 });

@@ -107,18 +107,30 @@
             </div>
         </div>
 
-
-        <div class="form-control w-full max-w-xs mb-6">
-            <div class="flex items-center gap-2">
-                <label class="input input-bordered flex items-center w-full">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                         stroke="currentColor" class="size-6">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                              d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"/>
-                    </svg>
-                    <input type="text" id="searchInput" placeholder="Search" class="pl-2 w-full"
-                           oninput="filterParticipants()"/>
-                </label>
+        <div class="flex items-center gap-2">
+            <div class="flex items-center mb-4">
+                <div class="flex items-center w-2/3 max-w-xs">
+                    <div class="relative w-full mr-2">
+                        <input type="text"
+                               id="searchInput"
+                               class="input input-bordered w-full pr-12"
+                               placeholder="Search" oninput="filterParticipants()">
+                        <button type="button"
+                                id="searchButton"
+                                class="absolute right-2 top-1/2 -translate-y-1/2 p-2 h-auto min-h-0">
+                            <svg xmlns="http://www.w3.org/2000/svg"
+                                 class="h-5 w-5"
+                                 fill="none"
+                                 viewBox="0 0 24 24"
+                                 stroke="currentColor">
+                                <path stroke-linecap="round"
+                                      stroke-linejoin="round"
+                                      stroke-width="2"
+                                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
                 <button class="btn no-animation" onclick="resetSearch()">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="size-5">
                         <path fill-rule="evenodd"
@@ -240,6 +252,11 @@
                         {% endfor %}
                         </tbody>
                     </table>
+                    <div class="divider m-1"></div>
+                    <div class="ml-auto">
+                        {{ waiting_list| length }} out of {{ queue.get_number_waiting_now }}
+                        <a href="#" class="link link-hover">View All</a>
+                    </div>
                 </div>
             </div>
 
@@ -300,7 +317,8 @@
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <button class="btn btn-success btn-square btn-sm text-base-100 no-animation"
                                             onclick="completeParticipant({{ participant.id }})">
-                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"
+                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"
+                                             fill="currentColor"
                                              class="size-5">
                                             <path fill-rule="evenodd"
                                                   d="M16.704 4.153a.75.75 0 0 1 .143 1.052l-8 10.5a.75.75 0 0 1-1.127.075l-4.5-4.5a.75.75 0 0 1 1.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 0 1 1.05-.143Z"
@@ -312,6 +330,11 @@
                         {% endfor %}
                         </tbody>
                     </table>
+                <div class="divider m-1"></div>
+                    <div class="ml-auto">
+                        {{ serving_list| length }} out of {{ queue.get_number_serving_now }}
+                        <a href="#" class="link link-hover">View All</a>
+                    </div>
                 </div>
             </div>
         </div>
@@ -376,11 +399,16 @@
                                 <td id="table_{{ participant.id }}"
                                     class="px-6 py-4 whitespace-nowrap">{{ participant.table.name }}</td>
                                 <td id="seating_{{ participant.id }}"
-                                    class="badge badge-primary justify-center flex mx-7 my-5">{{ participant.seating_preference }}</td>
+                                    class="badge badge-primary justify-center flex mx-7 my-5">{{ participant.service_type }}</td>
                             </tr>
                         {% endfor %}
                         </tbody>
                     </table>
+                <div class="divider m-1"></div>
+                    <div class="ml-auto">
+                        {{ completed_list| length }} out of {{ queue.get_number_completed_now }}
+                        <a href="#" class="link link-hover">View All</a>
+                    </div>
                 </div>
             </div>
         </div>
@@ -577,7 +605,7 @@
             const waitingSection = document.getElementById('waiting-section');
             waitingSection.innerHTML = '';
 
-            waitingList.forEach(participant => {
+            waitingList.slice(0, 5).forEach(participant => {
                 const row = createWaitingRow(participant);
                 waitingSection.appendChild(row);
             });
@@ -587,7 +615,7 @@
             const servingSection = document.getElementById('serving-section');
             servingSection.innerHTML = '';
 
-            servingList.forEach(participant => {
+            servingList.slice(0, 5).forEach(participant => {
                 const row = createServingRow(participant);
                 servingSection.appendChild(row);
             });
@@ -597,7 +625,7 @@
             const completedSection = document.getElementById('completed-section');
             completedSection.innerHTML = '';
 
-            completedList.forEach(participant => {
+            completedList.slice(0, 5).forEach(participant => {
                 const row = createCompletedRow(participant);
                 completedSection.appendChild(row);
             });

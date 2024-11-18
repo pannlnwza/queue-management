@@ -270,9 +270,9 @@ class ManageWaitlist(LoginRequiredMixin, generic.TemplateView):
         if search_query:
             participant_set = participant_set.filter(name__icontains=search_query)
 
-        context['waiting_list'] = participant_set.filter(state='waiting')
-        context['serving_list'] = participant_set.filter(state='serving')
-        context['completed_list'] = participant_set.filter(state='completed')
+        context['waiting_list'] = participant_set.filter(state='waiting').order_by('position')[:5]
+        context['serving_list'] = participant_set.filter(state='serving').order_by('-service_started_at')[:5]
+        context['completed_list'] = participant_set.filter(state='completed').order_by('-service_completed_at')[:5]
         context['queue'] = queue
         context['resources'] = queue.resource_set.all()
         context['available_resource'] = queue.get_resources_by_status('available')

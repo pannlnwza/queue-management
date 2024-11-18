@@ -11,9 +11,9 @@ from participant.models import Participant, RestaurantParticipant
 def get_general_queue_data(request, queue_id):
     Participant.remove_old_completed_participants()
     queue = get_object_or_404(Queue, id=queue_id)
-    waiting_participants = Participant.objects.filter(queue=queue, state='waiting')
-    serving_participants = Participant.objects.filter(queue=queue, state='serving')
-    completed_participants = Participant.objects.filter(queue=queue, state='completed')
+    waiting_participants = Participant.objects.filter(queue=queue, state='waiting').order_by('position')[:5]
+    serving_participants = Participant.objects.filter(queue=queue, state='serving').order_by('-service_started_at')[:5]
+    completed_participants = Participant.objects.filter(queue=queue, state='completed').order_by('-service_completed_at')[:5]
 
     data = {
 
@@ -64,9 +64,9 @@ def get_unique_queue_category_data(request, queue_id):
     handler = CategoryHandlerFactory.get_handler(queue.category)
     queue = handler.get_queue_object(queue_id)
     participant = handler.get_participant_set(queue_id)
-    waiting_participants = participant.filter(queue=queue, state='waiting')
-    serving_participants = participant.filter(queue=queue, state='serving')
-    completed_participants = participant.filter(queue=queue, state='completed')
+    waiting_participants = participant.filter(queue=queue, state='waiting').order_by('position')[:5]
+    serving_participants = participant.filter(queue=queue, state='serving').order_by('-service_started_at')[:5]
+    completed_participants = participant.filter(queue=queue, state='completed').order_by('-service_completed_at')[:5]
 
     data = {
         'waiting_list': [handler.get_participant_data(participant) for participant in waiting_participants],
