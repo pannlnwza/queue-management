@@ -1,5 +1,4 @@
 {% extends 'sidebar_manage.html' %}
-{% load static %}
 
 {% block content %}
 
@@ -26,18 +25,22 @@
 
                     <div class="mb-4 flex justify-center">
                         <label for="profile_image" class="cursor-pointer">
+{#                            <div class="bg-gray-200 rounded-full h-24 w-24 flex items-center justify-center">#}
+{#                                {% if user.profile.image %}#}
+{#                                    <img src="{{ user.profile.image.url }}" alt="{{ user.username }}'s profile"#}
+{#                                         class="rounded-full h-24 w-24 object-cover">#}
+{#                                {% elif user.socialaccount_set.exists and user.socialaccount_set.first.get_avatar_url %}#}
+{#                                    <img src="{{ user.socialaccount_set.first.get_avatar_url }}"#}
+{#                                         alt="{{ user.username }}'s social profile"#}
+{#                                         class="rounded-full h-24 w-24 object-cover">#}
+{#                                {% else %}#}
+{#                                    <img src="{% static 'participant/images/profile.jpg' %}" alt="Default profile"#}
+{#                                         class="rounded-full h-24 w-24 object-cover">#}
+{#                                {% endif %}#}
+{#                            </div>#}
                             <div class="bg-gray-200 rounded-full h-24 w-24 flex items-center justify-center">
-                                {% if user.profile.image %}
-                                    <img src="{{ user.profile.image.url }}" alt="{{ user.username }}'s profile"
-                                         class="rounded-full h-24 w-24 object-cover">
-                                {% elif user.socialaccount_set.exists and user.socialaccount_set.first.get_avatar_url %}
-                                    <img src="{{ user.socialaccount_set.first.get_avatar_url }}"
-                                         alt="{{ user.username }}'s social profile"
-                                         class="rounded-full h-24 w-24 object-cover">
-                                {% else %}
-                                    <img src="{% static 'participant/images/profile.jpg' %}" alt="Default profile"
-                                         class="rounded-full h-24 w-24 object-cover">
-                                {% endif %}
+                                <img src="{{ profile.get_profile_image }}" alt="{{ user.username }}'s profile"
+                                     class="rounded-full h-24 w-24 object-cover">
                             </div>
                         </label>
 
