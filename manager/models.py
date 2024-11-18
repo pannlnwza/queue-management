@@ -12,6 +12,7 @@ from django.conf import settings
 from django.apps import apps
 from manager.utils.helpers import format_duration
 from django.utils import timezone
+from math import radians, sin, cos, sqrt, atan2
 
 
 class Queue(models.Model):
@@ -64,6 +65,26 @@ class Queue(models.Model):
             code = ''.join(random.choices(characters, k=length))
             if not Queue.objects.filter(code=code).exists():
                 return code
+
+    @staticmethod
+    def get_nearby_queues(user_lat, user_lon, radius_km=2):
+        """Retrieve queues within a given radius of the user's location."""
+        nearby_queues = []
+        for queue in Queue.objects.all():
+            queue_lat, queue_lon = radians(queue.latitude), radians(
+                queue.longitude)
+            user_lat_rad, user_lon_rad = radians(user_lat), radians(user_lon)
+
+            dlat = queue_lat - user_lat_rad
+            dlon = queue_lon - user_lon_rad
+            a = sin(dlat / 2) ** 2 + cos(user_lat_rad) * cos(queue_lat) * sin(
+                dlon / 2) ** 2
+            c = 2 * atan2(sqrt(a), sqrt(1 - a))
+            distance_km = 6371 * c
+
+            if distance_km <= radius_km:
+                nearby_queues.append(queue)
+        return nearby_queues
 
     def has_resources(self):
         return self.category != 'general'
