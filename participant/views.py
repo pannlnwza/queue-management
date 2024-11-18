@@ -20,12 +20,33 @@ from django.http import StreamingHttpResponse
 import json
 from .models import RestaurantParticipant
 
-
 # Create your views here.
+
+from django.views import generic
+from manager.models import Queue
+from django.shortcuts import render
+
 
 class HomePageView(generic.TemplateView):
     template_name = 'participant/get_started.html'
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        user_lat = self.request.GET.get('lat', None)
+        user_lon = self.request.GET.get('lon', None)
+
+        if user_lat and user_lon:
+            try:
+                user_lat = float(user_lat)
+                user_lon = float(user_lon)
+                nearby_queues = Queue.get_nearby_queues(user_lat, user_lon)
+                context['nearby_queues'] = nearby_queues
+            except ValueError:
+                context['error'] = "Invalid latitude or longitude provided."
+        else:
+            context[
+                'error'] = "Location not provided. Please enable location services."
+        return context
 
 
 @login_required
@@ -38,10 +59,12 @@ def mark_notification_as_read(request, notification_id):
             return JsonResponse({"status": "success"})
         except Notification.DoesNotExist:
             return JsonResponse(
-                {"status": "error", "message": "Notification not found"}, status=404
+                {"status": "error", "message": "Notification not found"},
+                status=404
             )
 
-    return JsonResponse({"status": "error", "message": "Invalid request"}, status=400)
+    return JsonResponse({"status": "error", "message": "Invalid request"},
+                        status=400)
 
 
 class BaseQueueView(generic.ListView):
@@ -155,7 +178,8 @@ class IndexView(generic.ListView):
         """
         context = super().get_context_data(**kwargs)
         if self.request.user.is_authenticated:
-            user_participants = Participant.objects.filter(user=self.request.user)
+            user_participants = Participant.objects.filter(
+                user=self.request.user)
             queue_positions = {
                 participant.queue.id: participant.position
                 for participant in user_participants
@@ -170,7 +194,8 @@ class IndexView(generic.ListView):
             }
             expected_service_time = {
                 participant.queue.id: datetime.now()
-                + timedelta(minutes=participant.calculate_estimated_wait_time())
+                                      + timedelta(
+                    minutes=participant.calculate_estimated_wait_time())
                 for participant in user_participants
             }
             notification = Notification.objects.filter(
@@ -225,7 +250,6 @@ class KioskView(generic.FormView):
                         queue_code=self.kwargs['queue_code'],
                         participant_id=participant.id)
 
-
     def form_invalid(self, form):
         # Optional: Log or print errors for debugging
         print(form.errors)
@@ -241,14 +265,15 @@ class QueueStatusView(generic.TemplateView):
         # look for 'participant_code' in the url
         participant_code = kwargs['participant_code']
         # get the participant
-        participant = get_object_or_404(Participant,code=participant_code)
+        participant = get_object_or_404(Participant, code=participant_code)
         # get the queue
         queue = participant.queue
         # add in context data
         context['queue'] = queue
         context['participant'] = participant
         # Get the list of all participants in the same queue
-        participants_in_queue = queue.participant_set.all().order_by('joined_at')
+        participants_in_queue = queue.participant_set.all().order_by(
+            'joined_at')
         context['participants_in_queue'] = participants_in_queue
         return context
 
@@ -260,9 +285,11 @@ def sse_queue_status(request, participant_code):
         last_data = None
         while True:
             try:
-                queue = get_object_or_404(Participant, code=participant_code).queue
+                queue = get_object_or_404(Participant,
+                                          code=participant_code).queue
                 handler = CategoryHandlerFactory.get_handler(queue.category)
-                participant = handler.get_participant_set(queue.id).get(code=participant_code)
+                participant = handler.get_participant_set(queue.id).get(
+                    code=participant_code)
 
                 current_data = handler.get_participant_data(participant)
                 if last_data != current_data:
@@ -277,7 +304,8 @@ def sse_queue_status(request, participant_code):
                 print("Error in event stream:", e)
                 break
 
-    response = StreamingHttpResponse(event_stream(), content_type='text/event-stream')
+    response = StreamingHttpResponse(event_stream(),
+                                     content_type='text/event-stream')
 
     # Remove 'Connection: keep-alive' and set necessary headers for SSE
     response['Cache-Control'] = 'no-cache'
@@ -298,7 +326,8 @@ def participant_leave(request, participant_code):
     try:
         participant.delete()
 
-        messages.success(request, f"We are sorry to see you leave {participant.name}. See you next time!")
+        messages.success(request,
+                         f"We are sorry to see you leave {participant.name}. See you next time!")
         logger.info(
             f"Participant {participant.name} successfully left queue: {queue.name}.")
     except Exception as e:
@@ -339,6 +368,7 @@ class QRcodeView(generic.DetailView):
         context['qr_image'] = qr_image
         return context
 
+
 class CheckQueueView(generic.DetailView):
     model = Participant
     template_name = 'participant/status.html'
@@ -350,4 +380,3 @@ class CheckQueueView(generic.DetailView):
         queue = participant.queue
         context['queue'] = queue
         return context
-      

@@ -3,17 +3,18 @@
 {% load static %}
 
 {% block content %}
-    <main class="flex items-center justify-center min-h-screen">
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-4xl">
-            <a href="{% url 'manager:your-queue' %}" class="card bg-base-100 shadow-xl hover:shadow-2xl hover:bg-primary/30 transform hover:scale-105 transition duration-300">
-                <figure class="px-10 pt-10">
-                    <img src="{% static 'participant/images/Krustykrab.jpg' %}" alt="Create Queue Icon" class="rounded-xl w-32 h-32 object-cover">
-                </figure>
-                <div class="card-body items-center text-center">
-                    <h5 class="card-title text-xl font-semibold text-primary">I’m a Business</h5>
-                    <p class="text-accent">Start managing your customer queues efficiently by creating a queue.</p>
-                </div>
-            </a>
+<main class="container mx-auto px-4 py-8">
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-4xl mx-auto">
+        <a href="{% url 'manager:your-queue' %}" class="card bg-base-100 shadow-xl hover:shadow-2xl hover:bg-primary/30 transform hover:scale-105 transition duration-300">
+            <figure class="px-10 pt-10">
+                <img src="{% static 'participant/images/Krustykrab.jpg' %}" alt="Create Queue Icon" class="rounded-xl w-32 h-32 object-cover">
+            </figure>
+            <div class="card-body items-center text-center">
+                <h5 class="card-title text-xl font-semibold text-primary">I'm a Business</h5>
+                <p class="text-accent">Start managing your customer queues efficiently by creating a queue.</p>
+            </div>
+        </a>
 
         <a href="{% url 'participant:queues' %}" class="card bg-base-100 shadow-xl hover:shadow-2xl hover:bg-primary/30 transform hover:scale-105 transition duration-300">
             <figure class="px-10 pt-10">
@@ -25,5 +26,88 @@
             </div>
         </a>
     </div>
+
+    <!-- Nearby queues -->
+    <section class="mb-12">
+        <h1>Nearby Queues</h1>
+
+    {% if nearby_queues %}
+        <div class="queues">
+            {% for queue in nearby_queues %}
+                <div class="queue-card">
+                    <h2>{{ queue.name }}</h2>
+                    <p>{{ queue.description }}</p>
+                    <a
+                        href="https://www.google.com/maps?q={{ queue.latitude }},{{ queue.longitude }}"
+                        target="_blank"
+                        class="btn btn-primary">
+                        View on Google Maps
+                    </a>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p>No nearby queues.</p>
+    {% endif %}
+    </section>
+
+    <!-- Market Research Reports -->
+    <section class="mb-12">
+        <h2 class="text-2xl font-bold mb-6">MARKET RESEARCH REPORTS</h2>
+        <div class="space-y-4">
+            {% for i in "1234"|make_list %}
+            <div class="flex items-center gap-4 bg-base-100 p-4 rounded-lg shadow">
+                <span class="text-primary font-bold text-xl">0{{forloop.counter}}</span>
+                <p class="flex-1">words which don't look even slightly believable. If you are going</p>
+            </div>
+            {% endfor %}
+        </div>
+        <div class="text-center mt-6">
+            <button class="btn btn-primary">Read More</button>
+        </div>
+    </section>
+
+    <!-- Latest Blogs -->
+    <section class="mb-12">
+        <h2 class="text-2xl font-bold mb-6">LATEST BLOGS</h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {% for i in "123"|make_list %}
+            <div class="card bg-base-100 shadow-xl">
+                <figure>
+                    <img src="{% static 'images/placeholder.jpg' %}" alt="Blog" class="w-full h-48 object-cover"/>
+                </figure>
+                <div class="card-body">
+                    <h3 class="card-title">Unbelievable source</h3>
+                    <p class="text-sm">Looking up its layout. The point of using unbelievable source is that it has a more-or-less normal distribution of letters, as compared</p>
+                    <div class="card-actions">
+                        <button class="btn btn-primary btn-sm">Read More</button>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const userLat = urlParams.get('lat');
+        const userLon = urlParams.get('lon');
+
+        if (!userLat || !userLon) {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(function (position) {
+                    const lat = position.coords.latitude;
+                    const lon = position.coords.longitude;
+
+                    const currentUrl = window.location.href.split('?')[0];
+                    window.location.href = `${currentUrl}?lat=${lat}&lon=${lon}`;
+                }, function (error) {
+                    console.error('Error retrieving location:', error);
+                });
+            } else {
+                alert("Geolocation is not supported by your browser.");
+            }
+        }
+    </script>
 </main>
 {% endblock %}
