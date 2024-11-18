@@ -1,7 +1,7 @@
 {% extends 'sidebar_manage.html' %}
+{% load static %}
 
 {% block content %}
-
     <div class="card bg-base-100 shadow-xl border-2 border-gray-300 rounded-lg">
         <div class="card-body">
             <h1 class="text-2xl font-bold mb-6">Edit Profile</h1>
@@ -19,40 +19,33 @@
             <form method="POST" class="space-y-6" enctype="multipart/form-data">
                 {% csrf_token %}
 
-                {# Profile image #}
+                {# Profile image#}
                 <section class="mb-6 border-2 border-gray-300 p-4 rounded-lg w-1/2 ml-4">
-                    <h2 class="text-xl font-semibold mb-4">Profile Image</h2>
+        <h2 class="text-xl font-semibold mb-4">Profile Image</h2>
+        <div class="mb-4 flex justify-center">
+            <label for="image" class="cursor-pointer" id="imageLabel">
+                <!-- Image container will be populated by JavaScript -->
+            </label>
+            <input
+                type="file"
+                id="image"
+                name="image"
+                accept="image/*"
+                class="hidden"
+            />
+            <input
+                type="hidden"
+                id="remove_image"
+                name="remove_image"
+                value="false"
+            />
+        </div>
+        <div class="flex justify-center" id="buttonContainer">
+            <!-- Button container will be populated by JavaScript -->
+        </div>
+    </section>
 
-                    <div class="mb-4 flex justify-center">
-                        <label for="profile_image" class="cursor-pointer">
-{#                            <div class="bg-gray-200 rounded-full h-24 w-24 flex items-center justify-center">#}
-{#                                {% if user.profile.image %}#}
-{#                                    <img src="{{ user.profile.image.url }}" alt="{{ user.username }}'s profile"#}
-{#                                         class="rounded-full h-24 w-24 object-cover">#}
-{#                                {% elif user.socialaccount_set.exists and user.socialaccount_set.first.get_avatar_url %}#}
-{#                                    <img src="{{ user.socialaccount_set.first.get_avatar_url }}"#}
-{#                                         alt="{{ user.username }}'s social profile"#}
-{#                                         class="rounded-full h-24 w-24 object-cover">#}
-{#                                {% else %}#}
-{#                                    <img src="{% static 'participant/images/profile.jpg' %}" alt="Default profile"#}
-{#                                         class="rounded-full h-24 w-24 object-cover">#}
-{#                                {% endif %}#}
-{#                            </div>#}
-                            <div class="bg-gray-200 rounded-full h-24 w-24 flex items-center justify-center">
-                                <img src="{{ profile.get_profile_image }}" alt="{{ user.username }}'s profile"
-                                     class="rounded-full h-24 w-24 object-cover">
-                            </div>
-                        </label>
-
-                        <input type="file" id="profile_image" name="profile_image" class="hidden">
-                    </div>
-
-                    <div class="flex justify-center">
-                        <button type="button" class="btn btn-danger mt-2" id="remove-image-button">remove image</button>
-                    </div>
-                </section>
-
-                {# Personal data #}
+                {# Personal data#}
                 <section class="mb-6 border-2 border-gray-300 p-4 rounded-lg w-1/2 ml-4">
                     <h2 class="text-xl font-semibold mb-4">Personal Data</h2>
 
@@ -122,5 +115,94 @@
             </form>
         </div>
     </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const defaultImage = '{% static "participant/images/profile.jpg" %}';
+        let currentImageUrl = "{{ profile_image_url }}";
+        const imageLabel = document.getElementById('imageLabel');
+        const buttonContainer = document.getElementById('buttonContainer');
+        const fileInput = document.getElementById('image');
+        const removeImageInput = document.getElementById('remove_image');
+        const imageForm = document.getElementById('imageForm');
+
+        function updateUI() {
+            const isDefaultImage = currentImageUrl.includes('profile.jpg');
+            const isGmailImage = currentImageUrl.includes('googleusercontent');
+            const hasCustomImage = !isDefaultImage && !isGmailImage;
+
+            // Camera icon SVG (used in both states)
+            const cameraIcon = (color) => `
+                <svg class="w-6 h-6" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                    <path stroke="${color}" stroke-linejoin="round" stroke-width="2" d="M4 18V8a1 1 0 0 1 1-1h1.5l1.707-1.707A1 1 0 0 1 8.914 5h6.172a1 1 0 0 1 .707.293L17.5 7H19a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1Z"/>
+                    <path stroke="${color}" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/>
+                </svg>
+            `;
+
+            // Update image display
+            if (isDefaultImage) {
+                imageLabel.innerHTML = `
+                    <div class="bg-gray-200 rounded-full h-24 w-24 flex items-center justify-center hover:bg-gray-300 transition-colors">
+                        ${cameraIcon('black')}
+                    </div>
+                `;
+            } else {
+                imageLabel.innerHTML = `
+                    <div class="relative group">
+                        <img
+                            src="${currentImageUrl}"
+                            alt="Profile"
+                            class="rounded-full h-24 w-24 object-cover"
+                        />
+                        <div class="absolute inset-0 bg-black bg-opacity-50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                            ${cameraIcon('white')}
+                        </div>
+                    </div>
+                `;
+            }
+
+            // Update button
+            if (isDefaultImage) {
+                buttonContainer.innerHTML = `
+                    <label for="image" class="btn btn-primary">Select Image</label>
+                `;
+            } else {
+                buttonContainer.innerHTML = `
+                    <button type="button" class="btn btn-error" onclick="handleRemove()">Remove Image</button>
+                `;
+            }
+        }
+
+        function handleImageUpload(event) {
+            const file = event.target.files[0];
+            if (file) {
+                currentImageUrl = URL.createObjectURL(file);
+                removeImageInput.value = "false";
+                updateUI();
+                // Submit the form automatically when a new image is selected
+                imageForm.submit();
+            }
+        }
+
+        function handleRemove() {
+            currentImageUrl = defaultImage;
+            fileInput.value = '';
+            removeImageInput.value = "true";
+            updateUI();
+            // Submit the form to handle the removal on the server
+            imageForm.submit();
+        }
+
+        // Add event listener for file input changes
+        fileInput.addEventListener('change', handleImageUpload);
+
+        // Initialize the UI
+        updateUI();
+
+        // Make handleRemove available globally
+        window.handleRemove = handleRemove;
+    });
+</script>
+
 
 {% endblock %}

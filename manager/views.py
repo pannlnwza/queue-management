@@ -14,12 +14,13 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse_lazy, reverse
 from django.utils import timezone
 from django.views import generic
-from django.views.decorators.http import require_http_methods
+from django.views.decorators.http import require_http_methods, require_POST
 from manager.forms import QueueForm, CustomUserCreationForm, EditProfileForm
 from participant.models import Participant, Notification
 from manager.models import Queue, UserProfile, QueueLineLength
 from manager.utils.queue_handler import QueueHandlerFactory
 from manager.utils.category_handler import CategoryHandlerFactory
+from django.views.decorators.csrf import csrf_exempt
 
 
 logger = logging.getLogger('queue')
@@ -233,6 +234,7 @@ def add_participant(request, queue_id):
     handler.create_participant(data)
     queue.record_line_length()
     return redirect('manager:participant_list', queue_id)
+
 
 
 class ManageWaitlist(LoginRequiredMixin, generic.TemplateView):
@@ -571,19 +573,9 @@ class EditProfileView(LoginRequiredMixin, generic.UpdateView):
         queue_id = self.kwargs.get('queue_id')
         context['queue_id'] = queue_id
         context['user'] = self.request.user
+        profile = self.get_object()
+        context['profile_image_url'] = profile.get_profile_image()
         return context
-
-def user_profile(request):
-    """
-    Add the UserProfile object of the logged-in user to the template context.
-    """
-    if request.user.is_authenticated:
-        try:
-            profile = UserProfile.objects.get(user=request.user)
-            return {'user_profile': profile}
-        except UserProfile.DoesNotExist:
-            return {'user_profile': None}
-    return {'user_profile': None}
 
 
 def get_client_ip(request):
