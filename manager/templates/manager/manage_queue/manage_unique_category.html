@@ -253,14 +253,14 @@
                         </tbody>
                     </table>
                     <div class="divider m-1"></div>
-                    <div class="ml-auto">
+                    <div class="ml-auto text-sm text-gray-500">
                         {{ waiting_list| length }} out of {{ queue.get_number_waiting_now }}
                         <a href="#" class="link link-hover">View All</a>
                     </div>
                 </div>
             </div>
 
-            <div class="card w-full overflow-x-auto shadow bordered bg-base-100 w-full mb-5">
+            <div class="card w-full overflow-x-auto shadow bordered bg-base-100 mb-5">
                 <div class="card-body">
                     <h2 class="card-title">Serving</h2>
                     <p class="text-info-content font-thin">
@@ -331,7 +331,7 @@
                         </tbody>
                     </table>
                 <div class="divider m-1"></div>
-                    <div class="ml-auto">
+                    <div class="ml-auto text-sm text-gray-500">
                         {{ serving_list| length }} out of {{ queue.get_number_serving_now }}
                         <a href="#" class="link link-hover">View All</a>
                     </div>
@@ -405,7 +405,7 @@
                         </tbody>
                     </table>
                 <div class="divider m-1"></div>
-                    <div class="ml-auto">
+                    <div class="ml-auto text-sm text-gray-500">
                         {{ completed_list| length }} out of {{ queue.get_number_completed_now }}
                         <a href="#" class="link link-hover">View All</a>
                     </div>
