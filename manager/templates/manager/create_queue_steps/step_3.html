@@ -1,0 +1,12 @@
+<form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+
+    <label for="id_latitude">Latitude</label>
+    <input type="text" name="latitude" id="id_latitude">
+
+    <label for="id_longitude">Longitude</label>
+    <input type="text" name="longitude" id="id_longitude">
+
+    <button type="submit">Create Queue</button>
+</form>

@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+<form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+
+    <!-- Optional: Display open_time and close_time if needed -->
+    <label for="id_open_time">Open Time</label>
+    <input type="datetime-local" name="open_time" id="id_open_time" required>
+
+    <label for="id_close_time">Close Time</label>
+    <input type="datetime-local" name="close_time" id="id_close_time" required>
+
+    <button type="submit">Next</button>
+</form>

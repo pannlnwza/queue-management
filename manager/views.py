@@ -40,7 +40,7 @@ class MultiStepFormView(View):
         else:
             return redirect('manager:your-queue')
 
-        return render(request, f'manager/step_{step}.html', {'form': form, 'step': step})
+        return render(request, f'manager/create_queue_steps/step_{step}.html', {'form': form, 'step': step})
 
     def post(self, request, step):
         if step == "1":
