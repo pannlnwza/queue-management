@@ -3,6 +3,39 @@
 {% load static %}
 
 {% block content %}
+<div class="carousel w-full overflow-hidden relative">
+  <!-- Slides -->
+  <div id="carousel-slides" class="flex transition-transform duration-300">
+    <!-- Slide 1 -->
+    <div class="carousel-item w-full flex-shrink-0">
+        <img
+          src="{% static 'participant/images/background_1.jpg' %}"
+          class="w-full h-auto" />
+    </div>
+    <!-- Slide 2 -->
+    <div class="carousel-item w-full flex-shrink-0">
+      <img
+        src="{% static 'participant/images/background_2.jpg' %}"
+        class="w-full h-auto" />
+    </div>
+    <!-- Slide 3 -->
+    <div class="carousel-item w-full flex-shrink-0">
+      <img
+        src="https://img.daisyui.com/images/stock/photo-1414694762283-acccc27bca85.webp"
+        class="w-full h-auto" />
+    </div>
+    <!-- Slide 4 -->
+    <div class="carousel-item w-full flex-shrink-0">
+      <img
+        src="https://img.daisyui.com/images/stock/photo-1665553365602-b2fb8e5d1707.webp"
+        class="w-full h-auto" />
+    </div>
+  </div>
+
+  <!-- Navigation Buttons -->
+  <button id="prev" class="absolute left-2 top-1/2 -translate-y-1/2 btn btn-circle">❮</button>
+  <button id="next" class="absolute right-2 top-1/2 -translate-y-1/2 btn btn-circle">❯</button>
+</div>
 <main class="container mx-auto px-4 py-8">
 
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-4xl mx-auto mt-6">
@@ -28,58 +61,66 @@
     </div>
 
         <!-- Nearby queues -->
-        <section class="mb-12 px-4 max-w-7xl mx-auto">
-          <h1 class="mt-4 mb-6 text-xl font-bold text-gray-800">Nearby Queues</h1>
+<section class="mb-12 px-4 max-w-7xl mx-auto relative">
+  <h1 class="mt-4 mb-6 text-xl font-bold text-gray-800">Nearby Queues</h1>
+  <div class="relative flex items-center">
+    <!-- Left Arrow -->
+    <button
+      class="absolute left-0 z-10 w-10 h-10 bg-gray-800 text-black rounded-full flex items-center justify-center shadow-md hover:bg-gray-700"
+      onclick="scrollLeft()">
+      &larr;
+    </button>
 
-          <div class="relative overflow-hidden">
-            <button
-              class="absolute top-1/2 left-2 transform -translate-y-1/2 z-10 bg-gray-800 text-white p-2 rounded-full shadow-md hover:bg-gray-700 focus:outline-none"
-              onclick="scrollLeft()"
-            >
-              &#8592;
-            </button>
+    <!-- Scrollable Cards -->
+    <div id="queue-container" class="flex gap-4 overflow-x-auto no-scrollbar scroll-smooth">
+      {% if nearby_queues %}
+        {% for queue in nearby_queues %}
+          <div class="flex-shrink-0 group bg-white rounded-xl border border-gray-300 shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden w-64">
+            <div class="p-6">
+              <div class="bg-gray-50 rounded-xl p-6 mb-4 flex items-center justify-center">
+                <img class="w-24 h-auto object-contain" src="{{ queue.get_logo_url }}" alt="{{ queue.name }}">
+              </div>
 
-            <div id="queue-container" class="flex gap-4 overflow-x-auto scroll-smooth">
-              {% if nearby_queues %}
-                {% for queue in nearby_queues %}
-                  <div class="flex-shrink-0 bg-white rounded-xl border border-gray-300 shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden w-60">
-                    <div class="p-6">
-                      <div class="bg-gray-50 rounded-xl p-6 mb-4 flex items-center justify-center">
-                        <img class="w-24 h-auto object-contain" src="{{ queue.get_logo_url }}" alt="{{ queue.name }}">
-                      </div>
-
-                      <div class="space-y-3 text-center">
-                        <h2 class="text-xl font-bold text-gray-800">{{ queue.name | upper }}</h2>
-                        <p class="text-sm text-indigo-600 font-medium">({{ queue.category.capitalize }})</p>
-                        <p class="text-sm text-gray-700 break-words overflow-hidden">{{ queue.description }}</p>
-                      </div>
-                    </div>
-
-                    <div class="px-6 pb-6 flex justify-center">
-                      <a
-                        href="https://www.google.com/maps?q={{ queue.latitude }},{{ queue.longitude }}"
-                        target="_blank"
-                        class="btn btn-primary mt-2 mb-4 px-3 py-1 text-sm font-medium bg-blue-500 text-white rounded hover:bg-blue-600">
-                        View on Google Maps
-                      </a>
-                    </div>
-                  </div>
-                {% endfor %}
-              {% else %}
-                <div class="flex items-center justify-center w-full">
-                  <p class="text-gray-500 text-lg">No nearby queues available.</p>
+              <div class="space-y-3">
+                <div class="text-center">
+                  <h2 class="text-xl font-bold text-gray-800">{{ queue.name | upper }}</h2>
+                  <p class="text-sm text-indigo-600 font-medium">({{ queue.category.capitalize }})</p>
                 </div>
-              {% endif %}
+
+                <div class="relative">
+                  <p class="text-sm text-gray-700 break-words overflow-hidden">{{ queue.description }}</p>
+                </div>
+              </div>
             </div>
 
-            <button
-              class="absolute top-1/2 right-2 transform -translate-y-1/2 z-10 bg-gray-800 text-white p-2 rounded-full shadow-md hover:bg-gray-700 focus:outline-none"
-              onclick="scrollRight()"
-            >
-              &#8594;
-            </button>
+            <div class="px-6 pb-6 flex justify-center">
+              <a
+                href="https://www.google.com/maps?q={{ queue.latitude }},{{ queue.longitude }}"
+                target="_blank"
+                class="btn btn-primary mt-2 mb-5 px-3 py-1 text-sm font-medium bg-blue-500 text-white rounded hover:bg-blue-600">
+                View on Google Maps
+              </a>
+            </div>
           </div>
-        </section>
+        {% endfor %}
+      {% else %}
+        <div class="col-span-full text-center py-12">
+          <div class="bg-gray-50 rounded-xl p-8">
+            <p class="text-gray-500 text-lg">No nearby queues available.</p>
+          </div>
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- Right Arrow -->
+    <button
+      class="absolute right-0 z-10 w-10 h-10 bg-gray-800 text-black rounded-full flex items-center justify-center shadow-md hover:bg-gray-700"
+      onclick="scrollRight()">
+      &rarr;
+    </button>
+  </div>
+</section>
+
 
     <!-- Market Research Reports -->
     <section class="mb-12">
@@ -149,6 +190,35 @@
                 alert("Geolocation is not supported by your browser.");
             }
         }
+            function scrollLeft() {
+      const container = document.getElementById('queue-container');
+      container.scrollBy({ left: -250, behavior: 'smooth' });
+    }
+
+    function scrollRight() {
+      const container = document.getElementById('queue-container');
+      container.scrollBy({ left: 250, behavior: 'smooth' });
+    }
+    </script>
+
+    <script>
+      const slides = document.getElementById('carousel-slides');
+      const totalSlides = slides.children.length;
+      let currentIndex = 0;
+
+      function updateCarousel() {
+        slides.style.transform = `translateX(-${currentIndex * 100}%)`;
+      }
+
+      document.getElementById('prev').addEventListener('click', () => {
+        currentIndex = (currentIndex - 1 + totalSlides) % totalSlides;
+        updateCarousel();
+      });
+
+      document.getElementById('next').addEventListener('click', () => {
+        currentIndex = (currentIndex + 1) % totalSlides;
+        updateCarousel();
+      });
     </script>
 </main>
 {% endblock %}
