@@ -33,8 +33,8 @@
           <div class="category-cards flex gap-4">
             {% if nearby_queues %}
               {% for queue in nearby_queues %}
-                <div class="category-card w-full sm:w-1/2 md:w-1/3 lg:w-1/4 p-2 text-left">
-                  <img class="w-40 h-auto mb-4" src="{{ queue.get_logo_url }}" alt="{{ queue.name }}">
+                <div class="category-card w-80 sm:w-1/2 md:w-1/3 lg:w-1/4 p-4 bg-white border border-gray-300 rounded-xl shadow-md text-center">
+                  <img class="w-40 h-auto mx-auto mb-4" src="{{ queue.get_logo_url }}" alt="{{ queue.name }}">
                   <h2 class="text-xl font-bold">{{ queue.name | upper }}</h2>
                   <p>{{ queue.description }}</p>
                   <a
