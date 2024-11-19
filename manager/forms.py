@@ -37,7 +37,7 @@ class QueueForm(forms.ModelForm):
 
 class OpeningHoursForm(forms.Form):
     open_time = forms.TimeField(
-        required=True,
+        required=False,
         widget=forms.TimeInput(
             attrs={
                 'id': 'open_time',
@@ -49,7 +49,7 @@ class OpeningHoursForm(forms.Form):
     )
 
     close_time = forms.TimeField(
-        required=True,
+        required=False,
         widget=forms.TimeInput(
             attrs={
                 'id': 'close_time',
@@ -62,33 +62,52 @@ class OpeningHoursForm(forms.Form):
 
 
 class ResourceForm(forms.Form):
+    input_style = 'input input-bordered w-full m-4 text-m'
     name = forms.CharField(
-        widget=forms.TextInput(attrs={'class': 'input input-bordered w-full', 'placeholder': 'Enter Resource Name'}),
+        widget=forms.TextInput(attrs={'class': input_style, 'placeholder': 'Enter Name'}),
         max_length=50,
-        label="Resource Name"
     )
-    capacity = forms.IntegerField(
-        widget=forms.NumberInput(attrs={'class': 'input input-bordered w-full', 'placeholder': 'Enter Capacity'}),
-        min_value=1,
-        label="Capacity"
-    )
+    status = forms.ChoiceField(
+                choices=Resource.RESOURCE_STATUS,
+                widget=forms.Select(attrs={'class': 'select select-bordered w-full m-4'}),
+                label="Status",
+                required=True
+            )
 
-    def __init__(self, *args, queue=None, **kwargs):
+    def __init__(self, *args, queue_category=None, **kwargs):
         """
         Adjust fields based on queue category.
-        :param queue: The queue instance determining the category.
+        :param queue_category: The category of the queue to dynamically adjust fields.
         """
         super().__init__(*args, **kwargs)
+        self.category = queue_category
+        # Add dynamic fields and instance variables based on queue_category
+        if queue_category['category'] == 'hospital':
+            self.fields['special'] = forms.ChoiceField(
+                choices=Doctor.MEDICAL_SPECIALTY_CHOICES,
+                widget=forms.Select(attrs={'class': 'select select-bordered w-full m-4'}),
+                label="Medical Specialty",
+                required=True,
+            )
+            self.resource_name = "Specialist"
+        elif queue_category['category'] == 'restaurant':
+            self.fields['special'] = forms.IntegerField(
+            widget=forms.NumberInput(attrs={'class': self.input_style, 'placeholder': 'Enter Capacity'}),
+            min_value=1,
+            label="Capacity"
+        )
+            self.resource_name = "Table"
+        elif queue_category['category'] == 'bank':
+            self.resource_name = "Counter"
+        else:
+            self.resource_name = "Resource"
 
-        # Dynamically adjust fields based on the queue category
-        if queue:
-            if queue.category == 'hospital':
-                self.fields['specialty'] = forms.ChoiceField(
-                    choices=Doctor.MEDICAL_SPECIALTY_CHOICES,
-                    widget=forms.Select(attrs={'class': 'select select-bordered w-full'}),
-                    label="Medical Specialty",
-                    required=True
-                )
+    def get_resource_name(self):
+        """
+        A helper method to access resource name dynamically.
+        """
+        return self.resource_name
+
 
 
 
