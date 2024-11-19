@@ -69,13 +69,12 @@
         <table class="table min-w-full bg-base-100 divide-y divide-gray-200" id="participantTable">
             <thead>
             <tr>
-                <th class="w-10 px-2 py-3"></th>
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">State</th>
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Serving</th>
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Waiting</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Wait time
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Average Wait time
                 </th>
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"></th>
             </tr>
@@ -84,13 +83,6 @@
             {% if authorized_queues %}
                 {% for queue in authorized_queues %}
                     <tr class="hover:bg-gray-100 cursor-pointer" onclick="handleRowClick(event, '{{ queue.id }}')">
-                        <td class="w-10 px-2 py-4">
-                            <div class="form-control max-w-sm">
-                                <label class="label cursor-pointer">
-                                    <input type="checkbox" class="checkbox checkbox-primary border-base-content"/>
-                                </label>
-                            </div>
-                        </td>
                         <td class="px-6 py-4 whitespace-nowrap">
                             <div class="flex items-center space-x-3">
                                 <div class="avatar">
