@@ -16,36 +16,42 @@
                 </div>
             {% endif %}
 
-            <form method="POST" class="space-y-6" enctype="multipart/form-data">
+            <form method="POST" class="space-y-6" enctype="multipart/form-data" id="profileForm">
                 {% csrf_token %}
+{#                {{ form.as_p }}#}
 
-                {# Profile image#}
+                {# Profile image #}
                 <section class="mb-6 border-2 border-gray-300 p-4 rounded-lg w-1/2 ml-4">
-        <h2 class="text-xl font-semibold mb-4">Profile Image</h2>
-        <div class="mb-4 flex justify-center">
-            <label for="image" class="cursor-pointer" id="imageLabel">
-                <!-- Image container will be populated by JavaScript -->
-            </label>
-            <input
-                type="file"
-                id="image"
-                name="image"
-                accept="image/*"
-                class="hidden"
-            />
-            <input
-                type="hidden"
-                id="remove_image"
-                name="remove_image"
-                value="false"
-            />
-        </div>
-        <div class="flex justify-center" id="buttonContainer">
-            <!-- Button container will be populated by JavaScript -->
-        </div>
-    </section>
+                    <h2 class="text-xl font-semibold mb-4">Profile Image</h2>
+                    <div class="mb-4 flex justify-center">
+                        <label for="image" class="cursor-pointer" id="imageLabel">
+                            <!-- Image container will be populated by JavaScript -->
+                        </label>
+                        <input
+                            type="file"
+                            id="image"
+                            name="image"
+                            accept="image/*"
+                            class="hidden"
+                        />
+                        <input
+                            type="hidden"
+                            id="remove_image"
+                            name="remove_image"
+                            value="false"
+                        />
+                        <input
+                            type="hidden"
+                            id="current_image_url"
+                            value="{{ profile_image_url }}"
+                        />
+                    </div>
+                    <div class="flex justify-center" id="buttonContainer">
+                        <!-- Button container will be populated by JavaScript -->
+                    </div>
+                </section>
 
-                {# Personal data#}
+                {# Personal data #}
                 <section class="mb-6 border-2 border-gray-300 p-4 rounded-lg w-1/2 ml-4">
                     <h2 class="text-xl font-semibold mb-4">Personal Data</h2>
 
@@ -117,92 +123,89 @@
     </div>
 
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
-        const defaultImage = '{% static "participant/images/profile.jpg" %}';
-        let currentImageUrl = "{{ profile_image_url }}";
-        const imageLabel = document.getElementById('imageLabel');
-        const buttonContainer = document.getElementById('buttonContainer');
-        const fileInput = document.getElementById('image');
-        const removeImageInput = document.getElementById('remove_image');
-        const imageForm = document.getElementById('imageForm');
+document.addEventListener('DOMContentLoaded', function () {
+    const defaultImage = '{% static "participant/images/profile.jpg" %}';
+    const imageLabel = document.getElementById('imageLabel');
+    const buttonContainer = document.getElementById('buttonContainer');
+    const fileInput = document.getElementById('image');
+    const removeImageInput = document.getElementById('remove_image');
+    const currentImageUrlInput = document.getElementById('current_image_url');
+    const profileForm = document.getElementById('profileForm');
 
-        function updateUI() {
-            const isDefaultImage = currentImageUrl.includes('profile.jpg');
-            const isGmailImage = currentImageUrl.includes('googleusercontent');
-            const hasCustomImage = !isDefaultImage && !isGmailImage;
+    let currentImageUrl = currentImageUrlInput.value || defaultImage;
 
-            // Camera icon SVG (used in both states)
-            const cameraIcon = (color) => `
-                <svg class="w-6 h-6" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
-                    <path stroke="${color}" stroke-linejoin="round" stroke-width="2" d="M4 18V8a1 1 0 0 1 1-1h1.5l1.707-1.707A1 1 0 0 1 8.914 5h6.172a1 1 0 0 1 .707.293L17.5 7H19a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1Z"/>
-                    <path stroke="${color}" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/>
-                </svg>
+    function createCameraIcon(color) {
+        return `
+            <svg class="w-6 h-6" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                <path stroke="${color}" stroke-linejoin="round" stroke-width="2" d="M4 18V8a1 1 0 0 1 1-1h1.5l1.707-1.707A1 1 0 0 1 8.914 5h6.172a1 1 0 0 1 .707.293L17.5 7H19a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1Z"/>
+                <path stroke="${color}" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/>
+            </svg>
+        `;
+    }
+
+    function updateUI() {
+        const isDefaultImage = currentImageUrl.includes('profile.jpg');
+        const isGmailImage = currentImageUrl.includes('googleusercontent');
+
+        // Update image display
+        if (isDefaultImage) {
+            imageLabel.innerHTML = `
+                <div class="bg-gray-200 rounded-full h-24 w-24 flex items-center justify-center hover:bg-gray-300 transition-colors">
+                    ${createCameraIcon('black')}
+                </div>
             `;
-
-            // Update image display
-            if (isDefaultImage) {
-                imageLabel.innerHTML = `
-                    <div class="bg-gray-200 rounded-full h-24 w-24 flex items-center justify-center hover:bg-gray-300 transition-colors">
-                        ${cameraIcon('black')}
+        } else {
+            imageLabel.innerHTML = `
+                <div class="relative group">
+                    <img
+                        src="${currentImageUrl}"
+                        alt="Profile"
+                        class="rounded-full h-24 w-24 object-cover"
+                    />
+                    <div class="absolute inset-0 bg-black bg-opacity-50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                        ${createCameraIcon('white')}
                     </div>
-                `;
-            } else {
-                imageLabel.innerHTML = `
-                    <div class="relative group">
-                        <img
-                            src="${currentImageUrl}"
-                            alt="Profile"
-                            class="rounded-full h-24 w-24 object-cover"
-                        />
-                        <div class="absolute inset-0 bg-black bg-opacity-50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                            ${cameraIcon('white')}
-                        </div>
-                    </div>
-                `;
-            }
-
-            // Update button
-            if (isDefaultImage) {
-                buttonContainer.innerHTML = `
-                    <label for="image" class="btn btn-primary">Select Image</label>
-                `;
-            } else {
-                buttonContainer.innerHTML = `
-                    <button type="button" class="btn btn-error" onclick="handleRemove()">Remove Image</button>
-                `;
-            }
+                </div>
+            `;
         }
 
-        function handleImageUpload(event) {
-            const file = event.target.files[0];
-            if (file) {
-                currentImageUrl = URL.createObjectURL(file);
-                removeImageInput.value = "false";
-                updateUI();
-                // Submit the form automatically when a new image is selected
-                imageForm.submit();
-            }
-        }
+        buttonContainer.innerHTML = isDefaultImage
+            ? `<label for="image" class="btn btn-primary">Select Image</label>`
+            : `<button type="button" class="btn btn-error" onclick="handleRemove()">Remove Image</button>`;
+    }
 
-        function handleRemove() {
-            currentImageUrl = defaultImage;
-            fileInput.value = '';
-            removeImageInput.value = "true";
+    function handleImageUpload(event) {
+        const file = event.target.files[0];
+        if (file) {
+            currentImageUrl = URL.createObjectURL(file);
+            removeImageInput.value = "false";
             updateUI();
-            // Submit the form to handle the removal on the server
-            imageForm.submit();
         }
+    }
 
-        // Add event listener for file input changes
-        fileInput.addEventListener('change', handleImageUpload);
-
-        // Initialize the UI
+    function handleRemove() {
+        currentImageUrl = defaultImage;
+        fileInput.value = '';
+        removeImageInput.value = "true";
+        currentImageUrlInput.value = defaultImage;
         updateUI();
+    }
 
-        // Make handleRemove available globally
-        window.handleRemove = handleRemove;
+    // Add event listener for file input changes
+    fileInput.addEventListener('change', handleImageUpload);
+
+    // Initialize the UI
+    updateUI();
+
+    // Make handleRemove available globally
+    window.handleRemove = handleRemove;
+
+    // Handle form submission
+    profileForm.addEventListener('submit', function(e) {
+        // No need to prevent default - let the form submit normally
+        // The remove_image value will be included in the form data
     });
+});
 </script>
-
 
 {% endblock %}

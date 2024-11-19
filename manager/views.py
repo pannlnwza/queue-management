@@ -558,11 +558,15 @@ class EditProfileView(LoginRequiredMixin, generic.UpdateView):
 
         profile = form.save(commit=False)
         profile.user = user
-        if 'phone' in form.cleaned_data:
-            profile.phone = form.cleaned_data['phone']
+        profile.phone = form.cleaned_data.get('phone', profile.phone)
 
-        if 'image' in form.cleaned_data and form.cleaned_data['image']:
-            profile.image = form.cleaned_data['image']
+        # Handle image removal and upload
+        if form.cleaned_data.get('remove_image') == 'true':
+            profile.image = 'profile_images/profile.jpg'
+            profile.google_picture = None
+        elif form.files.get('image'):
+            profile.image = form.files['image']
+            profile.google_picture = None
 
         profile.save()
         messages.success(self.request, 'Profile updated successfully.')
