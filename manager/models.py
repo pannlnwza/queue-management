@@ -3,6 +3,7 @@ import string
 import random
 
 from django.db.models import ManyToManyField
+from django.dispatch import receiver
 from django.utils import timezone
 from django.db import models
 from django.templatetags.static import static
@@ -10,6 +11,7 @@ from django.contrib.auth.models import User
 from django.urls import reverse
 from django.conf import settings
 from django.apps import apps
+from django.db.models.signals import post_save
 from manager.utils.helpers import format_duration
 
 
@@ -493,6 +495,14 @@ class UserProfile(models.Model):
         # Fallback to a default static image
         return static('participant/images/profile.jpg')
 
-    def __str__(self) -> str:
-        """Return a string representation of the user profile."""
-        return self.user.username
+@receiver(post_save, sender=User)
+def create_or_update_user_profile(sender, instance, created, **kwargs):
+    """
+    Automatically create or update a UserProfile when a User is created or saved.
+    """
+    try:
+        profile = instance.userprofile
+        if created:
+            profile.save()
+    except UserProfile.DoesNotExist:
+        UserProfile.objects.create(user=instance)

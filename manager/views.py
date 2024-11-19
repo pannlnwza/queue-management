@@ -511,20 +511,17 @@ def login_view(request):
         if user is not None:
             login(request, user)
 
-
             profile, created = UserProfile.objects.get_or_create(user=user)
-            if created:
-                logger.info(f'UserProfile created for user during login: {username}')
 
-            if hasattr(user, 'socialaccount_set') and user.socialaccount_set.exists():
-                social_account = user.socialaccount_set.first()
-                if social_account.provider == 'google':
-                    extra_data = social_account.extra_data
-                    profile_image_url = extra_data.get('picture')
-                    if profile_image_url:
-                        profile.google_picture = profile_image_url
-                        profile.save()
-                        logger.info(f'Google profile image updated for user: {username}')
+            # Simplify social account image retrieval
+            social_accounts = user.socialaccount_set.filter(provider='google')
+            if social_accounts.exists():
+                extra_data = social_accounts.first().extra_data
+                profile_image_url = extra_data.get('picture')
+                if profile_image_url:
+                    profile.google_picture = profile_image_url
+                    profile.save()
+                    logger.info(f'Google profile image updated for user: {username}')
 
             return redirect('manager:your-queue')
         else:
@@ -575,6 +572,10 @@ class EditProfileView(LoginRequiredMixin, generic.UpdateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         queue_id = self.kwargs.get('queue_id')
+        queue = get_object_or_404(Queue, id=queue_id)
+        handler = CategoryHandlerFactory.get_handler(queue.category)
+        queue = handler.get_queue_object(queue_id)
+        context['queue'] = queue
         context['queue_id'] = queue_id
         context['user'] = self.request.user
         profile = self.get_object()
