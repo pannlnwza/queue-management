@@ -448,6 +448,8 @@ class HospitalQueueHandler(CategoryHandler):
                     participant.state = 'waiting'
                     participant.service_started_at = None
                 participant.save()
+            participant.state = new_state
+            participant.save()
 
     def get_participant_data(self, participant):
         """
@@ -616,6 +618,8 @@ class BankQueueHandler(CategoryHandler):
                     participant.state = 'waiting'
                     participant.service_started_at = None
                 participant.save()
+            participant.state = new_state
+            participant.save()
 
     def get_participant_data(self, participant):
         return {
