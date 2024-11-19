@@ -25,4 +25,5 @@ urlpatterns = [
     path('queues/service_center/', ServiceCenterQueueView.as_view(), name='service_center_queues'),
     path('mark-as-read/<int:notification_id>/', mark_notification_as_read, name='mark_notification_as_read'),
 
+
 ]
