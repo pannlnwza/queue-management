@@ -15,12 +15,11 @@ from django.http import JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse_lazy, reverse
 from django.utils import timezone
-from django.views import generic
+from django.views import generic, View
 from django.views.decorators.http import require_http_methods
-
-from manager.forms import QueueForm
+from manager.forms import QueueForm, CustomUserCreationForm, EditProfileForm, OpeningHoursForm, ResourceForm
 from manager.models import Queue, Resource
-from manager.forms import QueueForm, CustomUserCreationForm, EditProfileForm
+
 from participant.models import Participant, Notification
 from manager.models import Queue, UserProfile, QueueLineLength
 from manager.utils.queue_handler import QueueHandlerFactory
@@ -28,6 +27,88 @@ from manager.utils.category_handler import CategoryHandlerFactory
 
 
 logger = logging.getLogger('queue')
+
+
+class MultiStepFormView(View):
+    def get(self, request, step):
+        # Get the form depending on the current step
+        if step == "1":
+            form = QueueForm()
+        elif step == "2":
+            form = OpeningHoursForm()
+        elif step == "3":
+            # Retrieve queue data and time/location data to pass category and other info
+            queue_data = request.session.get('queue_data', {})
+
+            queue_category = queue_data.get('category', None)  # Ensure category is passed
+            form = ResourceForm(request.POST or None,  # Handle POST or empty on GET
+                                queue_category={'category': queue_category})  # Pass queue category dynamically
+        else:
+            return redirect('manager:your-queue')  # Handle invalid steps
+
+        return render(
+            request,
+            f'manager/create_queue_steps/step_{step}.html',
+            {'form': form, 'step': step}
+        )
+
+    def post(self, request, step):
+        if step == "1":
+            form = QueueForm(request.POST, request.FILES)
+            if form.is_valid():
+                # Save queue data to session
+                request.session['queue_data'] = form.cleaned_data
+                return redirect('manager:create_queue_step', step="2")
+
+        elif step == "2":
+            form = OpeningHoursForm(request.POST)
+            if form.is_valid():
+                # Save opening hours and location data to session
+                latitude = request.POST.get('latitudeInput')
+                longitude = request.POST.get('longitudeInput')
+
+                time_and_location_data = {
+                    'open_time': form.cleaned_data['open_time'].strftime('%H:%M:%S') if form.cleaned_data.get('open_time') else None,
+                    'close_time': form.cleaned_data['close_time'].strftime('%H:%M:%S') if form.cleaned_data.get('close_time') else None,
+                    'latitude': latitude,
+                    'longitude': longitude,
+                }
+
+                request.session['time_and_location_data'] = time_and_location_data
+
+                return redirect('manager:create_queue_step', step="3")
+
+        elif step == "3":
+            queue_data = request.session.get('queue_data', {})
+            time_and_location_data = request.session.get('time_and_location_data', {})
+            queue_data_raw = queue_data.copy()
+            queue_data_raw.update(time_and_location_data.copy())
+            queue_category = queue_data_raw.get('category', None)  # Ensure category is present
+            form = ResourceForm(request.POST, queue_category={'category': queue_category})
+
+            if form.is_valid():
+                try:
+                    resource_data = form.cleaned_data
+                    queue_category = queue_data_raw['category']
+                    handler = CategoryHandlerFactory.get_handler(queue_category)
+                    queue_data_raw['created_by'] = request.user
+                    queue = handler.create_queue(queue_data_raw)
+                    resource_data['queue'] = queue
+                    logger.info(f"Resource data: {resource_data}")
+                    handler.add_resource(resource_data.copy())
+                    messages.success(request, f"Successfully create queue: {queue.name}")
+                    return redirect('manager:your-queue')
+                except Exception as e:
+                    logger.error(f"Error creating queue or adding resource: {e}")
+                    messages.error(request, f"Error creating queue or adding resource: {e}.")
+                    return redirect('manager:create_queue_step', step="3")
+
+        # In case the form is not valid, render the current step
+        return render(
+            request,
+            f'manager/create_queue_steps/step_{step}.html',
+            {'form': form, 'step': step}
+        )
 
 
 class CreateQView(LoginRequiredMixin, generic.CreateView):
@@ -61,9 +142,9 @@ class CreateQView(LoginRequiredMixin, generic.CreateView):
 
         queue = handler.create_queue(queue_data)
 
-        queue.authorized_user.add(self.request.user)
-
         return redirect(self.success_url)
+
+
 
 
 class EditQueueView(LoginRequiredMixin, generic.UpdateView):
@@ -161,7 +242,7 @@ def delete_queue(request, queue_id):
     except Queue.DoesNotExist:
         return JsonResponse({'error': 'Queue not found.'}, status=404)
 
-    if request.user not in queue.authorized_user.all():
+    if request.user != queue.created_by:
         return JsonResponse({'error': 'Unauthorized.'}, status=403)
 
     try:
@@ -177,7 +258,7 @@ def delete_participant(request, participant_id):
     participant = get_object_or_404(Participant, id=participant_id)
     logger.info(f"Deleting participant {participant_id} from queue {participant.queue.id}")
 
-    if request.user not in participant.queue.authorized_user.all():
+    if request.user != participant.queue.created_by:
         return JsonResponse({'error': 'Unauthorized.'}, status=403)
 
     queue = participant.queue
@@ -261,7 +342,7 @@ class ManageWaitlist(LoginRequiredMixin, generic.TemplateView):
         handler = CategoryHandlerFactory.get_handler(queue.category)
         queue = handler.get_queue_object(queue_id)
 
-        if self.request.user not in queue.authorized_user.all():
+        if self.request.user != queue.created_by:
             logger.error(f"Unauthorized edit attempt on queue {queue.id} by user {self.request.user.id}")
             return JsonResponse({'error': 'Unauthorized.'}, status=403)
 
@@ -335,7 +416,7 @@ def complete_participant(request, participant_id):
     handler = CategoryHandlerFactory.get_handler(queue.category)
     participant = handler.get_participant_set(queue.id).filter(id=participant_id).first()
 
-    if request.user not in queue.authorized_user.all():
+    if request.user != queue.created_by:
         logger.error(f"Unauthorized edit attempt on queue {queue.id} by user {request.user.id}")
         return JsonResponse({'error': 'Unauthorized.'}, status=403)
 
@@ -449,6 +530,7 @@ class YourQueueView(LoginRequiredMixin, generic.TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         user = self.request.user
+
         state_filter = self.request.GET.get('state_filter', 'any_state')
         authorized_queues = Queue.objects.filter(created_by=user)
 

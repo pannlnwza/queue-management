@@ -30,11 +30,9 @@ class Queue(models.Model):
     ]
 
     name = models.CharField(max_length=50)
-    description = models.TextField(max_length=60)
+    description = models.TextField(max_length=255)
     created_by = models.ForeignKey(User, on_delete=models.CASCADE, null=True,
                                    blank=True)
-    authorized_user = models.ManyToManyField(User, related_name='queues',
-                                             blank=True)
     open_time = models.TimeField(null=True, blank=True)
     close_time = models.TimeField(null=True, blank=True)
     estimated_wait_time_per_turn = models.PositiveIntegerField(default=0)
@@ -318,7 +316,7 @@ class Resource(models.Model):
         ('unavailable', 'Unavailable'),
     ]
 
-    name = models.CharField(max_length=50, unique=True)
+    name = models.CharField(max_length=50)
     capacity = models.PositiveIntegerField(default=1)
     status = models.CharField(choices=RESOURCE_STATUS, max_length=15,
                               default='available')
@@ -330,6 +328,9 @@ class Resource(models.Model):
                                     related_name='resource_assignment')
 
     count = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        unique_together = ('name', 'queue')
 
     def assign_to_participant(self, participant, capacity=1) -> None:
         """
@@ -462,7 +463,6 @@ class RestaurantQueue(Queue):
     has_outdoor = models.BooleanField(default=False)
     resources = models.ManyToManyField(Table)
     resource_name = 'Tables'
-
 
 
 class BankQueue(Queue):
