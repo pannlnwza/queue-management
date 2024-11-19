@@ -150,7 +150,7 @@
                                 {{ participant.get_wait_time }}
                             {% endif %}
                         </td>
-                        <td class="px-6 py-4 whitespace-nowrap">{{ participant.state| title }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">{{ participant.get_state_display }}</td>
                         <td class="px-6 py-4 whitespace-nowrap">{{ participant.joined_at }}</td>
                         <td class="px-6 py-4 whitespace-nowrap">
                             <div class="dropdown dropdown-left dropdown-end">
