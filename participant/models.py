@@ -15,7 +15,8 @@ class Participant(models.Model):
         ('serving', 'Serving'),
         ('completed', 'Completed'),
         ('cancelled', 'Cancelled'),
-        ('removed', 'Removed')
+        ('removed', 'Removed'),
+        ('no_show', 'No Show')
     ]
     CREATE_BY = [
         ('guest', 'Guest'),

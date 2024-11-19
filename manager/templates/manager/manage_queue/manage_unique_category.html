@@ -225,6 +225,16 @@
                                 <td class="badge badge-primary justify-center flex mx-7 my-5"></td>
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <div class="flex gap-2">
+                                        <div class="tooltip" data-tip="No Show">
+                                            <button class="btn btn-error btn-square btn-sm text-base-100 no-animation"
+                                                    aria-label="No Show" data-participant-id="${participant.id}"
+                                                    onclick="openNotifyModal(this)">
+                                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"
+                                                     fill="currentColor" class="size-4">
+                                                    <path d="M5.28 4.22a.75.75 0 0 0-1.06 1.06L6.94 8l-2.72 2.72a.75.75 0 1 0 1.06 1.06L8 9.06l2.72 2.72a.75.75 0 1 0 1.06-1.06L9.06 8l2.72-2.72a.75.75 0 0 0-1.06-1.06L8 6.94 5.28 4.22Z"/>
+                                                </svg>
+                                            </button>
+                                        </div>
                                         <button class="btn btn-warning btn-square btn-sm text-base-100 no-animation"
                                                 aria-label="Notify" data-participant-id="{{ participant.id }}"
                                                 onclick="openNotifyModal(this)">
@@ -330,7 +340,7 @@
                         {% endfor %}
                         </tbody>
                     </table>
-                <div class="divider m-1"></div>
+                    <div class="divider m-1"></div>
                     <div class="ml-auto text-sm text-gray-500">
                         {{ serving_list| length }} out of {{ queue.get_number_serving_now }}
                         <a href="#" class="link link-hover">View All</a>
@@ -404,7 +414,7 @@
                         {% endfor %}
                         </tbody>
                     </table>
-                <div class="divider m-1"></div>
+                    <div class="divider m-1"></div>
                     <div class="ml-auto text-sm text-gray-500">
                         {{ completed_list| length }} out of {{ queue.get_number_completed_now }}
                         <a href="#" class="link link-hover">View All</a>
@@ -486,6 +496,19 @@
             </div>
         </div>
     </dialog>
+
+    <input type="checkbox" id="noShowModal" class="modal-toggle"/>
+    <div class="modal">
+        <div class="modal-box">
+            <h3 class="font-bold text-lg">Confirm No Show</h3>
+            <p class="py-4">This action cannot be undone. Are you sure you want to mark this participant as No Show?</p>
+            <div class="modal-action">
+                <button class="btn btn-error text-white" id="confirmNoShowButton" onclick="confirmNoShow()">Yes, Mark as No Show
+                </button>
+                <label for="noShowModal" class="btn">Cancel</label>
+            </div>
+        </div>
+    </div>
 
     <script>
         const queue_id = {{ queue.id }};
@@ -653,7 +676,7 @@
                         <button>close</button>
                     </form>
                 </dialog>`
-                : '';
+                : '-';
 
             return notesHTML;
         }
@@ -758,6 +781,15 @@
             <td class="badge badge-primary justify-center flex mx-7 my-5">${participant.special_2 || '-'}</td>
             <td class="px-6 py-4 whitespace-nowrap">
                 <div class="flex gap-2">
+                    <div class="tooltip" data-tip="No Show">
+                    <button class="btn btn-error btn-square btn-sm text-base-100 no-animation"
+                        aria-label="No Show" onclick="openNoShowModal(${participant.id})">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="size-4">
+                          <path d="M5.28 4.22a.75.75 0 0 0-1.06 1.06L6.94 8l-2.72 2.72a.75.75 0 1 0 1.06 1.06L8 9.06l2.72 2.72a.75.75 0 1 0 1.06-1.06L9.06 8l2.72-2.72a.75.75 0 0 0-1.06-1.06L8 6.94 5.28 4.22Z" />
+                        </svg>
+                    </button>
+                    </div>
+                    <div class="tooltip" data-tip="Notify">
                     <button class="btn btn-warning btn-square btn-sm text-base-100 no-animation"
                         aria-label="Notify" data-participant-id="${participant.id}" onclick="openNotifyModal(this)">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="size-4">
@@ -765,12 +797,15 @@
                             <path fill-rule="evenodd" d="M8 1a4 4 0 0 1 4 4v2.379c0 .398.158.779.44 1.06l1.267 1.268a1 1 0 0 1 .293.707V11a1 1 0 0 1-1 1h-2a3 3 0 1 1-6 0H3a1 1 0 0 1-1-1v-.586a1 1 0 0 1 .293-.707L3.56 8.44A1.5 1.5 0 0 0 4 7.38V5a4 4 0 0 1 4-4Zm0 12.5A1.5 1.5 0 0 1 6.5 12h3A1.5 1.5 0 0 1 8 13.5Z" clip-rule="evenodd" />
                         </svg>
                     </button>
+                    </div>
+                    <div class="tooltip" data-tip="Serve">
                     <button class="btn btn-success btn-square btn-sm text-base-100 no-animation"
                         onclick="openResourceModal('${participant.id}')" aria-label="Serve">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="size-5">
                             <path fill-rule="evenodd" d="M16.704 4.153a.75.75 0 0 1 .143 1.052l-8 10.5a.75.75 0 0 1-1.127.075l-4.5-4.5a.75.75 0 0 1 1.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 0 1 1.05-.143Z" clip-rule="evenodd" />
                         </svg>
                     </button>
+                    </div>
                 </div>
 
             </td>
@@ -792,12 +827,14 @@
             <td class="px-6 py-4 whitespace-nowrap">${participant.resource || '-'}</td>
             <td class="badge badge-primary justify-center flex mx-7 my-5">${participant.special_2 || '-'}</td>
             <td class="px-6 py-4 whitespace-nowrap">
+                <div class="tooltip" data-tip="Complete">
                 <button class="btn btn-success btn-square btn-sm text-base-100 no-animation"
                         onclick="completeParticipant(${participant.id})">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="size-5">
                           <path fill-rule="evenodd" d="M16.704 4.153a.75.75 0 0 1 .143 1.052l-8 10.5a.75.75 0 0 1-1.127.075l-4.5-4.5a.75.75 0 0 1 1.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 0 1 1.05-.143Z" clip-rule="evenodd" />
                         </svg>
                 </button>
+                <div class="tooltip" data-tip="Notify">
             </td>
         `;
             return row;
@@ -852,6 +889,19 @@
                     fetchData();
                 })
                 .catch(error => console.error('Error completing participant:', error));
+        }
+
+        let participantIdToMark = null;
+
+        function openNoShowModal(participantId) {
+            participantIdToMark = participantId;
+            document.getElementById('noShowModal').checked = true;
+        }
+
+        function confirmNoShow() {
+            if (participantIdToMark !== null) {
+                window.location.href = `/manager/mark_no_show/${participantIdToMark}/`;
+            }
         }
     </script>
 

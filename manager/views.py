@@ -451,6 +451,21 @@ def complete_participant(request, participant_id):
             'error': f'Error: {str(e)}'
         }, status=500)
 
+@login_required
+def mark_no_show(request, participant_id):
+    participant = get_object_or_404(Participant, id=participant_id)
+
+    if participant.state in ['serving', 'cancelled', 'completed']:
+        messages.error(request, "Cannot mark this participant as No Show because they are not in the waiting list.")
+        return redirect('manager:manage_waitlist', participant.queue.id)
+
+    participant.state = 'no_show'
+    participant.is_notified = False
+    participant.waited = (timezone.localtime(timezone.now()) - participant.joined_at).total_seconds() / 60
+    participant.save()
+    messages.success(request, f"{participant.name} has been marked as No Show.")
+
+    return redirect('manager:manage_waitlist', participant.queue.id)
 
 class ParticipantListView(LoginRequiredMixin, generic.TemplateView):
     template_name = 'manager/participant_list.html'
