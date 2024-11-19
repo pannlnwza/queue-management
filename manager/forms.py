@@ -24,7 +24,7 @@ class QueueForm(forms.ModelForm):
                        'placeholder': 'Enter Queue Name (Max Length: 50)'}),
             'description': forms.Textarea(
                 attrs={'class': 'textarea textarea-bordered w-full m-4',
-                       'placeholder': 'Enter Description (Max Length: 60)',
+                       'placeholder': 'About This Queue (Max Length: 255)',
                        'rows': 4}),
             'category': forms.Select(
                 attrs={'class': 'select select-bordered w-full max-w-xs m-4'}),

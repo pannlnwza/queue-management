@@ -39,7 +39,6 @@ class MultiStepFormView(View):
         elif step == "3":
             # Retrieve queue data and time/location data to pass category and other info
             queue_data = request.session.get('queue_data', {})
-            time_and_location_data = request.session.get('time_and_location_data', {})
 
             queue_category = queue_data.get('category', None)  # Ensure category is passed
             form = ResourceForm(request.POST or None,  # Handle POST or empty on GET

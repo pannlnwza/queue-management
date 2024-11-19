@@ -13,7 +13,27 @@
 <div class="card flex border-2 border-base-300 max-w-4xl w-full sm:w-3/4 md:w-1/2 mx-auto p-6 mt-4">
     <form method="post" enctype="multipart/form-data">
         {% csrf_token %}
-        {{ form.as_p }}
+        <div>
+        <div><label class="text-m text-secondary">Name</label></div>
+        {{ form.name }}
+        </div>
+        <div><label class="text-m text-secondary">Description</label></div>
+        <div>
+            {{ form.description }}
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+            <!-- First column -->
+            <div>
+                <label class="text-m text-secondary">Select Category</label>
+                {{ form.category }}
+            </div>
+
+            <!-- Second column -->
+            <div>
+                <label class="text-m text-secondary">Insert Your Logo (Optional)</label>
+                {{ form.logo }}
+            </div>
+        </div>
         <div class="flex justify-end">
             <button type="submit" class="btn btn-primary">Next</button>
         </div>
