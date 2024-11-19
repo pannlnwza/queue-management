@@ -480,8 +480,6 @@
                     </div>
                 {% endfor %}
             </div>
-
-            <!-- Footer with Auto Assign and Serve buttons -->
             <div class="modal-action">
                 <button type="button" class="btn" onclick="autoAssignResource()">Auto assign</button>
                 <button class="btn btn-primary" onclick="serveSelectedParticipant()">Serve</button>
@@ -527,7 +525,6 @@
                 }
             }
 
-            // Mark the new selection
             const selectedCard = document.getElementById(`resource-${resourceId}`);
             if (selectedCard) {
                 selectedCard.classList.add('border-primary');
@@ -535,7 +532,6 @@
             }
         }
 
-        // Function to clear the current selection
         function clearSelection() {
             if (selectedResourceId) {
                 const selectedCard = document.getElementById(`resource-${selectedResourceId}`);
@@ -572,7 +568,6 @@
                 });
         }
 
-        // Function to serve the selected or auto-assigned resource
         function serveSelectedParticipant() {
             const participantId = document.getElementById('participantId').value;
 
