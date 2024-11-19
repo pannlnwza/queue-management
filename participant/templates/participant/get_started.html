@@ -10,7 +10,15 @@
     <div class="carousel-item w-full flex-shrink-0 relative">
         <!-- Text on top of the image -->
         <div class="absolute top-0 left-0 w-full h-full flex items-center justify-center">
-            <p class="text-black text-lg font-bold">dsdassssssssd</p>
+                    <a href="{% url 'manager:your-queue' %}" class="card bg-base-100 shadow-xl hover:shadow-2xl hover:bg-primary/30 transform hover:scale-105 transition duration-300">
+                        <figure class="px-10 pt-10">
+                            <img src="{% static 'participant/images/Krustykrab.jpg' %}" alt="Create Queue Icon" class="rounded-xl w-32 h-32 object-cover">
+                        </figure>
+                        <div class="card-body items-center text-center">
+                            <h5 class="card-title text-xl font-semibold text-primary">I'm a Business</h5>
+                            <p class="text-accent">Start managing your customer queues efficiently by creating a queue.</p>
+                        </div>
+                    </a>
         </div>
 
         <!-- Background image -->
@@ -25,7 +33,15 @@
     <div class="carousel-item w-full flex-shrink-0 relative">
         <!-- Text on top of the image -->
         <div class="absolute top-0 left-0 w-full h-full flex items-center justify-center">
-            <p class="text-black text-lg font-bold">dsdassssssssd</p>
+                    <a href="{% url 'participant:queues' %}" class="card bg-base-100 shadow-xl hover:shadow-2xl hover:bg-primary/30 transform hover:scale-105 transition duration-300">
+                        <figure class="px-10 pt-10">
+                            <img src="{% static 'participant/images/spongebob_queue.jpg' %}" alt="Browse Queue Icon" class="rounded-xl w-32 h-32 object-cover">
+                        </figure>
+                        <div class="card-body items-center text-center">
+                            <h5 class="card-title text-xl font-semibold text-primary">Browse Queues</h5>
+                            <p class="text-accent">Browse available queues if you're looking to join one.</p>
+                        </div>
+                    </a>
         </div>
 
         <!-- Background image -->
@@ -43,28 +59,6 @@
   <button id="next" class="absolute right-2 top-1/2 -translate-y-1/2 btn btn-circle">❯</button>
 </div>
 <main class="container mx-auto px-4 py-8">
-
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-4xl mx-auto mt-6">
-        <a href="{% url 'manager:your-queue' %}" class="card bg-base-100 shadow-xl hover:shadow-2xl hover:bg-primary/30 transform hover:scale-105 transition duration-300">
-            <figure class="px-10 pt-10">
-                <img src="{% static 'participant/images/Krustykrab.jpg' %}" alt="Create Queue Icon" class="rounded-xl w-32 h-32 object-cover">
-            </figure>
-            <div class="card-body items-center text-center">
-                <h5 class="card-title text-xl font-semibold text-primary">I'm a Business</h5>
-                <p class="text-accent">Start managing your customer queues efficiently by creating a queue.</p>
-            </div>
-        </a>
-
-        <a href="{% url 'participant:queues' %}" class="card bg-base-100 shadow-xl hover:shadow-2xl hover:bg-primary/30 transform hover:scale-105 transition duration-300">
-            <figure class="px-10 pt-10">
-                <img src="{% static 'participant/images/spongebob_queue.jpg' %}" alt="Browse Queue Icon" class="rounded-xl w-32 h-32 object-cover">
-            </figure>
-            <div class="card-body items-center text-center">
-                <h5 class="card-title text-xl font-semibold text-primary">Browse Queues</h5>
-                <p class="text-accent">Browse available queues if you're looking to join one.</p>
-            </div>
-        </a>
-    </div>
 
     <!-- Nearby queues -->
     <section class="mb-12 px-4 max-w-7xl mx-auto relative">
