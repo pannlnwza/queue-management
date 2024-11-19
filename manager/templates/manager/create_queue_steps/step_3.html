@@ -3,17 +3,17 @@
 <div class="flex justify-center items-center">
   <ul class="steps steps-vertical lg:steps-horizontal steps-center">
     <li class="step step-primary p-2">Queue Setup</li>
-    <li class="step p-2">Set Hours</li>
-    <li class="step p-2">Add Resources</li>
-    <li class="step p-2">Select Location</li>
+    <li class="step step-primary p-2">Specify Hours & Location</li>
+    <li class="step step-primary p-2">Add Resources</li>
   </ul>
 </div>
 
 
 <div class="card border-2 border-base-200 max-w-4xl w-full sm:w-3/4 md:w-1/2 mx-auto p-6 mt-4">
     <form method="post">
-
         {% csrf_token %}
+        <div class="text-left text-2xl m-4"><p>Add a {{ form.get_resource_name }}.</p></div>
+
         {{ form.as_p }}
 
         <div class="flex justify-end">
