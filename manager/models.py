@@ -316,7 +316,7 @@ class Resource(models.Model):
         ('unavailable', 'Unavailable'),
     ]
 
-    name = models.CharField(max_length=50, unique=True)
+    name = models.CharField(max_length=50)
     capacity = models.PositiveIntegerField(default=1)
     status = models.CharField(choices=RESOURCE_STATUS, max_length=15,
                               default='available')
@@ -328,6 +328,9 @@ class Resource(models.Model):
                                     related_name='resource_assignment')
 
     count = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        unique_together = ('name', 'queue')
 
     def assign_to_participant(self, participant, capacity=1) -> None:
         """
