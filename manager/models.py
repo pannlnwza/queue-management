@@ -33,8 +33,8 @@ class Queue(models.Model):
     description = models.TextField(max_length=60)
     created_by = models.ForeignKey(User, on_delete=models.CASCADE, null=True,
                                    blank=True)
-    open_time = models.DateTimeField(null=True, blank=True)
-    close_time = models.DateTimeField(null=True, blank=True)
+    open_time = models.TimeField(null=True, blank=True)
+    close_time = models.TimeField(null=True, blank=True)
     estimated_wait_time_per_turn = models.PositiveIntegerField(default=0)
     average_service_duration = models.PositiveIntegerField(default=0)
     created_at = models.DateTimeField(default=timezone.localtime)
@@ -460,7 +460,6 @@ class RestaurantQueue(Queue):
     has_outdoor = models.BooleanField(default=False)
     resources = models.ManyToManyField(Table)
     resource_name = 'Tables'
-
 
 
 class BankQueue(Queue):

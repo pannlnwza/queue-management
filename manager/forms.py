@@ -1,5 +1,5 @@
 from django import forms
-from .models import Queue, UserProfile  # Assuming Queue model is in the same app
+from .models import Queue, UserProfile, Resource, Doctor
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
 
@@ -20,29 +20,76 @@ class QueueForm(forms.ModelForm):
         }
         widgets = {
             'name': forms.TextInput(
-                attrs={'class': 'input input-bordered w-full max-w-xs m-2',
+                attrs={'class': 'input input-bordered w-full max-w-xs m-4',
                        'placeholder': 'Enter Queue Name (Max Length: 50)'}),
             'description': forms.Textarea(
-                attrs={'class': 'textarea textarea-bordered w-full m-2',
+                attrs={'class': 'textarea textarea-bordered w-full m-4',
                        'placeholder': 'Enter Description (Max Length: 60)',
                        'rows': 4}),
             'category': forms.Select(
-                attrs={'class': 'select select-bordered w-full max-w-xs m-2'}),
+                attrs={'class': 'select select-bordered w-full max-w-xs m-4'}),
             'logo': forms.ClearableFileInput(
-                attrs={'class': 'file-input w-full max-w-xs m-2',
+                attrs={'class': 'file-input file-input-bordered w-full max-w-xs m-4',
                        'accept': 'image/*'}),
 
         }
 
 
 class OpeningHoursForm(forms.Form):
-    opening_time = forms.TimeField(required=False)
-    closing_time = forms.TimeField(required=False)
+    open_time = forms.TimeField(
+        required=True,
+        widget=forms.TimeInput(
+            attrs={
+                'id': 'open_time',
+                'class': 'input input-bordered',
+                'type': 'time'
+            }
+        ),
+        label="Start hour",
+    )
+
+    close_time = forms.TimeField(
+        required=True,
+        widget=forms.TimeInput(
+            attrs={
+                'id': 'close_time',
+                'class': 'input input-bordered',
+                'type': 'time'
+            }
+        ),
+        label="End hour",
+    )
 
 
-class LocationForm(forms.Form):
-    latitude = forms.FloatField(required=False)
-    longitude = forms.FloatField(required=False)
+class ResourceForm(forms.Form):
+    name = forms.CharField(
+        widget=forms.TextInput(attrs={'class': 'input input-bordered w-full', 'placeholder': 'Enter Resource Name'}),
+        max_length=50,
+        label="Resource Name"
+    )
+    capacity = forms.IntegerField(
+        widget=forms.NumberInput(attrs={'class': 'input input-bordered w-full', 'placeholder': 'Enter Capacity'}),
+        min_value=1,
+        label="Capacity"
+    )
+
+    def __init__(self, *args, queue=None, **kwargs):
+        """
+        Adjust fields based on queue category.
+        :param queue: The queue instance determining the category.
+        """
+        super().__init__(*args, **kwargs)
+
+        # Dynamically adjust fields based on the queue category
+        if queue:
+            if queue.category == 'hospital':
+                self.fields['specialty'] = forms.ChoiceField(
+                    choices=Doctor.MEDICAL_SPECIALTY_CHOICES,
+                    widget=forms.Select(attrs={'class': 'select select-bordered w-full'}),
+                    label="Medical Specialty",
+                    required=True
+                )
+
 
 
 class CustomUserCreationForm(UserCreationForm):
