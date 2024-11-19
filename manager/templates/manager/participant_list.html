@@ -44,25 +44,25 @@
         </div>
         <div class="justify-between inline-flex mb-4">
             <div class="relative mr-2">
-                                <input type="text"
-                                       id="searchInput"
-                                       class="input input-bordered w-full pr-12"
-                                       placeholder="Search" oninput="participantSearch()">
-                                <button type="button"
-                                        id="searchButton"
-                                        class="absolute right-2 top-1/2 -translate-y-1/2 p-2 h-auto min-h-0">
-                                    <svg xmlns="http://www.w3.org/2000/svg"
-                                         class="h-5 w-5"
-                                         fill="none"
-                                         viewBox="0 0 24 24"
-                                         stroke="currentColor">
-                                        <path stroke-linecap="round"
-                                              stroke-linejoin="round"
-                                              stroke-width="2"
-                                              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-                                    </svg>
-                                </button>
-                        </div>
+                <input type="text"
+                       id="searchInput"
+                       class="input input-bordered w-full pr-12"
+                       placeholder="Search" oninput="participantSearch()">
+                <button type="button"
+                        id="searchButton"
+                        class="absolute right-2 top-1/2 -translate-y-1/2 p-2 h-auto min-h-0">
+                    <svg xmlns="http://www.w3.org/2000/svg"
+                         class="h-5 w-5"
+                         fill="none"
+                         viewBox="0 0 24 24"
+                         stroke="currentColor">
+                        <path stroke-linecap="round"
+                              stroke-linejoin="round"
+                              stroke-width="2"
+                              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                    </svg>
+                </button>
+            </div>
             <details class="dropdown">
                 <summary class="btn no-animation mx-2" id="selectedTimeFilter">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="size-4">
@@ -145,9 +145,9 @@
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap">
                             {% if participant.state == 'completed' %}
-                            {{ participant.waited }}
+                                {{ participant.waited }}
                             {% else %}
-                            {{ participant.get_wait_time }}
+                                {{ participant.get_wait_time }}
                             {% endif %}
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap">{{ participant.state| title }}</td>
@@ -208,33 +208,47 @@
                 </tbody>
             </table>
         </div>
-    <div class="pagination flex justify-center space-x-2 py-4">
-    {% if page_obj.has_previous %}
-        <a href="?page={{ page_obj.previous_page_number }}" class="btn btn-sm">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="size-4">
-          <path fill-rule="evenodd" d="M9.78 4.22a.75.75 0 0 1 0 1.06L7.06 8l2.72 2.72a.75.75 0 1 1-1.06 1.06L5.47 8.53a.75.75 0 0 1 0-1.06l3.25-3.25a.75.75 0 0 1 1.06 0Z" clip-rule="evenodd" />
-        </svg>
+        <div class="pagination flex justify-end space-x-2 py-4">
+            {% if page_obj.has_previous %}
+                <a href="?page={{ page_obj.paginator.page_range.start }}" class="btn btn-sm btn-ghost btn-square">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="size-4">
+                        <path fill-rule="evenodd"
+                              d="M3.22 7.595a.75.75 0 0 0 0 1.06l3.25 3.25a.75.75 0 0 0 1.06-1.06l-2.72-2.72 2.72-2.72a.75.75 0 0 0-1.06-1.06l-3.25 3.25Zm8.25-3.25-3.25 3.25a.75.75 0 0 0 0 1.06l3.25 3.25a.75.75 0 1 0 1.06-1.06l-2.72-2.72 2.72-2.72a.75.75 0 0 0-1.06-1.06Z"
+                              clip-rule="evenodd"/>
+                    </svg>
 
-        </a>
-    {% endif %}
+                </a>
+                <a href="?page={{ page_obj.previous_page_number }}" class="btn btn-sm btn-ghost btn-square">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="size-4">
+                        <path fill-rule="evenodd"
+                              d="M9.78 4.22a.75.75 0 0 1 0 1.06L7.06 8l2.72 2.72a.75.75 0 1 1-1.06 1.06L5.47 8.53a.75.75 0 0 1 0-1.06l3.25-3.25a.75.75 0 0 1 1.06 0Z"
+                              clip-rule="evenodd"/>
+                    </svg>
 
-    <span class="btn btn-sm btn-disabled">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+                </a>
+            {% endif %}
 
-    {% if page_obj.has_next %}
-        <a href="?page={{ page_obj.next_page_number }}" class="btn btn-sm">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="size-4">
-  <path fill-rule="evenodd" d="M6.22 4.22a.75.75 0 0 1 1.06 0l3.25 3.25a.75.75 0 0 1 0 1.06l-3.25 3.25a.75.75 0 0 1-1.06-1.06L8.94 8 6.22 5.28a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd" />
-</svg>
+            <span class="btn btn-sm btn-ghost no-animation">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
 
-        </a>
-        <a href="?page={{ page_obj.paginator.num_pages }}" class="btn btn-sm">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="size-4">
-  <path fill-rule="evenodd" d="M12.78 7.595a.75.75 0 0 1 0 1.06l-3.25 3.25a.75.75 0 0 1-1.06-1.06l2.72-2.72-2.72-2.72a.75.75 0 0 1 1.06-1.06l3.25 3.25Zm-8.25-3.25 3.25 3.25a.75.75 0 0 1 0 1.06l-3.25 3.25a.75.75 0 0 1-1.06-1.06l2.72-2.72-2.72-2.72a.75.75 0 0 1 1.06-1.06Z" clip-rule="evenodd" />
-</svg>
+            {% if page_obj.has_next %}
+                <a href="?page={{ page_obj.next_page_number }}" class="btn btn-sm btn-ghost btn-square">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="size-4">
+                        <path fill-rule="evenodd"
+                              d="M6.22 4.22a.75.75 0 0 1 1.06 0l3.25 3.25a.75.75 0 0 1 0 1.06l-3.25 3.25a.75.75 0 0 1-1.06-1.06L8.94 8 6.22 5.28a.75.75 0 0 1 0-1.06Z"
+                              clip-rule="evenodd"/>
+                    </svg>
 
-        </a>
-    {% endif %}
-</div>
+                </a>
+                <a href="?page={{ page_obj.paginator.num_pages }}" class="btn btn-sm btn-ghost btn-square">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="size-4">
+                        <path fill-rule="evenodd"
+                              d="M12.78 7.595a.75.75 0 0 1 0 1.06l-3.25 3.25a.75.75 0 0 1-1.06-1.06l2.72-2.72-2.72-2.72a.75.75 0 0 1 1.06-1.06l3.25 3.25Zm-8.25-3.25 3.25 3.25a.75.75 0 0 1 0 1.06l-3.25 3.25a.75.75 0 0 1-1.06-1.06l2.72-2.72-2.72-2.72a.75.75 0 0 1 1.06-1.06Z"
+                              clip-rule="evenodd"/>
+                    </svg>
+
+                </a>
+            {% endif %}
+        </div>
     </div>
     <!-- Delete Modal -->
     <input type="checkbox" id="deleteModal" class="modal-toggle"/>
