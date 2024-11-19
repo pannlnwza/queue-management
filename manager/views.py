@@ -17,6 +17,7 @@ from django.urls import reverse_lazy, reverse
 from django.utils import timezone
 from django.views import generic
 from django.views.decorators.http import require_http_methods
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
 from manager.forms import QueueForm
 from manager.models import Queue, Resource
@@ -210,6 +211,7 @@ def edit_participant(request, participant_id):
         handler = CategoryHandlerFactory.get_handler(participant.queue.category)
         participant = handler.get_participant_set(participant.queue.id).get(id=participant_id)
         handler.update_participant(participant, data)
+        messages.success(request, f"Participant's information has been edited.")
         return redirect('manager:participant_list', participant.queue.id)
 
 
@@ -237,6 +239,7 @@ def add_participant(request, queue_id):
     }
     handler.create_participant(data)
     queue.record_line_length()
+    messages.success(request, f"Participant has been added.")
     return redirect('manager:participant_list', queue_id)
 
 
@@ -402,9 +405,23 @@ class ParticipantListView(LoginRequiredMixin, generic.TemplateView):
         if state_filter_option != 'any_state':
             participant_set = participant_set.filter(state=state_filter_option)
 
+        items_per_page = 10
+        paginator = Paginator(participant_set, items_per_page)
+        page = self.request.GET.get('page', 1)
+
+        try:
+            participants = paginator.page(page)
+        except PageNotAnInteger:
+            participants = paginator.page(1)
+        except EmptyPage:
+            participants = paginator.page(paginator.num_pages)
+
+
+
         context['queue'] = handler.get_queue_object(queue_id)
-        context['participant_set'] = participant_set
+        context['participant_set'] = participants
         context['participant_state'] = Participant.PARTICIPANT_STATE
+        context['page_obj'] = participants
         context['resources'] = queue.resources.all()
         context['time_filter_option'] = time_filter_option
         context['time_filter_option_display'] = time_filter_options_display.get(time_filter_option, 'All time')

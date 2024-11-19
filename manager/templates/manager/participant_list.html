@@ -114,7 +114,7 @@
                 <tr>
                     <th class="w-10 px-2 py-3"></th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Visits
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Waited
                     </th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">State
                     </th>
@@ -143,7 +143,13 @@
                                 <span class="font-semibold">{{ participant.name }}</span>
                             </div>
                         </td>
-                        <td class="px-6 py-4 whitespace-nowrap">{{ participant.visits }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            {% if participant.state == 'completed' %}
+                            {{ participant.waited }}
+                            {% else %}
+                            {{ participant.get_wait_time }}
+                            {% endif %}
+                        </td>
                         <td class="px-6 py-4 whitespace-nowrap">{{ participant.state| title }}</td>
                         <td class="px-6 py-4 whitespace-nowrap">{{ participant.joined_at }}</td>
                         <td class="px-6 py-4 whitespace-nowrap">
@@ -202,6 +208,33 @@
                 </tbody>
             </table>
         </div>
+    <div class="pagination flex justify-center space-x-2 py-4">
+    {% if page_obj.has_previous %}
+        <a href="?page={{ page_obj.previous_page_number }}" class="btn btn-sm">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="size-4">
+          <path fill-rule="evenodd" d="M9.78 4.22a.75.75 0 0 1 0 1.06L7.06 8l2.72 2.72a.75.75 0 1 1-1.06 1.06L5.47 8.53a.75.75 0 0 1 0-1.06l3.25-3.25a.75.75 0 0 1 1.06 0Z" clip-rule="evenodd" />
+        </svg>
+
+        </a>
+    {% endif %}
+
+    <span class="btn btn-sm btn-disabled">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+
+    {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}" class="btn btn-sm">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="size-4">
+  <path fill-rule="evenodd" d="M6.22 4.22a.75.75 0 0 1 1.06 0l3.25 3.25a.75.75 0 0 1 0 1.06l-3.25 3.25a.75.75 0 0 1-1.06-1.06L8.94 8 6.22 5.28a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd" />
+</svg>
+
+        </a>
+        <a href="?page={{ page_obj.paginator.num_pages }}" class="btn btn-sm">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="size-4">
+  <path fill-rule="evenodd" d="M12.78 7.595a.75.75 0 0 1 0 1.06l-3.25 3.25a.75.75 0 0 1-1.06-1.06l2.72-2.72-2.72-2.72a.75.75 0 0 1 1.06-1.06l3.25 3.25Zm-8.25-3.25 3.25 3.25a.75.75 0 0 1 0 1.06l-3.25 3.25a.75.75 0 0 1-1.06-1.06l2.72-2.72-2.72-2.72a.75.75 0 0 1 1.06-1.06Z" clip-rule="evenodd" />
+</svg>
+
+        </a>
+    {% endif %}
+</div>
     </div>
     <!-- Delete Modal -->
     <input type="checkbox" id="deleteModal" class="modal-toggle"/>
