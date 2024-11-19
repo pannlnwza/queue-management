@@ -1,14 +1,38 @@
 {% extends 'base.html' %}
-<form method="post">
-    {% csrf_token %}
-    {{ form.as_p }}
+{% block content %}
+<div class="flex justify-center items-center">
+  <ul class="steps steps-vertical lg:steps-horizontal steps-center">
+    <li class="step step-primary p-2">Queue Setup</li>
+    <li class="step step-primary p-2">Set Hours</li>
+    <li class="step p-2">Add Resources</li>
+    <li class="step p-2">Select Location</li>
+  </ul>
+</div>
 
-    <!-- Optional: Display open_time and close_time if needed -->
-    <label for="id_open_time">Open Time</label>
-    <input type="datetime-local" name="open_time" id="id_open_time" required>
 
-    <label for="id_close_time">Close Time</label>
-    <input type="datetime-local" name="close_time" id="id_close_time" required>
+<div class="card border-2 border-base-200 max-w-4xl w-full sm:w-3/4 md:w-1/2 mx-auto p-6 mt-4">
+    <form method="post">
+        {% csrf_token %}
+        <div class="flex justify-center">
+            <div class="flex gap-4">
+              <div class="form-control">
+                <label class="label">
+                  <span class="label-text font-medium">Opening Time</span>
+                </label>
+                {{ form.open_time }}
+              </div>
+              <div class="form-control">
+                <label class="label">
+                  <span class="label-text font-medium">Closing Time</span>
+                </label>
+                {{ form.close_time }}
+              </div>
+            </div>
+        </div>
 
-    <button type="submit">Next</button>
-</form>
+        <div class="flex justify-end">
+            <button type="submit" class="btn btn-primary">Next</button>
+        </div>
+    </form>
+</div>
+{% endblock %}

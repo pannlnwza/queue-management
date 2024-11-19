@@ -1,12 +1,24 @@
-<form method="post">
-    {% csrf_token %}
-    {{ form.as_p }}
+{% extends 'base.html' %}
+{% block content %}
+<div class="flex justify-center items-center">
+  <ul class="steps steps-vertical lg:steps-horizontal steps-center">
+    <li class="step step-primary p-2">Queue Setup</li>
+    <li class="step p-2">Set Hours</li>
+    <li class="step p-2">Add Resources</li>
+    <li class="step p-2">Select Location</li>
+  </ul>
+</div>
 
-    <label for="id_latitude">Latitude</label>
-    <input type="text" name="latitude" id="id_latitude">
 
-    <label for="id_longitude">Longitude</label>
-    <input type="text" name="longitude" id="id_longitude">
+<div class="card border-2 border-base-200 max-w-4xl w-full sm:w-3/4 md:w-1/2 mx-auto p-6 mt-4">
+    <form method="post">
 
-    <button type="submit">Create Queue</button>
-</form>
+        {% csrf_token %}
+        {{ form.as_p }}
+
+        <div class="flex justify-end">
+            <button type="submit" class="btn btn-primary">Next</button>
+        </div>
+    </form>
+</div>
+{% endblock %}
