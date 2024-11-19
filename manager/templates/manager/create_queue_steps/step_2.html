@@ -94,8 +94,10 @@
             </div>
             <input type="hidden" name="latitude" id="id_latitude" required>
             <input type="hidden" name="longitude" id="id_longitude" required>
-
-        <div class="flex justify-end">
+        <div class="flex justify-between items-center">
+            <!-- Left-aligned button -->
+            <a href="{% url 'manager:create_queue_step' step="1" %}" class="btn btn-primary">Previous</a>
+            <!-- Right-aligned button -->
             <button type="submit" class="btn btn-primary">Next</button>
         </div>
     </form>

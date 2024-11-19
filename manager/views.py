@@ -68,8 +68,8 @@ class MultiStepFormView(View):
                 longitude = request.POST.get('longitudeInput')
 
                 time_and_location_data = {
-                    'open_time': form.cleaned_data['open_time'].strftime('%H:%M:%S'),
-                    'close_time': form.cleaned_data['close_time'].strftime('%H:%M:%S'),
+                    'open_time': form.cleaned_data['open_time'].strftime('%H:%M:%S') if form.cleaned_data.get('open_time') else None,
+                    'close_time': form.cleaned_data['close_time'].strftime('%H:%M:%S') if form.cleaned_data.get('close_time') else None,
                     'latitude': latitude,
                     'longitude': longitude,
                 }
@@ -81,11 +81,8 @@ class MultiStepFormView(View):
         elif step == "3":
             queue_data = request.session.get('queue_data', {})
             time_and_location_data = request.session.get('time_and_location_data', {})
-            logger.info(request.session.get('time_and_location_data', {}))
             queue_data_raw = queue_data.copy()
             queue_data_raw.update(time_and_location_data.copy())
-            logger.info(queue_data_raw)
-
             queue_category = queue_data_raw.get('category', None)  # Ensure category is present
             form = ResourceForm(request.POST, queue_category={'category': queue_category})
 
@@ -99,10 +96,12 @@ class MultiStepFormView(View):
                     resource_data['queue'] = queue
                     logger.info(f"Resource data: {resource_data}")
                     handler.add_resource(resource_data.copy())
+                    messages.success(request, f"Successfully create queue: {queue.name}")
                     return redirect('manager:your-queue')
                 except Exception as e:
                     logger.error(f"Error creating queue or adding resource: {e}")
-                    return redirect('manager:')
+                    messages.error(request, f"Error creating queue or adding resource: {e}.")
+                    return redirect('manager:create_queue_step', step="3")
 
         # In case the form is not valid, render the current step
         return render(
