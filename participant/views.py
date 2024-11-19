@@ -32,8 +32,9 @@ class HomePageView(generic.TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        user_lat = self.request.GET.get('lat', None)
-        user_lon = self.request.GET.get('lon', None)
+
+        user_lat = self.request.session.get('user_lat', None)
+        user_lon = self.request.session.get('user_lon', None)
 
         if user_lat and user_lon:
             try:
@@ -335,6 +336,22 @@ def participant_leave(request, participant_code):
         logger.error(
             f"Failed to delete participant {participant_code} from queue: {queue.name} code: {queue.code} ")
     return redirect('participant:welcome', queue_code=queue.code)
+
+
+def set_location(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        lat = data.get('lat')
+        lon = data.get('lon')
+
+        if lat and lon:
+            # Store the location in the session
+            request.session['user_lat'] = lat
+            request.session['user_lon'] = lon
+            print(f"Saved to session: Lat = {lat}, Lon = {lon}")  # Debugging line
+
+            return JsonResponse({'status': 'success'})
+    return JsonResponse({'status': 'failed'}, status=400)
 
 
 class QRcodeView(generic.DetailView):

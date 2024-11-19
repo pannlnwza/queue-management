@@ -81,6 +81,7 @@ class Queue(models.Model):
                 dlon / 2) ** 2
             c = 2 * atan2(sqrt(a), sqrt(1 - a))
             distance_km = 6371 * c
+            print(f"Queue: {queue.name}, Distance: {distance_km} km")
 
             if distance_km <= radius_km:
                 nearby_queues.append(queue)
