@@ -267,6 +267,7 @@ def delete_participant(request, participant_id):
     queue = participant.queue
     participant.state = 'removed'
     participant.delete()
+    messages.success(request, f"Participant has been deleted.")
     logger.info(f"Participant {participant_id} is deleted.")
 
     waiting_participants = Participant.objects.filter(queue=queue, state='waiting').order_by('position')
@@ -538,8 +539,15 @@ class WaitingFull(LoginRequiredMixin, generic.TemplateView):
         queue = get_object_or_404(Queue, id=queue_id)
         handler = CategoryHandlerFactory.get_handler(queue.category)
         queue = handler.get_queue_object(queue_id)
+        participant_set = handler.get_participant_set(queue_id)
+        waiting_list = participant_set.filter(state='waiting')
         context['queue'] = queue
-
+        context['waiting_list'] = waiting_list
+        context['resources'] = queue.resources.all()
+        context['available_resource'] = queue.get_resources_by_status('available')
+        category_context = handler.add_context_attributes(queue)
+        if category_context:
+            context.update(category_context)
         return context
 
 

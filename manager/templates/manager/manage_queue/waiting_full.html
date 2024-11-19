@@ -1,88 +1,306 @@
 {% extends 'sidebar_manage.html' %}
-
 {% block content %}
+    <body>
+    <div class="flex">
+        <a href="{% url 'manager:manage_waitlist' queue_id %}" class="btn btn-sm btn-square btn-ghost no-animation">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="size-5">
+                <path fill-rule="evenodd"
+                      d="M11.78 5.22a.75.75 0 0 1 0 1.06L8.06 10l3.72 3.72a.75.75 0 1 1-1.06 1.06l-4.25-4.25a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 0Z"
+                      clip-rule="evenodd"/>
+            </svg>
+        </a>
+        <h1 class="text-2xl font-bold antialiased font-sans">Waiting</h1>
 
-<body>
-  <div class="flex justify-center min-w-screen p-10">
-    <!-- Adjusted grid columns for receipt-like layout -->
-    <div class="grid grid-cols-[4fr_2fr] gap-6 w-full max-w-7xl">
-      <!-- Left side (wider section) with taller height -->
-      <div class="card bg-base-100 border-2 border-base-300 h-[40rem]">
-        <div class="card-body">
-          <div class="form-control">
-            <input type="text" placeholder="Search" class="input input-bordered" />
-          </div>
-          <div class="tabs mt-4">
-            <a class="tab tab-lifted tab-active">Upcoming</a>
-            <a class="tab tab-lifted">No show</a>
-            <a class="tab tab-lifted">Done</a>
-          </div>
-          <div class="overflow-y-auto h-[30rem] mt-4">
-            <table class="table w-full">
-              <thead>
-                <tr>
-                  <th>Token</th>
-                  <th>Waited</th>
-                  <th>Joined at</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td>023</td>
-                  <td>20 Oct, 2021</td>
-                  <td>02:40 PM</td>
-                </tr>
-                <tr>
-                  <td>024</td>
-                  <td>20 Oct, 2021</td>
-                  <td>02:55 PM</td>
-                </tr>
-                <tr>
-                  <td>025</td>
-                  <td>20 Oct, 2021</td>
-                  <td>03:20 PM</td>
-                </tr>
-                <tr>
-                  <td>026</td>
-                  <td>20 Oct, 2021</td>
-                  <td>03:40 PM</td>
-                </tr>
-                <tr>
-                  <td>027</td>
-                  <td>20 Oct, 2021</td>
-                  <td>04:10 PM</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-
-      <!-- Right side (narrower section) with dynamic height -->
-      <div class="card bg-base-100 border-2 border-base-300 max-h-[37rem] overflow-y-auto">
-        <div class="card-body">
-          <div class="text-gray-500 mx-auto">Current Ticket for</div>
-          <div class="font-semibold mx-auto">Deposit....</div>
-          <div class="divider"></div>
-
-          <div class="text-gray-500 mx-auto">John Doe</div>
-          <div class="text-5xl font-bold mx-auto mb-5">M005</div>
-
-          <!-- Wait Time Section -->
-          <div class="flex flex-col items-center mb-4">
-            <div class="text-gray-500">Waited for</div>
-            <div class="text-2xl font-bold">8 min</div>
-          </div>
-          <div class="divider"></div>
-
-          <!-- Buttons Section -->
-          <div class="flex flex-col items-center gap-4 mt-4">
-            <button class="btn btn-success">Done & Next</button>
-            <button class="btn btn-error">No Show</button>
-          </div>
-        </div>
-      </div>
     </div>
-  </div>
-</body>
+    <div class="flex justify-center min-w-screen p-10">
+        <div class="w-full max-w-86">
+            <div class="mb-4">
+                <div class="relative w-full max-w-xs">
+                    <input type="text"
+                           id="searchInput"
+                           class="input input-bordered w-full pr-12"
+                           placeholder="Search Participant's name"
+                           oninput="participantSearch()">
+                    <button type="button"
+                            id="searchButton"
+                            class="absolute inset-y-0 right-2 flex items-center pr-2">
+                        <svg xmlns="http://www.w3.org/2000/svg"
+                             class="h-5 w-5"
+                             fill="none"
+                             viewBox="0 0 24 24"
+                             stroke="currentColor">
+                            <path stroke-linecap="round"
+                                  stroke-linejoin="round"
+                                  stroke-width="2"
+                                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            <div class="grid grid-cols-[4fr_2fr] gap-6 w-full max-w-86">
+                <!-- Left side (wider section) with taller height -->
+
+                <div class="card bg-base-100 border-2 border-base-300 h-[50rem] overflow-y-auto">
+                    <div class="card-body">
+
+
+                        <div class="overflow-y-auto h-[50rem] mt-4">
+                            <table class="table w-full" id="participantTable">
+                                <thead class="sticky top-0 bg-base-100 z-10">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Token
+                                    </th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Name
+                                    </th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        {{ special_2 }}
+                                    </th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Waited
+                                    </th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Joined at
+                                    </th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                {% for participant in waiting_list %}
+                                    <tr
+                                            class="hover:bg-gray-100 cursor-pointer"
+                                            onclick="showParticipantDetails(
+                                                    '{{ participant.id }}',
+                                                    '{{ participant.position }}',
+                                                    '{{ participant.name }}',
+                                                    '{{ participant.get_wait_time }}',
+                                                    '{{ participant.get_service_type_display|default:"" }}',
+                                                    '{{ participant.get_medical_field_display|default:"" }}',
+                                                    '{{ queue.category }}'
+                                                    )"
+                                    >
+                                        <td class="px-6 py-4 whitespace-nowrap">{{ participant.position }}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap font-semibold">{{ participant.name }}</td>
+                                        {% if queue.category == 'restaurant' or queue.category == 'bank' %}
+                                            <td class="px-6 py-4 whitespace-nowrap">{{ participant.get_service_type_display }}</td>
+                                        {% elif queue.category == 'hospital' %}
+                                            <td class="px-6 py-4 whitespace-nowrap">{{ participant.get_medical_field_display }}</td>
+                                        {% endif %}
+                                        <td class="px-6 py-4 whitespace-nowrap">{{ participant.get_wait_time }} min</td>
+                                        <td class="px-6 py-4 whitespace-nowrap">{{ participant.joined_at }}</td>
+                                    </tr>
+                                {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right side (narrower section) with dynamic height -->
+                <div class="card bg-base-100 border-2 border-base-300 max-h-[40rem] max-w-96 ml-4 overflow-y-auto">
+                    <div class="card-body" id="participant-details">
+                        <div class="text-gray-500 mx-auto">Select participant to see details</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <dialog id="choose_resource_modal" class="modal">
+            <div class="modal-box w-11/12 max-w-xl">
+                <!-- Header -->
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="font-bold text-lg">Choose {{ resource_name }}</h3>
+                    <form method="dialog">
+                        <button class="btn btn-sm btn-circle">✕</button>
+                    </form>
+                </div>
+
+                <!-- Hidden input to store participant ID -->
+                <input type="hidden" id="participantId" value="">
+
+                <!-- Resources Section -->
+                <div id="resourceContainer" class="grid gap-4">
+                    {% for resource in available_resource %}
+                        <div class="card bg-base-100 border hover:border-primary cursor-pointer"
+                             onclick="selectResource('{{ resource.id }}')"
+                             data-id="{{ resource.id }}" id="resource-{{ resource.id }}">
+                            <div class="card-body p-4">
+                                <div class="flex justify-between items-center">
+                                    <div>
+                                        <div class="flex items-center gap-2">
+                                            <span class="font-semibold">{{ resource.name }}</span>
+                                        </div>
+                                        <div class="text-sm text-gray-500">
+                                            {% if queue.category == 'restaurant' %}
+                                                Capacity: {{ resource.capacity }}
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <div class="badge badge-success badge-sm"></div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+                <div class="modal-action">
+                    <button type="button" class="btn" onclick="autoAssignResource()">Auto assign</button>
+                    <button class="btn btn-primary" onclick="serveSelectedParticipant()">Serve</button>
+                </div>
+            </div>
+        </dialog>
+
+        <script>
+            function showParticipantDetails(participantId, position, name, waitTime, serviceType, medicalField, category) {
+                // Determine the special field based on category
+                let specialField = "";
+                if (category === "restaurant" || category === "bank") {
+                    specialField = serviceType;
+                } else if (category === "hospital") {
+                    specialField = medicalField;
+                }
+
+                // Update the right card content
+                const detailsDiv = document.getElementById('participant-details');
+                detailsDiv.innerHTML = `
+            <div class="text-gray-500 mx-auto">Current Ticket for</div>
+            <div class="font-semibold mx-auto">${specialField}</div>
+            <div class="divider"></div>
+
+            <div class="text-gray-500 mx-auto">${name}</div>
+            <div class="text-5xl font-bold mx-auto mb-5">${position}</div>
+
+            <!-- Wait Time Section -->
+            <div class="flex flex-col items-center mb-4">
+                <div class="text-gray-500">Waited for</div>
+                <div class="text-2xl font-bold">${waitTime} min</div>
+            </div>
+            <div class="divider"></div>
+
+            <!-- Buttons Section -->
+            <div class="flex flex-col items-center gap-4">
+                <button class="btn btn-warning text-white">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="size-4">
+                      <path d="M3.6 1.7A.75.75 0 1 0 2.4.799a6.978 6.978 0 0 0-1.123 2.247.75.75 0 1 0 1.44.418c.187-.644.489-1.24.883-1.764ZM13.6.799a.75.75 0 1 0-1.2.9 5.48 5.48 0 0 1 .883 1.765.75.75 0 1 0 1.44-.418A6.978 6.978 0 0 0 13.6.799Z" />
+                      <path fill-rule="evenodd" d="M8 1a4 4 0 0 1 4 4v2.379c0 .398.158.779.44 1.06l1.267 1.268a1 1 0 0 1 .293.707V11a1 1 0 0 1-1 1h-2a3 3 0 1 1-6 0H3a1 1 0 0 1-1-1v-.586a1 1 0 0 1 .293-.707L3.56 8.44A1.5 1.5 0 0 0 4 7.38V5a4 4 0 0 1 4-4Zm0 12.5A1.5 1.5 0 0 1 6.5 12h3A1.5 1.5 0 0 1 8 13.5Z" clip-rule="evenodd" />
+                    </svg>
+                    Notify
+                </button>
+                <button class="btn btn-success text-white" onclick="openResourceModal(${participantId})">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="size-4">
+                      <path fill-rule="evenodd" d="M8 15A7 7 0 1 0 8 1a7 7 0 0 0 0 14Zm3.844-8.791a.75.75 0 0 0-1.188-.918l-3.7 4.79-1.649-1.833a.75.75 0 1 0-1.114 1.004l2.25 2.5a.75.75 0 0 0 1.15-.043l4.25-5.5Z" clip-rule="evenodd" />
+                    </svg>
+                    Serve</button>
+                <button class="btn btn-error text-white mb-3">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="size-4">
+                      <path fill-rule="evenodd" d="M8 15A7 7 0 1 0 8 1a7 7 0 0 0 0 14Zm2.78-4.22a.75.75 0 0 1-1.06 0L8 9.06l-1.72 1.72a.75.75 0 1 1-1.06-1.06L6.94 8 5.22 6.28a.75.75 0 0 1 1.06-1.06L8 6.94l1.72-1.72a.75.75 0 1 1 1.06 1.06L9.06 8l1.72 1.72a.75.75 0 0 1 0 1.06Z" clip-rule="evenodd" />
+                    </svg>
+                    No Show
+                </button>
+            </div>
+        `;
+            }
+
+            let selectedResourceId = null;
+
+            function openResourceModal(participantId) {
+                document.getElementById('participantId').value = participantId;
+                document.getElementById('choose_resource_modal').showModal();
+            }
+
+            function selectResource(resourceId) {
+                if (selectedResourceId) {
+                    const prevSelected = document.getElementById(`resource-${selectedResourceId}`);
+                    if (prevSelected) {
+                        prevSelected.classList.remove('border-primary');
+                    }
+                }
+
+                const selectedCard = document.getElementById(`resource-${resourceId}`);
+                if (selectedCard) {
+                    selectedCard.classList.add('border-primary');
+                    selectedResourceId = resourceId;
+                }
+            }
+
+            function clearSelection() {
+                if (selectedResourceId) {
+                    const selectedCard = document.getElementById(`resource-${selectedResourceId}`);
+                    if (selectedCard) {
+                        selectedCard.classList.remove('border-primary');
+                    }
+                    selectedResourceId = null;
+                }
+            }
+
+            function autoAssignResource() {
+                clearSelection();
+                const participantId = document.getElementById('participantId').value;
+
+                fetch(`/manager/serve/${participantId}/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    }
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            alert('Auto-assigned a resource successfully!');
+                            location.reload();
+                        } else {
+                            alert(data.error || 'Error auto-assigning resource.');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('Unexpected error occurred.');
+                    });
+            }
+
+            function serveSelectedParticipant() {
+                const participantId = document.getElementById('participantId').value;
+
+                if (!selectedResourceId) {
+                    alert("No resource selected. Please auto-assign or select a resource first.");
+                    return;
+                }
+
+                fetch(`/manager/serve/${participantId}/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    },
+                    body: JSON.stringify({resource_id: selectedResourceId})
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            alert('Participant served successfully!');
+                            location.reload();
+                        } else {
+                            alert(data.error || 'Error serving participant.');
+                        }
+                    })
+                    .catch(error => console.error('Error:', error));
+            }
+
+            function participantSearch() {
+                const searchValue = document.getElementById('searchInput').value.toLowerCase();
+
+                const rows = document.querySelectorAll('#participantTable tbody tr');
+
+                rows.forEach(row => {
+                    const name = row.querySelector('td:nth-child(2)').textContent.toLowerCase();
+
+                    if (name.includes(searchValue)) {
+                        row.style.display = '';
+                    } else {
+                        row.style.display = 'none';
+                    }
+                });
+            }
+        </script>
+    </body>
 {% endblock %}
