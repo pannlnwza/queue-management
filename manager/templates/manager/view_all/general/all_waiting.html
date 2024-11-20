@@ -1,0 +1,486 @@
+{% extends 'sidebar_manage.html' %}
+
+{% block content %}
+    <div class="w-full max-w-full">
+        <div class="breadcrumbs text-sm mb-0">
+            <ul>
+                <li>
+                    <a href="{% url 'manager:your-queue' %}">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="size-4">
+                            <path d="M3 3.5A1.5 1.5 0 0 1 4.5 2h1.879a1.5 1.5 0 0 1 1.06.44l1.122 1.12A1.5 1.5 0 0 0 9.62 4H11.5A1.5 1.5 0 0 1 13 5.5v1H3v-3ZM3.081 8a1.5 1.5 0 0 0-1.423 1.974l1 3A1.5 1.5 0 0 0 4.081 14h7.838a1.5 1.5 0 0 0 1.423-1.026l1-3A1.5 1.5 0 0 0 12.919 8H3.081Z"/>
+                        </svg>
+                        Your Queues
+                    </a>
+                </li>
+                <li>
+                    <a class="font-serif" href="{% url 'manager:manage_waitlist' queue.id %}">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="size-4">
+                            <path d="M4.5 7c.681 0 1.3-.273 1.75-.715C6.7 6.727 7.319 7 8 7s1.3-.273 1.75-.715A2.5 2.5 0 1 0 11.5 2h-7a2.5 2.5 0 0 0 0 5ZM6.25 8.097A3.986 3.986 0 0 1 4.5 8.5c-.53 0-1.037-.103-1.5-.29v4.29h-.25a.75.75 0 0 0 0 1.5h.5a.754.754 0 0 0 .138-.013A.5.5 0 0 0 3.5 14H6a.5.5 0 0 0 .5-.5v-3A.5.5 0 0 1 7 10h2a.5.5 0 0 1 .5.5v3a.5.5 0 0 0 .5.5h2.5a.5.5 0 0 0 .112-.013c.045.009.09.013.138.013h.5a.75.75 0 1 0 0-1.5H13V8.21c-.463.187-.97.29-1.5.29a3.986 3.986 0 0 1-1.75-.403A3.986 3.986 0 0 1 8 8.5a3.986 3.986 0 0 1-1.75-.403Z"/>
+                        </svg>
+                        {{ queue.name| title }}
+                    </a>
+                </li>
+                <li>
+                    <a href="{% url 'manager:manage_waitlist' queue_id %}" class="inline-flex items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="size-4">
+                            <path d="M8 8a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5ZM3.156 11.763c.16-.629.44-1.21.813-1.72a2.5 2.5 0 0 0-2.725 1.377c-.136.287.102.58.418.58h1.449c.01-.077.025-.156.045-.237ZM12.847 11.763c.02.08.036.16.046.237h1.446c.316 0 .554-.293.417-.579a2.5 2.5 0 0 0-2.722-1.378c.374.51.653 1.09.813 1.72ZM14 7.5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0ZM3.5 9a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3ZM5 13c-.552 0-1.013-.455-.876-.99a4.002 4.002 0 0 1 7.753 0c.136.535-.324.99-.877.99H5Z"/>
+                        </svg>
+                        Queue Manager
+                    </a>
+                </li>
+                <li>
+                    <span class="inline-flex items-center gap-2">
+                        Waiting
+                    </span>
+                </li>
+            </ul>
+        </div>
+        <div class="flex mb-5">
+            <a href="{% url 'manager:manage_waitlist' queue_id %}" class="btn btn-sm btn-square btn-ghost no-animation">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="size-5">
+                    <path fill-rule="evenodd"
+                          d="M11.78 5.22a.75.75 0 0 1 0 1.06L8.06 10l3.72 3.72a.75.75 0 1 1-1.06 1.06l-4.25-4.25a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 0Z"
+                          clip-rule="evenodd"/>
+                </svg>
+
+            </a>
+            <h1 class="text-2xl font-bold antialiased font-sans">Waiting</h1>
+        </div>
+        <div class="justify-between inline-flex mb-4">
+            <div class="relative mr-2">
+                <input type="text"
+                       id="searchInput"
+                       class="input input-bordered w-full pr-12"
+                       placeholder="Search" oninput="participantSearch()">
+                <button type="button"
+                        id="searchButton"
+                        class="absolute right-2 top-1/2 -translate-y-1/2 p-2 h-auto min-h-0">
+                    <svg xmlns="http://www.w3.org/2000/svg"
+                         class="h-5 w-5"
+                         fill="none"
+                         viewBox="0 0 24 24"
+                         stroke="currentColor">
+                        <path stroke-linecap="round"
+                              stroke-linejoin="round"
+                              stroke-width="2"
+                              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        <div class="overflow-x-auto">
+            <table class="min-w-full bg-base-100 divide-y divide-gray-200">
+                <thead>
+                <tr>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Name
+                    </th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Position
+                    </th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Notes
+                    </th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Waited
+                    </th>
+                </tr>
+                </thead>
+                <tbody id="waiting-section" class="divide-y divide-gray-200">
+                {% for participant in waiting_list %}
+                    <tr>
+                        <td class="px-6 py-4 whitespace-nowrap">{{ participant.name }}
+                            {% if participant.is_notified %}
+                                <div class="flex items-center">
+                                    <div class="tooltip" data-tip="Notified at">
+                                        <span class="bg-amber-100 text-yellow-500 text-sm inline-flex items-center px-2 py-1">
+                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"
+                                                 fill="currentColor" class="size-4 mr-1">
+                                                <path d="M3.6 1.7A.75.75 0 1 0 2.4.799a6.978 6.978 0 0 0-1.123 2.247.75.75 0 1 0 1.44.418c.187-.644.489-1.24.883-1.764ZM13.6.799a.75.75 0 1 0-1.2.9 5.48 5.48 0 0 1 .883 1.765.75.75 0 1 0 1.44-.418A6.978 6.978 0 0 0 13.6.799Z"/>
+                                                <path fill-rule="evenodd"
+                                                      d="M8 1a4 4 0 0 1 4 4v2.379c0 .398.158.779.44 1.06l1.267 1.268a1 1 0 0 1 .293.707V11a1 1 0 0 1-1 1h-2a3 3 0 1 1-6 0H3a1 1 0 0 1-1-1v-.586a1 1 0 0 1 .293-.707L3.56 8.44A1.5 1.5 0 0 0 4 7.38V5a4 4 0 0 1 4-4Zm0 12.5A1.5 1.5 0 0 1 6.5 12h3A1.5 1.5 0 0 1 8 13.5Z"
+                                                      clip-rule="evenodd"/>
+                                            </svg>
+                                            Notified
+                                        </span>
+                                    </div>
+                                </div>
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">{{ participant.position }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            {% if participant.note %}
+                                <button class="btn btn-sm no-animation"
+                                        onclick="document.getElementById('${modalId}').showModal()">
+                                    View Note
+                                </button>
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">{{ participant.get_wait_time }} min</td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="flex gap-2">
+                                <div class="tooltip" data-tip="No Show">
+                                    <button class="btn btn-error btn-square btn-sm text-base-100 no-animation"
+                                            aria-label="No Show" data-participant-id="${participant.id}"
+                                            onclick="openNotifyModal(this)">
+                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"
+                                             fill="currentColor" class="size-4">
+                                            <path d="M5.28 4.22a.75.75 0 0 0-1.06 1.06L6.94 8l-2.72 2.72a.75.75 0 1 0 1.06 1.06L8 9.06l2.72 2.72a.75.75 0 1 0 1.06-1.06L9.06 8l2.72-2.72a.75.75 0 0 0-1.06-1.06L8 6.94 5.28 4.22Z"/>
+                                        </svg>
+                                    </button>
+                                </div>
+                                <button class="btn btn-warning btn-square btn-sm text-base-100 no-animation"
+                                        aria-label="Notify" data-participant-id="{{ participant.id }}"
+                                        onclick="openNotifyModal(this)">
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"
+                                         fill="currentColor" class="size-4">
+                                        <path d="M3.6 1.7A.75.75 0 1 0 2.4.799a6.978 6.978 0 0 0-1.123 2.247.75.75 0 1 0 1.44.418c.187-.644.489-1.24.883-1.764ZM13.6.799a.75.75 0 1 0-1.2.9 5.48 5.48 0 0 1 .883 1.765.75.75 0 1 0 1.44-.418A6.978 6.978 0 0 0 13.6.799Z"/>
+                                        <path fill-rule="evenodd"
+                                              d="M8 1a4 4 0 0 1 4 4v2.379c0 .398.158.779.44 1.06l1.267 1.268a1 1 0 0 1 .293.707V11a1 1 0 0 1-1 1h-2a3 3 0 1 1-6 0H3a1 1 0 0 1-1-1v-.586a1 1 0 0 1 .293-.707L3.56 8.44A1.5 1.5 0 0 0 4 7.38V5a4 4 0 0 1 4-4Zm0 12.5A1.5 1.5 0 0 1 6.5 12h3A1.5 1.5 0 0 1 8 13.5Z"
+                                              clip-rule="evenodd"/>
+                                    </svg>
+                                </button>
+                                <button class="btn btn-success btn-square btn-sm text-base-100 no-animation"
+                                        onclick="serveParticipant({{ participant.id }})" aria-label="Serve">
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"
+                                         fill="currentColor" class="size-5">
+                                        <path fill-rule="evenodd"
+                                              d="M16.704 4.153a.75.75 0 0 1 .143 1.052l-8 10.5a.75.75 0 0 1-1.127.075l-4.5-4.5a.75.75 0 0 1 1.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 0 1 1.05-.143Z"
+                                              clip-rule="evenodd"/>
+                                    </svg>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <div class="pagination flex justify-end space-x-2 py-4">
+            {% if page_obj.has_previous %}
+                <a href="?page={{ page_obj.paginator.page_range.start }}" class="btn btn-sm btn-ghost btn-square">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="size-4">
+                        <path fill-rule="evenodd"
+                              d="M3.22 7.595a.75.75 0 0 0 0 1.06l3.25 3.25a.75.75 0 0 0 1.06-1.06l-2.72-2.72 2.72-2.72a.75.75 0 0 0-1.06-1.06l-3.25 3.25Zm8.25-3.25-3.25 3.25a.75.75 0 0 0 0 1.06l3.25 3.25a.75.75 0 1 0 1.06-1.06l-2.72-2.72 2.72-2.72a.75.75 0 0 0-1.06-1.06Z"
+                              clip-rule="evenodd"/>
+                    </svg>
+
+                </a>
+                <a href="?page={{ page_obj.previous_page_number }}" class="btn btn-sm btn-ghost btn-square">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="size-4">
+                        <path fill-rule="evenodd"
+                              d="M9.78 4.22a.75.75 0 0 1 0 1.06L7.06 8l2.72 2.72a.75.75 0 1 1-1.06 1.06L5.47 8.53a.75.75 0 0 1 0-1.06l3.25-3.25a.75.75 0 0 1 1.06 0Z"
+                              clip-rule="evenodd"/>
+                    </svg>
+
+                </a>
+            {% endif %}
+
+            <span class="btn btn-sm btn-ghost no-animation">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+
+            {% if page_obj.has_next %}
+                <a href="?page={{ page_obj.next_page_number }}" class="btn btn-sm btn-ghost btn-square">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="size-4">
+                        <path fill-rule="evenodd"
+                              d="M6.22 4.22a.75.75 0 0 1 1.06 0l3.25 3.25a.75.75 0 0 1 0 1.06l-3.25 3.25a.75.75 0 0 1-1.06-1.06L8.94 8 6.22 5.28a.75.75 0 0 1 0-1.06Z"
+                              clip-rule="evenodd"/>
+                    </svg>
+
+                </a>
+                <a href="?page={{ page_obj.paginator.num_pages }}" class="btn btn-sm btn-ghost btn-square">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="size-4">
+                        <path fill-rule="evenodd"
+                              d="M12.78 7.595a.75.75 0 0 1 0 1.06l-3.25 3.25a.75.75 0 0 1-1.06-1.06l2.72-2.72-2.72-2.72a.75.75 0 0 1 1.06-1.06l3.25 3.25Zm-8.25-3.25 3.25 3.25a.75.75 0 0 1 0 1.06l-3.25 3.25a.75.75 0 0 1-1.06-1.06l2.72-2.72-2.72-2.72a.75.75 0 0 1 1.06-1.06Z"
+                              clip-rule="evenodd"/>
+                    </svg>
+
+                </a>
+            {% endif %}
+        </div>
+    </div>
+    <input type="checkbox" id="notify_modal" class="modal-toggle"/>
+    <div class="modal">
+        <div class="modal-box relative  p-10">
+            <label for="notify_modal" class="btn btn-sm btn-square btn-ghost absolute right-2 top-2">✕</label>
+
+            <div class="flex items-center gap-2 my-1">
+                <h2 class="font-semibold text-2xl">Notify Participant</h2>
+            </div>
+            <div class="form-control">
+                <label class="label">
+                    <span class="label-text">Message (Optional)</span>
+                </label>
+                <textarea id="message" class="textarea textarea-bordered w-full h-24"
+                          placeholder="Type your message here..."></textarea>
+            </div>
+            <div class="modal-action">
+                <button class="btn btn-primary no-animation" onclick="sendNotification()">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="size-4">
+                        <path d="M3.6 1.7A.75.75 0 1 0 2.4.799a6.978 6.978 0 0 0-1.123 2.247.75.75 0 1 0 1.44.418c.187-.644.489-1.24.883-1.764ZM13.6.799a.75.75 0 1 0-1.2.9 5.48 5.48 0 0 1 .883 1.765.75.75 0 1 0 1.44-.418A6.978 6.978 0 0 0 13.6.799Z"/>
+                        <path fill-rule="evenodd"
+                              d="M8 1a4 4 0 0 1 4 4v2.379c0 .398.158.779.44 1.06l1.267 1.268a1 1 0 0 1 .293.707V11a1 1 0 0 1-1 1h-2a3 3 0 1 1-6 0H3a1 1 0 0 1-1-1v-.586a1 1 0 0 1 .293-.707L3.56 8.44A1.5 1.5 0 0 0 4 7.38V5a4 4 0 0 1 4-4Zm0 12.5A1.5 1.5 0 0 1 6.5 12h3A1.5 1.5 0 0 1 8 13.5Z"
+                              clip-rule="evenodd"/>
+                    </svg>
+                    Notify
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <dialog id="choose_resource_modal" class="modal">
+        <div class="modal-box w-11/12 max-w-xl">
+            <!-- Header -->
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="font-bold text-lg">Choose {{ resource_name }}</h3>
+                <form method="dialog">
+                    <button class="btn btn-sm btn-circle">✕</button>
+                </form>
+            </div>
+
+            <!-- Hidden input to store participant ID -->
+            <input type="hidden" id="participantId" value="">
+
+            <!-- Resources Section -->
+            <div id="resourceContainer" class="grid gap-4">
+                {% for resource in available_resource %}
+                    <div class="card bg-base-100 border hover:border-primary cursor-pointer"
+                         onclick="selectResource('{{ resource.id }}')"
+                         data-id="{{ resource.id }}" id="resource-{{ resource.id }}">
+                        <div class="card-body p-4">
+                            <div class="flex justify-between items-center">
+                                <div>
+                                    <div class="flex items-center gap-2">
+                                        <span class="font-semibold">{{ resource.name }}</span>
+                                    </div>
+                                    <div class="text-sm text-gray-500">
+                                        {% if queue.category == 'restaurant' %}
+                                            Capacity: {{ resource.capacity }}
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="badge badge-success badge-sm"></div>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+            <div class="modal-action">
+                <button type="button" class="btn" onclick="autoAssignResource()">Auto assign</button>
+                <button class="btn btn-primary" onclick="serveSelectedParticipant()">Serve</button>
+            </div>
+        </div>
+    </dialog>
+
+    <input type="checkbox" id="noShowModal" class="modal-toggle"/>
+    <div class="modal">
+        <div class="modal-box">
+            <h3 class="font-bold text-lg">Confirm No Show</h3>
+            <p class="py-4">This action cannot be undone. Are you sure you want to mark this participant as No Show?</p>
+            <div class="modal-action">
+                <input type="hidden" name="next" id="nextInput" value="view_all">
+                <button class="btn btn-error text-white" id="confirmNoShowButton" onclick="confirmNoShow()">Yes, Mark as
+                    No Show
+                </button>
+                <label for="noShowModal" class="btn">Cancel</label>
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+        const queue_id = {{ queue.id }};
+        const updateInterval = 30000;
+
+        document.addEventListener('DOMContentLoaded', function () {
+            fetchData();
+            setInterval(fetchData, updateInterval);
+        });
+
+        function fetchData() {
+            fetch(`/manager/general-updates/${queue_id}/`)
+                .then(response => {
+                    if (!response.ok) throw new Error('Network response was not ok');
+                    return response.json();
+                })
+                .then(data => {
+                    updateWaitingList(data.waiting_list);
+                })
+                .catch(error => console.error('Error fetching data:', error));
+        }
+
+        function updateWaitingList(waitingList) {
+            const waitingSection = document.getElementById('waiting-section');
+            waitingSection.innerHTML = '';
+
+            waitingList.forEach(participant => {
+                const row = createWaitingRow(participant);
+                waitingSection.appendChild(row);
+            });
+        }
+
+        function openNotifyModal(button) {
+            const participantId = button.getAttribute("data-participant-id");
+            document.getElementById("notify_modal").checked = true;
+            window.selectedParticipantId = participantId;
+        }
+
+        function sendNotification() {
+            const message = document.getElementById("message").value;
+            const participantId = window.selectedParticipantId;
+
+            if (!participantId) {
+                alert("Please select a participant to notify.");
+                return;
+            }
+
+            fetch(`/manager/notify/${participantId}/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}',
+                },
+                body: JSON.stringify({message: message})
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        alert('Notification sent successfully!');
+                        document.getElementById("notify_modal").checked = false;
+                    } else {
+                        alert('There was an error sending the notification');
+                    }
+                });
+        }
+
+
+        function createNotesModal(participant) {
+            const modalId = `notes-modal-${participant.id}`;
+            const notesHTML = participant.notes
+                ? `
+                <button class="btn btn-sm no-animation" onclick="document.getElementById('${modalId}').showModal()">
+                    View Note
+                </button>
+
+                <dialog id="${modalId}" class="modal">
+                    <div class="modal-box">
+                        <form method="dialog">
+                            <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
+                        </form>
+                        <h3 class="font-bold text-lg mb-4">${participant.name}'s note</h3>
+                        <div class="bg-base-200 p-4 rounded-lg min-h-[200px] shadow-inner">
+                            <p class="whitespace-pre-wrap">${participant.notes}</p>
+                        </div>
+                        <div class="modal-action">
+                            <form method="dialog">
+                                <button class="btn">Close</button>
+                            </form>
+                        </div>
+                    </div>
+                    <form method="dialog" class="modal-backdrop">
+                        <button>close</button>
+                    </form>
+                </dialog>`
+                : '-';
+
+            return notesHTML;
+        }
+
+        function createWaitingRow(participant) {
+            const row = document.createElement('tr');
+            row.id = `waiting-${participant.id}`;
+
+            let notifiedBadge = '';
+
+            if (participant.is_notified) {
+                notifiedBadge = `
+                <div class="flex items-center">
+                    <div class="tooltip" data-tip="Notified at">
+                    <span class="bg-amber-100 text-yellow-500 text-sm inline-flex items-center px-2 py-1">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="size-4 mr-1">
+                            <path d="M3.6 1.7A.75.75 0 1 0 2.4.799a6.978 6.978 0 0 0-1.123 2.247.75.75 0 1 0 1.44.418c.187-.644.489-1.24.883-1.764ZM13.6.799a.75.75 0 1 0-1.2.9 5.48 5.48 0 0 1 .883 1.765.75.75 0 1 0 1.44-.418A6.978 6.978 0 0 0 13.6.799Z" />
+                            <path fill-rule="evenodd" d="M8 1a4 4 0 0 1 4 4v2.379c0 .398.158.779.44 1.06l1.267 1.268a1 1 0 0 1 .293.707V11a1 1 0 0 1-1 1h-2a3 3 0 1 1-6 0H3a1 1 0 0 1-1-1v-.586a1 1 0 0 1 .293-.707L3.56 8.44A1.5 1.5 0 0 0 4 7.38V5a4 4 0 0 1 4-4Zm0 12.5A1.5 1.5 0 0 1 6.5 12h3A1.5 1.5 0 0 1 8 13.5Z" clip-rule="evenodd" />
+                        </svg>
+                        Notified
+                    </span>
+                </div>
+                </div>
+            `;
+            }
+
+            row.innerHTML = `
+            <td class="px-6 py-4 whitespace-nowrap">
+                ${participant.name || '-'}
+                ${notifiedBadge}
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap">${participant.position || '-'}</td>
+            <td class="px-6 py-4 whitespace-nowrap">${createNotesModal(participant)}</td>
+            <td class="px-6 py-4 whitespace-nowrap">${participant.waited || '0'} min</td>
+            <td class="px-6 py-4 whitespace-nowrap">
+                <div class="flex gap-2">
+                    <div class="tooltip" data-tip="No Show">
+                    <button class="btn btn-error btn-square btn-sm text-base-100 no-animation"
+                        aria-label="No Show" onclick="openNoShowModal(${participant.id})">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="size-4">
+                          <path d="M5.28 4.22a.75.75 0 0 0-1.06 1.06L6.94 8l-2.72 2.72a.75.75 0 1 0 1.06 1.06L8 9.06l2.72 2.72a.75.75 0 1 0 1.06-1.06L9.06 8l2.72-2.72a.75.75 0 0 0-1.06-1.06L8 6.94 5.28 4.22Z" />
+                        </svg>
+                    </button>
+                    </div>
+                    <div class="tooltip" data-tip="Notify">
+                    <button class="btn btn-warning btn-square btn-sm text-base-100 no-animation"
+                        aria-label="Notify" data-participant-id="${participant.id}" onclick="openNotifyModal(this)">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="size-4">
+                            <path d="M3.6 1.7A.75.75 0 1 0 2.4.799a6.978 6.978 0 0 0-1.123 2.247.75.75 0 1 0 1.44.418c.187-.644.489-1.24.883-1.764ZM13.6.799a.75.75 0 1 0-1.2.9 5.48 5.48 0 0 1 .883 1.765.75.75 0 1 0 1.44-.418A6.978 6.978 0 0 0 13.6.799Z" />
+                            <path fill-rule="evenodd" d="M8 1a4 4 0 0 1 4 4v2.379c0 .398.158.779.44 1.06l1.267 1.268a1 1 0 0 1 .293.707V11a1 1 0 0 1-1 1h-2a3 3 0 1 1-6 0H3a1 1 0 0 1-1-1v-.586a1 1 0 0 1 .293-.707L3.56 8.44A1.5 1.5 0 0 0 4 7.38V5a4 4 0 0 1 4-4Zm0 12.5A1.5 1.5 0 0 1 6.5 12h3A1.5 1.5 0 0 1 8 13.5Z" clip-rule="evenodd" />
+                        </svg>
+                    </button>
+                    </div>
+                    <div class="tooltip" data-tip="Serve">
+                    <button class="btn btn-success btn-square btn-sm text-base-100 no-animation"
+                        onclick="serveParticipant(${participant.id})" aria-label="Serve">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="size-5">
+                            <path fill-rule="evenodd" d="M16.704 4.153a.75.75 0 0 1 .143 1.052l-8 10.5a.75.75 0 0 1-1.127.075l-4.5-4.5a.75.75 0 0 1 1.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 0 1 1.05-.143Z" clip-rule="evenodd" />
+                        </svg>
+                    </button>
+                    </div>
+                </div>
+
+            </td>
+        `;
+            return row;
+        }
+
+
+        function serveParticipant(id) {
+            fetch(`/manager/serve/${id}/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({id})
+            })
+                .then(response => {
+                    if (!response.ok) throw new Error('Network response was not ok');
+                    fetchData();
+                })
+                .catch(error => console.error('Error serving participant:', error));
+        }
+
+        let participantIdToMark = null;
+
+        function openNoShowModal(participantId) {
+            participantIdToMark = participantId;
+            document.getElementById('noShowModal').checked = true;
+        }
+
+        function confirmNoShow() {
+            if (participantIdToMark !== null) {
+                window.location.href = `/manager/mark_no_show/${participantIdToMark}/`;
+            }
+        }
+
+    </script>
+
+
+{% endblock %}
