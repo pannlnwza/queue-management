@@ -10,6 +10,7 @@ from django.contrib.auth.models import User
 from django.urls import reverse
 from django.conf import settings
 from django.apps import apps
+from django.db.models import Sum
 from manager.utils.helpers import format_duration
 from django.utils import timezone
 from math import radians, sin, cos, sqrt, atan2
@@ -66,6 +67,23 @@ class Queue(models.Model):
             code = ''.join(random.choices(characters, k=length))
             if not Queue.objects.filter(code=code).exists():
                 return code
+
+    @staticmethod
+    def get_top_featured_queues():
+        """Get the top 3 featured queues based on their Queue Length / Max Capacity * 100."""
+        queue_ratios = []
+        for queue in Queue.objects.all():
+            num_participants = queue.get_number_waiting_now()
+            max_capacity = sum(
+                resource.capacity for resource in queue.resource_set.all())
+            if max_capacity == 0:
+                ratio = 0
+            else:
+                ratio = (num_participants / max_capacity) * 100
+            queue_ratios.append((queue, ratio))
+        queue_ratios.sort(key=lambda x: x[1], reverse=True)
+        top_3_queues = [queue for queue, ratio in queue_ratios[:3]]
+        return top_3_queues
 
     @staticmethod
     def get_nearby_queues(user_lat, user_lon, radius_km=2):
