@@ -4,7 +4,6 @@ from io import BytesIO
 import base64
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
@@ -18,13 +17,9 @@ from manager.utils.category_handler import CategoryHandlerFactory
 import time
 from django.http import StreamingHttpResponse
 import json
-from .models import RestaurantParticipant
 
 # Create your views here.
 
-from django.views import generic
-from manager.models import Queue
-from django.shortcuts import render
 
 
 class HomePageView(generic.TemplateView):
@@ -112,46 +107,6 @@ class BrowseQueueView(generic.ListView):
     model = Queue
     template_name = "participant/browse_queue.html"
 
-
-# @login_required
-# def join_queue(request):
-#     """Customer joins queue using their ticket code."""
-#
-#     queue_code = request.POST.get("queue_code")
-#     try:
-#         participant_slot = Participant.objects.get(queue_code=queue_code)
-#         queue = participant_slot.queue
-#         if Participant.objects.filter(user=request.user).exists():
-#             messages.error(request, "You're already in a queue.")
-#             logger.info(
-#                 f"User: {request.user} attempted to join queue: {queue.name} when they're already in one."
-#             )
-#         elif queue.is_closed:
-#             messages.error(request, "The queue is closed.")
-#             logger.info(
-#                 f"User {request.user.username} attempted to join queue {queue.name} that has been closed."
-#             )
-#         elif participant_slot.user:
-#             messages.error(
-#                 request,
-#                 "Sorry, this slot is already filled by another participant. Are you sure"
-#                 " that you have the right code?",
-#             )
-#             logger.info(
-#                 f"User {request.user.username} attempted to join queue {queue.name}, but the participant slot is "
-#                 f"already occupied."
-#             )
-#         else:
-#             participant_slot.insert_user(user=request.user)
-#             participant_slot.save()
-#             messages.success(
-#                 request,
-#                 f"You have successfully joined the queue with code {queue_code}.",
-#             )
-#     except Participant.DoesNotExist:
-#         messages.error(request, "Invalid queue code. Please try again.")
-#         return redirect("participant:index")
-#     return redirect("participant:index")
 
 class IndexView(generic.ListView):
     """

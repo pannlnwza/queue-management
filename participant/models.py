@@ -1,10 +1,9 @@
 import random
 import string
 
-from django.contrib.auth.models import User
 from django.db import models
 from django.utils import timezone
-from manager.models import RestaurantQueue, BankQueue, Resource, HospitalQueue
+from manager.models import Resource
 from datetime import timedelta
 
 

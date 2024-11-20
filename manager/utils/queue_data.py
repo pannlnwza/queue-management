@@ -1,11 +1,9 @@
 from django.contrib.auth.decorators import login_required
-from django.http import StreamingHttpResponse, JsonResponse
+from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
-import json
-import time
-from manager.models import RestaurantQueue, Queue
+from manager.models import Queue
 from manager.utils.category_handler import CategoryHandlerFactory
-from participant.models import Participant, RestaurantParticipant
+from participant.models import Participant
 
 @login_required
 def get_general_queue_data(request, queue_id):

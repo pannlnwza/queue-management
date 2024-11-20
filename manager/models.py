@@ -2,17 +2,12 @@ import math
 import random
 import string
 
-from django.db.models import ManyToManyField
 from django.dispatch import receiver
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.db import models
 from django.templatetags.static import static
-from django.contrib.auth.models import User
-from django.urls import reverse
-from django.conf import settings
 from django.apps import apps
-from django.db.models import Sum
 from django.db.models.signals import post_save
 from manager.utils.helpers import format_duration
 from django.utils import timezone
@@ -138,8 +133,7 @@ class Queue(models.Model):
     def calculate_average_service_duration(self, serve_time: int):
         """Update the average serve duration based on recent serve time."""
         if self.completed_participants_count > 0:
-            total_serve_time = (
-                                       self.average_service_duration * self.completed_participants_count) + serve_time
+            total_serve_time = (self.average_service_duration * self.completed_participants_count) + serve_time
             self.completed_participants_count += 1
             self.average_service_duration = math.ceil(
                 total_serve_time / self.completed_participants_count)
@@ -547,23 +541,29 @@ class UserProfile(models.Model):
 
     def get_profile_image(self):
         """Returns the appropriate profile image URL."""
-        if self.image and self.image.name != 'profile_images/profile.jpg':  # Check for a custom image
+        if self.image and self.image.name != 'profile_images/profile.jpg':
             return self.image.url
         elif self.user.socialaccount_set.exists():
             social_account = self.user.socialaccount_set.first()
             if hasattr(social_account, 'get_avatar_url') and social_account.get_avatar_url():
                 return social_account.get_avatar_url()
-        # Fallback to a default static image
         return static('participant/images/profile.jpg')
 
+
 @receiver(post_save, sender=User)
-def create_or_update_user_profile(sender, instance, created, **kwargs):
+def create_user_profile(sender, instance, created, **kwargs):
     """
-    Automatically create or update a UserProfile when a User is created or saved.
+    Automatically create a UserProfile when a new User is created.
+    """
+    if created:
+        UserProfile.objects.create(user=instance)
+
+@receiver(post_save, sender=User)
+def save_user_profile(sender, instance, **kwargs):
+    """
+    Automatically save the UserProfile when the User is saved.
     """
     try:
-        profile = instance.userprofile
-        if created:
-            profile.save()
+        instance.userprofile.save()
     except UserProfile.DoesNotExist:
         UserProfile.objects.create(user=instance)

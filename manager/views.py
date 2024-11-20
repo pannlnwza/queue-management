@@ -1,54 +1,56 @@
 import json
 import logging
 from datetime import timedelta, datetime
-from os import close
 
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, user_logged_in, user_logged_out, user_login_failed
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.core.exceptions import PermissionDenied
-from django.db import transaction
-from django.contrib.auth.models import User
-from django.dispatch import receiver
+from django.views import View, generic
+from django.views.decorators.http import require_http_methods
 from django.http import JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
-from django.urls import reverse_lazy, reverse
+from django.urls import reverse_lazy
 from django.utils import timezone
-from django.views import generic, View
-from django.views.decorators.http import require_http_methods
+from django.dispatch import receiver
+
+from manager.models import Resource
 from manager.forms import QueueForm, CustomUserCreationForm, EditProfileForm, OpeningHoursForm, ResourceForm
-from manager.models import Queue, Resource
-
-from django.views import generic
-from django.views.decorators.http import require_http_methods, require_POST
-from manager.forms import QueueForm, CustomUserCreationForm, EditProfileForm
-from participant.models import Participant, Notification
-from manager.models import Queue, UserProfile, QueueLineLength
-from manager.utils.queue_handler import QueueHandlerFactory
+from manager.models import Queue, UserProfile
 from manager.utils.category_handler import CategoryHandlerFactory
-from django.views.decorators.csrf import csrf_exempt
 
+from participant.models import Participant, Notification
 
 logger = logging.getLogger('queue')
 
 
 class MultiStepFormView(View):
+    """
+    Multistep form for creating a queue.
+
+    This view handles a multistep process to create a queue.
+    """
+
     def get(self, request, step):
-        # Get the form depending on the current step
+        """
+        Handle GET requests for each step of the multistep form.
+
+        :param request: The HTTP request object.
+        :param step: The current step in the multistep form.
+        :return: Rendered template for the current step or a redirect on invalid step.
+        """
         if step == "1":
             form = QueueForm()
         elif step == "2":
             form = OpeningHoursForm()
         elif step == "3":
-            # Retrieve queue data and time/location data to pass category and other info
             queue_data = request.session.get('queue_data', {})
 
-            queue_category = queue_data.get('category', None)  # Ensure category is passed
-            form = ResourceForm(request.POST or None,  # Handle POST or empty on GET
-                                queue_category={'category': queue_category})  # Pass queue category dynamically
+            queue_category = queue_data.get('category', None)
+            form = ResourceForm(request.POST or None,
+                                queue_category={'category': queue_category})
         else:
-            return redirect('manager:your-queue')  # Handle invalid steps
+            return redirect('manager:your-queue')
 
         return render(
             request,
@@ -57,23 +59,30 @@ class MultiStepFormView(View):
         )
 
     def post(self, request, step):
+        """
+        Handle POST requests for each step of the multi-step form.
+
+        :param request: The HTTP request object.
+        :param step: The current step in the multi-step form.
+        :return: Redirects to the next step or renders the form on failure.
+        """
         if step == "1":
             form = QueueForm(request.POST, request.FILES)
             if form.is_valid():
-                # Save queue data to session
                 request.session['queue_data'] = form.cleaned_data
                 return redirect('manager:create_queue_step', step="2")
 
         elif step == "2":
             form = OpeningHoursForm(request.POST)
             if form.is_valid():
-                # Save opening hours and location data to session
                 latitude = request.POST.get('latitudeInput')
                 longitude = request.POST.get('longitudeInput')
 
                 time_and_location_data = {
-                    'open_time': form.cleaned_data['open_time'].strftime('%H:%M:%S') if form.cleaned_data.get('open_time') else None,
-                    'close_time': form.cleaned_data['close_time'].strftime('%H:%M:%S') if form.cleaned_data.get('close_time') else None,
+                    'open_time': form.cleaned_data['open_time'].strftime('%H:%M:%S') if form.cleaned_data.get(
+                        'open_time') else None,
+                    'close_time': form.cleaned_data['close_time'].strftime('%H:%M:%S') if form.cleaned_data.get(
+                        'close_time') else None,
                     'latitude': latitude,
                     'longitude': longitude,
                 }
@@ -87,7 +96,7 @@ class MultiStepFormView(View):
             time_and_location_data = request.session.get('time_and_location_data', {})
             queue_data_raw = queue_data.copy()
             queue_data_raw.update(time_and_location_data.copy())
-            queue_category = queue_data_raw.get('category', None)  # Ensure category is present
+            queue_category = queue_data_raw.get('category', None)
             form = ResourceForm(request.POST, queue_category={'category': queue_category})
 
             if form.is_valid():
@@ -107,7 +116,6 @@ class MultiStepFormView(View):
                     messages.error(request, f"Error creating queue or adding resource: {e}.")
                     return redirect('manager:create_queue_step', step="3")
 
-        # In case the form is not valid, render the current step
         return render(
             request,
             f'manager/create_queue_steps/step_{step}.html',
@@ -143,87 +151,9 @@ class CreateQView(LoginRequiredMixin, generic.CreateView):
 
         queue_data = form.cleaned_data.copy()
         queue_data['created_by'] = self.request.user
-
-        queue = handler.create_queue(queue_data)
+        handler.create_queue(queue_data)
 
         return redirect(self.success_url)
-
-
-
-
-class EditQueueView(LoginRequiredMixin, generic.UpdateView):
-    """
-    Edit an existing queue.
-
-    Allows authenticated users to change the queue's name, delete participants,
-    or close the queue.
-
-    :param model: The model to use for editing the queue.
-    :param form_class: The form class for queue editing.
-    :param template_name: The name of the template to render.
-    """
-    model = Queue
-    form_class = QueueForm
-    template_name = 'manager/edit_queue.html'
-
-    def dispatch(self, request, *args, **kwargs):
-        """
-        Check if the user is the creator of the queue before allowing access.
-        """
-        queue = self.get_object()
-        if queue.created_by != request.user:
-            messages.error(self.request,
-                           "You do not have permission to edit this queue.")
-            logger.warning(
-                f"Unauthorized attempt to access edit queue page for queue: {queue.name} by user: {request.user}")
-            return redirect('manager:manage_queues')
-        return super().dispatch(request, *args, **kwargs)
-
-    def get_success_url(self):
-        """redirect user back to manage queues page, if the edit was saved successfully."""
-        return reverse('manager:manage_queues')
-
-    def get_context_data(self, **kwargs):
-        """
-        Add additional context data to the template.
-
-        :param kwargs: Additional keyword arguments passed to the method.
-        :returns: The updated context dictionary.
-        """
-        context = super().get_context_data(**kwargs)
-        queue = self.object
-        context['participants'] = queue.participant_set.all()
-        return context
-
-    def post(self, request, *args, **kwargs):
-        """
-        Handle POST requests to update the queue and manage participants.
-
-        :param request: The HTTP request object containing data for the queue and participants.
-        :returns: Redirects to the success URL after processing.
-        """
-        self.object = self.get_object()
-
-        if request.POST.get('action') == 'queue_status':
-            return self.queue_status_handler()
-        if request.POST.get('action') == 'edit_queue':
-            name = request.POST.get('name')
-            description = request.POST.get('description')
-            is_closed = request.POST.get('is_closed') == 'true'
-            try:
-                self.object.edit(name=name, description=description,
-                                 is_closed=is_closed)
-                messages.success(self.request, "Queue updated successfully.")
-            except ValueError as e:
-                messages.error(self.request, str(e))
-        return super().post(request, *args, **kwargs)
-
-    def queue_status_handler(self):
-        """Close the queue."""
-        self.object.is_closed = not self.object.is_closed
-        self.object.save()
-        messages.success(self.request, "Queue status updated successfully.")
-        return redirect('manager:manage_queues')
 
 
 @require_http_methods(["POST"])
@@ -325,7 +255,6 @@ def add_participant(request, queue_id):
     return redirect('manager:participant_list', queue_id)
 
 
-
 class ManageWaitlist(LoginRequiredMixin, generic.TemplateView):
     template_name = 'manager/manage_queue/manage_unique_category.html'
 
@@ -413,6 +342,7 @@ def serve_participant(request, participant_id):
         return JsonResponse({
             'error': f'Error: {str(e)}'
         }, status=500)
+
 
 @login_required
 def complete_participant(request, participant_id):
@@ -628,6 +558,7 @@ class ResourceSettings(LoginRequiredMixin, generic.TemplateView):
             context.update(category_context)
         return context
 
+
 @login_required
 @require_http_methods(["POST"])
 def edit_resource(request, resource_id):
@@ -685,7 +616,6 @@ def edit_queue(request, queue_id):
         open_time = request.POST.get('open_time')
         close_time = request.POST.get('close_time')
         logo = request.FILES.get('logo', None)
-
 
         queue.name = name
         queue.description = description
@@ -759,7 +689,6 @@ def login_view(request):
 
             profile, created = UserProfile.objects.get_or_create(user=user)
 
-            # Simplify social account image retrieval
             social_accounts = user.socialaccount_set.filter(provider='google')
             if social_accounts.exists():
                 extra_data = social_accounts.first().extra_data
@@ -812,7 +741,6 @@ class EditProfileView(LoginRequiredMixin, generic.UpdateView):
             profile.google_picture = None
 
         profile.save()
-        # messages.success(self.request, 'Profile updated successfully.')
         return super().form_valid(form)
 
     def get_context_data(self, **kwargs):
