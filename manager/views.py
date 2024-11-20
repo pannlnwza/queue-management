@@ -24,10 +24,14 @@ from manager.forms import QueueForm
 from manager.forms import QueueForm, CustomUserCreationForm, EditProfileForm, OpeningHoursForm, ResourceForm
 from manager.models import Queue, Resource
 
+from django.views import generic
+from django.views.decorators.http import require_http_methods, require_POST
+from manager.forms import QueueForm, CustomUserCreationForm, EditProfileForm
 from participant.models import Participant, Notification
 from manager.models import Queue, UserProfile, QueueLineLength
 from manager.utils.queue_handler import QueueHandlerFactory
 from manager.utils.category_handler import CategoryHandlerFactory
+from django.views.decorators.csrf import csrf_exempt
 
 
 logger = logging.getLogger('queue')
@@ -326,6 +330,7 @@ def add_participant(request, queue_id):
     queue.record_line_length()
     messages.success(request, f"Participant has been added.")
     return redirect('manager:participant_list', queue_id)
+
 
 
 class ManageWaitlist(LoginRequiredMixin, generic.TemplateView):
@@ -695,22 +700,6 @@ class StatisticsView(LoginRequiredMixin, generic.TemplateView):
         return context
 
 
-def create_or_update_profile(user, profile_image=None):
-    """
-    Helper function to create or update user profile
-    """
-    try:
-        profile, created = UserProfile.objects.get_or_create(user=user)
-        if profile_image:
-            profile.image = profile_image
-            profile.save()
-        return profile
-
-    except Exception as e:
-        logger.error(f'Error creating/updating profile for user {user.username}: {str(e)}')
-        return None
-
-
 class QueueSettingsView(LoginRequiredMixin, generic.TemplateView):
     template_name = 'manager/settings/settings.html'
 
@@ -844,7 +833,7 @@ def signup(request):
             username = form.cleaned_data.get('username')
             raw_passwd = form.cleaned_data.get('password1')
 
-            profile = create_or_update_profile(user)
+            profile, created = UserProfile.objects.get_or_create(user=user)
             if not profile:
                 messages.error(request, 'Error creating user profile. Please contact support.')
 
@@ -880,26 +869,23 @@ def login_view(request):
         if user is not None:
             login(request, user)
 
-            if hasattr(user, 'socialaccount_set') and user.socialaccount_set.exists():
-                social_account = user.socialaccount_set.first()
-                if social_account.provider == 'google':
-                    extra_data = social_account.extra_data
-                    profile_image_url = extra_data.get('picture')
-                    if profile_image_url:
-                        profile = create_or_update_profile(user)
-                        if profile:
-                            profile.google_picture = profile_image_url
-                            profile.save()
-            else:
-                create_or_update_profile(user)
+            profile, created = UserProfile.objects.get_or_create(user=user)
+
+            # Simplify social account image retrieval
+            social_accounts = user.socialaccount_set.filter(provider='google')
+            if social_accounts.exists():
+                extra_data = social_accounts.first().extra_data
+                profile_image_url = extra_data.get('picture')
+                if profile_image_url:
+                    profile.google_picture = profile_image_url
+                    profile.save()
+                    logger.info(f'Google profile image updated for user: {username}')
 
             return redirect('manager:your-queue')
         else:
             messages.error(request, 'Invalid username or password.')
 
     return render(request, 'account/login.html')
-
-
 
 
 class EditProfileView(LoginRequiredMixin, generic.UpdateView):
@@ -918,30 +904,40 @@ class EditProfileView(LoginRequiredMixin, generic.UpdateView):
 
     def form_valid(self, form):
         """Handle both User and UserProfile updates"""
-        with transaction.atomic():
-            user = self.request.user
-            user.username = form.cleaned_data['username']
-            user.email = form.cleaned_data['email']
-            user.first_name = form.cleaned_data.get('first_name', user.first_name) or ''
-            user.last_name = form.cleaned_data.get('last_name', user.last_name) or ''
-            user.save()
+        user = self.request.user
+        user.username = form.cleaned_data['username']
+        user.email = form.cleaned_data['email']
+        user.first_name = form.cleaned_data.get('first_name', user.first_name) or ''
+        user.last_name = form.cleaned_data.get('last_name', user.last_name) or ''
+        user.save()
 
-            profile = form.save(commit=False)
-            profile.user = user
-            if 'phone' in form.cleaned_data:
-                profile.phone = form.cleaned_data['phone']
-            if 'image' in form.cleaned_data and form.cleaned_data['image']:
-                profile.image = form.cleaned_data['image']
+        profile = form.save(commit=False)
+        profile.user = user
+        profile.phone = form.cleaned_data.get('phone', profile.phone)
 
-            profile.save()
-            messages.success(self.request, 'Profile updated successfully.')
-            return super().form_valid(form)
+        # Handle image removal and upload
+        if form.cleaned_data.get('remove_image') == 'true':
+            profile.image = 'profile_images/profile.jpg'
+            profile.google_picture = None
+        elif form.files.get('image'):
+            profile.image = form.files['image']
+            profile.google_picture = None
+
+        profile.save()
+        messages.success(self.request, 'Profile updated successfully.')
+        return super().form_valid(form)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         queue_id = self.kwargs.get('queue_id')
+        queue = get_object_or_404(Queue, id=queue_id)
+        handler = CategoryHandlerFactory.get_handler(queue.category)
+        queue = handler.get_queue_object(queue_id)
+        context['queue'] = queue
         context['queue_id'] = queue_id
         context['user'] = self.request.user
+        profile = self.get_object()
+        context['profile_image_url'] = profile.get_profile_image()
         return context
 
 

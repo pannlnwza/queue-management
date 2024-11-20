@@ -131,6 +131,7 @@ class EditProfileForm(forms.ModelForm):
     email = forms.EmailField()
     phone = forms.CharField(max_length=10, required=False)
     image = forms.ImageField(required=False)
+    remove_image = forms.CharField(required=False, widget=forms.HiddenInput())
 
     class Meta:
         model = UserProfile
