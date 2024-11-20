@@ -180,31 +180,39 @@
     </script>
 
     <script>
-        let currentIndex = 0;
-        const slides = document.getElementById('carousel-slides');
+        document.addEventListener('DOMContentLoaded', function () {
+            let currentIndex = 0;
+            const slides = document.getElementById('carousel-slides');
 
-        function updateCarousel() {
-          slides.style.transform = `translateX(-${currentIndex * 100}%)`;
-        }
+            function updateCarousel() {
+                slides.style.transform = `translateX(-${currentIndex * 100}%)`;
+            }
 
-        document.getElementById('prev').addEventListener('click', () => {
-          if (currentIndex === 0) {
-            currentIndex = 1;
-          } else {
-            currentIndex = 0;
-          }
-          updateCarousel();
+            const images = document.querySelectorAll('.carousel-item img');
+            images.forEach(image => {
+                const img = new Image();
+                img.src = image.src;
+            });
+
+            document.getElementById('prev').addEventListener('click', () => {
+                if (currentIndex === 0) {
+                    currentIndex = 1;
+                } else {
+                    currentIndex = 0;
+                }
+                updateCarousel();
+            });
+
+            document.getElementById('next').addEventListener('click', () => {
+                if (currentIndex === 0) {
+                    currentIndex = 1;
+                } else {
+                    currentIndex = 0;
+                }
+                updateCarousel();
+            });
+            updateCarousel();
         });
-
-        document.getElementById('next').addEventListener('click', () => {
-          if (currentIndex === 0) {
-            currentIndex = 1;
-          } else {
-            currentIndex = 0;
-          }
-          updateCarousel();
-        });
-        updateCarousel();
     </script>
 
 </main>
