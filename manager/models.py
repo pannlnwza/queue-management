@@ -73,6 +73,8 @@ class Queue(models.Model):
         queue_ratios = []
         for queue in Queue.objects.filter(category=category):
             num_participants = queue.get_number_waiting_now()
+            if num_participants == 0:
+                continue
             max_capacity = sum(
                 resource.capacity for resource in queue.resource_set.all())
             if max_capacity == 0:
