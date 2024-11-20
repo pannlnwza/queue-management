@@ -50,6 +50,7 @@ class Queue(models.Model):
     code = models.CharField(max_length=6, unique=True, editable=False)
     latitude = models.FloatField()
     longitude = models.FloatField()
+    distance_from_user = models.FloatField(null=True, blank=True)
 
     def save(self, *args, **kwargs):
         """Generate a unique ticket code for the participant if not already."""
@@ -68,24 +69,34 @@ class Queue(models.Model):
 
     @staticmethod
     def get_nearby_queues(user_lat, user_lon, radius_km=2):
-        """Retrieve queues within a given radius of the user's location."""
+        """Retrieve queues within a given radius of the user's location and store their distance."""
         nearby_queues = []
         for queue in Queue.objects.all():
             queue_lat, queue_lon = radians(queue.latitude), radians(
                 queue.longitude)
             user_lat_rad, user_lon_rad = radians(user_lat), radians(user_lon)
-
             dlat = queue_lat - user_lat_rad
             dlon = queue_lon - user_lon_rad
             a = sin(dlat / 2) ** 2 + cos(user_lat_rad) * cos(queue_lat) * sin(
                 dlon / 2) ** 2
             c = 2 * atan2(sqrt(a), sqrt(1 - a))
             distance_km = 6371 * c
-            print(f"Queue: {queue.name}, Distance: {distance_km} km")
-
+            queue.distance_from_user = distance_km
+            queue.save()
             if distance_km <= radius_km:
                 nearby_queues.append(queue)
         return nearby_queues
+
+    @property
+    def formatted_distance(self):
+        """Property to return the distance from user as a formatted string."""
+        if self.distance_from_user is not None:
+            if self.distance_from_user >= 1:
+                return f"{self.distance_from_user:.1f} km"
+            else:
+                distance_m = self.distance_from_user * 1000
+                return f"{int(distance_m)} m"
+        return "Distance not available"
 
     def has_resources(self):
         return self.category != 'general'
