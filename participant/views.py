@@ -20,12 +20,38 @@ from django.http import StreamingHttpResponse
 import json
 from .models import RestaurantParticipant
 
-
 # Create your views here.
+
+from django.views import generic
+from manager.models import Queue
+from django.shortcuts import render
+
 
 class HomePageView(generic.TemplateView):
     template_name = 'participant/get_started.html'
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        categories = ['restaurant', 'general', 'hospital', 'bank']
+        user_lat = self.request.session.get('user_lat', None)
+        user_lon = self.request.session.get('user_lon', None)
+        if user_lat and user_lon:
+            try:
+                user_lat = float(user_lat)
+                user_lon = float(user_lon)
+                context['nearby_queues'] = Queue.get_nearby_queues(user_lat, user_lon)
+                context['num_nearby_queues'] = len(Queue.get_nearby_queues(user_lat, user_lon))
+
+                for category in categories:
+                    category_featured_queues = Queue.get_top_featured_queues(
+                        category=category)
+                    context[
+                        f'{category}_featured_queues'] = category_featured_queues
+            except ValueError:
+                context['error'] = "Invalid latitude or longitude provided."
+        else:
+            context['error'] = "Location not provided. Please enable location services."
+        return context
 
 
 @login_required
@@ -38,10 +64,12 @@ def mark_notification_as_read(request, notification_id):
             return JsonResponse({"status": "success"})
         except Notification.DoesNotExist:
             return JsonResponse(
-                {"status": "error", "message": "Notification not found"}, status=404
+                {"status": "error", "message": "Notification not found"},
+                status=404
             )
 
-    return JsonResponse({"status": "error", "message": "Invalid request"}, status=400)
+    return JsonResponse({"status": "error", "message": "Invalid request"},
+                        status=400)
 
 
 class BaseQueueView(generic.ListView):
@@ -155,7 +183,8 @@ class IndexView(generic.ListView):
         """
         context = super().get_context_data(**kwargs)
         if self.request.user.is_authenticated:
-            user_participants = Participant.objects.filter(user=self.request.user)
+            user_participants = Participant.objects.filter(
+                user=self.request.user)
             queue_positions = {
                 participant.queue.id: participant.position
                 for participant in user_participants
@@ -170,7 +199,8 @@ class IndexView(generic.ListView):
             }
             expected_service_time = {
                 participant.queue.id: datetime.now()
-                + timedelta(minutes=participant.calculate_estimated_wait_time())
+                                      + timedelta(
+                    minutes=participant.calculate_estimated_wait_time())
                 for participant in user_participants
             }
             notification = Notification.objects.filter(
@@ -216,8 +246,7 @@ class KioskView(generic.FormView):
         )
         participant.created_by = 'guest'
         participant.save()
-        return redirect('participant:qrcode',
-                        participant_code=participant.code)
+        return redirect('participant:qrcode', participant_code=participant.code)
 
     def form_invalid(self, form):
         print(form.errors)
@@ -268,14 +297,15 @@ class QueueStatusView(generic.TemplateView):
         # look for 'participant_code' in the url
         participant_code = kwargs['participant_code']
         # get the participant
-        participant = get_object_or_404(Participant,code=participant_code)
+        participant = get_object_or_404(Participant, code=participant_code)
         # get the queue
         queue = participant.queue
         # add in context data
         context['queue'] = queue
         context['participant'] = participant
         # Get the list of all participants in the same queue
-        participants_in_queue = queue.participant_set.all().order_by('joined_at')
+        participants_in_queue = queue.participant_set.all().order_by(
+            'joined_at')
         context['participants_in_queue'] = participants_in_queue
         return context
 
@@ -287,9 +317,11 @@ def sse_queue_status(request, participant_code):
         last_data = None
         while True:
             try:
-                queue = get_object_or_404(Participant, code=participant_code).queue
+                queue = get_object_or_404(Participant,
+                                          code=participant_code).queue
                 handler = CategoryHandlerFactory.get_handler(queue.category)
-                participant = handler.get_participant_set(queue.id).get(code=participant_code)
+                participant = handler.get_participant_set(queue.id).get(
+                    code=participant_code)
 
                 current_data = handler.get_participant_data(participant)
                 if last_data != current_data:
@@ -304,7 +336,8 @@ def sse_queue_status(request, participant_code):
                 print("Error in event stream:", e)
                 break
 
-    response = StreamingHttpResponse(event_stream(), content_type='text/event-stream')
+    response = StreamingHttpResponse(event_stream(),
+                                     content_type='text/event-stream')
 
     # Remove 'Connection: keep-alive' and set necessary headers for SSE
     response['Cache-Control'] = 'no-cache'
@@ -325,7 +358,8 @@ def participant_leave(request, participant_code):
     try:
         participant.delete()
 
-        messages.success(request, f"We are sorry to see you leave {participant.name}. See you next time!")
+        messages.success(request,
+                         f"We are sorry to see you leave {participant.name}. See you next time!")
         logger.info(
             f"Participant {participant.name} successfully left queue: {queue.name}.")
     except Exception as e:
@@ -334,4 +368,15 @@ def participant_leave(request, participant_code):
             f"Failed to delete participant {participant_code} from queue: {queue.name} code: {queue.code} ")
     return redirect('participant:welcome', queue_code=queue.code)
 
-      
+  
+def set_location(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        lat = data.get('lat')
+        lon = data.get('lon')
+        if lat and lon:
+            request.session['user_lat'] = lat
+            request.session['user_lon'] = lon
+            print(f"Saved to session: Lat = {lat}, Lon = {lon}")
+            return JsonResponse({'status': 'success'})
+    return JsonResponse({'status': 'failed'}, status=400)

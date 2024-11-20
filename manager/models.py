@@ -12,9 +12,11 @@ from django.contrib.auth.models import User
 from django.urls import reverse
 from django.conf import settings
 from django.apps import apps
+from django.db.models import Sum
 from django.db.models.signals import post_save
 from manager.utils.helpers import format_duration
 from django.utils import timezone
+from math import radians, sin, cos, sqrt, atan2
 
 
 class Queue(models.Model):
@@ -29,7 +31,6 @@ class Queue(models.Model):
         ('general', 'General'),
         ('hospital', 'Hospital'),
         ('bank', 'Bank'),
-        ('service center', 'Service center')
     ]
 
     name = models.CharField(max_length=50)
@@ -50,6 +51,7 @@ class Queue(models.Model):
     code = models.CharField(max_length=6, unique=True, editable=False)
     latitude = models.FloatField()
     longitude = models.FloatField()
+    distance_from_user = models.FloatField(null=True, blank=True)
 
     def save(self, *args, **kwargs):
         """Generate a unique ticket code for the participant if not already."""
@@ -65,6 +67,56 @@ class Queue(models.Model):
             code = ''.join(random.choices(characters, k=length))
             if not Queue.objects.filter(code=code).exists():
                 return code
+
+    @staticmethod
+    def get_top_featured_queues(category=None):
+        """Get the top 3 featured queues based on their Queue Length / Max Capacity * 100."""
+        queue_ratios = []
+        for queue in Queue.objects.filter(category=category):
+            num_participants = queue.get_number_waiting_now()
+            if num_participants == 0:
+                continue
+            max_capacity = sum(
+                resource.capacity for resource in queue.resource_set.all())
+            if max_capacity == 0:
+                ratio = 0
+            else:
+                ratio = (num_participants / max_capacity) * 100
+            queue_ratios.append((queue, ratio))
+        queue_ratios.sort(key=lambda x: x[1], reverse=True)
+        top_3_queues = [queue for queue, ratio in queue_ratios[:3]]
+        return top_3_queues
+
+    @staticmethod
+    def get_nearby_queues(user_lat, user_lon, radius_km=2):
+        """Retrieve queues within a given radius of the user's location and store their distance."""
+        nearby_queues = []
+        for queue in Queue.objects.all():
+            queue_lat, queue_lon = radians(queue.latitude), radians(
+                queue.longitude)
+            user_lat_rad, user_lon_rad = radians(user_lat), radians(user_lon)
+            dlat = queue_lat - user_lat_rad
+            dlon = queue_lon - user_lon_rad
+            a = sin(dlat / 2) ** 2 + cos(user_lat_rad) * cos(queue_lat) * sin(
+                dlon / 2) ** 2
+            c = 2 * atan2(sqrt(a), sqrt(1 - a))
+            distance_km = 6371 * c
+            queue.distance_from_user = distance_km
+            queue.save()
+            if distance_km <= radius_km:
+                nearby_queues.append(queue)
+        return nearby_queues
+
+    @property
+    def formatted_distance(self):
+        """Property to return the distance from user as a formatted string."""
+        if self.distance_from_user is not None:
+            if self.distance_from_user >= 1:
+                return f"{self.distance_from_user:.1f} km"
+            else:
+                distance_m = self.distance_from_user * 1000
+                return f"{int(distance_m)} m"
+        return "Distance not available"
 
     def has_resources(self):
         return self.category != 'general'
