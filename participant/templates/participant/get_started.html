@@ -4,11 +4,8 @@
 
 {% block content %}
 <div class="carousel w-full overflow-hidden relative">
-  <!-- Slides -->
   <div id="carousel-slides" class="flex transition-transform duration-300">
-    <!-- Slide 1 -->
     <div class="carousel-item w-full flex-shrink-0 relative">
-        <!-- Text on top of the image -->
         <div class="absolute top-0 left-0 w-full h-full flex items-center justify-center">
             <a href="{% url 'manager:your-queue' %}" class="card bg-base-100 shadow-xl hover:shadow-2xl transform hover:scale-105 transition duration-300">
                 <figure class="px-10 pt-10">
@@ -21,17 +18,12 @@
             </a>
         </div>
 
-        <!-- Background image -->
         <div class="w-full h-full z-10">
-            <img
-              src="{% static 'participant/images/background_3.jpg' %}"
-              class="w-full h-auto object-cover"
-            />
+            <img src="{% static 'participant/images/background_3.jpg' %}" class="w-full h-auto object-cover" loading="lazy"/>
         </div>
     </div>
-    <!-- Slide 2 -->
+
     <div class="carousel-item w-full flex-shrink-0 relative">
-        <!-- Text on top of the image -->
         <div class="absolute top-0 left-0 w-full h-full flex items-center justify-center">
             <a href="{% url 'participant:queues' %}" class="card bg-base-100 shadow-xl hover:shadow-2xl transform hover:scale-105 transition duration-300">
                 <figure class="px-10 pt-10">
@@ -44,23 +36,18 @@
             </a>
         </div>
 
-        <!-- Background image -->
         <div class="w-full h-full z-10">
-            <img
-              src="{% static 'participant/images/background_4.jpg' %}"
-              class="w-full h-auto object-cover"
-            />
+            <img src="{% static 'participant/images/background_4.jpg' %}" class="w-full h-auto object-cover" loading="lazy"/>
+
         </div>
     </div>
   </div>
 
-  <!-- Navigation Buttons -->
   <button id="prev" class="absolute left-2 top-1/2 -translate-y-1/2 btn btn-circle">❮</button>
   <button id="next" class="absolute right-2 top-1/2 -translate-y-1/2 btn btn-circle">❯</button>
 </div>
 
 <div class="container mx-auto px-4 py-12 ">
-    <!-- Nearby queues -->
     <section class="mb-12 px-4 max-w-7xl mx-auto relative">
         {% if num_nearby_queues == 1 %}
         <h1 class="mb-6 text-2xl font-bold text-gray-800">Nearby Queues (1 queue)</h1>
@@ -68,11 +55,10 @@
         <h1 class="mb-6 text-2xl font-bold text-gray-800">Nearby Queues ({{ num_nearby_queues}} queues)</h1>
         {% endif %}
         <div class="relative flex items-center">
-            <!-- Scrollable Cards -->
             <div id="queue-container" class="flex gap-8 overflow-x-auto no-scrollbar scroll-smooth">
                 {% if nearby_queues %}
                     {% for queue in nearby_queues %}
-                        <div class="flex-shrink-0 group bg-white rounded-xl border border-gray-300 shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden w-64">
+                        <div class="flex-shrink-0 group bg-white rounded-xl border border-gray-300 shadow-md  hover:shadow-2xl transition-all duration-300 overflow-hidden w-64">
                             <div class="p-6">
                                 <div class="bg-gray-50 rounded-xl p-6 mb-4 flex items-center justify-center">
                                     <img class="w-24 h-auto object-contain" src="{{ queue.get_logo_url }}" alt="{{ queue.name }}">
@@ -114,11 +100,9 @@
     </section>
 </div>
 
-<!-- Featured Restaurant Queues -->
 <div class="w-full bg-base-content py-12">
     <section class="px-4 max-w-7xl mx-auto relative">
         <h2 class="pt-4 mb-6 text-2xl font-bold text-white">Top 3 Featured Restaurant Queues</h2>
-        <!-- Check if there are any featured restaurant queues -->
         {% if restaurant_featured_queues %}
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {% for queue in restaurant_featured_queues %}
@@ -151,18 +135,14 @@
                 {% endfor %}
                     </div>
                 {% else %}
-                    <!-- Message when there are no featured restaurant queues -->
-                    <p class="text-center text-lg text-white">No featured restaurant queues available at the moment.</p>
+                    <p class="text-center text-lg text-white pt-4">No featured restaurant queues available at the moment.</p>
                 {% endif %}
     </section>
 </div>
 
-<!-- Featured General Queues -->
 <div class="w-full bg-base-300 py-12">
     <section class="px-4 max-w-7xl mx-auto relative">
         <h2 class="pt-4 mb-6 text-2xl font-bold text-gray-800">Top 3 Featured General Queues</h2>
-
-        <!-- Check if there are any featured general queues -->
         {% if general_featured_queues %}
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {% for queue in general_featured_queues %}
@@ -195,18 +175,14 @@
                 {% endfor %}
                 </div>
             {% else %}
-                <!-- Message when there are no featured general queues -->
-                <p class="text-center text-lg text-gray-800">No featured general queues available at the moment.</p>
+                <p class="text-center text-lg text-gray-800 pt-4">No featured general queues available at the moment.</p>
             {% endif %}
     </section>
 </div>
 
-<!-- Featured Hospital Queues -->
 <div class="w-full bg-base-content py-12">
     <section class="px-4 max-w-7xl mx-auto relative">
         <h2 class="pt-4 mb-6 text-2xl font-bold text-white">Top 3 Featured Hospital Queues</h2>
-
-        <!-- Check if there are any featured hospital queues -->
         {% if hospital_featured_queues %}
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {% for queue in hospital_featured_queues %}
@@ -239,18 +215,14 @@
                 {% endfor %}
             </div>
                 {% else %}
-                <!-- Message when there are no featured hospital queues -->
-                <p class="text-center text-lg text-white">No featured hospital queues available at the moment.</p>
+                <p class="text-center text-lg text-white pt-4">No featured hospital queues available at the moment.</p>
                 {% endif %}
     </section>
 </div>
 
-<!-- Featured Bank Queues -->
 <div class="w-full bg-base-300 py-12">
     <section class="px-4 max-w-7xl mx-auto relative">
         <h2 class="pt-4 mb-6 text-2xl font-bold text-gray-800">Top 3 Featured Bank Queues</h2>
-
-        <!-- Check if there are any featured bank queues -->
         {% if bank_featured_queues %}
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {% for queue in bank_featured_queues %}
@@ -283,8 +255,7 @@
                 {% endfor %}
             </div>
         {% else %}
-            <!-- Message when there are no featured bank queues -->
-            <p class="text-center text-lg text-gray-800">No featured bank queues available at the moment.</p>
+            <p class="text-center text-lg text-gray-800 pt-4">No featured bank queues available at the moment.</p>
         {% endif %}
     </section>
 </div>
@@ -337,24 +308,35 @@
             img.src = image.src;
         });
 
+        let isClicking = false;
+
         document.getElementById('prev').addEventListener('click', () => {
-            if (currentIndex === 0) {
-                currentIndex = 1;
-            } else {
-                currentIndex = 0;
+            if (!isClicking) {
+                isClicking = true;
+                setTimeout(() => isClicking = false, 200);
+                if (currentIndex === 0) {
+                    currentIndex = 1;
+                } else {
+                    currentIndex = 0;
+                }
+                updateCarousel();
             }
-            updateCarousel();
         });
 
         document.getElementById('next').addEventListener('click', () => {
-            if (currentIndex === 0) {
-                currentIndex = 1;
-            } else {
-                currentIndex = 0;
+            if (!isClicking) {
+                isClicking = true;
+                setTimeout(() => isClicking = false, 200);
+                if (currentIndex === 0) {
+                    currentIndex = 1;
+                } else {
+                    currentIndex = 0;
+                }
+                updateCarousel();
             }
-            updateCarousel();
         });
         updateCarousel();
     });
 </script>
+
 {% endblock %}
