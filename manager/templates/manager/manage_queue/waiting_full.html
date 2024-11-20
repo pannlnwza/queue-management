@@ -38,8 +38,6 @@
                 </div>
             </div>
             <div class="grid grid-cols-[4fr_2fr] gap-6 w-full max-w-86">
-                <!-- Left side (wider section) with taller height -->
-
                 <div class="card bg-base-100 border-2 border-base-300 h-[50rem] overflow-y-auto">
                     <div class="card-body">
 
@@ -80,7 +78,17 @@
                                                     )"
                                     >
                                         <td class="px-6 py-4 whitespace-nowrap">{{ participant.position }}</td>
-                                        <td class="px-6 py-4 whitespace-nowrap font-semibold">{{ participant.name }}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap font-semibold">
+                                            <div class="flex">
+                                            {{ participant.name }}
+                                                {% if participant.is_notified %}
+                                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="size-4 text-yellow-500 ml-2 mt-1">
+                                                  <path d="M3.6 1.7A.75.75 0 1 0 2.4.799a6.978 6.978 0 0 0-1.123 2.247.75.75 0 1 0 1.44.418c.187-.644.489-1.24.883-1.764ZM13.6.799a.75.75 0 1 0-1.2.9 5.48 5.48 0 0 1 .883 1.765.75.75 0 1 0 1.44-.418A6.978 6.978 0 0 0 13.6.799Z" />
+                                                  <path fill-rule="evenodd" d="M8 1a4 4 0 0 1 4 4v2.379c0 .398.158.779.44 1.06l1.267 1.268a1 1 0 0 1 .293.707V11a1 1 0 0 1-1 1h-2a3 3 0 1 1-6 0H3a1 1 0 0 1-1-1v-.586a1 1 0 0 1 .293-.707L3.56 8.44A1.5 1.5 0 0 0 4 7.38V5a4 4 0 0 1 4-4Zm0 12.5A1.5 1.5 0 0 1 6.5 12h3A1.5 1.5 0 0 1 8 13.5Z" clip-rule="evenodd" />
+                                                </svg>
+                                                {% endif %}
+                                                </div>
+                                        </td>
                                         {% if queue.category == 'restaurant' or queue.category == 'bank' %}
                                             <td class="px-6 py-4 whitespace-nowrap">{{ participant.get_service_type_display }}</td>
                                         {% elif queue.category == 'hospital' %}
@@ -149,19 +157,66 @@
             </div>
         </dialog>
 
-        <script>
-            function showParticipantDetails(participantId, position, name, waitTime, serviceType, medicalField, category) {
-                // Determine the special field based on category
-                let specialField = "";
-                if (category === "restaurant" || category === "bank") {
-                    specialField = serviceType;
-                } else if (category === "hospital") {
-                    specialField = medicalField;
-                }
+        <input type="checkbox" id="notify_modal" class="modal-toggle"/>
+        <div class="modal">
+            <div class="modal-box relative  p-10">
+                <label for="notify_modal" class="btn btn-sm btn-square btn-ghost absolute right-2 top-2">✕</label>
 
-                // Update the right card content
-                const detailsDiv = document.getElementById('participant-details');
-                detailsDiv.innerHTML = `
+                <div class="flex items-center gap-2 my-1">
+                    <h2 class="font-semibold text-2xl">Notify Participant</h2>
+                </div>
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text">Message (Optional)</span>
+                    </label>
+                    <textarea id="message" class="textarea textarea-bordered w-full h-24"
+                              placeholder="Type your message here..."></textarea>
+                </div>
+                <div class="modal-action">
+                    <button class="btn btn-primary no-animation" onclick="sendNotification()">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="size-4">
+                            <path d="M3.6 1.7A.75.75 0 1 0 2.4.799a6.978 6.978 0 0 0-1.123 2.247.75.75 0 1 0 1.44.418c.187-.644.489-1.24.883-1.764ZM13.6.799a.75.75 0 1 0-1.2.9 5.48 5.48 0 0 1 .883 1.765.75.75 0 1 0 1.44-.418A6.978 6.978 0 0 0 13.6.799Z"/>
+                            <path fill-rule="evenodd"
+                                  d="M8 1a4 4 0 0 1 4 4v2.379c0 .398.158.779.44 1.06l1.267 1.268a1 1 0 0 1 .293.707V11a1 1 0 0 1-1 1h-2a3 3 0 1 1-6 0H3a1 1 0 0 1-1-1v-.586a1 1 0 0 1 .293-.707L3.56 8.44A1.5 1.5 0 0 0 4 7.38V5a4 4 0 0 1 4-4Zm0 12.5A1.5 1.5 0 0 1 6.5 12h3A1.5 1.5 0 0 1 8 13.5Z"
+                                  clip-rule="evenodd"/>
+                        </svg>
+                        Notify
+                    </button>
+                </div>
+            </div>
+        </div>
+
+
+        <input type="checkbox" id="noShowModal" class="modal-toggle"/>
+        <div class="modal">
+            <div class="modal-box">
+                <h3 class="font-bold text-lg">Confirm No Show</h3>
+                <p class="py-4">This action cannot be undone. Are you sure you want to mark this participant as No
+                    Show?</p>
+                <div class="modal-action">
+                    <button class="btn btn-error text-white" id="confirmNoShowButton" onclick="confirmNoShow()">Yes,
+                        Mark as No Show
+                    </button>
+                    <label for="noShowModal" class="btn">Cancel</label>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+        function showParticipantDetails(participantId, position, name, waitTime, serviceType, medicalField, category) {
+            // Determine the special field based on category
+            let specialField = "";
+            if (category === "restaurant" || category === "bank") {
+                specialField = serviceType;
+            } else if (category === "hospital") {
+                specialField = medicalField;
+            }
+
+            // Update the right card content
+            const detailsDiv = document.getElementById('participant-details');
+            detailsDiv.innerHTML = `
             <div class="text-gray-500 mx-auto">Current Ticket for</div>
             <div class="font-semibold mx-auto">${specialField}</div>
             <div class="divider"></div>
@@ -178,7 +233,7 @@
 
             <!-- Buttons Section -->
             <div class="flex flex-col items-center gap-4">
-                <button class="btn btn-warning text-white">
+                <button class="btn btn-warning text-white" onclick="openNotifyModal(${participantId})">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="size-4">
                       <path d="M3.6 1.7A.75.75 0 1 0 2.4.799a6.978 6.978 0 0 0-1.123 2.247.75.75 0 1 0 1.44.418c.187-.644.489-1.24.883-1.764ZM13.6.799a.75.75 0 1 0-1.2.9 5.48 5.48 0 0 1 .883 1.765.75.75 0 1 0 1.44-.418A6.978 6.978 0 0 0 13.6.799Z" />
                       <path fill-rule="evenodd" d="M8 1a4 4 0 0 1 4 4v2.379c0 .398.158.779.44 1.06l1.267 1.268a1 1 0 0 1 .293.707V11a1 1 0 0 1-1 1h-2a3 3 0 1 1-6 0H3a1 1 0 0 1-1-1v-.586a1 1 0 0 1 .293-.707L3.56 8.44A1.5 1.5 0 0 0 4 7.38V5a4 4 0 0 1 4-4Zm0 12.5A1.5 1.5 0 0 1 6.5 12h3A1.5 1.5 0 0 1 8 13.5Z" clip-rule="evenodd" />
@@ -190,7 +245,7 @@
                       <path fill-rule="evenodd" d="M8 15A7 7 0 1 0 8 1a7 7 0 0 0 0 14Zm3.844-8.791a.75.75 0 0 0-1.188-.918l-3.7 4.79-1.649-1.833a.75.75 0 1 0-1.114 1.004l2.25 2.5a.75.75 0 0 0 1.15-.043l4.25-5.5Z" clip-rule="evenodd" />
                     </svg>
                     Serve</button>
-                <button class="btn btn-error text-white mb-3">
+                <button class="btn btn-error text-white mb-3" onclick="openNoShowModal(${participantId})">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="size-4">
                       <path fill-rule="evenodd" d="M8 15A7 7 0 1 0 8 1a7 7 0 0 0 0 14Zm2.78-4.22a.75.75 0 0 1-1.06 0L8 9.06l-1.72 1.72a.75.75 0 1 1-1.06-1.06L6.94 8 5.22 6.28a.75.75 0 0 1 1.06-1.06L8 6.94l1.72-1.72a.75.75 0 1 1 1.06 1.06L9.06 8l1.72 1.72a.75.75 0 0 1 0 1.06Z" clip-rule="evenodd" />
                     </svg>
@@ -198,109 +253,191 @@
                 </button>
             </div>
         `;
-            }
+        }
 
-            let selectedResourceId = null;
+        let selectedResourceId = null;
 
-            function openResourceModal(participantId) {
-                document.getElementById('participantId').value = participantId;
-                document.getElementById('choose_resource_modal').showModal();
-            }
+        function openResourceModal(participantId) {
+            document.getElementById('participantId').value = participantId;
+            document.getElementById('choose_resource_modal').showModal();
+        }
 
-            function selectResource(resourceId) {
-                if (selectedResourceId) {
-                    const prevSelected = document.getElementById(`resource-${selectedResourceId}`);
-                    if (prevSelected) {
-                        prevSelected.classList.remove('border-primary');
-                    }
+        function selectResource(resourceId) {
+            if (selectedResourceId) {
+                const prevSelected = document.getElementById(`resource-${selectedResourceId}`);
+                if (prevSelected) {
+                    prevSelected.classList.remove('border-primary');
                 }
+            }
 
-                const selectedCard = document.getElementById(`resource-${resourceId}`);
+            const selectedCard = document.getElementById(`resource-${resourceId}`);
+            if (selectedCard) {
+                selectedCard.classList.add('border-primary');
+                selectedResourceId = resourceId;
+            }
+        }
+
+        function clearSelection() {
+            if (selectedResourceId) {
+                const selectedCard = document.getElementById(`resource-${selectedResourceId}`);
                 if (selectedCard) {
-                    selectedCard.classList.add('border-primary');
-                    selectedResourceId = resourceId;
+                    selectedCard.classList.remove('border-primary');
                 }
+                selectedResourceId = null;
             }
+        }
 
-            function clearSelection() {
-                if (selectedResourceId) {
-                    const selectedCard = document.getElementById(`resource-${selectedResourceId}`);
-                    if (selectedCard) {
-                        selectedCard.classList.remove('border-primary');
-                    }
-                    selectedResourceId = null;
+        function autoAssignResource() {
+            clearSelection();
+            const participantId = document.getElementById('participantId').value;
+
+            fetch(`/manager/serve/${participantId}/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
                 }
-            }
-
-            function autoAssignResource() {
-                clearSelection();
-                const participantId = document.getElementById('participantId').value;
-
-                fetch(`/manager/serve/${participantId}/`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRFToken': '{{ csrf_token }}'
-                    }
-                })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                            alert('Auto-assigned a resource successfully!');
-                            location.reload();
-                        } else {
-                            alert(data.error || 'Error auto-assigning resource.');
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error:', error);
-                        alert('Unexpected error occurred.');
-                    });
-            }
-
-            function serveSelectedParticipant() {
-                const participantId = document.getElementById('participantId').value;
-
-                if (!selectedResourceId) {
-                    alert("No resource selected. Please auto-assign or select a resource first.");
-                    return;
-                }
-
-                fetch(`/manager/serve/${participantId}/`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRFToken': '{{ csrf_token }}'
-                    },
-                    body: JSON.stringify({resource_id: selectedResourceId})
-                })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                            alert('Participant served successfully!');
-                            location.reload();
-                        } else {
-                            alert(data.error || 'Error serving participant.');
-                        }
-                    })
-                    .catch(error => console.error('Error:', error));
-            }
-
-            function participantSearch() {
-                const searchValue = document.getElementById('searchInput').value.toLowerCase();
-
-                const rows = document.querySelectorAll('#participantTable tbody tr');
-
-                rows.forEach(row => {
-                    const name = row.querySelector('td:nth-child(2)').textContent.toLowerCase();
-
-                    if (name.includes(searchValue)) {
-                        row.style.display = '';
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Auto-assigned a resource successfully!');
+                        location.reload();
                     } else {
-                        row.style.display = 'none';
+                        alert(data.error || 'Error auto-assigning resource.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Unexpected error occurred.');
+                });
+        }
+
+        function serveSelectedParticipant() {
+            const participantId = document.getElementById('participantId').value;
+
+            if (!selectedResourceId) {
+                alert("No resource selected. Please auto-assign or select a resource first.");
+                return;
+            }
+
+            fetch(`/manager/serve/${participantId}/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: JSON.stringify({resource_id: selectedResourceId})
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Participant served successfully!');
+                        location.reload();
+                    } else {
+                        alert(data.error || 'Error serving participant.');
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+        }
+        function createNotesModal(participant) {
+            const modalId = `notes-modal-${participant.id}`;
+            const notesHTML = participant.notes
+                ? `
+                <button class="btn btn-sm no-animation" onclick="document.getElementById('${modalId}').showModal()">
+                    View Note
+                </button>
+
+                <dialog id="${modalId}" class="modal">
+                    <div class="modal-box">
+                        <form method="dialog">
+                            <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
+                        </form>
+                        <h3 class="font-bold text-lg mb-4">${participant.name}'s note</h3>
+                        <div class="bg-base-200 p-4 rounded-lg min-h-[200px] shadow-inner">
+                            <p class="whitespace-pre-wrap">${participant.notes}</p>
+                        </div>
+                        <div class="modal-action">
+                            <form method="dialog">
+                                <button class="btn">Close</button>
+                            </form>
+                        </div>
+                    </div>
+                    <form method="dialog" class="modal-backdrop">
+                        <button>close</button>
+                    </form>
+                </dialog>`
+                : '-';
+
+            return notesHTML;
+        }
+
+
+        function participantSearch() {
+            const searchValue = document.getElementById('searchInput').value.toLowerCase();
+
+            const rows = document.querySelectorAll('#participantTable tbody tr');
+
+            rows.forEach(row => {
+                const name = row.querySelector('td:nth-child(2)').textContent.toLowerCase();
+
+                if (name.includes(searchValue)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        }
+
+        let participantIdToMark = null;
+
+        function openNoShowModal(participantId) {
+            participantIdToMark = participantId;
+            document.getElementById('noShowModal').checked = true;
+        }
+
+        function confirmNoShow() {
+            if (participantIdToMark !== null) {
+                window.location.href = `/manager/mark_no_show/${participantIdToMark}/`;
+            }
+        }
+
+        function openNotifyModal(participantId) {
+            document.getElementById("notify_modal").checked = true;
+            window.selectedParticipantId = participantId;
+        }
+
+        function sendNotification() {
+            const message = document.getElementById("message").value;
+            const participantId = window.selectedParticipantId;
+
+            if (!participantId) {
+                alert("Please select a participant to notify.");
+                return;
+            }
+
+            fetch(`/manager/notify/${participantId}/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}',
+                },
+                body: JSON.stringify({message: message})
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        alert('Notification sent successfully!');
+                        document.getElementById("notify_modal").checked = false;
+                    } else {
+                        alert('There was an error sending the notification');
                     }
                 });
-            }
-        </script>
+        }
+
+
+    </script>
     </body>
+
+
 {% endblock %}
