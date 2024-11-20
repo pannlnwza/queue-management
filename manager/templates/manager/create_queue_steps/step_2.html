@@ -63,13 +63,15 @@
                                class="mt-3 input input-bordered w-full"
                                placeholder="Latitude"
                                step="any"
-                                name="latitudeInput">
+                                name="latitudeInput"
+                                required>
                         <input type="number"
                                id="longitudeInput"
                                class="mt-3 input input-bordered w-full"
                                placeholder="Longitude"
                                step="any"
-                                name="longitudeInput">
+                                name="longitudeInput"
+                                required>
                         <button type="button"
                                 id="latLngSearchButton"
                                 class="mt-4 w-10 h-10 flex items-center justify-center">
@@ -98,7 +100,7 @@
             <!-- Left-aligned button -->
             <a href="{% url 'manager:create_queue_step' step="1" %}" class="btn btn-primary">Previous</a>
             <!-- Right-aligned button -->
-            <button type="submit" class="btn btn-primary">Next</button>
+            <button type="submit" class="btn btn-primary" id="nextButton">Next</button>
         </div>
     </form>
 </div>
@@ -161,7 +163,9 @@
             event.preventDefault();
             searchLocation();
         }
+
     });
+
 
     function searchLocation() {
         var query = document.getElementById('searchInput').value.trim();
@@ -194,7 +198,12 @@
             });
     }
 
-    document.getElementById('queueForm').addEventListener('submit', function (event) {
+    document.getElementById('nextButton').addEventListener('click', function (event) {
+    // Call searchLocation()
+    searchLocation();
+
+    // Delay the null value check by 2 seconds (2000 milliseconds)
+    setTimeout(function () {
         var latitude = document.getElementById('id_latitude').value;
         var longitude = document.getElementById('id_longitude').value;
 
@@ -202,6 +211,7 @@
             event.preventDefault();
             alert("Please provide a location for the queue.");
         }
-    });
+    }, 3000); // 2000 milliseconds = 2 seconds
+});
 </script>
 {% endblock %}
