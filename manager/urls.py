@@ -2,10 +2,12 @@ from django.urls import path
 
 
 from manager.utils.queue_data import get_unique_queue_category_data, get_general_queue_data
-from manager.views import CreateQView, \
+from manager.views import (CreateQView, \
     notify_participant, delete_queue, delete_participant, ManageWaitlist, serve_participant, complete_participant, \
     edit_participant, ParticipantListView, StatisticsView, YourQueueView, add_participant, QueueSettingsView, \
-    ResourceSettings, edit_resource, add_resource, delete_resource, WaitingFull, edit_queue, EditProfileView
+    ResourceSettings, edit_resource, add_resource, delete_resource, WaitingFull, edit_queue, EditProfileView,
+                           MultiStepFormView)
+
 
 app_name = 'manager'
 urlpatterns = [
@@ -32,4 +34,5 @@ urlpatterns = [
     path('edit_queue/<int:queue_id>', edit_queue, name='edit_queue'),
     path('edit-profile/<int:queue_id>/', EditProfileView.as_view(), name='edit_profile'),
     path('add_participant/<int:queue_id>/', add_participant, name='add_participant'),
+    path('create-queue-step/<str:step>/', MultiStepFormView.as_view(), name='create_queue_step'),
 ]

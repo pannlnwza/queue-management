@@ -52,6 +52,7 @@ INSTALLED_APPS = [
     'allauth.socialaccount.providers.google',
     'tailwind',
     'theme',
+    'django_browser_reload',
 ]
 
 TAILWIND_APP_NAME = 'theme'
@@ -72,6 +73,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'allauth.account.middleware.AccountMiddleware',
     'manager.middleware.RemoveMessagesMiddleware',
+    'django_browser_reload.middleware.BrowserReloadMiddleware',
 ]
 
 ROOT_URLCONF = 'config.urls'

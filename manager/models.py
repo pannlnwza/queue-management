@@ -2,6 +2,8 @@ import math
 import random
 import string
 
+from django.db.models import ManyToManyField
+from django.dispatch import receiver
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.db import models
@@ -11,6 +13,7 @@ from django.urls import reverse
 from django.conf import settings
 from django.apps import apps
 from django.db.models import Sum
+from django.db.models.signals import post_save
 from manager.utils.helpers import format_duration
 from django.utils import timezone
 from math import radians, sin, cos, sqrt, atan2
@@ -31,11 +34,9 @@ class Queue(models.Model):
     ]
 
     name = models.CharField(max_length=50)
-    description = models.TextField(max_length=60)
+    description = models.TextField(max_length=255)
     created_by = models.ForeignKey(User, on_delete=models.CASCADE, null=True,
                                    blank=True)
-    authorized_user = models.ManyToManyField(User, related_name='queues',
-                                             blank=True)
     open_time = models.TimeField(null=True, blank=True)
     close_time = models.TimeField(null=True, blank=True)
     estimated_wait_time_per_turn = models.PositiveIntegerField(default=0)
@@ -370,7 +371,7 @@ class Resource(models.Model):
         ('unavailable', 'Unavailable'),
     ]
 
-    name = models.CharField(max_length=50, unique=True)
+    name = models.CharField(max_length=50)
     capacity = models.PositiveIntegerField(default=1)
     status = models.CharField(choices=RESOURCE_STATUS, max_length=15,
                               default='available')
@@ -382,6 +383,9 @@ class Resource(models.Model):
                                     related_name='resource_assignment')
 
     count = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        unique_together = ('name', 'queue')
 
     def assign_to_participant(self, participant, capacity=1) -> None:
         """
@@ -516,7 +520,6 @@ class RestaurantQueue(Queue):
     resource_name = 'Tables'
 
 
-
 class BankQueue(Queue):
     """Represents a queue specifically for bank services."""
     resources = models.ManyToManyField(Counter)
@@ -535,13 +538,32 @@ class HospitalQueue(Queue):
 class UserProfile(models.Model):
     """Represents a user profile in the system."""
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-    image = models.ImageField(upload_to='profile_images/', default='profile_images/profile.jpg')
+    image = models.ImageField(upload_to='profile_images/', blank=True, null=True)
     google_picture = models.URLField(blank=True, null=True)
     phone = models.CharField(max_length=10, blank=True, null=True)
     email = models.EmailField(blank=True, null=True)
     first_name = models.CharField(max_length=30, blank=True, null=True)
     last_name = models.CharField(max_length=30, blank=True, null=True)
 
-    def __str__(self) -> str:
-        """Return a string representation of the user profile."""
-        return self.user.username
+    def get_profile_image(self):
+        """Returns the appropriate profile image URL."""
+        if self.image and self.image.name != 'profile_images/profile.jpg':  # Check for a custom image
+            return self.image.url
+        elif self.user.socialaccount_set.exists():
+            social_account = self.user.socialaccount_set.first()
+            if hasattr(social_account, 'get_avatar_url') and social_account.get_avatar_url():
+                return social_account.get_avatar_url()
+        # Fallback to a default static image
+        return static('participant/images/profile.jpg')
+
+@receiver(post_save, sender=User)
+def create_or_update_user_profile(sender, instance, created, **kwargs):
+    """
+    Automatically create or update a UserProfile when a User is created or saved.
+    """
+    try:
+        profile = instance.userprofile
+        if created:
+            profile.save()
+    except UserProfile.DoesNotExist:
+        UserProfile.objects.create(user=instance)

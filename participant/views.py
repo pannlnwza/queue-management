@@ -224,7 +224,6 @@ class KioskView(generic.FormView):
     form_class = KioskForm
 
     def dispatch(self, request, *args, **kwargs):
-        # Retrieve the queue object based on the queue_code from the URL
         self.queue = get_object_or_404(Queue, code=kwargs['queue_code'])
         self.handler = CategoryHandlerFactory.get_handler(self.queue.category)
         return super().dispatch(request, *args, **kwargs)
@@ -235,13 +234,11 @@ class KioskView(generic.FormView):
         return kwargs
 
     def get_context_data(self, **kwargs):
-        # Add the queue object to the context for rendering
         context = super().get_context_data(**kwargs)
         context['queue'] = self.queue
         return context
 
     def form_valid(self, form):
-        # Create a new participant associated with the queue
         form_data = form.cleaned_data.copy()
         form_data['queue'] = self.queue
         participant = self.handler.create_participant(
@@ -249,16 +246,46 @@ class KioskView(generic.FormView):
         )
         participant.created_by = 'guest'
         participant.save()
-
-        # messages.success(self.request, f"You have successfully joined {self.queue.name}.")
-        return redirect('participant:qrcode',
-                        queue_code=self.kwargs['queue_code'],
-                        participant_id=participant.id)
+        return redirect('participant:qrcode', participant_code=participant.code)
 
     def form_invalid(self, form):
-        # Optional: Log or print errors for debugging
         print(form.errors)
         return super().form_invalid(form)
+
+
+class QRcodeView(generic.DetailView):
+    model = Participant
+    template_name = 'participant/qrcode.html'
+
+    def get_object(self, queryset=None):
+        """
+        Override the get_object method to retrieve the participant by `participant_code`
+        instead of `pk`.
+        """
+        # Fetch participant using the `participant_code` passed in the URL
+        participant_code = self.kwargs.get('participant_code')
+        return get_object_or_404(Participant, code=participant_code)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        participant = self.get_object()
+        context['participant'] = participant
+        context['queue'] = participant.queue
+        check_queue_url = self.request.build_absolute_uri(
+            reverse('participant:queue_status', kwargs={'participant_code': participant.code})
+        )
+
+        # Generate QR code
+        qr = qrcode.QRCode(version=1, box_size=10, border=5)
+        qr.add_data(check_queue_url)
+        qr.make(fit=True)
+        img = qr.make_image(fill='black', back_color='white')
+        buffer = BytesIO()
+        img.save(buffer, format='PNG')
+        qr_image = base64.b64encode(buffer.getvalue()).decode()
+
+        context['qr_image'] = qr_image
+        return context
 
 
 class QueueStatusView(generic.TemplateView):
@@ -341,63 +368,15 @@ def participant_leave(request, participant_code):
             f"Failed to delete participant {participant_code} from queue: {queue.name} code: {queue.code} ")
     return redirect('participant:welcome', queue_code=queue.code)
 
-
+  
 def set_location(request):
     if request.method == 'POST':
         data = json.loads(request.body)
         lat = data.get('lat')
         lon = data.get('lon')
-
         if lat and lon:
-            # Store the location in the session
             request.session['user_lat'] = lat
             request.session['user_lon'] = lon
-            print(f"Saved to session: Lat = {lat}, Lon = {lon}")  # Debugging line
-
+            print(f"Saved to session: Lat = {lat}, Lon = {lon}")
             return JsonResponse({'status': 'success'})
     return JsonResponse({'status': 'failed'}, status=400)
-
-
-class QRcodeView(generic.DetailView):
-    model = Participant
-    template_name = 'participant/qrcode.html'
-    context_object_name = 'participant'
-    pk_url_kwarg = 'participant_id'
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        participant = self.get_object()
-        context['queue'] = participant.queue
-        context['queue_code'] = self.kwargs.get('queue_code')
-
-        # Generate QR code and convert to base64
-        check_queue_url = self.request.build_absolute_uri(
-            reverse('participant:check_queue', args=[participant.id])
-        )
-
-        # Generate QR code
-        qr = qrcode.QRCode(version=1, box_size=10, border=5)
-        qr.add_data(check_queue_url)
-        qr.make(fit=True)
-        img = qr.make_image(fill='black', back_color='white')
-
-        # Convert image to base64
-        buffer = BytesIO()
-        img.save(buffer, format='PNG')
-        qr_image = base64.b64encode(buffer.getvalue()).decode()
-
-        context['qr_image'] = qr_image
-        return context
-
-
-class CheckQueueView(generic.DetailView):
-    model = Participant
-    template_name = 'participant/status.html'
-    context_object_name = 'participant'
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        participant = self.get_object()
-        queue = participant.queue
-        context['queue'] = queue
-        return context

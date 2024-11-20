@@ -30,7 +30,7 @@
         <div class="text-center">
             <p class="text-sm text-gray-500">
                 or
-                <a href="{% url 'participant:check_queue' pk=participant.id %}"
+                <a href="{% url 'participant:queue_status' participant_code=participant.code %}"
                    class="text-blue-600 hover:text-blue-800 underline">
                     click here!
                 </a>
