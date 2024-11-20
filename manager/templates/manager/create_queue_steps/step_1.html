@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="flex justify-center items-center">
+  <ul class="steps steps-vertical lg:steps-horizontal steps-center">
+    <li class="step step-primary p-2">Queue Setup</li>
+    <li class="step p-2">Specify Hours & Location</li>
+    <li class="step p-2">Add Resources</li>
+  </ul>
+</div>
+
+
+<div class="card flex border-2 border-base-300 max-w-4xl w-full sm:w-3/4 md:w-1/2 mx-auto p-6 mt-4">
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div>
+        <div><label class="text-m text-secondary">Name*</label></div>
+        {{ form.name }}
+        </div>
+        <div><label class="text-m text-secondary">Description*</label></div>
+        <div>
+            {{ form.description }}
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+            <!-- First column -->
+            <div>
+                <label class="text-m text-secondary">Select Category*</label>
+                {{ form.category }}
+            </div>
+
+            <!-- Second column -->
+            <div class="form-control w-full max-w-xs">
+                <label class="text-m text-secondary">Insert Your Logo</label>
+                {{ form.logo }}
+                <div><span class="label-text-alt text-red-600 ">Optional*</span></div>
+            </div>
+        </div>
+        <div class="flex justify-end">
+            <button type="submit" class="btn btn-primary">Next</button>
+        </div>
+    </form>
+</div>
+{% endblock %}

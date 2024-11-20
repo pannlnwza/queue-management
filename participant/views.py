@@ -214,6 +214,7 @@ class KioskView(generic.FormView):
         participant = self.handler.create_participant(
             form_data,
         )
+        participant.created_by = 'guest'
         participant.save()
         return redirect('participant:qrcode',
                         participant_code=participant.code)

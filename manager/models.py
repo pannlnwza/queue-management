@@ -1,10 +1,11 @@
 import math
-import string
 import random
+import string
 
 from django.db.models import ManyToManyField
 from django.dispatch import receiver
-from django.utils import timezone
+from django.conf import settings
+from django.contrib.auth.models import User
 from django.db import models
 from django.templatetags.static import static
 from django.contrib.auth.models import User
@@ -13,6 +14,7 @@ from django.conf import settings
 from django.apps import apps
 from django.db.models.signals import post_save
 from manager.utils.helpers import format_duration
+from django.utils import timezone
 
 
 class Queue(models.Model):
@@ -31,13 +33,11 @@ class Queue(models.Model):
     ]
 
     name = models.CharField(max_length=50)
-    description = models.TextField(max_length=60)
+    description = models.TextField(max_length=255)
     created_by = models.ForeignKey(User, on_delete=models.CASCADE, null=True,
                                    blank=True)
-    authorized_user = models.ManyToManyField(User, related_name='queues',
-                                             blank=True)
-    open_time = models.DateTimeField(null=True, blank=True)
-    close_time = models.DateTimeField(null=True, blank=True)
+    open_time = models.TimeField(null=True, blank=True)
+    close_time = models.TimeField(null=True, blank=True)
     estimated_wait_time_per_turn = models.PositiveIntegerField(default=0)
     average_service_duration = models.PositiveIntegerField(default=0)
     created_at = models.DateTimeField(default=timezone.localtime)
@@ -319,7 +319,7 @@ class Resource(models.Model):
         ('unavailable', 'Unavailable'),
     ]
 
-    name = models.CharField(max_length=50, unique=True)
+    name = models.CharField(max_length=50)
     capacity = models.PositiveIntegerField(default=1)
     status = models.CharField(choices=RESOURCE_STATUS, max_length=15,
                               default='available')
@@ -330,6 +330,11 @@ class Resource(models.Model):
                                     blank=True,
                                     related_name='resource_assignment')
 
+    count = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        unique_together = ('name', 'queue')
+
     def assign_to_participant(self, participant, capacity=1) -> None:
         """
         Assigns this resource to the given participant if it is available
@@ -337,11 +342,11 @@ class Resource(models.Model):
         """
         if self.status != 'available':
             raise ValueError("This resource is not available.")
-        if self.capacity < capacity:
-            raise ValueError(
-                "This resource cannot accommodate the party size.")
+        if int(self.capacity) < int(capacity):
+            raise ValueError("This resource cannot accommodate the party size.")
 
         self.status = 'busy'
+        self.count += 1
         self.assigned_to = participant
         self.save()
         participant.resource = self
@@ -351,10 +356,14 @@ class Resource(models.Model):
         """
         Frees the resource, making it available for new assignments.
         """
-        if self.status == 'busy' and self.assigned_to:
-            self.status = 'available'
-            self.assigned_to = None
-            self.save()
+        if self.assigned_to:
+            participant = self.assigned_to
+            participant.resource = None
+            participant.save()
+
+        self.status = 'available'
+        self.assigned_to = None
+        self.save()
 
     def is_assigned(self) -> bool:
         """

@@ -1,18 +1,17 @@
-{% load static %}
+{% load static tailwind_tags %}
 <!DOCTYPE html>
 <html lang="en" data-theme="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token }}">
-    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.14/dist/full.min.css" rel="stylesheet" type="text/css"/>
-    <script src="https://cdn.tailwindcss.com"></script>
-
+    {% tailwind_css %}
+    <link rel="icon" type="image/x-icon" href="{% static 'images/logo.ico' %}">
     {% block title %}<title>Queue Management</title>{% endblock %}
 </head>
 <body>
 
-<div class="navbar bg-base-100 shadow-md">
+<div class="navbar bg-base-100">
     <div class="navbar-start">
         <div class="dropdown">
             <div tabindex="0" role="button" class="btn btn-ghost lg:hidden">
@@ -22,12 +21,20 @@
                 </svg>
             </div>
         </div>
-        <a href="{% url 'participant:home' %}" class="btn btn-ghost text-xl font-bold">Queue Management</a>
+        <a href="{% url 'participant:home' %}" class="logo-container">
+            <img src="{% static 'images/logo-full.ico' %}"
+                 alt="Queue Management Logo"
+                 class="w-[200px] logo-light">
+            <img src="{% static 'images/logo-full-white.ico' %}"
+                 alt="Queue Management Logo"
+                 class="w-[200px] logo-dark hidden">
+        </a>
     </div>
+
     <div class="navbar-end">
         {% if user.is_authenticated %}
             <div class="dropdown dropdown-end">
-                <label tabindex="0" class="btn btn-outline m-1">
+                <label tabindex="0" class="btn btn-ghost m-1">
                     {{ user.username }}
                     <form method="post" enctype="multipart/form-data">
                         <div class="avatar">
@@ -38,14 +45,18 @@
                         </div>
                     </form>
                 </label>
-                <ul tabindex="0" class="menu dropdown-content bg-base-100 rounded-box w-40 p-2 shadow">
+                <ul tabindex="0" class="menu dropdown-content bg-base-100 rounded-box w-40 p-2 shadow flex justify-center">
                     <form action="{% url 'account_logout' %}" method="post" style="display: inline;">
                         {% csrf_token %}
-                        <button type="submit" class="btn btn-error text-white items-center ml-2">
-                            <svg class="w-6 h-6 text-gray-800 dark:text-white ml-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
-                                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 12H4m12 0-4 4m4-4-4-4m3-4h2a3 3 0 0 1 3 3v10a3 3 0 0 1-3 3h-2"/>
+                        <button type="submit" class="btn btn-error btn-sm text-white self-center ml-2">
+                            <svg class="w-6 h-6 text-gray-800 dark:text-white ml-2" aria-hidden="true"
+                                 xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none"
+                                 viewBox="0 0 24 24">
+                                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
+                                      stroke-width="2"
+                                      d="M16 12H4m12 0-4 4m4-4-4-4m3-4h2a3 3 0 0 1 3 3v10a3 3 0 0 1-3 3h-2"/>
                             </svg>
-                        Log out
+                            Log out
                         </button>
                     </form>
                 </ul>
@@ -54,6 +65,7 @@
             <span class="mr-2 text-sm">Have an account?</span>
             <a href="{% url 'account_login' %}" class="btn btn-primary text-white">Log in</a>
         {% endif %}
+
         <div class="m-4 ml-4">
             <label class="grid cursor-pointer place-items-center">
                 <input
@@ -107,8 +119,36 @@
 </div>
 
 {% block content %} {% endblock %}
+
+<script>
+    const themeToggle = document.querySelector('.theme-controller');
+    const logoLight = document.querySelector('.logo-light');
+    const logoDark = document.querySelector('.logo-dark');
+
+    function setTheme(theme) {
+        document.documentElement.setAttribute('data-theme', theme);
+        localStorage.setItem('theme', theme);
+        themeToggle.checked = theme === 'dark';
+
+        if (theme === 'dark') {
+            logoLight.classList.add('hidden');
+            logoDark.classList.remove('hidden');
+        } else {
+            logoLight.classList.remove('hidden');
+            logoDark.classList.add('hidden');
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        setTheme(savedTheme);
+    });
+
+    themeToggle.addEventListener('change', (e) => {
+        const newTheme = e.target.checked ? 'dark' : 'light';
+        setTheme(newTheme);
+    });
+</script>
+
 </body>
 </html>
-
-<script src="{% static 'manager/js/actions.js' %}"></script>
-

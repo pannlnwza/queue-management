@@ -1,12 +1,11 @@
-{% load static %}
+{% load static tailwind_tags %}
 <!DOCTYPE html>
 <html lang="en" data-theme="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    {% tailwind_css %}
     {% block title %}<title>Queue Management</title>{% endblock %}
-    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.14/dist/full.min.css" rel="stylesheet" type="text/css"/>
-    <script src="https://cdn.tailwindcss.com"></script>
     {% block extra_head %}{% endblock %}
 </head>
 
@@ -19,9 +18,9 @@
         <div class="menu p-4 min-h-full bg-base-100 text-base-content flex flex-col items-center">
             <div class="avatar placeholder mb-4">
                 <img src="{{ queue.get_logo_url }}"
-                     alt="{{ queue.name }} logo"
-                     class="rounded-lg object-cover flex-shrink-0"
-                     style="max-width: 50px; max-height: 50px;">
+                 alt="{{ queue.name }} logo"
+                 class="rounded-lg object-cover flex-shrink-0"
+                 style="max-width: 50px; max-height: 50px;">
             </div>
             <ul class="space-y-4 justify-center">
                 <li><a href="{% url 'manager:manage_waitlist' queue_id %}"
@@ -51,7 +50,7 @@
                     </svg>
                 </a></li>
 
-                <li><a class="btn btn-square btn-ghost no-animation text-xl">
+                <li><a href="{% url 'manager:queue_settings' queue_id %}" class="btn btn-square btn-ghost no-animation text-xl">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                          stroke="currentColor" class="size-6">
                         <path stroke-linecap="round" stroke-linejoin="round"
@@ -197,8 +196,20 @@
         --theme-icon-color: white;
     }
 </style>
+<script>
+    function copyToClipboard() {
+        const joinLink = document.getElementById("joinLink").innerText;
+        navigator.clipboard.writeText(joinLink).then(() => {
+            alert("Link copied to clipboard!");
+        }).catch(err => {
+            console.error("Failed to copy: ", err);
+        });
+    }
+
+</script>
 
 <script src="{% static 'manager/js/actions.js' %}"></script>
 
 </body>
+
 </html>
