@@ -1,4 +1,4 @@
-pip~=23.2.1
+pip~=23.3
 attrs~=23.2.0
 PySocks~=1.7.1
 google~=3.0.0
