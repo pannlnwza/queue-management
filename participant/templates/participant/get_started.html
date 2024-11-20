@@ -111,10 +111,10 @@
     </section>
 </div>
 
-<!--Featured Restaurant Queues-->
-<div class="container mx-auto px-4 py-12">
-    <section class="mb-12">
-        <h2 class="text-2xl font-bold mt-6 mb-6">Top 3 Featured Restaurant Queues</h2>
+<!-- Featured Restaurant Queues -->
+<div class="w-full bg-gray-300 py-12">
+    <section class="px-4 max-w-7xl mx-auto relative">
+        <h2 class="pt-4 mb-6 text-2xl font-bold text-gray-800">Top 3 Featured Restaurant Queues</h2>
 
         <!-- Check if there are any featured restaurant queues -->
         {% if restaurant_featured_queues %}
@@ -141,16 +141,15 @@
             </div>
         {% else %}
             <!-- Message when there are no featured restaurant queues -->
-            <p class="text-center text-lg text-gray-500">No featured restaurant queues available at the moment.</p>
+            <p class="text-center text-lg text-white">No featured restaurant queues available at the moment.</p>
         {% endif %}
     </section>
 </div>
 
-
-<!--Featured General Queues-->
-<div class="container mx-auto px-4 py-12">
-    <section class="mb-12">
-        <h2 class="text-2xl font-bold mt-6 mb-6">Top 3 Featured General Queues</h2>
+<!-- Featured General Queues -->
+<div class="w-full bg-gray-200 py-12">
+    <section class="px-4 max-w-7xl mx-auto relative">
+        <h2 class="pt-4 mb-6 text-2xl font-bold text-gray-800">Top 3 Featured General Queues</h2>
 
         <!-- Check if there are any featured general queues -->
         {% if general_featured_queues %}
@@ -177,16 +176,15 @@
             </div>
         {% else %}
             <!-- Message when there are no featured general queues -->
-            <p class="text-center text-lg text-gray-500">No featured general queues available at the moment.</p>
+            <p class="text-center text-lg text-white">No featured general queues available at the moment.</p>
         {% endif %}
     </section>
 </div>
 
-
-<!--Featured hospital Queues-->
-<div class="container mx-auto px-4 py-12">
-    <section class="mb-12">
-        <h2 class="text-2xl font-bold mt-6 mb-6">Top 3 Featured Hospital Queues</h2>
+<!-- Featured Hospital Queues -->
+<div class="w-full bg-gray-300 py-12">
+    <section class="px-4 max-w-7xl mx-auto relative">
+        <h2 class="pt-4 mb-6 text-2xl font-bold text-gray-800">Top 3 Featured Hospital Queues</h2>
 
         <!-- Check if there are any featured hospital queues -->
         {% if hospital_featured_queues %}
@@ -213,17 +211,17 @@
             </div>
         {% else %}
             <!-- Message when there are no featured hospital queues -->
-            <p class="text-center text-lg text-gray-500">No featured hospital queues available at the moment.</p>
+            <p class="text-center text-lg text-white">No featured hospital queues available at the moment.</p>
         {% endif %}
     </section>
 </div>
 
-<!--Featured Bank Queues-->
-<div class="container mx-auto px-4 py-12">
-    <section class="mb-12">
-        <h2 class="text-2xl font-bold mt-6 mb-6">Top 3 Featured Bank Queues</h2>
+<!-- Featured Bank Queues -->
+<div class="w-full bg-gray-200 py-12">
+    <section class="px-4 max-w-7xl mx-auto relative">
+        <h2 class="pt-4 mb-6 text-2xl font-bold text-gray-800">Top 3 Featured Bank Queues</h2>
 
-        <!-- Check if there are any featured general queues -->
+        <!-- Check if there are any featured bank queues -->
         {% if bank_featured_queues %}
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {% for queue in bank_featured_queues %}
@@ -248,10 +246,11 @@
             </div>
         {% else %}
             <!-- Message when there are no featured bank queues -->
-            <p class="text-center text-lg text-gray-500">No featured bank queues available at the moment.</p>
+            <p class="text-center text-lg text-white">No featured bank queues available at the moment.</p>
         {% endif %}
     </section>
 </div>
+
 
 <script>
     if (!sessionStorage.getItem('userLat') || !sessionStorage.getItem('userLon')) {
