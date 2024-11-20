@@ -32,6 +32,7 @@ class HomePageView(generic.TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        categories = ['restaurant', 'general', 'hospital', 'bank']
         user_lat = self.request.session.get('user_lat', None)
         user_lon = self.request.session.get('user_lon', None)
         if user_lat and user_lon:
@@ -40,12 +41,16 @@ class HomePageView(generic.TemplateView):
                 user_lon = float(user_lon)
                 context['nearby_queues'] = Queue.get_nearby_queues(user_lat, user_lon)
                 context['num_nearby_queues'] = len(Queue.get_nearby_queues(user_lat, user_lon))
-                context['featured_queues'] = Queue.get_top_featured_queues()
+
+                for category in categories:
+                    category_featured_queues = Queue.get_top_featured_queues(
+                        category=category)
+                    context[
+                        f'{category}_featured_queues'] = category_featured_queues
             except ValueError:
                 context['error'] = "Invalid latitude or longitude provided."
         else:
-            context[
-                'error'] = "Location not provided. Please enable location services."
+            context['error'] = "Location not provided. Please enable location services."
         return context
 
 

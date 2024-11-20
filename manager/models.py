@@ -28,7 +28,6 @@ class Queue(models.Model):
         ('general', 'General'),
         ('hospital', 'Hospital'),
         ('bank', 'Bank'),
-        ('service center', 'Service center')
     ]
 
     name = models.CharField(max_length=50)
@@ -69,10 +68,10 @@ class Queue(models.Model):
                 return code
 
     @staticmethod
-    def get_top_featured_queues():
+    def get_top_featured_queues(category=None):
         """Get the top 3 featured queues based on their Queue Length / Max Capacity * 100."""
         queue_ratios = []
-        for queue in Queue.objects.all():
+        for queue in Queue.objects.filter(category=category):
             num_participants = queue.get_number_waiting_now()
             max_capacity = sum(
                 resource.capacity for resource in queue.resource_set.all())
