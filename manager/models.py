@@ -98,7 +98,7 @@ class Queue(models.Model):
         return self.participant_set.all().order_by('joined_at')
 
     def update_participants_positions(self):
-        participants = self.participant_set.order_by('joined_at')
+        participants = self.participant_set.filter(state='waiting').order_by('joined_at')
         for index, participant in enumerate(participants, start=1):
             participant.position = index
             participant.save(update_fields=["position"])

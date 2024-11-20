@@ -9,7 +9,7 @@ from manager.views import (CreateQView, \
                            QueueSettingsView, \
                            ResourceSettings, edit_resource, add_resource, delete_resource, WaitingFull, edit_queue,
                            EditProfileView,
-                           MultiStepFormView, mark_no_show)
+                           MultiStepFormView, mark_no_show, ViewAllWaiting, ViewAllServing, ViewAllCompleted)
 
 
 app_name = 'manager'
@@ -39,4 +39,7 @@ urlpatterns = [
     path('add_participant/<int:queue_id>/', add_participant, name='add_participant'),
     path('create-queue-step/<str:step>/', MultiStepFormView.as_view(), name='create_queue_step'),
     path('mark_no_show/<int:participant_id>/', mark_no_show, name='mark_no_show'),
+    path('view_all_waiting/<int:queue_id>/', ViewAllWaiting.as_view(), name='view_all_waiting'),
+    path('view_all_serving/<int:queue_id>/', ViewAllServing.as_view(), name='view_all_serving'),
+    path('view_all_completed/<int:queue_id>/', ViewAllCompleted.as_view(), name='view_all_completed')
 ]

@@ -1,6 +1,7 @@
 import json
 import logging
 from datetime import timedelta, datetime
+from lib2to3.fixes.fix_input import context
 from os import close
 
 from django.contrib import messages
@@ -391,7 +392,8 @@ def serve_participant(request, participant_id):
                 'error': f'{participant.name} cannot be served because they are currently in state: {participant.state}.'
             }, status=400)
 
-        handler.assign_to_resource(participant, resource_id=resource_id)
+        if participant.queue.category != 'general':
+            handler.assign_to_resource(participant, resource_id=resource_id)
         participant.queue.update_estimated_wait_time_per_turn(participant.get_wait_time())
         participant.start_service()
         participant.save()
@@ -462,6 +464,7 @@ def mark_no_show(request, participant_id):
     participant.state = 'no_show'
     participant.is_notified = False
     participant.waited = (timezone.localtime(timezone.now()) - participant.joined_at).total_seconds() / 60
+    participant.queue.update_participants_positions()
     participant.save()
     messages.success(request, f"{participant.name} has been marked as No Show.")
 
@@ -521,7 +524,8 @@ class ParticipantListView(LoginRequiredMixin, generic.TemplateView):
         context['participant_set'] = participants
         context['participant_state'] = Participant.PARTICIPANT_STATE
         context['page_obj'] = participants
-        context['resources'] = queue.resources.all()
+        if queue.category != 'general':
+            context['resources'] = queue.resources.all()
         context['time_filter_option'] = time_filter_option
         context['time_filter_option_display'] = time_filter_options_display.get(time_filter_option, 'All time')
         context['state_filter_option'] = state_filter_option
@@ -564,6 +568,72 @@ class WaitingFull(LoginRequiredMixin, generic.TemplateView):
         if category_context:
             context.update(category_context)
         return context
+
+
+class BaseViewAll(LoginRequiredMixin, generic.TemplateView):
+    state = None  # To be defined by subclasses
+
+    def get_context_data(self, **kwargs):
+        if self.state is None:
+            raise ValueError("Subclasses must define 'state'")
+        context = super().get_context_data(**kwargs)
+        queue_id = self.kwargs.get('queue_id')
+        queue = get_object_or_404(Queue, id=queue_id)
+
+        handler = CategoryHandlerFactory.get_handler(queue.category)
+        queue = handler.get_queue_object(queue_id)
+        participant_set = handler.get_participant_set(queue_id)
+        filtered_list = participant_set.filter(state=self.state)
+
+        items_per_page = 10
+        paginator = Paginator(filtered_list, items_per_page)
+        page = self.request.GET.get('page', 1)
+
+        try:
+            paginated_list = paginator.page(page)
+        except PageNotAnInteger:
+            paginated_list = paginator.page(1)
+        except EmptyPage:
+            paginated_list = paginator.page(paginator.num_pages)
+
+        context['queue'] = queue
+        context[f'{self.state}_list'] = paginated_list
+        if queue.category != 'general':
+            context['resources'] = queue.resources.all()
+        context['available_resource'] = queue.get_resources_by_status('available')
+        context['page_obj'] = paginated_list
+
+        category_context = handler.add_context_attributes(queue)
+        if category_context:
+            context.update(category_context)
+        return context
+
+    def get_template_names(self):
+        """
+        Dynamically determine the template name based on queue category and state.
+        """
+        queue_id = self.kwargs.get('queue_id')
+        queue = get_object_or_404(Queue, id=queue_id)
+
+        category_path = (
+            "manager/view_all/general/"
+            if queue.category == "general"
+            else "manager/view_all/unique_categories/"
+        )
+        return [f"{category_path}all_{self.state}.html"]
+
+
+class ViewAllWaiting(BaseViewAll):
+    state = 'waiting'
+
+
+class ViewAllServing(BaseViewAll):
+    state = 'serving'
+
+
+class ViewAllCompleted(BaseViewAll):
+    state = 'completed'
+
 
 
 class YourQueueView(LoginRequiredMixin, generic.TemplateView):

@@ -265,7 +265,7 @@
                     <div class="divider m-1"></div>
                     <div class="ml-auto text-sm text-gray-500">
                         {{ waiting_list| length }} out of {{ queue.get_number_waiting_now }}
-                        <a href="#" class="link link-hover">View All</a>
+                        <a href="{% url 'manager:view_all_waiting' queue_id %}" class="link link-hover">View All</a>
                     </div>
                 </div>
             </div>
@@ -343,7 +343,7 @@
                     <div class="divider m-1"></div>
                     <div class="ml-auto text-sm text-gray-500">
                         {{ serving_list| length }} out of {{ queue.get_number_serving_now }}
-                        <a href="#" class="link link-hover">View All</a>
+                        <a href="{% url 'manager:view_all_serving' queue_id %}" class="link link-hover">View All</a>
                     </div>
                 </div>
             </div>
@@ -417,7 +417,7 @@
                     <div class="divider m-1"></div>
                     <div class="ml-auto text-sm text-gray-500">
                         {{ completed_list| length }} out of {{ queue.get_number_completed_now }}
-                        <a href="#" class="link link-hover">View All</a>
+                        <a href="{% url 'manager:view_all_completed' queue_id %}" class="link link-hover">View All</a>
                     </div>
                 </div>
             </div>
