@@ -59,14 +59,15 @@
   <button id="next" class="absolute right-2 top-1/2 -translate-y-1/2 btn btn-circle">❯</button>
 </div>
 
-
-<main class="container mx-auto px-4 py-8">
-
+<div class="container mx-auto px-4 py-12">
     <!-- Nearby queues -->
     <section class="mb-12 px-4 max-w-7xl mx-auto relative">
-        <h1 class="mt-4 mb-6 text-2xl font-bold text-gray-800">Nearby Queues</h1>
+        {% if num_nearby_queues == 1 %}
+        <h1 class="mb-6 text-2xl font-bold text-gray-800">Nearby Queues (1 queue)</h1>
+        {% else %}
+        <h1 class="mb-6 text-2xl font-bold text-gray-800">Nearby Queues ({{ num_nearby_queues}} queues)</h1>
+        {% endif %}
         <div class="relative flex items-center">
-
             <!-- Scrollable Cards -->
             <div id="queue-container" class="flex gap-8 overflow-x-auto no-scrollbar scroll-smooth">
                 {% if nearby_queues %}
@@ -92,7 +93,7 @@
                                 <a
                                     href="https://www.google.com/maps?q={{ queue.latitude }},{{ queue.longitude }}"
                                     target="_blank"
-                                    class="btn btn-primary mt-2 mb-5 px-3 py-1 text-sm font-medium bg-blue-500 text-white rounded hover:bg-blue-600">
+                                    class="btn btn-primary btn-sm mb-5">
                                     View on Google Maps
                                 </a>
                             </div>
@@ -108,27 +109,36 @@
             </div>
         </div>
     </section>
+</div>
 
+<div class="container mx-auto px-4 py-10">
     <section class="mb-12">
-        <h2 class="text-2xl font-bold mt-6 mb-6">TOP 3 FEATURED QUEUES</h2>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {% for queue in featured_queues %}
-            <div class="card bg-base-100 shadow-xl">
-                <figure>
-                    <img src="{{ queue.get_logo_url }}" alt="Queue Image" class="w-auto h-24 object-cover"/>
-                </figure>
-                <div class="card-body">
-                    <h3 class="card-title">{{ queue.name }}</h3>
-                    <p class="text-sm break-words">{{ queue.description }}</p>
-                    <div class="card-actions">
-                        <button class="btn btn-primary btn-sm">Read More</button>
+            <h2 class="text-2xl font-bold mt-6 mb-6">Top 3 Featured Restaurant Queues</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {% for queue in featured_queues %}
+                <div class="card bg-base-100 shadow-xl">
+                    <figure>
+                        <img src="{{ queue.get_logo_url }}" alt="Queue Image" class="w-auto h-24 object-cover"/>
+                    </figure>
+                    <div class="card-body">
+                        <h3 class="card-title">{{ queue.name }}</h3>
+                        <p class="text-sm break-words">{{ queue.description }}</p>
+                        <div class="card-actions">
+                            <a
+                                href="https://www.google.com/maps?q={{ queue.latitude }},{{ queue.longitude }}"
+                                target="_blank"
+                                class="btn btn-primary btn-sm mt-2">
+                                View on Google Maps
+                            </a>
+                        </div>
                     </div>
                 </div>
+                {% endfor %}
             </div>
-            {% endfor %}
-        </div>
     </section>
+</div>
 
+<div class="container mx-auto px-4 py-12">
     <!-- Market Research Reports -->
     <section class="mb-12">
         <h2 class="text-2xl font-bold mt-6 mb-6">MARKET RESEARCH REPORTS</h2>
@@ -144,76 +154,73 @@
             <button class="btn btn-primary">Read More</button>
         </div>
     </section>
+</div>
 
+<script>
+    if (!sessionStorage.getItem('userLat') || !sessionStorage.getItem('userLon')) {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(function (position) {
+                const lat = position.coords.latitude;
+                const lon = position.coords.longitude;
 
-    <script>
-        if (!sessionStorage.getItem('userLat') || !sessionStorage.getItem('userLon')) {
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(function (position) {
-                    const lat = position.coords.latitude;
-                    const lon = position.coords.longitude;
+                sessionStorage.setItem('userLat', lat);
+                sessionStorage.setItem('userLon', lon);
 
-                    sessionStorage.setItem('userLat', lat);
-                    sessionStorage.setItem('userLon', lon);
-
-                    fetch("{% url 'participant:set_location' %}", {
-                        method: 'POST',
-                        body: JSON.stringify({ lat: lat, lon: lon }),
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRFToken': '{{ csrf_token }}'
-                        }
-                    }).then(response => {
-                        if (response.ok) {
-                            console.log('Location saved in session');
-                        }
-                    });
-
-                    window.location.reload();
-                }, function (error) {
-                    console.error('Error retrieving location:', error);
+                fetch("{% url 'participant:set_location' %}", {
+                    method: 'POST',
+                    body: JSON.stringify({ lat: lat, lon: lon }),
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    }
+                }).then(response => {
+                    if (response.ok) {
+                        console.log('Location saved in session');
+                    }
                 });
-            } else {
-                alert("Geolocation is not supported by your browser.");
-            }
+                window.location.reload();
+            }, function (error) {
+                console.error('Error retrieving location:', error);
+            });
+        } else {
+            alert("Geolocation is not supported by your browser.");
         }
-    </script>
+    }
+</script>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            let currentIndex = 0;
-            const slides = document.getElementById('carousel-slides');
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        let currentIndex = 0;
+        const slides = document.getElementById('carousel-slides');
 
-            function updateCarousel() {
-                slides.style.transform = `translateX(-${currentIndex * 100}%)`;
+        function updateCarousel() {
+            slides.style.transform = `translateX(-${currentIndex * 100}%)`;
+        }
+
+        const images = document.querySelectorAll('.carousel-item img');
+        images.forEach(image => {
+            const img = new Image();
+            img.src = image.src;
+        });
+
+        document.getElementById('prev').addEventListener('click', () => {
+            if (currentIndex === 0) {
+                currentIndex = 1;
+            } else {
+                currentIndex = 0;
             }
-
-            const images = document.querySelectorAll('.carousel-item img');
-            images.forEach(image => {
-                const img = new Image();
-                img.src = image.src;
-            });
-
-            document.getElementById('prev').addEventListener('click', () => {
-                if (currentIndex === 0) {
-                    currentIndex = 1;
-                } else {
-                    currentIndex = 0;
-                }
-                updateCarousel();
-            });
-
-            document.getElementById('next').addEventListener('click', () => {
-                if (currentIndex === 0) {
-                    currentIndex = 1;
-                } else {
-                    currentIndex = 0;
-                }
-                updateCarousel();
-            });
             updateCarousel();
         });
-    </script>
 
-</main>
+        document.getElementById('next').addEventListener('click', () => {
+            if (currentIndex === 0) {
+                currentIndex = 1;
+            } else {
+                currentIndex = 0;
+            }
+            updateCarousel();
+        });
+        updateCarousel();
+    });
+</script>
 {% endblock %}

@@ -39,6 +39,7 @@ class HomePageView(generic.TemplateView):
                 user_lat = float(user_lat)
                 user_lon = float(user_lon)
                 context['nearby_queues'] = Queue.get_nearby_queues(user_lat, user_lon)
+                context['num_nearby_queues'] = len(Queue.get_nearby_queues(user_lat, user_lon))
                 context['featured_queues'] = Queue.get_top_featured_queues()
             except ValueError:
                 context['error'] = "Invalid latitude or longitude provided."
