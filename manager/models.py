@@ -2,6 +2,8 @@ import math
 import random
 import string
 
+from django.db.models import ManyToManyField
+from django.dispatch import receiver
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.db import models
@@ -10,6 +12,7 @@ from django.contrib.auth.models import User
 from django.urls import reverse
 from django.conf import settings
 from django.apps import apps
+from django.db.models.signals import post_save
 from manager.utils.helpers import format_duration
 from django.utils import timezone
 
@@ -483,13 +486,32 @@ class HospitalQueue(Queue):
 class UserProfile(models.Model):
     """Represents a user profile in the system."""
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-    image = models.ImageField(upload_to='profile_images/', default='profile_images/profile.jpg')
+    image = models.ImageField(upload_to='profile_images/', blank=True, null=True)
     google_picture = models.URLField(blank=True, null=True)
     phone = models.CharField(max_length=10, blank=True, null=True)
     email = models.EmailField(blank=True, null=True)
     first_name = models.CharField(max_length=30, blank=True, null=True)
     last_name = models.CharField(max_length=30, blank=True, null=True)
 
-    def __str__(self) -> str:
-        """Return a string representation of the user profile."""
-        return self.user.username
+    def get_profile_image(self):
+        """Returns the appropriate profile image URL."""
+        if self.image and self.image.name != 'profile_images/profile.jpg':  # Check for a custom image
+            return self.image.url
+        elif self.user.socialaccount_set.exists():
+            social_account = self.user.socialaccount_set.first()
+            if hasattr(social_account, 'get_avatar_url') and social_account.get_avatar_url():
+                return social_account.get_avatar_url()
+        # Fallback to a default static image
+        return static('participant/images/profile.jpg')
+
+@receiver(post_save, sender=User)
+def create_or_update_user_profile(sender, instance, created, **kwargs):
+    """
+    Automatically create or update a UserProfile when a User is created or saved.
+    """
+    try:
+        profile = instance.userprofile
+        if created:
+            profile.save()
+    except UserProfile.DoesNotExist:
+        UserProfile.objects.create(user=instance)
