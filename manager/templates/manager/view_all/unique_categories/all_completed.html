@@ -70,7 +70,7 @@
         </div>
 
         <div class="overflow-x-auto">
-           <table class="min-w-full bg-base-100 divide-y divide-gray-200">
+           <table class="min-w-full bg-base-100 divide-y divide-gray-200" id="participantTable">
                         <thead>
                         <tr>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -342,6 +342,22 @@
 
         `;
             return row;
+        }
+
+        function participantSearch() {
+            const searchValue = document.getElementById('searchInput').value.toLowerCase();
+
+            const rows = document.querySelectorAll('#participantTable tbody tr');
+
+            rows.forEach(row => {
+                const name = row.querySelector('td:nth-child(1)').textContent.toLowerCase();
+
+                if (name.includes(searchValue)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
         }
     </script>
 
