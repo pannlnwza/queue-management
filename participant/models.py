@@ -6,6 +6,7 @@ from django.db import models
 from django.utils import timezone
 from manager.models import RestaurantQueue, BankQueue, Resource, HospitalQueue
 from datetime import timedelta
+from django.conf import settings
 
 
 class Participant(models.Model):
@@ -28,7 +29,7 @@ class Participant(models.Model):
     joined_at = models.DateTimeField(auto_now_add=True)
     position = models.PositiveIntegerField()
     note = models.TextField(max_length=150, null=True, blank=True)
-    code = models.CharField(max_length=6, unique=True, editable=False)
+    code = models.CharField(max_length=12, unique=True, editable=False)
     state = models.CharField(max_length=10, choices=PARTICIPANT_STATE,
                              default='waiting')
     service_started_at = models.DateTimeField(null=True, blank=True)
@@ -40,6 +41,7 @@ class Participant(models.Model):
     resource_assigned = models.CharField(max_length=20, null=True, blank=True)
     is_notified = models.BooleanField(default=False)
     created_by = models.CharField(max_length=10, choices=CREATE_BY, default='guest')
+    qr_code_image = models.ImageField(upload_to='qrcodes/', null=True, blank=True)
 
     def save(self, *args, **kwargs):
         """Generate a unique ticket code for the participant if not already."""
@@ -116,6 +118,12 @@ class Participant(models.Model):
         cutoff_time = timezone.localtime() - timedelta(days=30)
         Participant.objects.filter(state='completed',
                                    service_completed_at__lte=cutoff_time).delete()
+
+    def get_status_link(self):
+        """
+        Returns the full URL to the welcome page for this queue.
+        """
+        return f"{settings.SITE_DOMAIN}/status/{self.code}"
 
     def __str__(self) -> str:
         """Return a string representation of the participant."""

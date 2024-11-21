@@ -28,6 +28,7 @@ from manager.models import Queue, UserProfile, QueueLineLength
 from manager.utils.queue_handler import QueueHandlerFactory
 from manager.utils.category_handler import CategoryHandlerFactory
 from django.views.decorators.csrf import csrf_exempt
+from django.core.mail import send_mail
 
 
 logger = logging.getLogger('queue')
@@ -147,8 +148,6 @@ class CreateQView(LoginRequiredMixin, generic.CreateView):
         queue = handler.create_queue(queue_data)
 
         return redirect(self.success_url)
-
-
 
 
 class EditQueueView(LoginRequiredMixin, generic.UpdateView):
