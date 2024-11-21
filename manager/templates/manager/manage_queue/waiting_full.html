@@ -154,6 +154,7 @@
                     {% endfor %}
                 </div>
                 <div class="modal-action">
+                    <button type="button" class="btn" onclick="serveParticipantNoResource()">Serve without assigning</button>
                     <button type="button" class="btn" onclick="autoAssignResource()">Auto assign</button>
                     <button class="btn btn-primary" onclick="serveSelectedParticipant()">Serve</button>
                 </div>
@@ -325,6 +326,29 @@
             }
 
             fetch(`/manager/serve/${participantId}/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: JSON.stringify({resource_id: selectedResourceId})
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Participant served successfully!');
+                        location.reload();
+                    } else {
+                        alert(data.error || 'Error serving participant.');
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+        }
+
+        function serveParticipantNoResource() {
+            const participantId = document.getElementById('participantId').value;
+
+            fetch(`/manager/serve_no_resource/${participantId}/`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

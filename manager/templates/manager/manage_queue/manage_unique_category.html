@@ -491,6 +491,7 @@
                 {% endfor %}
             </div>
             <div class="modal-action">
+                <button type="button" class="btn" onclick="serveParticipantNoResource()">Serve without assigning</button>
                 <button type="button" class="btn" onclick="autoAssignResource()">Auto assign</button>
                 <button class="btn btn-primary" onclick="serveSelectedParticipant()">Serve</button>
             </div>
@@ -619,6 +620,30 @@
                 .catch(error => console.error('Error:', error));
         }
 
+        function serveParticipantNoResource() {
+            const participantId = document.getElementById('participantId').value;
+
+            fetch(`/manager/serve_no_resource/${participantId}/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: JSON.stringify({resource_id: selectedResourceId})
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Participant served successfully!');
+                        location.reload();
+                    } else {
+                        alert(data.error || 'Error serving participant.');
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+        }
+
+
         function updateWaitingList(waitingList) {
             const waitingSection = document.getElementById('waiting-section');
             waitingSection.innerHTML = '';
@@ -740,10 +765,14 @@
                     if (data.status === 'success') {
                         alert('Notification sent successfully!');
                         document.getElementById("notify_modal").checked = false;
+                        const audio = new Audio(data.audio_url);
+                        audio.play();
+
                     } else {
                         alert('There was an error sending the notification');
                     }
                 });
+
         }
 
 
@@ -857,22 +886,6 @@
 
         `;
             return row;
-        }
-
-        function serveParticipant(id) {
-            fetch(`/manager/serve/${id}/`, {
-                method: 'POST',
-                headers: {
-                    'X-CSRFToken': '{{ csrf_token }}',
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({id})
-            })
-                .then(response => {
-                    if (!response.ok) throw new Error('Network response was not ok');
-                    fetchData();
-                })
-                .catch(error => console.error('Error serving participant:', error));
         }
 
         function completeParticipant(id) {
