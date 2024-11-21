@@ -72,38 +72,25 @@
             </div>
         </div>
 
-        <div class="form-group mb-4">
-            <!-- Use My Location Image Button with Text -->
-            <div class="flex justify-between items-center mt-4">
-                <!-- Label on the left side -->
-                <label class="text-left w-full">Mark your queue location by dragging the marker.</label>
-
-                <!-- Right side: Button with Image and Text combined -->
-                <button type="button" id="useLocationButton" class="flex items-center p-2 bg-transparent border-2 border-blue-500 rounded-full hover:bg-blue-100">
-                    <img src="https://cdn-icons-png.flaticon.com/512/684/684908.png"
-                         alt="Use My Location"
-                         style="width: 40px; height: 20px; margin-right: 8px; cursor: pointer;" />
-                    <span class="text-blue-500 font-medium">Your location</span>
-                </button>
-            </div>
-
-            <!-- Map -->
-            <div id="map" class="mt-4" style="height: 400px;"></div>
-        </div>
-
+<div class="form-group mb-4">
+  <div class="flex justify-between items-center mt-4">
+    <label class="text-left w-full">Mark your queue location by dragging the marker.</label>
+    <button type="button" id="useLocationButton" class="flex items-center p-2 bg-transparent border-2 border-blue-500 rounded-full hover:bg-blue-100">
+      <img src="https://cdn-icons-png.flaticon.com/512/684/684908.png" alt="Use My Location" class="w-5 h-5 mr-2 cursor-pointer" />
+      <span class="text-blue-500 font-medium">Your location</span>
+    </button>
+  </div>
+  <div id="map" class="mt-4" style="height: 400px;"></div>
+</div>
         <input type="hidden" name="latitude" id="id_latitude" required>
         <input type="hidden" name="longitude" id="id_longitude" required>
-
         <div class="flex justify-between items-center">
-            <!-- Left-aligned button -->
             <a href="{% url 'manager:create_queue_step' step='1' %}" class="btn btn-primary">Previous</a>
-            <!-- Right-aligned button -->
             <button type="submit" class="btn btn-primary">Next</button>
         </div>
     </form>
 </div>
 
-<!-- OpenLayers CSS & JS -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ol/ol.css" />
 <script src="https://cdn.jsdelivr.net/npm/ol/dist/ol.js"></script>
 
