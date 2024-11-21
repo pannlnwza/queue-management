@@ -124,18 +124,45 @@ class QueueModelTests(TestCase):
         self.assertEqual(self.queue.estimated_wait_time_per_turn, 15)
 
     def test_calculate_average_service_duration(self):
-        """Test average service duration calculation when participants exist."""
+        """Test updating the average service duration based on recent serve times."""
+        # Set up initial queue state
         self.queue.completed_participants_count = 2
-        self.queue.average_service_duration = 10
+        self.queue.average_service_duration = 10  # Current average is 10 minutes
         self.queue.save()
 
-        self.queue.calculate_average_service_duration(20)
+        # Call the method with a new serve time
+        self.queue.calculate_average_service_duration(20)  # New serve time is 20 minutes
 
+        # Expected new average:
         # Total time = (10 * 2) + 20 = 40
         # New average = 40 / 3 = 13.33, rounded to 14
         self.queue.refresh_from_db()
         self.assertEqual(self.queue.average_service_duration, 14)
         self.assertEqual(self.queue.completed_participants_count, 3)
+
+    def test_get_average_service_duration(self):
+        """Test calculating the average service duration for completed participants."""
+        # Mock completed participants with service durations
+        Participant.objects.create(
+            queue=self.queue,
+            state="completed",
+            joined_at=timezone.now() - timedelta(minutes=60),
+            service_started_at=timezone.now() - timedelta(minutes=50),
+            service_completed_at=timezone.now() - timedelta(minutes=30),
+        )  # Duration: 20 minutes
+
+        Participant.objects.create(
+            queue=self.queue,
+            state="completed",
+            joined_at=timezone.now() - timedelta(minutes=70),
+            service_started_at=timezone.now() - timedelta(minutes=60),
+            service_completed_at=timezone.now() - timedelta(minutes=40),
+        )  # Duration: 20 minutes
+
+        average_service_duration = self.queue.get_average_service_duration()
+
+        # Expected average duration = (20 + 20) / 2 = 20 minutes
+        self.assertEqual(average_service_duration, "20 mins")
 
     def test_get_participants(self):
         """Test retrieving all participants."""
@@ -173,6 +200,11 @@ class QueueModelTests(TestCase):
         """Clean up test files."""
         if self.queue.logo and os.path.isfile(self.queue.logo.path):
             os.remove(self.queue.logo.path)
+
+    def test_get_logo_url(self):
+        """Test retrieving the logo URL or default logo."""
+        default_logo = self.queue.get_logo_url()
+        self.assertIn("restaurant_default_logo.png", default_logo)
 
     def test_edit(self):
         """Test editing queue details."""
@@ -310,27 +342,27 @@ class QueueModelTests(TestCase):
 
     # def test_get_average_waiting_time(self):
     #     """Test calculating the average waiting time for participants."""
-    #     now = timezone.localtime()
+    #     now = timezone.now()
     #
-    #     # Create participants with valid timestamps
-    #     participant1 = Participant.objects.create(
+    #     # Create participants with explicitly correct timestamps
+    #     Participant.objects.create(
     #         queue=self.queue,
     #         state="completed",
-    #         joined_at=now - timedelta(minutes=50),  # Joined 50 minutes ago
-    #         service_started_at=now - timedelta(minutes=30),  # Started service 30 minutes ago
+    #         joined_at=now - timedelta(minutes=50),
+    #         service_started_at=now - timedelta(minutes=30)
     #     )
-    #     participant2 = Participant.objects.create(
+    #     Participant.objects.create(
     #         queue=self.queue,
     #         state="completed",
-    #         joined_at=now - timedelta(minutes=70),  # Joined 70 minutes ago
-    #         service_started_at=now - timedelta(minutes=40),  # Started service 40 minutes ago
+    #         joined_at=now - timedelta(minutes=70),
+    #         service_started_at=now - timedelta(minutes=40)
     #     )
     #
     #     # Call the method
     #     average_waiting_time = self.queue.get_average_waiting_time()
     #
-    #     # Expected average = ((50 - 30) + (70 - 40)) / 2 = (20 + 30) / 2 = 25 minutes
-    #     self.assertEqual(average_waiting_time, "25 minutes")
+    #     # Expected average = (20 + 30) / 2 = 25 minutes
+    #     self.assertEqual(average_waiting_time, "25 mins")
 
     def test_get_staff_percentage(self):
         """Test calculating the percentage of participants created by staff."""
@@ -359,6 +391,30 @@ class QueueModelTests(TestCase):
         """Test maximum waiting time for participants."""
         max_wait_time = self.queue.get_max_waiting_time()
         self.assertEqual(max_wait_time, "0 mins")  # Assuming no wait times recorded
+
+    def test_get_max_service_duration(self):
+        """Test calculating the maximum service duration for completed participants."""
+        # Mock completed participants with service durations
+        Participant.objects.create(
+            queue=self.queue,
+            state="completed",
+            joined_at=timezone.now() - timedelta(minutes=60),
+            service_started_at=timezone.now() - timedelta(minutes=50),
+            service_completed_at=timezone.now() - timedelta(minutes=30),
+        )  # Duration: 20 minutes
+
+        Participant.objects.create(
+            queue=self.queue,
+            state="completed",
+            joined_at=timezone.now() - timedelta(minutes=70),
+            service_started_at=timezone.now() - timedelta(minutes=60),
+            service_completed_at=timezone.now() - timedelta(minutes=35),
+        )  # Duration: 25 minutes
+
+        max_service_duration = self.queue.get_max_service_duration()
+
+        # Expected maximum duration = 25 minutes
+        self.assertEqual(max_service_duration, "25 mins")
 
     def test_record_line_length(self):
         """Test recording line length."""

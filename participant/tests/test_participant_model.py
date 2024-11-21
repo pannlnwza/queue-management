@@ -59,23 +59,23 @@ class ParticipantModelTests(TestCase):
         self.participant.save()
         self.assertEqual(self.participant.get_wait_time(), 10)
 
-    # def test_get_service_duration(self):
-    #     """Test the service duration calculation."""
-    #     self.participant.start_service()
-    #     service_duration_minutes = 5
-    #     self.participant.service_started_at = timezone.localtime()
-    #     self.participant.save()
-    #     self.participant.service_completed_at = self.participant.service_started_at + timedelta(
-    #         minutes=service_duration_minutes)
-    #     self.participant.state = 'completed'
-    #     self.participant.save()
-    #
-    #     # Refresh participant instance
-    #     self.participant.refresh_from_db()
-    #
-    #     # Now we should get the duration equal to service_duration_minutes
-    #     self.assertEqual(self.participant.get_service_duration(),
-    #                      service_duration_minutes)
+    def test_get_service_duration(self):
+        """Test the service duration calculation."""
+        self.participant.start_service()
+        service_duration_minutes = 5
+        self.participant.service_started_at = timezone.localtime()
+        self.participant.save()
+        self.participant.service_completed_at = self.participant.service_started_at + timedelta(
+            minutes=service_duration_minutes)
+        self.participant.state = 'completed'
+        self.participant.save()
+
+        # Refresh participant instance
+        self.participant.refresh_from_db()
+
+        # Now we should get the duration equal to service_duration_minutes
+        self.assertEqual(self.participant.get_service_duration(),
+                         service_duration_minutes)
 
     def test_remove_old_completed_participants(self):
         """Test that old completed participants are removed."""

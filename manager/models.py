@@ -151,6 +151,17 @@ class Queue(models.Model):
             self.completed_participants_count += 1
         self.save()
 
+    def get_average_service_duration(self):
+        """Calculate the average service duration for participants in minutes."""
+        service_durations = [
+            p.get_service_duration() for p in
+            self.participant_set.filter(state='completed')
+            if p.get_service_duration() is not None
+        ]
+        average_service_time = math.ceil(sum(service_durations) / len(
+            service_durations)) if service_durations else 0
+        return format_duration(average_service_time)
+
     def get_participants(self) -> models.QuerySet:
         """Return a queryset of all participants in this queue. Ordered by joined_at"""
         return self.participant_set.all().order_by('joined_at')
@@ -299,6 +310,8 @@ class Queue(models.Model):
             sum(waiting_times) / len(waiting_times)) if waiting_times else 0
         return format_duration(average_wait_time)
 
+
+
     def get_max_waiting_time(self):
         """Calculate the maximum waiting time for participants in minutes."""
         waiting_times = [
@@ -308,17 +321,6 @@ class Queue(models.Model):
         ]
         max_wait_time = max(waiting_times) if waiting_times else 0
         return format_duration(max_wait_time)
-
-    def get_average_service_duration(self):
-        """Calculate the average service duration for participants in minutes."""
-        service_durations = [
-            p.get_service_duration() for p in
-            self.participant_set.filter(state='completed')
-            if p.get_service_duration() is not None
-        ]
-        average_service_time = math.ceil(sum(service_durations) / len(
-            service_durations)) if service_durations else 0
-        return format_duration(average_service_time)
 
     def get_max_service_duration(self):
         """Get the maximum service duration for participants in minutes."""
