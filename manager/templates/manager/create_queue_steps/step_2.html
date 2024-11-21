@@ -134,7 +134,8 @@
     }
 
     const modifyInteraction = new ol.interaction.Modify({
-        source: markerSource,
+    source: markerSource,
+    hitDetection: markerLayer,
     });
     map.addInteraction(modifyInteraction);
 
