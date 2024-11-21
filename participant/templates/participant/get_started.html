@@ -7,7 +7,7 @@
   <div id="carousel-slides" class="flex transition-transform duration-300">
     <div class="carousel-item w-full flex-shrink-0 relative">
         <div class="absolute top-0 left-0 w-full h-full flex items-center justify-center">
-            <a href="{% url 'manager:your-queue' %}" class="card bg-base-100 shadow-xl hover:shadow-2xl transform hover:scale-105 transition duration-300">
+            <a href="{% url 'manager:your-queue' %}" class="card bg-base-100 shadow-xl hover:shadow-2xl transform hover:scale-105 transition duration-300 z-20">
                 <figure class="px-10 pt-10">
                     <img src="{% static 'participant/images/Krustykrab.jpg' %}" alt="Create Queue Icon" class="rounded-xl w-32 h-32 object-cover">
                 </figure>
@@ -25,7 +25,7 @@
 
     <div class="carousel-item w-full flex-shrink-0 relative">
         <div class="absolute top-0 left-0 w-full h-full flex items-center justify-center">
-            <a href="{% url 'participant:queues' %}" class="card bg-base-100 shadow-xl hover:shadow-2xl transform hover:scale-105 transition duration-300">
+            <a href="{% url 'participant:queues' %}" class="card bg-base-100 shadow-xl hover:shadow-2xl transform hover:scale-105 transition duration-300 z-20">
                 <figure class="px-10 pt-10">
                     <img src="{% static 'participant/images/spongebob_queue.jpg' %}" alt="Browse Queue Icon" class="rounded-xl w-32 h-32 object-cover">
                 </figure>
