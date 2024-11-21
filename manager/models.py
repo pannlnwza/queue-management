@@ -310,8 +310,6 @@ class Queue(models.Model):
             sum(waiting_times) / len(waiting_times)) if waiting_times else 0
         return format_duration(average_wait_time)
 
-
-
     def get_max_waiting_time(self):
         """Calculate the maximum waiting time for participants in minutes."""
         waiting_times = [

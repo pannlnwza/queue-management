@@ -342,21 +342,27 @@ class QueueModelTests(TestCase):
 
     # def test_get_average_waiting_time(self):
     #     """Test calculating the average waiting time for participants."""
-    #     now = timezone.now()
+    #     now = timezone.localtime()
     #
     #     # Create participants with explicitly correct timestamps
-    #     Participant.objects.create(
+    #     p1 = Participant.objects.create(
     #         queue=self.queue,
     #         state="completed",
-    #         joined_at=now - timedelta(minutes=50),
-    #         service_started_at=now - timedelta(minutes=30)
+    #         joined_at=now - timedelta(minutes=50),  # Joined 50 minutes ago
+    #         service_started_at=now - timedelta(minutes=30) # Started service 30 minutes ago
     #     )
-    #     Participant.objects.create(
+    #     p2 = Participant.objects.create(
     #         queue=self.queue,
     #         state="completed",
-    #         joined_at=now - timedelta(minutes=70),
-    #         service_started_at=now - timedelta(minutes=40)
+    #         joined_at=now - timedelta(minutes=70),  # Joined 70 minutes ago
+    #         service_started_at=now - timedelta(minutes=40)  # Started service 40 minutes ago
     #     )
+    #
+    #     # debug
+    #     wait_time1 = int((p1.service_started_at - p1.joined_at).total_seconds() / 60)
+    #     wait_time2 = int((p2.service_started_at - p2.joined_at).total_seconds() / 60)
+    #     print(f"Wait time 1: {wait_time1}")
+    #     print(f"Wait time 2: {wait_time2}")
     #
     #     # Call the method
     #     average_waiting_time = self.queue.get_average_waiting_time()
