@@ -84,14 +84,6 @@ class Participant(models.Model):
         elif self.service_started_at:
             return int((self.service_started_at - self.joined_at).total_seconds() / 60)
 
-    def get_service_duration(self):
-        """Calculate the duration of service for the participant."""
-        if self.state == 'serving' and self.service_started_at:
-            return int((timezone.localtime() - self.service_started_at).total_seconds() / 60)
-        elif self.state == 'completed':
-            if self.service_started_at and self.service_completed_at:
-                return int((self.service_completed_at - self.service_started_at).total_seconds() / 60)
-        return 0
 
     def assign_to_resource(self, required_capacity=None):
         """

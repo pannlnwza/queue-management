@@ -188,10 +188,9 @@ class Queue(models.Model):
     def edit(self, name: str = None, description: str = None,
              is_closed: bool = None, status: str = None) -> None:
         """Edit the queue's name, description, or closed status."""
-        if name:
+        if name is not None:  # Adjusted to ensure empty string validation is included
             if not (1 <= len(name) <= 255):
-                raise ValueError(
-                    "The name must be between 1 and 255 characters.")
+                raise ValueError("The name must be between 1 and 255 characters.")
             self.name = name
         if description is not None:
             self.description = description

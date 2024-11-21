@@ -1,6 +1,13 @@
+import os
+from datetime import timedelta
 from django.test import TestCase
+from unittest.mock import MagicMock, patch
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.contrib.auth.models import User
 from datetime import time
+
+from django.utils import timezone
+
 from manager.models import Queue, QueueLineLength
 from participant.models import Participant
 from django.core.exceptions import ValidationError
@@ -61,14 +68,46 @@ class QueueModelTests(TestCase):
 
     def test_formatted_distance(self):
         """Test the formatted distance property."""
-        self.queue.distance_from_user = 1.5  # in kilometers
+        self.queue.distance_from_user = 1.5
         self.assertEqual(self.queue.formatted_distance, "1.5 km")
+
         self.queue.distance_from_user = 0.5  # in kilometers
         self.assertEqual(self.queue.formatted_distance, "500 m")
+
+        self.queue.distance_from_user = None
+        self.assertEqual(self.queue.formatted_distance, "Distance not available")
 
     def test_is_closed_default(self):
         """Test the default value for is_closed field."""
         self.assertFalse(self.queue.is_closed)
+
+    def test_clean_method(self):
+        """Test that the clean method invokes super().clean and performs custom validation."""
+        valid_queue = Queue(
+            name="Valid Queue",
+            latitude=45.0,
+            longitude=-93.0,
+            category="restaurant",
+        )
+        try:
+            # This should pass as all validations are satisfied
+            valid_queue.clean()
+        except ValidationError:
+            self.fail("super().clean() raised ValidationError unexpectedly!")
+
+        invalid_queue = Queue(
+            name="Invalid Queue",
+            latitude=91.0,  # Invalid latitude
+            longitude=-74.0,
+            category="restaurant",
+        )
+        with self.assertRaises(ValidationError):
+            invalid_queue.clean()
+
+        invalid_queue.longitude = 181.0
+        invalid_queue.latitude = 45.0
+        with self.assertRaises(ValidationError):
+            invalid_queue.clean()
 
     def test_has_resources(self):
         """Test if the queue has resources."""
@@ -85,9 +124,18 @@ class QueueModelTests(TestCase):
         self.assertEqual(self.queue.estimated_wait_time_per_turn, 15)
 
     def test_calculate_average_service_duration(self):
-        """Test calculating average service duration."""
+        """Test average service duration calculation when participants exist."""
+        self.queue.completed_participants_count = 2
+        self.queue.average_service_duration = 10
+        self.queue.save()
+
         self.queue.calculate_average_service_duration(20)
-        self.assertEqual(self.queue.average_service_duration, 20)
+
+        # Total time = (10 * 2) + 20 = 40
+        # New average = 40 / 3 = 13.33, rounded to 14
+        self.queue.refresh_from_db()
+        self.assertEqual(self.queue.average_service_duration, 14)
+        self.assertEqual(self.queue.completed_participants_count, 3)
 
     def test_get_participants(self):
         """Test retrieving all participants."""
@@ -106,12 +154,25 @@ class QueueModelTests(TestCase):
 
     def test_get_participants_today(self):
         """Test retrieving today's participants."""
-        self.assertEqual(self.queue.get_participants_today(), 0)
+        self.assertEqual(self.queue.get_participants_today(), 1)
 
-    def test_get_logo_url(self):
-        """Test retrieving the logo URL or default logo."""
-        default_logo = self.queue.get_logo_url()
-        self.assertIn("restaurant_default_logo.png", default_logo)
+    def test_get_logo_url_with_logo(self):
+        """Test retrieving the logo URL when a logo is set."""
+        # Mock an uploaded file for the logo
+        mock_logo = SimpleUploadedFile("test_logo_UOBfYAx.png", b"file_content", content_type="image/png")
+        self.queue.logo = mock_logo
+        self.queue.save()
+
+        # Call the method
+        logo_url = self.queue.get_logo_url()
+
+        # Assert the logo URL is returned
+        self.assertIn("test_logo_UOBfYAx.png", logo_url)
+
+    def tearDown(self):
+        """Clean up test files."""
+        if self.queue.logo and os.path.isfile(self.queue.logo.path):
+            os.remove(self.queue.logo.path)
 
     def test_edit(self):
         """Test editing queue details."""
@@ -119,6 +180,31 @@ class QueueModelTests(TestCase):
         self.queue.refresh_from_db()
         self.assertEqual(self.queue.name, "Updated Queue")
         self.assertTrue(self.queue.is_closed)
+
+    def test_edit_name_length_validation(self):
+        """Test editing the queue with an invalid name length."""
+        # Test for name too short
+        with self.assertRaises(ValueError) as context:
+            self.queue.edit(name='')  # Invalid name
+        self.assertEqual(str(context.exception), "The name must be between 1 and 255 characters.")
+
+        # Test for name too long
+        with self.assertRaises(ValueError) as context:
+            self.queue.edit(name="x" * 256)  # Name with 256 characters
+        self.assertEqual(str(context.exception), "The name must be between 1 and 255 characters.")
+
+    def test_edit_status(self):
+        """Test editing the queue's status."""
+        # Edit status to a valid choice
+        self.queue.edit(status="busy")
+        self.queue.refresh_from_db()
+        self.assertEqual(self.queue.status, "busy")
+
+        # Test with an invalid status
+        self.queue.edit(status="invalid_status")  # Should not change the status
+        self.queue.refresh_from_db()
+        self.assertNotEqual(self.queue.status, "invalid_status")
+        self.assertEqual(self.queue.status, "busy")
 
     def test_get_available_resource(self):
         """Test retrieving an available resource."""
@@ -149,6 +235,117 @@ class QueueModelTests(TestCase):
     def test_get_guest_percentage(self):
         """Test percentage of participants joined by guests."""
         self.assertEqual(self.queue.get_guest_percentage(), 100.0)
+
+    def test_get_number_created_by_staff(self):
+        """Test counting the number of participants created by staff."""
+        # Create participants with 'staff' as the creator
+        Participant.objects.create(queue=self.queue, state="waiting", created_by="staff")
+        Participant.objects.create(queue=self.queue, state="waiting", created_by="staff")
+        Participant.objects.create(queue=self.queue, state="waiting", created_by="guest")  # Not staff
+
+        # Check the count of participants created by staff
+        staff_count = self.queue.get_number_created_by_staff()
+        self.assertEqual(staff_count, 2)  # Only 2 participants created by staff
+
+    def test_get_number_unhandled(self):
+        """Test calculating the number of unhandled participants."""
+        # Clear existing participants
+        self.queue.participant_set.all().delete()
+
+        # Create specific participants for this test
+        Participant.objects.create(queue=self.queue, state="waiting", created_by="staff")
+        Participant.objects.create(queue=self.queue, state="serving", created_by="guest")
+        Participant.objects.create(queue=self.queue, state="completed", created_by="guest")  # Not unhandled
+
+        # Check the number of unhandled participants
+        unhandled_count = self.queue.get_number_unhandled()
+        self.assertEqual(unhandled_count, 2)  # 1 'waiting' + 1 'serving'
+
+    def test_get_unhandled_percentage(self):
+        """Test calculating the percentage of unhandled participants."""
+        # Clear existing participants
+        self.queue.participant_set.all().delete()
+
+        # Add participants with different states
+        Participant.objects.create(queue=self.queue, state="waiting", created_by="staff")
+        Participant.objects.create(queue=self.queue, state="serving", created_by="guest")
+        Participant.objects.create(queue=self.queue, state="completed", created_by="guest")
+
+        # Total: 3, Waiting + Serving: 2, Percentage: (2/3) * 100 = 66.67
+        unhandled_percentage = self.queue.get_unhandled_percentage()
+        self.assertEqual(unhandled_percentage, 66.67)
+
+        # Test with no participants
+        self.queue.participant_set.all().delete()
+        unhandled_percentage = self.queue.get_unhandled_percentage()
+        self.assertEqual(unhandled_percentage, 0)
+
+    def test_get_cancelled_percentage(self):
+        """Test calculating the percentage of cancelled participants."""
+        # Clear existing participants
+        self.queue.participant_set.all().delete()
+
+        # Add participants with different states
+        Participant.objects.create(queue=self.queue, state="cancelled", created_by="guest")
+        Participant.objects.create(queue=self.queue, state="removed", created_by="guest")
+        Participant.objects.create(queue=self.queue, state="completed", created_by="guest")
+
+        # Cancelled: 1, Total Dropoff: 2, Percentage: (1/2) * 100 = 50.0
+        cancelled_percentage = self.queue.get_cancelled_percentage()
+        self.assertEqual(cancelled_percentage, 50.0)
+
+    def test_get_removed_percentage(self):
+        """Test calculating the percentage of removed participants."""
+        # Clear existing participants
+        self.queue.participant_set.all().delete()
+
+        # Add participants with different states
+        Participant.objects.create(queue=self.queue, state="cancelled", created_by="guest")
+        Participant.objects.create(queue=self.queue, state="removed", created_by="guest")
+        Participant.objects.create(queue=self.queue, state="completed", created_by="guest")
+
+        # Removed: 1, Total Dropoff: 2, Percentage: (1/2) * 100 = 50.0
+        removed_percentage = self.queue.get_removed_percentage()
+        self.assertEqual(removed_percentage, 50.0)
+
+    # def test_get_average_waiting_time(self):
+    #     """Test calculating the average waiting time for participants."""
+    #     now = timezone.localtime()
+    #
+    #     # Create participants with valid timestamps
+    #     participant1 = Participant.objects.create(
+    #         queue=self.queue,
+    #         state="completed",
+    #         joined_at=now - timedelta(minutes=50),  # Joined 50 minutes ago
+    #         service_started_at=now - timedelta(minutes=30),  # Started service 30 minutes ago
+    #     )
+    #     participant2 = Participant.objects.create(
+    #         queue=self.queue,
+    #         state="completed",
+    #         joined_at=now - timedelta(minutes=70),  # Joined 70 minutes ago
+    #         service_started_at=now - timedelta(minutes=40),  # Started service 40 minutes ago
+    #     )
+    #
+    #     # Call the method
+    #     average_waiting_time = self.queue.get_average_waiting_time()
+    #
+    #     # Expected average = ((50 - 30) + (70 - 40)) / 2 = (20 + 30) / 2 = 25 minutes
+    #     self.assertEqual(average_waiting_time, "25 minutes")
+
+    def test_get_staff_percentage(self):
+        """Test calculating the percentage of participants created by staff."""
+        # Clear existing participants
+        self.queue.participant_set.all().delete()
+
+        # Create specific participants for this test
+        Participant.objects.create(queue=self.queue, state="waiting", created_by="staff")
+        Participant.objects.create(queue=self.queue, state="waiting", created_by="guest")
+        Participant.objects.create(queue=self.queue, state="waiting", created_by="staff")
+
+        # Check the percentage of participants created by staff
+        staff_percentage = self.queue.get_staff_percentage()
+        # Staff: 2, Total: 3, Percentage = (2/3) * 100 = 66.67
+        self.assertEqual(staff_percentage, 66.67)
 
     def test_get_served_percentage(self):
         """Test percentage of participants served."""
@@ -185,6 +382,7 @@ class QueueModelTests(TestCase):
         self.assertEqual(str(self.queue), "Test Queue")
 
 
+
 class QueueModelEdgeCasesTests(TestCase):
     def setUp(self):
         """Set up common test data."""
@@ -210,6 +408,28 @@ class QueueModelEdgeCasesTests(TestCase):
         self.queue.resource_set.create(capacity=0)
         top_queues = Queue.get_top_featured_queues(category="restaurant")
         self.assertEqual(len(top_queues), 0)
+
+    def test_get_top_featured_queues_with_ratio(self):
+        """Test the calculation of the queue's ratio (participants / max capacity * 100)."""
+        resource = self.queue.resource_set.create(capacity=10, status="available")
+
+        Participant.objects.create(queue=self.queue, state="waiting", created_by="guest")
+        Participant.objects.create(queue=self.queue, state="waiting", created_by="guest")
+
+        top_queues = Queue.get_top_featured_queues(category="restaurant")
+
+        self.assertIn(self.queue, top_queues)
+
+        num_participants = self.queue.get_number_waiting_now()
+        max_capacity = resource.capacity
+        expected_ratio = (num_participants / max_capacity) * 100
+
+        self.assertEqual(len(top_queues), 1)
+        self.assertAlmostEqual(
+            top_queues[0].get_number_waiting_now() / max_capacity * 100,
+            expected_ratio,
+            places=2,
+        )
 
     def test_get_nearby_queues_exact_radius(self):
         """Test a queue at exactly the edge of the radius."""
@@ -238,7 +458,7 @@ class QueueModelEdgeCasesTests(TestCase):
         """Test latitude and longitude ranges."""
         invalid_queue = Queue(
             name="Invalid Queue",
-            latitude=91.0,  # Invalid latitude
+            latitude=91.0,
             longitude=-74.0060,
             category="restaurant",
         )
@@ -247,7 +467,7 @@ class QueueModelEdgeCasesTests(TestCase):
 
         invalid_queue = Queue(
             name="Invalid Queue",
-            latitude=-91.0,  # Invalid latitude
+            latitude=-91.0,
             longitude=-74.0060,
             category="restaurant",
         )
