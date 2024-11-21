@@ -73,12 +73,27 @@
         </div>
 
         <div class="form-group mb-4">
-            <label>Mark your queue location by dragging the marker.</label>
+            <!-- Use My Location Image Button with Text -->
+            <div class="flex justify-between items-center mt-4">
+                <!-- Label on the left side -->
+                <label class="text-left w-full">Mark your queue location by dragging the marker.</label>
+
+                <!-- Right side: Button with Image and Text combined -->
+                <button type="button" id="useLocationButton" class="flex items-center p-2 bg-transparent border-2 border-blue-500 rounded-full hover:bg-blue-100">
+                    <img src="https://cdn-icons-png.flaticon.com/512/684/684908.png"
+                         alt="Use My Location"
+                         style="width: 40px; height: 20px; margin-right: 8px; cursor: pointer;" />
+                    <span class="text-blue-500 font-medium">Your location</span>
+                </button>
+            </div>
+
+            <!-- Map -->
             <div id="map" class="mt-4" style="height: 400px;"></div>
         </div>
 
         <input type="hidden" name="latitude" id="id_latitude" required>
         <input type="hidden" name="longitude" id="id_longitude" required>
+
         <div class="flex justify-between items-center">
             <!-- Left-aligned button -->
             <a href="{% url 'manager:create_queue_step' step='1' %}" class="btn btn-primary">Previous</a>
@@ -86,8 +101,6 @@
             <button type="submit" class="btn btn-primary">Next</button>
         </div>
     </form>
-
-    <button id="useLocationButton" class="btn btn-secondary mt-4">Use My Location</button>
 </div>
 
 <!-- OpenLayers CSS & JS -->
@@ -111,7 +124,8 @@
     const markerStyle = new ol.style.Style({
         image: new ol.style.Icon({
             anchor: [0.5, 1],
-            src: 'https://openlayers.org/en/v4.6.5/examples/data/icon.png'
+            src: 'https://cdn-icons-png.flaticon.com/512/684/684908.png',
+            scale: 0.08
         })
     });
 
@@ -135,8 +149,8 @@
     }
 
     const modifyInteraction = new ol.interaction.Modify({
-    source: markerSource,
-    hitDetection: markerLayer,
+        source: markerSource,
+        hitDetection: markerLayer,
     });
     map.addInteraction(modifyInteraction);
 
@@ -161,33 +175,32 @@
         updateInputs(lon, lat);
     });
 
-    document.getElementById('searchButton').addEventListener('click', function() {
-        const query = document.getElementById('searchInput').value;
-        if (query) {
-            const url = `https://nominatim.openstreetmap.org/search?format=json&q=${query}`;
-            fetch(url)
-                .then(response => response.json())
-                .then(data => {
-                    if (data && data[0]) {
-                        const lon = parseFloat(data[0].lon);
-                        const lat = parseFloat(data[0].lat);
-                        const coordinates = ol.proj.fromLonLat([lon, lat]);
+    document.getElementById('useLocationButton').addEventListener('click', function() {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(function(position) {
+                const lat = position.coords.latitude;
+                const lon = position.coords.longitude;
 
-                        markerSource.clear();
-                        const newMarkerFeature = new ol.Feature({
-                            geometry: new ol.geom.Point(coordinates)
-                        });
-                        markerSource.addFeature(newMarkerFeature);
+                console.log(`User location: Lat = ${lat}, Lon = ${lon}`);
 
-                        map.getView().setCenter(coordinates);
-                        map.getView().setZoom(13);
+                const coordinates = ol.proj.fromLonLat([lon, lat]);
+                map.getView().setCenter(coordinates);
+                map.getView().setZoom(13);
 
-                        updateInputs(lon, lat);
-                    } else {
-                        alert('Location not found');
-                    }
-                })
-                .catch(error => console.error('Error fetching location:', error));
+                markerSource.clear();
+                const newMarkerFeature = new ol.Feature({
+                    geometry: new ol.geom.Point(coordinates)
+                });
+                markerSource.addFeature(newMarkerFeature);
+                document.getElementById('latitudeInput').value = lat;
+                document.getElementById('longitudeInput').value = lon;
+                document.getElementById('id_latitude').value = lat;
+                document.getElementById('id_longitude').value = lon;
+            }, function() {
+                alert("Error: The Geolocation service failed.");
+            });
+        } else {
+            alert("Error: Your browser does not support geolocation.");
         }
     });
 
@@ -202,62 +215,6 @@
     });
 
     updateInputs(null, null);
-</script>
-
-
-<script>
-    document.getElementById('useLocationButton').addEventListener('click', function() {
-        if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(function(position) {
-                const lat = position.coords.latitude;
-                const lon = position.coords.longitude;
-
-                console.log(`User location: Lat = ${lat}, Lon = ${lon}`);
-
-                fetch("{% url 'manager:set_location' %}", {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRFToken': '{{ csrf_token }}'
-                    },
-                    body: JSON.stringify({
-                        lat: lat,
-                        lon: lon
-                    })
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.status === 'success') {
-                        console.log("Location saved to session!");
-
-                        const coordinates = ol.proj.fromLonLat([lon, lat]);
-
-                        map.getView().setCenter(coordinates);
-                        map.getView().setZoom(13);  // Optional zoom level
-
-                        markerSource.clear();
-                        const newMarkerFeature = new ol.Feature({
-                            geometry: new ol.geom.Point(coordinates)
-                        });
-                        markerSource.addFeature(newMarkerFeature);
-
-                        document.getElementById('id_latitude').value = lat;
-                        document.getElementById('id_longitude').value = lon;
-                    } else {
-                        alert("Failed to save location.");
-                    }
-                })
-                .catch(error => {
-                    console.error("Error saving location:", error);
-                    alert("Error saving location.");
-                });
-            }, function() {
-                alert("Error: The Geolocation service failed.");
-            });
-        } else {
-            alert("Error: Your browser does not support geolocation.");
-        }
-    });
 </script>
 
 {% endblock %}
