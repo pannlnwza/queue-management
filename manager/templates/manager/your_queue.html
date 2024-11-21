@@ -103,7 +103,7 @@
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap">{{ queue.get_number_serving_now }}</td>
                         <td class="px-6 py-4 whitespace-nowrap">{{ queue.get_number_waiting_now }}</td>
-                        <td class="px-6 py-4 whitespace-nowrap">{{ queue.estimated_wait_time }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">{{ queue.get_average_waiting_time }}</td>
                         <td class="px-6 py-4 whitespace-nowrap">
                             <div class="dropdown dropdown-left dropdown-end z-100">
                                 <div tabindex="0" role="button" class="btn btn-square btn-sm btn-ghost"
