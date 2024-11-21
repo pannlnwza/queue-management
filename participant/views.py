@@ -367,16 +367,3 @@ def participant_leave(request, participant_code):
         logger.error(
             f"Failed to delete participant {participant_code} from queue: {queue.name} code: {queue.code} ")
     return redirect('participant:welcome', queue_code=queue.code)
-
-  
-def set_location(request):
-    if request.method == 'POST':
-        data = json.loads(request.body)
-        lat = data.get('lat')
-        lon = data.get('lon')
-        if lat and lon:
-            request.session['user_lat'] = lat
-            request.session['user_lon'] = lon
-            print(f"Saved to session: Lat = {lat}, Lon = {lon}")
-            return JsonResponse({'status': 'success'})
-    return JsonResponse({'status': 'failed'}, status=400)
