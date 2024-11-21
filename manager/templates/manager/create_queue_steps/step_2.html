@@ -8,9 +8,8 @@
   </ul>
 </div>
 
-
 <div class="card border-2 border-base-200 max-w-4xl w-full sm:w-3/4 md:w-1/2 mx-auto p-6 mt-4">
-    <form method="post">
+    <form method="post" id="queueForm">
         {% csrf_token %}
 
         <div class="flex justify-center">
@@ -31,177 +30,164 @@
         </div>
 
         <div class="form-group mb-4">
-                <label for="searchInput">Search for Location</label>
-                <div class="relative mt-3">
-                    <input type="text"
-                           id="searchInput"
-                           class="input input-bordered w-full pr-12"
-                           placeholder="Enter location to search">
-                    <button type="button"
-                            id="searchButton"
-                            class="absolute right-2 top-1/2 -translate-y-1/2 p-2 h-auto min-h-0">
-                        <svg xmlns="http://www.w3.org/2000/svg"
-                             class="h-5 w-5"
-                             fill="none"
-                             viewBox="0 0 24 24"
-                             stroke="currentColor">
-                            <path stroke-linecap="round"
-                                  stroke-linejoin="round"
-                                  stroke-width="2"
-                                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                        </svg>
-                    </button>
+            <label for="searchInput">Search for Location</label>
+            <div class="relative mt-3">
+                <input type="text"
+                       id="searchInput"
+                       class="input input-bordered w-full pr-12"
+                       placeholder="Enter location to search">
+                <button type="button"
+                        id="searchButton"
+                        class="absolute right-2 top-1/2 -translate-y-1/2 p-2 h-auto min-h-0">
+                    <svg xmlns="http://www.w3.org/2000/svg"
+                         class="h-5 w-5"
+                         fill="none"
+                         viewBox="0 0 24 24"
+                         stroke="currentColor">
+                        <path stroke-linecap="round"
+                              stroke-linejoin="round"
+                              stroke-width="2"
+                              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        <div class="form-group mb-4">
+            <label>Enter Latitude and Longitude (Optional)</label>
+            <div class="grid gap-4">
+                <div class="flex gap-4">
+                    <input type="number"
+                           id="latitudeInput"
+                           class="mt-3 input input-bordered w-full"
+                           placeholder="Latitude"
+                           step="any"
+                           name="latitudeInput">
+                    <input type="number"
+                           id="longitudeInput"
+                           class="mt-3 input input-bordered w-full"
+                           placeholder="Longitude"
+                           step="any"
+                           name="longitudeInput">
                 </div>
             </div>
+        </div>
 
-            <div class="form-group mb-4">
-                <label>Enter Latitude and Longitude (Optional)</label>
-                <div class="grid gap-4">
-                    <div class="flex gap-4">
-                        <input type="number"
-                               id="latitudeInput"
-                               class="mt-3 input input-bordered w-full"
-                               placeholder="Latitude"
-                               step="any"
-                                name="latitudeInput">
-                        <input type="number"
-                               id="longitudeInput"
-                               class="mt-3 input input-bordered w-full"
-                               placeholder="Longitude"
-                               step="any"
-                                name="longitudeInput">
-                        <button type="button"
-                                id="latLngSearchButton"
-                                class="mt-4 w-10 h-10 flex items-center justify-center">
-                            <svg xmlns="http://www.w3.org/2000/svg"
-                                 class="h-5 w-5"
-                                 fill="none"
-                                 viewBox="0 0 24 24"
-                                 stroke="currentColor">
-                                <path stroke-linecap="round"
-                                      stroke-linejoin="round"
-                                      stroke-width="2"
-                                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                            </svg>
-                        </button>
-                    </div>
-                </div>
-            </div>
+        <div class="form-group mb-4">
+            <label>Mark your queue location by dragging the marker.</label>
+            <div id="map" class="mt-4" style="height: 400px;"></div>
+        </div>
 
-            <div class="form-group mb-4">
-                <label>Mark your queue location by dragging the blue marker.</label>
-                <div id="map" class="mt-4" style="height: 400px;"></div>
-            </div>
-            <input type="hidden" name="latitude" id="id_latitude" required>
-            <input type="hidden" name="longitude" id="id_longitude" required>
+        <input type="hidden" name="latitude" id="id_latitude" required>
+        <input type="hidden" name="longitude" id="id_longitude" required>
         <div class="flex justify-between items-center">
             <!-- Left-aligned button -->
-            <a href="{% url 'manager:create_queue_step' step="1" %}" class="btn btn-primary">Previous</a>
+            <a href="{% url 'manager:create_queue_step' step='1' %}" class="btn btn-primary">Previous</a>
             <!-- Right-aligned button -->
             <button type="submit" class="btn btn-primary">Next</button>
         </div>
     </form>
 </div>
-<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
-<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+<!-- OpenLayers CSS & JS -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ol/ol.css" />
+<script src="https://cdn.jsdelivr.net/npm/ol/dist/ol.js"></script>
+
 <script>
-    var map = L.map('map').setView([13.7563, 100.5018], 13);
-
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-    }).addTo(map);
-
-    var marker = L.marker([13.7563, 100.5018], { draggable: true }).addTo(map);
-
-    function updateInputsFromMarker() {
-        var lat = marker.getLatLng().lat.toFixed(6);
-        var lng = marker.getLatLng().lng.toFixed(6);
-        document.getElementById('id_latitude').value = lat;
-        document.getElementById('id_longitude').value = lng;
-        document.getElementById('latitudeInput').value = lat;
-        document.getElementById('longitudeInput').value = lng;
-    }
-
-    function updateMarkerFromInputs() {
-        var lat = parseFloat(document.getElementById('latitudeInput').value);
-        var lng = parseFloat(document.getElementById('longitudeInput').value);
-        if (!isNaN(lat) && !isNaN(lng)) {
-            marker.setLatLng([lat, lng]);
-            map.setView([lat, lng], 13);
-            document.getElementById('id_latitude').value = lat.toFixed(6);
-            document.getElementById('id_longitude').value = lng.toFixed(6);
-        } else {
-            alert("Please enter valid latitude and longitude.");
-        }
-    }
-
-    marker.on('dragend', updateInputsFromMarker);
-
-    document.getElementById('latitudeInput').addEventListener('change', updateMarkerFromInputs);
-    document.getElementById('longitudeInput').addEventListener('change', updateMarkerFromInputs);
-
-    document.getElementById('latLngSearchButton').addEventListener('click', function () {
-    const lat = document.getElementById('latitudeInput').value.trim();
-    const lng = document.getElementById('longitudeInput').value.trim();
-
-    if (!lat || !lng) {
-        alert("Please enter both latitude and longitude values.");
-        return;
-    }
-
-    updateMarkerFromInputs();
-    });
-
-    document.getElementById('searchButton').addEventListener('click', function () {
-        searchLocation();
-    });
-
-    document.getElementById('searchInput').addEventListener('keydown', function (event) {
-        if (event.key === 'Enter') {
-            event.preventDefault();
-            searchLocation();
-        }
-    });
-
-    function searchLocation() {
-        var query = document.getElementById('searchInput').value.trim();
-
-        if (!query) {
-            alert("Please enter a location to search.");
-            return;
-        }
-
-        fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`)
-            .then(response => response.json())
-            .then(data => {
-                if (data.length > 0) {
-                    var lat = parseFloat(data[0].lat);
-                    var lon = parseFloat(data[0].lon);
-
-                    map.setView([lat, lon], 13);
-                    marker.setLatLng([lat, lon]);
-                    document.getElementById('id_latitude').value = lat.toFixed(6);
-                    document.getElementById('id_longitude').value = lon.toFixed(6);
-                    document.getElementById('latitudeInput').value = lat.toFixed(6);
-                    document.getElementById('longitudeInput').value = lon.toFixed(6);
-                } else {
-                    alert("Location not found. Please try again.");
-                }
+    const map = new ol.Map({
+        target: 'map',
+        layers: [
+            new ol.layer.Tile({
+                source: new ol.source.OSM()
             })
-            .catch(error => {
-                console.error("Error searching location:", error);
-                alert("Unable to search location. Please try again later.");
-            });
+        ],
+        view: new ol.View({
+            center: ol.proj.fromLonLat([100.5018, 13.7563]),
+            zoom: 13
+        })
+    });
+
+    const markerStyle = new ol.style.Style({
+        image: new ol.style.Icon({
+            anchor: [0.5, 1],
+            src: 'https://openlayers.org/en/v4.6.5/examples/data/icon.png'
+        })
+    });
+
+    const markerSource = new ol.source.Vector();
+    const markerLayer = new ol.layer.Vector({
+        source: markerSource,
+    });
+    map.addLayer(markerLayer);
+
+    let markerFeature = new ol.Feature({
+        geometry: new ol.geom.Point(ol.proj.fromLonLat([100.5018, 13.7563]))
+    });
+    markerFeature.setStyle(markerStyle);
+    markerSource.addFeature(markerFeature);
+
+    function updateInputs(lon, lat) {
+        document.getElementById('id_latitude').value = lat.toFixed(6);
+        document.getElementById('id_longitude').value = lon.toFixed(6);
+        document.getElementById('latitudeInput').value = lat.toFixed(6);
+        document.getElementById('longitudeInput').value = lon.toFixed(6);
     }
 
-    document.getElementById('queueForm').addEventListener('submit', function (event) {
-        var latitude = document.getElementById('id_latitude').value;
-        var longitude = document.getElementById('id_longitude').value;
+    let dragInteraction = new ol.interaction.Translate({
+        features: new ol.Collection([markerFeature])
+    });
+    map.addInteraction(dragInteraction);
 
-        if (!latitude || !longitude) {
-            event.preventDefault();
-            alert("Please provide a location for the queue.");
+    dragInteraction.on('translating', function(event) {
+        const coordinates = event.target.getFeatures().getArray()[0].getGeometry().getCoordinates();
+        const lonLat = ol.proj.toLonLat(coordinates);
+        updateInputs(lonLat[0], lonLat[1]);
+    });
+
+    map.on('singleclick', function (event) {
+        const coordinates = ol.proj.toLonLat(event.coordinate);
+        const [lon, lat] = coordinates;
+
+        markerSource.clear();
+        const newMarkerFeature = new ol.Feature({
+            geometry: new ol.geom.Point(event.coordinate)
+        });
+        newMarkerFeature.setStyle(markerStyle);
+        markerSource.addFeature(newMarkerFeature);
+
+        updateInputs(lon, lat);
+    });
+
+    document.getElementById('searchButton').addEventListener('click', function() {
+        const query = document.getElementById('searchInput').value;
+        if (query) {
+            const url = `https://nominatim.openstreetmap.org/search?format=json&q=${query}`;
+            fetch(url)
+                .then(response => response.json())
+                .then(data => {
+                    if (data && data[0]) {
+                        const lon = parseFloat(data[0].lon);
+                        const lat = parseFloat(data[0].lat);
+                        const coordinates = ol.proj.fromLonLat([lon, lat]);
+
+                        markerSource.clear();
+                        const newMarkerFeature = new ol.Feature({
+                            geometry: new ol.geom.Point(coordinates)
+                        });
+                        newMarkerFeature.setStyle(markerStyle);
+                        markerSource.addFeature(newMarkerFeature);
+
+                        map.getView().setCenter(coordinates);
+                        map.getView().setZoom(13);
+
+                        updateInputs(lon, lat);
+                    } else {
+                        alert('Location not found');
+                    }
+                })
+                .catch(error => console.error('Error fetching location:', error));
         }
     });
+    updateInputs(100.5018, 13.7563);
 </script>
 {% endblock %}
