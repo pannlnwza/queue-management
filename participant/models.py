@@ -93,18 +93,24 @@ class Participant(models.Model):
                 return int((self.service_completed_at - self.service_started_at).total_seconds() / 60)
         return 0
 
-
     def assign_to_resource(self, required_capacity=None):
         """
         Assigns this participant to an available resource based on the queue category.
         """
         queue = self.queue
-        resource = queue.get_available_resource(
-            required_capacity=required_capacity)
+
+        # Get the resource, filtering by capacity if provided
+        if required_capacity is not None:
+            resource = queue.get_available_resource(required_capacity=required_capacity)
+        else:
+            resource = queue.get_available_resource()
 
         if resource:
+            # Update the resource status and save
             resource.status = 'busy'
             resource.save()
+
+            # Assign the resource to the participant and save
             self.resource = resource
             self.save()
         else:
