@@ -162,6 +162,7 @@
         updateInputs(lon, lat);
     });
 
+
     document.getElementById('useLocationButton').addEventListener('click', function() {
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(function(position) {
@@ -190,6 +191,55 @@
             alert("Error: Your browser does not support geolocation.");
         }
     });
+
+     document.getElementById('searchButton').addEventListener('click', function () {
+        searchLocation();
+    });
+
+    document.getElementById('searchInput').addEventListener('keydown', function (event) {
+        if (event.key === 'Enter') {
+            event.preventDefault();
+            searchLocation();
+        }
+    });
+
+    function searchLocation() {
+    var query = document.getElementById('searchInput').value.trim();
+
+    if (!query) {
+        alert("Please enter a location to search.");
+        return;
+    }
+
+    fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.length > 0) {
+                var lat = parseFloat(data[0].lat);
+                var lon = parseFloat(data[0].lon);
+                const coordinates = ol.proj.fromLonLat([lon, lat]);
+                map.getView().setCenter(coordinates);
+                map.getView().setZoom(13);
+                markerSource.clear();
+                let newMarkerFeature = new ol.Feature({
+                    geometry: new ol.geom.Point(coordinates)
+                });
+                markerSource.addFeature(newMarkerFeature);
+
+                document.getElementById('id_latitude').value = lat.toFixed(6);
+                document.getElementById('id_longitude').value = lon.toFixed(6);
+                document.getElementById('latitudeInput').value = lat.toFixed(6);
+                document.getElementById('longitudeInput').value = lon.toFixed(6);
+            } else {
+                alert("Location not found. Please try again.");
+            }
+        })
+        .catch(error => {
+            console.error("Error searching location:", error);
+            alert("Unable to search location. Please try again later.");
+        });
+        }
+
 
     document.getElementById('queueForm').addEventListener('submit', function(event) {
         const latitude = document.getElementById('id_latitude').value;
