@@ -86,6 +86,8 @@
             <button type="submit" class="btn btn-primary">Next</button>
         </div>
     </form>
+
+    <button id="useLocationButton" class="btn btn-secondary mt-4">Use My Location</button>
 </div>
 
 <!-- OpenLayers CSS & JS -->
@@ -194,10 +196,68 @@
         const longitude = document.getElementById('id_longitude').value;
 
         if (!latitude || !longitude) {
-            event.preventDefault();  // Prevent form submission
+            event.preventDefault();
             alert('Please enter both latitude and longitude before proceeding.');
         }
     });
+
     updateInputs(null, null);
 </script>
+
+
+<script>
+    document.getElementById('useLocationButton').addEventListener('click', function() {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(function(position) {
+                const lat = position.coords.latitude;
+                const lon = position.coords.longitude;
+
+                console.log(`User location: Lat = ${lat}, Lon = ${lon}`);
+
+                fetch("{% url 'manager:set_location' %}", {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    },
+                    body: JSON.stringify({
+                        lat: lat,
+                        lon: lon
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        console.log("Location saved to session!");
+
+                        const coordinates = ol.proj.fromLonLat([lon, lat]);
+
+                        map.getView().setCenter(coordinates);
+                        map.getView().setZoom(13);  // Optional zoom level
+
+                        markerSource.clear();
+                        const newMarkerFeature = new ol.Feature({
+                            geometry: new ol.geom.Point(coordinates)
+                        });
+                        markerSource.addFeature(newMarkerFeature);
+
+                        document.getElementById('id_latitude').value = lat;
+                        document.getElementById('id_longitude').value = lon;
+                    } else {
+                        alert("Failed to save location.");
+                    }
+                })
+                .catch(error => {
+                    console.error("Error saving location:", error);
+                    alert("Error saving location.");
+                });
+            }, function() {
+                alert("Error: The Geolocation service failed.");
+            });
+        } else {
+            alert("Error: Your browser does not support geolocation.");
+        }
+    });
+</script>
+
 {% endblock %}
