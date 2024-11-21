@@ -140,6 +140,14 @@ class QueueModelTests(TestCase):
         self.assertEqual(self.queue.average_service_duration, 14)
         self.assertEqual(self.queue.completed_participants_count, 3)
 
+        self.queue.completed_participants_count = 0
+        self.queue.average_service_duration = 0
+        self.queue.save()
+        self.queue.calculate_average_service_duration(15)
+        self.queue.refresh_from_db()
+        self.assertEqual(self.queue.average_service_duration, 15)
+        self.assertEqual(self.queue.completed_participants_count, 1)
+
     def test_get_average_service_duration(self):
         """Test calculating the average service duration for completed participants."""
         # Mock completed participants with service durations
@@ -438,6 +446,13 @@ class QueueModelTests(TestCase):
         self.queue.record_line_length()
         avg_line_length = self.queue.get_avg_line_length()
         self.assertEqual(avg_line_length, 1)
+
+    def test_get_avg_line_length_no_records(self):
+        """Test get_avg_line_length when there are no QueueLineLength records."""
+        # Ensure no QueueLineLength records exist for the queue
+        QueueLineLength.objects.filter(queue=self.queue).delete()
+        avg_line_length = self.queue.get_avg_line_length()
+        self.assertEqual(avg_line_length, 0)
 
     def test_string_representation(self):
         """Test string representation of the queue."""
