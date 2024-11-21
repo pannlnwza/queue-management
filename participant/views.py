@@ -4,7 +4,6 @@ from io import BytesIO
 import base64
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
@@ -18,13 +17,9 @@ from manager.utils.category_handler import CategoryHandlerFactory
 import time
 from django.http import StreamingHttpResponse
 import json
-from .models import RestaurantParticipant
 
 # Create your views here.
 
-from django.views import generic
-from manager.models import Queue
-from django.shortcuts import render
 
 
 class HomePageView(generic.TemplateView):

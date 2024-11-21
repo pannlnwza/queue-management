@@ -3,7 +3,7 @@ from abc import ABC, abstractmethod
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 
-from manager.models import RestaurantQueue, Queue, BankQueue, HospitalQueue, Doctor, Resource, Table, Counter
+from manager.models import RestaurantQueue, Queue, BankQueue, HospitalQueue, Doctor, Table, Counter
 from manager.utils.helpers import extract_data_variables
 from participant.models import RestaurantParticipant, Participant, HospitalParticipant, BankParticipant
 

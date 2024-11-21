@@ -1,6 +1,4 @@
 from django.test import TestCase
-from manager.models import Queue, RestaurantQueue, BankQueue, HospitalQueue, Doctor
-from participant.models import Participant, RestaurantParticipant, BankParticipant, HospitalParticipant
 from manager.utils.category_handler import *
 
 

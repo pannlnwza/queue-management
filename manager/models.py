@@ -2,17 +2,12 @@ import math
 import random
 import string
 
-from django.db.models import ManyToManyField
 from django.dispatch import receiver
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.db import models
 from django.templatetags.static import static
-from django.contrib.auth.models import User
-from django.urls import reverse
-from django.conf import settings
 from django.apps import apps
-from django.db.models import Sum
 from django.db.models.signals import post_save
 from manager.utils.helpers import format_duration
 from django.utils import timezone
