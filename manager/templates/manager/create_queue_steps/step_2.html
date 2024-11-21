@@ -117,13 +117,13 @@
     const markerSource = new ol.source.Vector();
     const markerLayer = new ol.layer.Vector({
         source: markerSource,
+        style: markerStyle
     });
     map.addLayer(markerLayer);
 
     let markerFeature = new ol.Feature({
         geometry: new ol.geom.Point(ol.proj.fromLonLat([100.5018, 13.7563]))
     });
-    markerFeature.setStyle(markerStyle);
     markerSource.addFeature(markerFeature);
 
     function updateInputs(lon, lat) {
@@ -133,15 +133,17 @@
         document.getElementById('longitudeInput').value = lon.toFixed(6);
     }
 
-    let dragInteraction = new ol.interaction.Translate({
-        features: new ol.Collection([markerFeature])
+    const modifyInteraction = new ol.interaction.Modify({
+        source: markerSource,
     });
-    map.addInteraction(dragInteraction);
+    map.addInteraction(modifyInteraction);
 
-    dragInteraction.on('translating', function(event) {
-        const coordinates = event.target.getFeatures().getArray()[0].getGeometry().getCoordinates();
-        const lonLat = ol.proj.toLonLat(coordinates);
-        updateInputs(lonLat[0], lonLat[1]);
+    modifyInteraction.on('modifyend', function(event) {
+        if (event.features.getLength() > 0) {
+            const feature = event.features.item(0);
+            const coordinates = ol.proj.toLonLat(feature.getGeometry().getCoordinates());
+            updateInputs(coordinates[0], coordinates[1]);
+        }
     });
 
     map.on('singleclick', function (event) {
@@ -152,7 +154,6 @@
         const newMarkerFeature = new ol.Feature({
             geometry: new ol.geom.Point(event.coordinate)
         });
-        newMarkerFeature.setStyle(markerStyle);
         markerSource.addFeature(newMarkerFeature);
 
         updateInputs(lon, lat);
@@ -174,7 +175,6 @@
                         const newMarkerFeature = new ol.Feature({
                             geometry: new ol.geom.Point(coordinates)
                         });
-                        newMarkerFeature.setStyle(markerStyle);
                         markerSource.addFeature(newMarkerFeature);
 
                         map.getView().setCenter(coordinates);
