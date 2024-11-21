@@ -3,48 +3,55 @@
 {% load static %}
 
 {% block content %}
+
 <div class="carousel w-full overflow-hidden relative">
   <div id="carousel-slides" class="flex transition-transform duration-300">
     <div class="carousel-item w-full flex-shrink-0 relative">
-        <div class="absolute top-0 left-0 w-full h-full flex items-center justify-center">
-            <a href="{% url 'manager:your-queue' %}" class="card bg-base-100 shadow-xl hover:shadow-2xl transform hover:scale-105 transition duration-300">
-                <figure class="px-10 pt-10">
-                    <img src="{% static 'participant/images/Krustykrab.jpg' %}" alt="Create Queue Icon" class="rounded-xl w-32 h-32 object-cover">
-                </figure>
-                <div class="card-body items-center text-center">
-                    <h5 class="card-title text-xl font-semibold text-primary">I'm a Business</h5>
-                    <p class="text-accent">Start managing your customer queues efficiently by creating a queue.</p>
-                </div>
-            </a>
-        </div>
+      <div class="absolute top-0 left-0 w-full h-full flex items-center justify-center">
+        <a href="{% url 'manager:your-queue' %}" class="card bg-base-100 shadow-xl hover:shadow-2xl transform hover:scale-105 transition duration-300 z-20 w-80">
+          <div class="card-body items-center text-center">
+            <figure class="px-10 pt-10">
+              <img src="{% static 'participant/images/Krustykrab.jpg' %}" alt="Create Queue Icon" class="rounded-xl w-32 h-32 object-cover">
+            </figure>
+            <h5 class="card-title text-2xl font-bold text-primary">I'm a Business</h5>
+            <p class="text-accent text-lg">Start managing your customer queues efficiently by creating a queue.</p>
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 150" class="w-36 h-36 justify-center">
+                  <circle cx="100" cy="75" r="50" fill="none" stroke="#000" stroke-width="1"/>
+                  <path d="M75 75 L125 75 M100 50 L125 75 L100 100" stroke="#000" stroke-width="1" fill="none"/>
+                </svg>
+          </div>
+        </a>
 
-        <div class="w-full h-full z-10">
-            <img src="{% static 'participant/images/background_3.jpg' %}" class="w-full h-auto object-cover" loading="lazy"/>
-        </div>
+      </div>
+      <div class="w-full h-full z-10">
+        <img src="{% static 'participant/images/background_3.jpg' %}" class="w-full h-auto object-cover" loading="lazy" />
+      </div>
     </div>
 
     <div class="carousel-item w-full flex-shrink-0 relative">
-        <div class="absolute top-0 left-0 w-full h-full flex items-center justify-center">
-            <a href="{% url 'participant:queues' %}" class="card bg-base-100 shadow-xl hover:shadow-2xl transform hover:scale-105 transition duration-300">
-                <figure class="px-10 pt-10">
-                    <img src="{% static 'participant/images/spongebob_queue.jpg' %}" alt="Browse Queue Icon" class="rounded-xl w-32 h-32 object-cover">
-                </figure>
-                <div class="card-body items-center text-center">
-                    <h5 class="card-title text-xl font-semibold text-primary">Browse Queues</h5>
-                    <p class="text-accent">Browse available queues if you're looking to join one.</p>
-                </div>
-            </a>
-        </div>
-
-        <div class="w-full h-full z-10">
-            <img src="{% static 'participant/images/background_4.jpg' %}" class="w-full h-auto object-cover" loading="lazy"/>
-
-        </div>
+      <div class="absolute top-0 left-0 w-full h-full flex items-center justify-center">
+        <a href="{% url 'participant:queues' %}" class="card bg-base-100 shadow-xl hover:shadow-2xl transform hover:scale-105 transition duration-300 z-20 w-80">
+          <div class="card-body items-center text-center">
+            <figure class="px-10 pt-10">
+              <img src="{% static 'participant/images/spongebob_queue.jpg' %}" alt="Browse Queue Icon" class="rounded-xl w-32 h-32 object-cover">
+            </figure>
+            <h5 class="card-title text-2xl font-bold text-primary">Browse Queues</h5>
+            <p class="text-accent text-lg">Browse available queues if you're looking to join one.</p>
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 150" class="w-36 h-36 justify-center">
+                  <circle cx="100" cy="75" r="50" fill="none" stroke="#000" stroke-width="1"/>
+                  <path d="M75 75 L125 75 M100 50 L125 75 L100 100" stroke="#000" stroke-width="1" fill="none"/>
+                </svg>
+          </div>
+        </a>
+      </div>
+      <div class="w-full h-full z-10">
+        <img src="{% static 'participant/images/background_4.jpg' %}" class="w-full h-auto object-cover" loading="lazy" />
+      </div>
     </div>
   </div>
 
-  <button id="prev" class="absolute left-2 top-1/2 -translate-y-1/2 btn btn-circle">❮</button>
-  <button id="next" class="absolute right-2 top-1/2 -translate-y-1/2 btn btn-circle">❯</button>
+  <button id="prev" class="absolute left-2 top-1/2 btn btn-circle">❮</button>
+  <button id="next" class="absolute right-2 top-1/2 btn btn-circle">❯</button>
 </div>
 
 <div class="container mx-auto px-4 py-12 ">
