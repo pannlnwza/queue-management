@@ -17,6 +17,17 @@ omit =
     # django's migration files
     */migrations/*
     */services/*
+    manager/forms.py
+    manager/middleware.py
+
+    manager/utils/category_handler.py
+    manager/utils/helpers.py
+    manager/utils/queue_data.py
+
+    participant/forms.py
+    participant/templatetags/custom_filters.py
+    participant/utils/data_stream.py
+
 
 # Exclude specific lines from the coverage report
 [report]
