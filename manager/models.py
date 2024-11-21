@@ -5,6 +5,7 @@ import string
 from django.dispatch import receiver
 from django.conf import settings
 from django.contrib.auth.models import User
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.templatetags.static import static
 from django.apps import apps
@@ -112,6 +113,14 @@ class Queue(models.Model):
                 distance_m = self.distance_from_user * 1000
                 return f"{int(distance_m)} m"
         return "Distance not available"
+
+    def clean(self):
+        """Custom validation for latitude and longitude."""
+        if not (-90 <= self.latitude <= 90):
+            raise ValidationError("Latitude must be between -90 and 90.")
+        if not (-180 <= self.longitude <= 180):
+            raise ValidationError("Longitude must be between -180 and 180.")
+        super().clean()
 
     def has_resources(self):
         return self.category != 'general'

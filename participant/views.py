@@ -18,9 +18,6 @@ import time
 from django.http import StreamingHttpResponse
 import json
 
-# Create your views here.
-
-
 
 class HomePageView(generic.TemplateView):
     template_name = 'participant/get_started.html'
