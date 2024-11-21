@@ -1,38 +1,30 @@
 import json
 import logging
+import os
 from datetime import timedelta, datetime
-from lib2to3.fixes.fix_input import context
-from os import close
 
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, user_logged_in, user_logged_out, user_login_failed
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.core.exceptions import PermissionDenied
-from django.db import transaction
-from django.contrib.auth.models import User
 from django.dispatch import receiver
 from django.http import JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse_lazy, reverse
 from django.utils import timezone
 from django.views import generic, View
-from django.views.decorators.http import require_http_methods
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from gtts.tts import gTTS
 
-from manager.forms import QueueForm
-from manager.forms import QueueForm, CustomUserCreationForm, EditProfileForm, OpeningHoursForm, ResourceForm
+from manager.forms import OpeningHoursForm, ResourceForm
 from manager.models import Queue, Resource
 
-from django.views import generic
-from django.views.decorators.http import require_http_methods, require_POST
+from django.views.decorators.http import require_http_methods
 from manager.forms import QueueForm, CustomUserCreationForm, EditProfileForm
 from participant.models import Participant, Notification
-from manager.models import Queue, UserProfile, QueueLineLength
-from manager.utils.queue_handler import QueueHandlerFactory
+from manager.models import UserProfile
 from manager.utils.category_handler import CategoryHandlerFactory
-from django.views.decorators.csrf import csrf_exempt
-
 
 logger = logging.getLogger('queue')
 
@@ -238,8 +230,18 @@ def notify_participant(request, participant_id):
     message = request.POST.get('message', '')
     Notification.objects.create(queue=queue, participant=participant, message=message)
     participant.is_notified = True
+
+    tts = gTTS(text="ควยควยควยควยควยควยคยควย", lang='th')
+    audio_dir = os.path.join(settings.MEDIA_ROOT, 'announcements')
+    os.makedirs(audio_dir, exist_ok=True)
+    audio_path = os.path.join(audio_dir, f'announcement_{participant.id}.mp3')
+    tts.save(audio_path)
+
+    audio_url = f"{settings.MEDIA_URL}announcements/announcement_{participant.id}.mp3"
+    print(audio_url)
+
     participant.save()
-    return JsonResponse({'status': 'success', 'message': 'Notification sent successfully!'})
+    return JsonResponse({'status': 'success', 'message': 'Notification sent successfully!', 'audio_url': audio_url})
 
 
 @require_http_methods(["DELETE"])
@@ -272,7 +274,7 @@ def delete_participant(request, participant_id):
     queue = participant.queue
     participant.state = 'removed'
     participant.delete()
-    messages.success(request, f"Participant has been deleted.")
+    messages.success(request, "Participant has been deleted.")
     logger.info(f"Participant {participant_id} is deleted.")
 
     waiting_participants = Participant.objects.filter(queue=queue, state='waiting').order_by('position')
@@ -300,7 +302,7 @@ def edit_participant(request, participant_id):
         handler = CategoryHandlerFactory.get_handler(participant.queue.category)
         participant = handler.get_participant_set(participant.queue.id).get(id=participant_id)
         handler.update_participant(participant, data)
-        messages.success(request, f"Participant's information has been edited.")
+        messages.success(request, "Participant's information has been edited.")
         return redirect('manager:participant_list', participant.queue.id)
 
 
@@ -328,7 +330,7 @@ def add_participant(request, queue_id):
     }
     handler.create_participant(data)
     queue.record_line_length()
-    messages.success(request, f"Participant has been added.")
+    messages.success(request, "Participant has been added.")
     return redirect('manager:participant_list', queue_id)
 
 
@@ -465,12 +467,13 @@ def mark_no_show(request, participant_id):
     if participant.state in ['serving', 'cancelled', 'completed']:
         messages.error(request, "Cannot mark this participant as No Show because they are not in the waiting list.")
         return redirect('manager:manage_waitlist', participant.queue.id)
-
     participant.state = 'no_show'
     participant.is_notified = False
     participant.waited = (timezone.localtime(timezone.now()) - participant.joined_at).total_seconds() / 60
+
     participant.queue.update_participants_positions()
     participant.save()
+    print(participant.waited)
     messages.success(request, f"{participant.name} has been marked as No Show.")
 
     return redirect('manager:manage_waitlist', participant.queue.id)
