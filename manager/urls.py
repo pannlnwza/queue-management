@@ -9,7 +9,8 @@ from manager.views import (CreateQView, \
                            QueueSettingsView, \
                            ResourceSettings, edit_resource, add_resource, delete_resource, WaitingFull, edit_queue,
                            EditProfileView,
-                           MultiStepFormView, mark_no_show, ViewAllWaiting, ViewAllServing, ViewAllCompleted)
+                           MultiStepFormView, mark_no_show, ViewAllWaiting, ViewAllServing, ViewAllCompleted,
+                           serve_participant_no_resource)
 
 
 app_name = 'manager'
@@ -20,6 +21,7 @@ urlpatterns = [
     path('notify/<int:participant_id>/', notify_participant, name='notify_participant'),
     path('manage/<int:queue_id>/', ManageWaitlist.as_view(), name='manage_waitlist'),
     path('serve/<int:participant_id>/', serve_participant, name='serve_participant'),
+    path('serve_no_resource/<int:participant_id>/', serve_participant_no_resource, name='serve_participant_no_resource'),
     path('complete/<int:participant_id>/', complete_participant, name='complete_participant'),
     path('unique-category-updates/<int:queue_id>/', get_unique_queue_category_data, name='get_unique_queue_category_data'),
     path('general-updates/<int:queue_id>/', get_general_queue_data, name='get_general_queue_data'),

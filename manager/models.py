@@ -151,6 +151,7 @@ class Queue(models.Model):
         participants = self.participant_set.filter(state='waiting').order_by('joined_at')
         for index, participant in enumerate(participants, start=1):
             participant.position = index
+            print(participant.name, participant.position)
             participant.save(update_fields=["position"])
 
     def get_number_of_participants(self) -> int:
