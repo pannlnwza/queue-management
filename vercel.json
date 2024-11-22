@@ -10,10 +10,7 @@
     },
     {
       "src": "tailwind.config.js",
-      "use": "@vercel/static-build",
-      "config": {
-        "buildCommand": "npm run build"
-      }
+      "use": "@vercel/static-build"
     }
   ],
   "env": {
