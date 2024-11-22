@@ -36,7 +36,13 @@
 
         <div class="flex justify-between items-center mb-5">
             <h1 class="text-2xl font-bold antialiased font-sans">Queue Manager</h1>
-            <div class="ml-auto">
+            <div class="ml-auto flex space-x-2">
+                <a href="{% url 'manager:waiting_full' queue.id %}" class="btn btn-primary cursor-pointer">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="size-5">
+                        <path d="m13.28 7.78 3.22-3.22v2.69a.75.75 0 0 0 1.5 0v-4.5a.75.75 0 0 0-.75-.75h-4.5a.75.75 0 0 0 0 1.5h2.69l-3.22 3.22a.75.75 0 0 0 1.06 1.06ZM2 17.25v-4.5a.75.75 0 0 1 1.5 0v2.69l3.22-3.22a.75.75 0 0 1 1.06 1.06L4.56 16.5h2.69a.75.75 0 0 1 0 1.5h-4.5a.747.747 0 0 1-.75-.75ZM12.22 13.28l3.22 3.22h-2.69a.75.75 0 0 0 0 1.5h4.5a.747.747 0 0 0 .75-.75v-4.5a.75.75 0 0 0-1.5 0v2.69l-3.22-3.22a.75.75 0 1 0-1.06 1.06ZM3.5 4.56l3.22 3.22a.75.75 0 0 0 1.06-1.06L4.56 3.5h2.69a.75.75 0 0 0 0-1.5h-4.5a.75.75 0 0 0-.75.75v4.5a.75.75 0 0 0 1.5 0V4.56Z"/>
+                    </svg>
+                    Expand
+                </a>
                 <label for="viewModal" class="btn btn-primary cursor-pointer">View {{ resource_name }}</label>
             </div>
         </div>
@@ -147,15 +153,6 @@
                 <div class="card-body">
                     <div class="inline-flex">
                         <h2 class="card-title">Waiting</h2>
-                        <a href="{% url 'manager:waiting_full' queue.id %}"
-                           class="btn btn-sm btn-square btn-ghost no-animation">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"
-                                 class="size-5">
-                                <path d="m13.28 7.78 3.22-3.22v2.69a.75.75 0 0 0 1.5 0v-4.5a.75.75 0 0 0-.75-.75h-4.5a.75.75 0 0 0 0 1.5h2.69l-3.22 3.22a.75.75 0 0 0 1.06 1.06ZM2 17.25v-4.5a.75.75 0 0 1 1.5 0v2.69l3.22-3.22a.75.75 0 0 1 1.06 1.06L4.56 16.5h2.69a.75.75 0 0 1 0 1.5h-4.5a.747.747 0 0 1-.75-.75ZM12.22 13.28l3.22 3.22h-2.69a.75.75 0 0 0 0 1.5h4.5a.747.747 0 0 0 .75-.75v-4.5a.75.75 0 0 0-1.5 0v2.69l-3.22-3.22a.75.75 0 1 0-1.06 1.06ZM3.5 4.56l3.22 3.22a.75.75 0 0 0 1.06-1.06L4.56 3.5h2.69a.75.75 0 0 0 0-1.5h-4.5a.75.75 0 0 0-.75.75v4.5a.75.75 0 0 0 1.5 0V4.56Z"/>
-                            </svg>
-
-
-                        </a>
                     </div>
 
                     <div>
@@ -491,7 +488,8 @@
                 {% endfor %}
             </div>
             <div class="modal-action">
-                <button type="button" class="btn" onclick="serveParticipantNoResource()">Serve without assigning</button>
+                <button type="button" class="btn" onclick="serveParticipantNoResource()">Serve without assigning
+                </button>
                 <button type="button" class="btn" onclick="autoAssignResource()">Auto assign</button>
                 <button class="btn btn-primary" onclick="serveSelectedParticipant()">Serve</button>
             </div>
@@ -504,7 +502,8 @@
             <h3 class="font-bold text-lg">Confirm No Show</h3>
             <p class="py-4">This action cannot be undone. Are you sure you want to mark this participant as No Show?</p>
             <div class="modal-action">
-                <button class="btn btn-error text-white" id="confirmNoShowButton" onclick="confirmNoShow()">Yes, Mark as No Show
+                <button class="btn btn-error text-white" id="confirmNoShowButton" onclick="confirmNoShow()">Yes, Mark as
+                    No Show
                 </button>
                 <label for="noShowModal" class="btn">Cancel</label>
             </div>
