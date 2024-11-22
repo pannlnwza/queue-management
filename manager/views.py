@@ -648,6 +648,26 @@ class StatisticsView(LoginRequiredMixin, generic.TemplateView):
         context['staff_percentage'] = queue.get_staff_percentage(start_date, end_date)
         context['date_filter'] = date_filter
         context['date_filter_text'] = date_filter_text
+        context['resource_totals'] = [
+            {
+                'resource': resource,
+                'name': resource.name,
+                'total': resource.total(start_date=start_date,
+                                        end_date=end_date),
+                'served': resource.served(start_date=start_date,
+                                          end_date=end_date),
+                'dropoff': resource.dropoff(start_date=start_date,
+                                            end_date=end_date),
+                'completed': resource.completed(start_date=start_date,
+                                                end_date=end_date),
+                'avg_wait_time': resource.avg_wait_time(start_date=start_date,
+                                                        end_date=end_date),
+                'avg_serve_time': resource.avg_serve_time(
+                    start_date=start_date, end_date=end_date),
+            }
+            for resource in queue.resource_set.all()
+        ]
+
         return context
 
 

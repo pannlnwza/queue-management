@@ -155,7 +155,7 @@
                             </thead>
                             <tbody>
                                 {% if queue.resource_set.all %}
-                                    {% for resource in queue.resource_set.all %}
+                                    {% for resource in resource_totals %}
                                     <tr>
                                         <td>{{ resource.name }}</td>
                                         <td>{{ resource.total }}</td>
