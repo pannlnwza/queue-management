@@ -5,7 +5,8 @@ from datetime import timedelta, datetime
 
 from django.conf import settings
 from django.contrib import messages
-from django.contrib.auth import authenticate, login, user_logged_in, user_logged_out, user_login_failed
+from django.contrib.auth import authenticate, login, user_logged_in, \
+    user_logged_out, user_login_failed
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.dispatch import receiver
@@ -18,6 +19,9 @@ from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from gtts.tts import gTTS
 
 from manager.forms import OpeningHoursForm, ResourceForm
+from django.views.decorators.http import require_http_methods
+from manager.forms import QueueForm, CustomUserCreationForm, EditProfileForm, \
+    OpeningHoursForm, ResourceForm
 from manager.models import Queue, Resource
 
 from django.views.decorators.http import require_http_methods
@@ -25,6 +29,8 @@ from manager.forms import QueueForm, CustomUserCreationForm, EditProfileForm
 from participant.models import Participant, Notification
 from manager.models import UserProfile
 from manager.utils.category_handler import CategoryHandlerFactory
+
+from django.views.decorators.csrf import csrf_exempt
 
 logger = logging.getLogger('queue')
 
@@ -40,9 +46,12 @@ class MultiStepFormView(View):
             # Retrieve queue data and time/location data to pass category and other info
             queue_data = request.session.get('queue_data', {})
 
-            queue_category = queue_data.get('category', None)  # Ensure category is passed
-            form = ResourceForm(request.POST or None,  # Handle POST or empty on GET
-                                queue_category={'category': queue_category})  # Pass queue category dynamically
+            queue_category = queue_data.get('category',
+                                            None)  # Ensure category is passed
+            form = ResourceForm(request.POST or None,
+                                # Handle POST or empty on GET
+                                queue_category={
+                                    'category': queue_category})  # Pass queue category dynamically
         else:
             return redirect('manager:your-queue')  # Handle invalid steps
 
@@ -68,39 +77,51 @@ class MultiStepFormView(View):
                 longitude = request.POST.get('longitudeInput')
 
                 time_and_location_data = {
-                    'open_time': form.cleaned_data['open_time'].strftime('%H:%M:%S') if form.cleaned_data.get('open_time') else None,
-                    'close_time': form.cleaned_data['close_time'].strftime('%H:%M:%S') if form.cleaned_data.get('close_time') else None,
+                    'open_time': form.cleaned_data['open_time'].strftime(
+                        '%H:%M:%S') if form.cleaned_data.get(
+                        'open_time') else None,
+                    'close_time': form.cleaned_data['close_time'].strftime(
+                        '%H:%M:%S') if form.cleaned_data.get(
+                        'close_time') else None,
                     'latitude': latitude,
                     'longitude': longitude,
                 }
 
-                request.session['time_and_location_data'] = time_and_location_data
+                request.session[
+                    'time_and_location_data'] = time_and_location_data
 
                 return redirect('manager:create_queue_step', step="3")
 
         elif step == "3":
             queue_data = request.session.get('queue_data', {})
-            time_and_location_data = request.session.get('time_and_location_data', {})
+            time_and_location_data = request.session.get(
+                'time_and_location_data', {})
             queue_data_raw = queue_data.copy()
             queue_data_raw.update(time_and_location_data.copy())
-            queue_category = queue_data_raw.get('category', None)  # Ensure category is present
-            form = ResourceForm(request.POST, queue_category={'category': queue_category})
+            queue_category = queue_data_raw.get('category',
+                                                None)  # Ensure category is present
+            form = ResourceForm(request.POST,
+                                queue_category={'category': queue_category})
 
             if form.is_valid():
                 try:
                     resource_data = form.cleaned_data
                     queue_category = queue_data_raw['category']
-                    handler = CategoryHandlerFactory.get_handler(queue_category)
+                    handler = CategoryHandlerFactory.get_handler(
+                        queue_category)
                     queue_data_raw['created_by'] = request.user
                     queue = handler.create_queue(queue_data_raw)
                     resource_data['queue'] = queue
                     logger.info(f"Resource data: {resource_data}")
                     handler.add_resource(resource_data.copy())
-                    messages.success(request, f"Successfully create queue: {queue.name}")
+                    messages.success(request,
+                                     f"Successfully create queue: {queue.name}")
                     return redirect('manager:your-queue')
                 except Exception as e:
-                    logger.error(f"Error creating queue or adding resource: {e}")
-                    messages.error(request, f"Error creating queue or adding resource: {e}.")
+                    logger.error(
+                        f"Error creating queue or adding resource: {e}")
+                    messages.error(request,
+                                   f"Error creating queue or adding resource: {e}.")
                     return redirect('manager:create_queue_step', step="3")
 
         # In case the form is not valid, render the current step
@@ -143,8 +164,6 @@ class CreateQView(LoginRequiredMixin, generic.CreateView):
         queue = handler.create_queue(queue_data)
 
         return redirect(self.success_url)
-
-
 
 
 class EditQueueView(LoginRequiredMixin, generic.UpdateView):
@@ -228,7 +247,8 @@ def notify_participant(request, participant_id):
     participant = get_object_or_404(Participant, id=participant_id)
     queue = participant.queue
     message = request.POST.get('message', '')
-    Notification.objects.create(queue=queue, participant=participant, message=message)
+    Notification.objects.create(queue=queue, participant=participant,
+                                message=message)
     participant.is_notified = True
 
     tts = gTTS(text="ควยไท", lang='th')
@@ -257,7 +277,8 @@ def delete_queue(request, queue_id):
 
     try:
         queue.delete()
-        return JsonResponse({'success': 'Queue deleted successfully.'}, status=200)
+        return JsonResponse({'success': 'Queue deleted successfully.'},
+                            status=200)
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
 
@@ -266,7 +287,8 @@ def delete_queue(request, queue_id):
 @require_http_methods(["DELETE"])
 def delete_participant(request, participant_id):
     participant = get_object_or_404(Participant, id=participant_id)
-    logger.info(f"Deleting participant {participant_id} from queue {participant.queue.id}")
+    logger.info(
+        f"Deleting participant {participant_id} from queue {participant.queue.id}")
 
     if request.user != participant.queue.created_by:
         return JsonResponse({'error': 'Unauthorized.'}, status=403)
@@ -277,11 +299,14 @@ def delete_participant(request, participant_id):
     messages.success(request, "Participant has been deleted.")
     logger.info(f"Participant {participant_id} is deleted.")
 
-    waiting_participants = Participant.objects.filter(queue=queue, state='waiting').order_by('position')
+    waiting_participants = Participant.objects.filter(queue=queue,
+                                                      state='waiting').order_by(
+        'position')
     for idx, p in enumerate(waiting_participants):
         p.position = idx + 1
         p.save()
-    return JsonResponse({'message': 'Participant deleted and positions updated.'})
+    return JsonResponse(
+        {'message': 'Participant deleted and positions updated.'})
 
 
 @require_http_methods(["POST"])
@@ -299,8 +324,10 @@ def edit_participant(request, participant_id):
             'party_size': request.POST.get('party_size'),
             'state': request.POST.get('state')
         }
-        handler = CategoryHandlerFactory.get_handler(participant.queue.category)
-        participant = handler.get_participant_set(participant.queue.id).get(id=participant_id)
+        handler = CategoryHandlerFactory.get_handler(
+            participant.queue.category)
+        participant = handler.get_participant_set(participant.queue.id).get(
+            id=participant_id)
         handler.update_participant(participant, data)
         messages.success(request, "Participant's information has been edited.")
         return redirect('manager:participant_list', participant.queue.id)
@@ -334,7 +361,6 @@ def add_participant(request, queue_id):
     return redirect('manager:participant_list', queue_id)
 
 
-
 class ManageWaitlist(LoginRequiredMixin, generic.TemplateView):
     template_name = 'manager/manage_queue/manage_unique_category.html'
 
@@ -357,22 +383,26 @@ class ManageWaitlist(LoginRequiredMixin, generic.TemplateView):
         queue = handler.get_queue_object(queue_id)
 
         if self.request.user != queue.created_by:
-            logger.error(f"Unauthorized edit attempt on queue {queue.id} by user {self.request.user.id}")
+            logger.error(
+                f"Unauthorized edit attempt on queue {queue.id} by user {self.request.user.id}")
             return JsonResponse({'error': 'Unauthorized.'}, status=403)
 
         search_query = self.request.GET.get('search', '').strip()
         participant_set = handler.get_participant_set(queue_id)
         if search_query:
-            participant_set = participant_set.filter(name__icontains=search_query)
+            participant_set = participant_set.filter(
+                name__icontains=search_query)
 
         context['waiting_list'] = participant_set.filter(state='waiting').order_by('position')[:5]
         context['serving_list'] = participant_set.filter(state='serving').order_by('-service_started_at')[:5]
         context['completed_list'] = participant_set.filter(state='completed').order_by('-service_completed_at')[:5]
         context['queue'] = queue
         context['resources'] = queue.resource_set.all()
-        context['available_resource'] = queue.get_resources_by_status('available')
+        context['available_resource'] = queue.get_resources_by_status(
+            'available')
         context['busy_resource'] = queue.get_resources_by_status('busy')
-        context['unavailable_resource'] = queue.get_resources_by_status('unavailable')
+        context['unavailable_resource'] = queue.get_resources_by_status(
+            'unavailable')
 
         category_context = handler.add_context_attributes(queue)
         if category_context:
@@ -394,11 +424,15 @@ def serve_participant(request, participant_id):
         resource_id = data.get('resource_id', None)
 
         if participant.state != 'waiting':
-            logger.warning(f"Cannot serve participant {participant_id} because they are in state: {participant.state}")
+            logger.warning(
+                f"Cannot serve participant {participant_id} because they are in state: {participant.state}")
             return JsonResponse({
                 'error': f'{participant.name} cannot be served because they are currently in state: {participant.state}.'
             }, status=400)
 
+        handler.assign_to_resource(participant, resource_id=resource_id)
+        participant.queue.update_estimated_wait_time_per_turn(
+            participant.get_wait_time())
         if participant.queue.category != 'general':
             handler.assign_to_resource(participant, resource_id=resource_id)
         participant.queue.update_estimated_wait_time_per_turn(participant.get_wait_time())
@@ -443,7 +477,8 @@ def serve_participant_no_resource(request, participant_id):
         participant.start_service()
         participant.queue.update_participants_positions()
         participant.save()
-        logger.info(f"Participant {participant_id} started service in queue {participant.queue.id}.")
+        logger.info(
+            f"Participant {participant_id} started service in queue {participant.queue.id}.")
 
         waiting_list = Participant.objects.filter(state='waiting').values()
         serving_list = Participant.objects.filter(state='serving').values()
@@ -463,15 +498,18 @@ def serve_participant_no_resource(request, participant_id):
             'error': f'Error: {str(e)}'
         }, status=500)
 
+
 @login_required
 def complete_participant(request, participant_id):
     participant = get_object_or_404(Participant, id=participant_id)
     queue = participant.queue
     handler = CategoryHandlerFactory.get_handler(queue.category)
-    participant = handler.get_participant_set(queue.id).filter(id=participant_id).first()
+    participant = handler.get_participant_set(queue.id).filter(
+        id=participant_id).first()
 
     if request.user != queue.created_by:
-        logger.error(f"Unauthorized edit attempt on queue {queue.id} by user {request.user.id}")
+        logger.error(
+            f"Unauthorized edit attempt on queue {queue.id} by user {request.user.id}")
         return JsonResponse({'error': 'Unauthorized.'}, status=403)
 
     try:
@@ -484,7 +522,8 @@ def complete_participant(request, participant_id):
 
         handler.complete_service(participant)
         participant.save()
-        logger.info(f"Participant {participant_id} completed service in queue {queue.id}.")
+        logger.info(
+            f"Participant {participant_id} completed service in queue {queue.id}.")
 
         serving_list = Participant.objects.filter(state='serving').values()
         completed_list = Participant.objects.filter(state='completed').values()
@@ -512,7 +551,6 @@ def mark_no_show(request, participant_id):
 
     participant.queue.update_participants_positions()
     participant.save()
-    print(participant.waited)
     messages.success(request, f"{participant.name} has been marked as No Show.")
 
     return redirect('manager:manage_waitlist', participant.queue.id)
@@ -588,7 +626,8 @@ class ParticipantListView(LoginRequiredMixin, generic.TemplateView):
         if time_filter_option == 'today':
             return now.replace(hour=0, minute=0, second=0, microsecond=0)
         elif time_filter_option == 'this_week':
-            return now - timedelta(days=now.weekday())  # monday of the current week
+            return now - timedelta(
+                days=now.weekday())  # monday of the current week
         elif time_filter_option == 'this_month':
             return now.replace(day=1)
         elif time_filter_option == 'this_year':
@@ -635,23 +674,11 @@ class BaseViewAll(LoginRequiredMixin, generic.TemplateView):
         participant_set = handler.get_participant_set(queue_id)
         filtered_list = participant_set.filter(state=self.state)
 
-        items_per_page = 10
-        paginator = Paginator(filtered_list, items_per_page)
-        page = self.request.GET.get('page', 1)
-
-        try:
-            paginated_list = paginator.page(page)
-        except PageNotAnInteger:
-            paginated_list = paginator.page(1)
-        except EmptyPage:
-            paginated_list = paginator.page(paginator.num_pages)
-
         context['queue'] = queue
-        context[f'{self.state}_list'] = paginated_list
+        context[f'{self.state}_list'] = filtered_list
         if queue.category != 'general':
             context['resources'] = queue.resources.all()
         context['available_resource'] = queue.get_resources_by_status('available')
-        context['page_obj'] = paginated_list
 
         category_context = handler.add_context_attributes(queue)
         if category_context:
@@ -785,6 +812,7 @@ class ResourceSettings(LoginRequiredMixin, generic.TemplateView):
             context.update(category_context)
         return context
 
+
 @login_required
 @require_http_methods(["POST"])
 def edit_resource(request, resource_id):
@@ -820,7 +848,8 @@ def add_resource(request, queue_id):
 @require_http_methods(["DELETE"])
 def delete_resource(request, resource_id):
     resource = get_object_or_404(Resource, id=resource_id)
-    logger.info(f"Deleting resource {resource_id} from queue {resource.queue.id}")
+    logger.info(
+        f"Deleting resource {resource_id} from queue {resource.queue.id}")
 
     if request.user != resource.queue.created_by:
         return JsonResponse({'error': 'Unauthorized.'}, status=403)
@@ -843,7 +872,6 @@ def edit_queue(request, queue_id):
         close_time = request.POST.get('close_time')
         logo = request.FILES.get('logo', None)
 
-
         queue.name = name
         queue.description = description
         queue.latitude = latitude
@@ -853,10 +881,12 @@ def edit_queue(request, queue_id):
             if open_time:
                 queue.open_time = datetime.strptime(open_time, "%H:%M").time()
             if close_time:
-                queue.close_time = datetime.strptime(close_time, "%H:%M").time()
+                queue.close_time = datetime.strptime(close_time,
+                                                     "%H:%M").time()
         except ValueError as e:
             print(f"Error while parsing time: {e}")
-            messages.error(request, 'Invalid time format. Please use HH:MM format.')
+            messages.error(request,
+                           'Invalid time format. Please use HH:MM format.')
             return redirect('manager:queue_settings', queue_id=queue_id)
         queue.is_closed = False if status == 'on' else True
         if logo:
@@ -880,7 +910,8 @@ def signup(request):
 
             profile, created = UserProfile.objects.get_or_create(user=user)
             if not profile:
-                messages.error(request, 'Error creating user profile. Please contact support.')
+                messages.error(request,
+                               'Error creating user profile. Please contact support.')
 
             user = authenticate(username=username, password=raw_passwd)
             if user is not None:
@@ -888,8 +919,10 @@ def signup(request):
                 logger.info(f'New user signed up with profile: {username}')
                 return redirect('participant:home')
             else:
-                logger.error(f'Failed to authenticate user after signup: {username}')
-                messages.error(request, 'Error during signup process. Please try again.')
+                logger.error(
+                    f'Failed to authenticate user after signup: {username}')
+                messages.error(request,
+                               'Error during signup process. Please try again.')
         else:
             for field, errors in form.errors.items():
                 for error in errors:
@@ -924,7 +957,8 @@ def login_view(request):
                 if profile_image_url:
                     profile.google_picture = profile_image_url
                     profile.save()
-                    logger.info(f'Google profile image updated for user: {username}')
+                    logger.info(
+                        f'Google profile image updated for user: {username}')
 
             return redirect('manager:your-queue')
         else:
@@ -941,10 +975,12 @@ class EditProfileView(LoginRequiredMixin, generic.UpdateView):
 
     def get_success_url(self):
         queue_id = self.kwargs.get('queue_id')
-        return reverse_lazy('manager:edit_profile', kwargs={'queue_id': queue_id})
+        return reverse_lazy('manager:edit_profile',
+                            kwargs={'queue_id': queue_id})
 
     def get_object(self, queryset=None):
-        profile, created = UserProfile.objects.get_or_create(user=self.request.user)
+        profile, created = UserProfile.objects.get_or_create(
+            user=self.request.user)
         return profile
 
     def form_valid(self, form):
@@ -952,8 +988,10 @@ class EditProfileView(LoginRequiredMixin, generic.UpdateView):
         user = self.request.user
         user.username = form.cleaned_data['username']
         user.email = form.cleaned_data['email']
-        user.first_name = form.cleaned_data.get('first_name', user.first_name) or ''
-        user.last_name = form.cleaned_data.get('last_name', user.last_name) or ''
+        user.first_name = form.cleaned_data.get('first_name',
+                                                user.first_name) or ''
+        user.last_name = form.cleaned_data.get('last_name',
+                                               user.last_name) or ''
         user.save()
 
         profile = form.save(commit=False)
@@ -993,6 +1031,29 @@ def get_client_ip(request):
         if (x_forwarded_for := request.META.get('HTTP_X_FORWARDED_FOR'))
         else request.META.get('REMOTE_ADDR')
     )
+
+
+@csrf_exempt
+def set_location(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            lat = data.get('lat')
+            lon = data.get('lon')
+            if lat and lon:
+                # Store latitude and longitude in the session
+                request.session['user_lat'] = lat
+                request.session['user_lon'] = lon
+                print(f"Saved to session: Lat = {lat}, Lon = {lon}")
+                return JsonResponse({'status': 'success'})
+            else:
+                return JsonResponse(
+                    {'status': 'failed', 'error': 'Invalid data'}, status=400)
+        except json.JSONDecodeError:
+            return JsonResponse({'status': 'failed', 'error': 'Invalid JSON'},
+                                status=400)
+    return JsonResponse(
+        {'status': 'failed', 'error': 'Only POST method allowed'}, status=400)
 
 
 @receiver(user_logged_in)
