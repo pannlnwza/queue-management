@@ -605,26 +605,41 @@ class StatisticsView(LoginRequiredMixin, generic.TemplateView):
         queue = handler.get_queue_object(queue_id)
         participant_set = handler.get_participant_set(queue_id)
 
+        date_filter = self.request.GET.get('date_filter')
+        end_date = timezone.now()
+
+        if date_filter == 'today':
+            start_date = end_date.replace(hour=0, minute=0, second=0,
+                                          microsecond=0)
+        elif date_filter == 'last_7_days':
+            start_date = end_date - timedelta(days=7)
+        elif date_filter == 'last_30_days':
+            start_date = end_date - timedelta(days=30)
+        else:
+            start_date = None
+
+
         context['queue'] = queue
         context['participant_set'] = participant_set
-        context['waitlisted'] = queue.get_number_of_participants()
-        context['currently_waiting'] = queue.get_number_waiting_now()
-        context['currently_serving'] = queue.get_number_serving_now()
-        context['served'] = queue.get_number_served()
-        context['served_percentage'] = queue.get_served_percentage()
-        context['average_wait_time'] = queue.get_average_waiting_time()
-        context['max_wait_time'] = queue.get_max_waiting_time()
+        context['waitlisted'] = queue.get_number_of_participants_by_date(start_date, end_date)
+        context['currently_waiting'] = queue.get_number_waiting_now(start_date, end_date)
+        context['currently_serving'] = queue.get_number_serving_now(start_date, end_date)
+        context['served'] = queue.get_number_served(start_date, end_date)
+        context['served_percentage'] = queue.get_served_percentage(start_date, end_date)
+        context['average_wait_time'] = queue.get_average_waiting_time(start_date, end_date)
+        context['max_wait_time'] = queue.get_max_waiting_time(start_date, end_date)
         context[
-            'average_service_duration'] = queue.get_average_service_duration()
-        context['max_service_duration'] = queue.get_max_service_duration()
-        context['peak_line_length'] = queue.get_peak_line_length()
-        context['avg_line_length'] = queue.get_avg_line_length()
-        context['dropoff_percentage'] = queue.get_dropoff_percentage()
-        context['unhandled_percentage'] = queue.get_unhandled_percentage()
-        context['cancelled_percentage'] = queue.get_cancelled_percentage()
-        context['removed_percentage'] = queue.get_removed_percentage()
-        context['guest_percentage'] = queue.get_guest_percentage()
-        context['staff_percentage'] = queue.get_staff_percentage()
+            'average_service_duration'] = queue.get_average_service_duration(start_date, end_date)
+        context['max_service_duration'] = queue.get_max_service_duration(start_date, end_date)
+        context['peak_line_length'] = queue.get_peak_line_length(start_date, end_date)
+        context['avg_line_length'] = queue.get_avg_line_length(start_date, end_date)
+        context['dropoff_percentage'] = queue.get_dropoff_percentage(start_date, end_date)
+        context['unhandled_percentage'] = queue.get_unhandled_percentage(start_date, end_date)
+        context['cancelled_percentage'] = queue.get_cancelled_percentage(start_date, end_date)
+        context['removed_percentage'] = queue.get_removed_percentage(start_date, end_date)
+        context['guest_percentage'] = queue.get_guest_percentage(start_date, end_date)
+        context['staff_percentage'] = queue.get_staff_percentage(start_date, end_date)
+        context['date_filter'] = date_filter
         return context
 
 
