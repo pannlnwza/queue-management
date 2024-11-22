@@ -1,4 +1,4 @@
-from manager.utils.code_generator import generate_unique_code
+from manager.utils.code_generator import generate_unique_code, generate_unique_number
 from django.db import models
 from django.utils import timezone
 from manager.models import RestaurantQueue, BankQueue, Resource, HospitalQueue
@@ -39,11 +39,14 @@ class Participant(models.Model):
     is_notified = models.BooleanField(default=False)
     created_by = models.CharField(max_length=10, choices=CREATE_BY, default='guest')
     status_qr_code = models.ImageField(upload_to='qrcodes/', null=True, blank=True)
+    number = models.CharField(max_length=4, unique=True, editable=False)
+
 
     def save(self, *args, **kwargs):
-        """Generate a unique ticket code for the participant if not already."""
-        if not self.pk:
+        """Assign unique code and number upon creation."""
+        if not self.pk:  # Only set these fields for new instances
             self.code = generate_unique_code(Participant)
+            self.number = generate_unique_number(Participant)
         if not self.position:  # Only set position if it's not already set
             last_position = Participant.objects.aggregate(models.Max('position'))['position__max'] or 0
             self.position = last_position + 1

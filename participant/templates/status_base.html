@@ -10,7 +10,7 @@
     <link rel="icon" type="image/x-icon" href="{% static 'images/logo.ico' %}">
     {% block title %}<title>Queue Management</title>{% endblock %}
 </head>
-<div class="navbar bg-base-100">
+<div class="navbar bg-base-100 border-2">
     <div class="navbar-start">
         <div class="dropdown">
             <div tabindex="0" role="button" class="btn btn-ghost lg:hidden">
@@ -30,17 +30,7 @@
         </a>
     </div>
 </div>
-<div class="content-container p-1">
-    {% if messages %}
-        <ul class="messages space-y-2">
-            {% for message in messages %}
-                <li class="{% if message.tags == 'success' %}alert alert-success{% elif message.tags == 'error' %}alert alert-error{% elif message.tags == 'info' %}alert alert-info{% elif message.tags == 'warning' %}alert alert-warning{% endif %} shadow-lg">
-                    <span>{{ message }}</span>
-                </li>
-            {% endfor %}
-        </ul>
-    {% endif %}
-</div>
+
     {% block content %}
     {% endblock %}
 

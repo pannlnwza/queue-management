@@ -360,32 +360,34 @@ def sse_queue_status(request, participant_code):
         last_data = None
         while True:
             try:
-                queue = get_object_or_404(Participant,
-                                          code=participant_code).queue
+                queue = get_object_or_404(Participant, code=participant_code).queue
                 handler = CategoryHandlerFactory.get_handler(queue.category)
-                participant = handler.get_participant_set(queue.id).get(
-                    code=participant_code)
+                participant = handler.get_participant_set(queue.id).get(code=participant_code)
 
                 current_data = handler.get_participant_data(participant)
+
+                # Fetch notifications for the participant
+                notification_set = Notification.objects.filter(participant=participant)
+                current_data['notification_set'] = [
+                    {'message': notification.message, 'created_at': notification.created_at.strftime("%Y-%m-%d %H:%M:%S")}
+                    for notification in notification_set
+                ]
+
                 if last_data != current_data:
                     # Prepare the data to send in the SSE stream
-
                     message = json.dumps(current_data)
-
                     yield f"data: {message}\n\n"
                     last_data = current_data
+
                 time.sleep(5)
             except Exception as e:
                 print("Error in event stream:", e)
                 break
 
-    response = StreamingHttpResponse(event_stream(),
-                                     content_type='text/event-stream')
-
-    # Remove 'Connection: keep-alive' and set necessary headers for SSE
+    response = StreamingHttpResponse(event_stream(), content_type='text/event-stream')
     response['Cache-Control'] = 'no-cache'
-
     return response
+
 
 
 def participant_leave(request, participant_code):

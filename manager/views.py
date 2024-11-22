@@ -230,7 +230,7 @@ class EditQueueView(LoginRequiredMixin, generic.UpdateView):
 def notify_participant(request, participant_id):
     participant = get_object_or_404(Participant, id=participant_id)
     queue = participant.queue
-    message = request.POST.get('message', '')
+    message = request.POST.get('message', 'Your queue is here!')
     Notification.objects.create(queue=queue, participant=participant, message=message)
     participant.is_notified = True
     participant.save()

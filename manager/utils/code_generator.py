@@ -19,3 +19,23 @@ def generate_unique_code(model_class, field_name="code", length=12):
         # Check if the code is unique in the specified field
         if not model_class.objects.filter(**{field_name: code}).exists():
             return code
+
+def generate_unique_number(model_class):
+    """
+    Generate a unique number for a participant in the format A001 to A999, B001, etc.
+    """
+    last_participant = model_class.objects.order_by('-joined_at').first()
+    if last_participant and last_participant.number:
+        # Extract the last prefix and number
+        last_prefix = last_participant.number[0]
+        last_number = int(last_participant.number[1:])
+        if last_number < 999:
+            # Increment the number while keeping the same prefix
+            return f"{last_prefix}{last_number + 1:03d}"
+        else:
+            # Move to the next prefix
+            next_prefix = chr(ord(last_prefix) + 1)
+            return f"{next_prefix}001"
+    else:
+        # Default to A001 if no participants exist
+        return "A001"
