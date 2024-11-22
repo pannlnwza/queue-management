@@ -25,3 +25,4 @@ urllib3==2.2.3
 django-tailwind==3.8.0
 django-formtools
 django-tailwind[reload]
+gTTS~=2.5.4
