@@ -263,29 +263,72 @@ class QRcodeView(generic.DetailView):
         Override the get_object method to retrieve the participant by `participant_code`
         instead of `pk`.
         """
-        # Fetch participant using the `participant_code` passed in the URL
         participant_code = self.kwargs.get('participant_code')
         return get_object_or_404(Participant, code=participant_code)
 
     def get_context_data(self, **kwargs):
+        """
+        Populate the context with the participant, queue, and generated QR code.
+        """
         context = super().get_context_data(**kwargs)
         participant = self.get_object()
         context['participant'] = participant
         context['queue'] = participant.queue
+
+        # Generate the QR code URL
         check_queue_url = self.request.build_absolute_uri(
             reverse('participant:queue_status', kwargs={'participant_code': participant.code})
         )
 
-        # Generate QR code
+        # Generate and save QR code
+        qr_code_binary = self.generate_qr_code(check_queue_url)
+        qr_code_base64 = base64.b64encode(qr_code_binary).decode()
+        context['qr_image'] = qr_code_base64
+
+        # Send email with QR code if participant has an email
+        self.send_email_with_qr(participant, qr_code_base64, check_queue_url)
+
+        return context
+
+    @staticmethod
+    def generate_qr_code(data):
+        """
+        Generate a QR code as binary data.
+        """
         qr = qrcode.QRCode(version=1, box_size=10, border=5)
-        qr.add_data(check_queue_url)
+        qr.add_data(data)
         qr.make(fit=True)
         img = qr.make_image(fill='black', back_color='white')
         buffer = BytesIO()
         img.save(buffer, format='PNG')
-        qr_image = base64.b64encode(buffer.getvalue()).decode()
-        context['qr_image'] = qr_image
-        return context
+        return buffer.getvalue()
+
+    def send_email_with_qr(self, participant, qr_code_base64, check_queue_url):
+        """
+        Sends an email to the participant with the QR code embedded.
+        """
+        if not participant.email:
+            return  # Skip if the participant doesn't have an email
+
+        # Render the email template
+        html_message = render_to_string(
+            'participant/qrcode_for_mail.html',
+            {
+                'participant': participant,
+                'qr_code_image_url': f"data:image/png;base64,{qr_code_base64}",
+                'status_link': check_queue_url,
+            }
+        )
+
+        # Create and send the email
+        email = EmailMessage(
+            subject=f"Your Queue Ticket for {participant.queue.name}",
+            body=html_message,
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            to=[participant.email],
+        )
+        email.content_subtype = "html"  # Send as HTML email
+        email.send()
 
 
 class QueueStatusView(generic.TemplateView):
