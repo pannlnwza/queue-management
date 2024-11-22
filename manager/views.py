@@ -686,11 +686,6 @@ def login_view(request):
 
         if user is not None:
             login(request, user)
-
-            profile, created = UserProfile.objects.get_or_create(user=user)
-
-            social_accounts = user.socialaccount_set.filter(provider='google')
-
             return redirect('manager:your-queue')
         else:
             messages.error(request, 'Invalid username or password.')
