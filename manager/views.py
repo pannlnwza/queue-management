@@ -671,23 +671,11 @@ class BaseViewAll(LoginRequiredMixin, generic.TemplateView):
         participant_set = handler.get_participant_set(queue_id)
         filtered_list = participant_set.filter(state=self.state)
 
-        items_per_page = 10
-        paginator = Paginator(filtered_list, items_per_page)
-        page = self.request.GET.get('page', 1)
-
-        try:
-            paginated_list = paginator.page(page)
-        except PageNotAnInteger:
-            paginated_list = paginator.page(1)
-        except EmptyPage:
-            paginated_list = paginator.page(paginator.num_pages)
-
         context['queue'] = queue
-        context[f'{self.state}_list'] = paginated_list
+        context[f'{self.state}_list'] = filtered_list
         if queue.category != 'general':
             context['resources'] = queue.resources.all()
         context['available_resource'] = queue.get_resources_by_status('available')
-        context['page_obj'] = paginated_list
 
         category_context = handler.add_context_attributes(queue)
         if category_context:
