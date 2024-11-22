@@ -41,7 +41,7 @@ class Participant(models.Model):
     resource_assigned = models.CharField(max_length=20, null=True, blank=True)
     is_notified = models.BooleanField(default=False)
     created_by = models.CharField(max_length=10, choices=CREATE_BY, default='guest')
-    qr_code_image = models.ImageField(upload_to='qrcodes/', null=True, blank=True)
+    status_qr_code = models.ImageField(upload_to='qrcodes/', null=True, blank=True)
 
     def save(self, *args, **kwargs):
         """Generate a unique ticket code for the participant if not already."""

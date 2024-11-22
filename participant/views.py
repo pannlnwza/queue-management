@@ -259,71 +259,33 @@ class QRcodeView(generic.DetailView):
     template_name = 'participant/qrcode.html'
 
     def get_object(self, queryset=None):
+        """
+        Override the get_object method to retrieve the participant by `participant_code`
+        instead of `pk`.
+        """
+        # Fetch participant using the `participant_code` passed in the URL
         participant_code = self.kwargs.get('participant_code')
         return get_object_or_404(Participant, code=participant_code)
 
-    def dispatch(self, request, *args, **kwargs):
-        self.object = self.get_object()
-        return super().dispatch(request, *args, **kwargs)
-
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        participant = self.object
+        participant = self.get_object()
         context['participant'] = participant
         context['queue'] = participant.queue
-
-        # Generate the check queue URL
         check_queue_url = self.request.build_absolute_uri(
             reverse('participant:queue_status', kwargs={'participant_code': participant.code})
         )
-        context['check_queue_url'] = check_queue_url
-
-        # Absolute URL for QR code image
-        if participant.qr_code_image:
-            qr_code_image_url = self.request.build_absolute_uri(participant.qr_code_image.url)
-        else:
-            qr_code_image_url = None
-        context['qr_code_image_url'] = qr_code_image_url
-
-        # Absolute URL for status link
-        status_link = self.request.build_absolute_uri(participant.get_status_link)
-        context['status_link'] = status_link
 
         # Generate QR code
         qr = qrcode.QRCode(version=1, box_size=10, border=5)
         qr.add_data(check_queue_url)
         qr.make(fit=True)
         img = qr.make_image(fill='black', back_color='white')
-
-        # Save QR code image to context
         buffer = BytesIO()
         img.save(buffer, format='PNG')
-        qr_image_base64 = base64.b64encode(buffer.getvalue()).decode()
-        context['qr_image'] = f"data:image/png;base64,{qr_image_base64}"
-
-        # Send email with the rendered template
-        self.send_email(participant, context)
-
+        qr_image = base64.b64encode(buffer.getvalue()).decode()
+        context['qr_image'] = qr_image
         return context
-
-    def send_email(self, participant, context):
-        """
-        Send the QR code email to the participant.
-        """
-        # Render the template with context
-        subject = "Your QR Code for Queue Status"
-        html_content = render_to_string('participant/qrcode_for_mail.html', context)  # Render HTML template
-        plain_message = strip_tags(html_content)  # Fallback plain text
-
-        # Create and send the email
-        email = EmailMessage(
-            subject=subject,
-            body=html_content,
-            from_email=settings.DEFAULT_FROM_EMAIL,
-            to=[participant.email],
-        )
-        email.content_subtype = "html"  # Set email content type to HTML
-        email.send()
 
 
 class QueueStatusView(generic.TemplateView):
