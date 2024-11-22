@@ -216,8 +216,10 @@ class Queue(models.Model):
 
     def get_number_of_participants_by_date(self, start_date, end_date):
         """Return the number of participants within a given date range."""
-        queryset = self.participant_set.filter(
-            joined_at__range=(start_date, end_date))
+        queryset= self.participant_set.all()
+        if start_date and end_date:
+            queryset = self.participant_set.filter(
+                joined_at__range=(start_date, end_date))
         return queryset.count()
 
     def get_number_waiting_now(self, start_date=None, end_date=None):
