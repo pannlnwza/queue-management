@@ -607,9 +607,12 @@ class WaitingFull(LoginRequiredMixin, generic.TemplateView):
         queue = handler.get_queue_object(queue_id)
         participant_set = handler.get_participant_set(queue_id)
         waiting_list = participant_set.filter(state='waiting')
+        serving_list = participant_set.filter(state='serving')
         context['queue'] = queue
         context['waiting_list'] = waiting_list
-        context['resources'] = queue.resources.all()
+        context['serving_list'] = serving_list
+        if queue.category != 'general':
+            context['resources'] = queue.resources.all()
         context['available_resource'] = queue.get_resources_by_status('available')
         category_context = handler.add_context_attributes(queue)
         if category_context:
