@@ -35,5 +35,5 @@ urlpatterns = [
     path('edit-profile/<int:queue_id>/', EditProfileView.as_view(), name='edit_profile'),
     path('add_participant/<int:queue_id>/', add_participant, name='add_participant'),
     path('create-queue-step/<str:step>/', MultiStepFormView.as_view(), name='create_queue_step'),
-    path('set)location/', set_location, name='set_location'),
+    path('set-location/', set_location, name='set_location'),
 ]

@@ -159,8 +159,8 @@ class Queue(models.Model):
             participant.save(update_fields=["position"])
 
     def get_number_of_participants(self) -> int:
-        """Return the count of all participants in this queue."""
-        return self.participant_set.count()
+        """Return the count of all participants in this queue, excluding cancelled and removed participants."""
+        return self.participant_set.exclude(state__in=['cancelled', 'removed']).count()
 
     def get_participants_today(self) -> int:
         """Get the total number of participants added to the queue today."""
@@ -214,116 +214,169 @@ class Queue(models.Model):
         """
         return f"{settings.SITE_DOMAIN}/welcome/{self.code}/"
 
-    def get_number_waiting_now(self):
-        """Return the number of participants currently waiting."""
-        return self.participant_set.filter(state='waiting').count()
+    def get_number_of_participants_by_date(self, start_date, end_date):
+        """Return the number of participants within a given date range."""
+        queryset= self.participant_set.all()
+        if start_date and end_date:
+            queryset = self.participant_set.filter(
+                joined_at__range=(start_date, end_date))
+        return queryset.count()
 
-    def get_number_serving_now(self):
-        """Return the number of participants currently serving."""
-        return self.participant_set.filter(state='serving').count()
+    def get_number_waiting_now(self, start_date=None, end_date=None):
+        """Return the number of participants currently waiting, optionally within a date range."""
+        queryset = self.participant_set.filter(state='waiting')
+        if start_date and end_date:
+            queryset = queryset.filter(joined_at__range=(start_date, end_date))
+        return queryset.count()
 
-    def get_number_served(self):
-        """Return the number of participants served."""
-        return self.participant_set.filter(state='completed').count()
+    def get_number_serving_now(self, start_date=None, end_date=None):
+        """Return the number of participants currently serving, optionally within a date range."""
+        queryset = self.participant_set.filter(state='serving')
+        if start_date and end_date:
+            queryset = queryset.filter(joined_at__range=(start_date, end_date))
+        return queryset.count()
 
-    def get_number_created_by_guest(self):
-        """Return the number participants join by link."""
-        return self.participant_set.filter(created_by='guest').count()
+    def get_number_served(self, start_date=None, end_date=None):
+        """Return the number of participants served, optionally within a date range."""
+        queryset = self.participant_set.filter(state='completed')
+        if start_date and end_date:
+            queryset = queryset.filter(joined_at__range=(start_date, end_date))
+        return queryset.count()
 
-    def get_number_created_by_staff(self):
-        """Return the number participants join by staff."""
-        return self.participant_set.filter(created_by='staff').count()
+    def get_number_created_by_guest(self, start_date=None, end_date=None):
+        """Return the number of participants joined by link, optionally within a date range."""
+        queryset = self.participant_set.filter(created_by='guest')
+        if start_date and end_date:
+            queryset = queryset.filter(joined_at__range=(start_date, end_date))
+        return queryset.count()
 
-    def get_number_dropoff(self):
-        """Return the number of dropout participants (cancelled, and removed)."""
-        return self.participant_set.filter(
-            state__in=['cancelled', 'removed']).count()
+    def get_number_created_by_staff(self, start_date=None, end_date=None):
+        """Return the number of participants joined by staff, optionally within a date range."""
+        queryset = self.participant_set.filter(created_by='staff')
+        if start_date and end_date:
+            queryset = queryset.filter(joined_at__range=(start_date, end_date))
+        return queryset.count()
 
-    def get_number_unhandled(self):
-        """Return the number of unhandled participants"""
-        return self.get_number_serving_now() + self.get_number_waiting_now()
+    def get_number_dropoff(self, start_date=None, end_date=None):
+        """Return the number of dropout participants (cancelled and removed), optionally within a date range."""
+        queryset = self.participant_set.filter(
+            state__in=['cancelled', 'removed'])
+        if start_date and end_date:
+            queryset = queryset.filter(joined_at__range=(start_date, end_date))
+        return queryset.count()
 
-    def get_guest_percentage(self):
-        """Return percentage of participants join by link."""
-        num_participants = self.get_number_of_participants()
-        return round((self.get_number_created_by_guest() / num_participants) * 100,
+    def get_number_unhandled(self, start_date=None, end_date=None):
+        """Return the number of unhandled participants, optionally within a date range."""
+        waiting_now = self.get_number_waiting_now(start_date, end_date)
+        serving_now = self.get_number_serving_now(start_date, end_date)
+        return waiting_now + serving_now
+
+    def get_guest_percentage(self, start_date=None, end_date=None):
+        """Return percentage of participants joined by link, optionally within a date range."""
+        num_participants = self.get_number_of_participants_by_date(start_date,
+                                                           end_date)
+        guest_count = self.get_number_created_by_guest(start_date, end_date)
+        return round((guest_count / num_participants) * 100,
                      2) if num_participants else 0
 
-    def get_staff_percentage(self):
-        """Return percentage of participants join by staff."""
-        num_participants = self.get_number_of_participants()
-        return round(
-            (self.get_number_created_by_staff() / num_participants) * 100,
-            2) if num_participants else 0
-
-    def get_served_percentage(self):
-        """Return percentage of participants served."""
-        num_participants = self.get_number_of_participants()
-        return round((self.get_number_served() / num_participants) * 100,
+    def get_staff_percentage(self, start_date=None, end_date=None):
+        """Return percentage of participants joined by staff, optionally within a date range."""
+        num_participants = self.get_number_of_participants_by_date(start_date,
+                                                           end_date)
+        staff_count = self.get_number_created_by_staff(start_date, end_date)
+        return round((staff_count / num_participants) * 100,
                      2) if num_participants else 0
 
-    def get_dropoff_percentage(self):
-        """Return percentage of dropout participants."""
-        num_participants = self.get_number_of_participants()
-        return round((self.get_number_dropoff() / num_participants) * 100,
+    def get_served_percentage(self, start_date=None, end_date=None):
+        """Return percentage of participants served, optionally within a date range."""
+        num_participants = self.get_number_of_participants_by_date(start_date,
+                                                           end_date)
+        served_count = self.get_number_served(start_date, end_date)
+        return round((served_count / num_participants) * 100,
                      2) if num_participants else 0
 
-    def get_unhandled_percentage(self):
-        """Return percentage of unattended participants."""
-        num_participants = self.get_number_of_participants()
-        return round(((self.get_number_waiting_now() + self.get_number_serving_now()) / num_participants) * 100,
+    def get_dropoff_percentage(self, start_date=None, end_date=None):
+        """Return percentage of dropout participants, optionally within a date range."""
+        num_participants = self.get_number_of_participants_by_date(start_date,
+                                                           end_date)
+        dropoff_count = self.get_number_dropoff(start_date, end_date)
+        return round((dropoff_count / num_participants) * 100,
                      2) if num_participants else 0
 
-    def get_cancelled_percentage(self) -> float:
-        return self._get_substate_percentage('cancelled')
+    def get_unhandled_percentage(self, start_date=None, end_date=None):
+        """Return percentage of unhandled participants, optionally within a date range."""
+        num_participants = self.get_number_of_participants_by_date(start_date,
+                                                           end_date)
+        unhandled_count = self.get_number_unhandled(start_date, end_date)
+        return round((unhandled_count / num_participants) * 100,
+                     2) if num_participants else 0
 
-    def get_removed_percentage(self) -> float:
-        return self._get_substate_percentage('removed')
+    def get_cancelled_percentage(self, start_date=None,
+                                 end_date=None) -> float:
+        return self._get_substate_percentage('cancelled', start_date, end_date)
 
-    def _get_substate_percentage(self, state: str) -> float:
-        dropoff_total = self.get_number_dropoff()
-        return round((self.participant_set.filter(
-            state=state).count() / dropoff_total) * 100,
+    def get_removed_percentage(self, start_date=None, end_date=None) -> float:
+        return self._get_substate_percentage('removed', start_date, end_date)
+
+    def _get_substate_percentage(self, state: str, start_date=None,
+                                 end_date=None) -> float:
+        dropoff_total = self.get_number_dropoff(start_date, end_date)
+        queryset = self.participant_set.filter(state=state)
+        if start_date and end_date:
+            queryset = queryset.filter(joined_at__range=(start_date, end_date))
+        return round((queryset.count() / dropoff_total) * 100,
                      2) if dropoff_total else 0
 
-    def get_average_waiting_time(self):
-        """Calculate the average waiting time for participants in minutes."""
+    def get_average_waiting_time(self, start_date=None, end_date=None):
+        """Calculate the average waiting time for participants, optionally within a date range."""
+        queryset = self.participant_set.exclude(state='waiting')
+        if start_date and end_date:
+            queryset = queryset.filter(joined_at__range=(start_date, end_date))
+
         waiting_times = [
-            p.get_wait_time() for p in
-            self.participant_set.exclude(state='waiting')
-            if p.get_wait_time() is not None
+            p.get_wait_time() for p in queryset if
+            p.get_wait_time() is not None
         ]
         average_wait_time = math.ceil(
             sum(waiting_times) / len(waiting_times)) if waiting_times else 0
         return format_duration(average_wait_time)
 
-    def get_max_waiting_time(self):
-        """Calculate the maximum waiting time for participants in minutes."""
+    def get_max_waiting_time(self, start_date=None, end_date=None):
+        """Calculate the maximum waiting time for participants, optionally within a date range."""
+        queryset = self.participant_set.exclude(state='waiting')
+        if start_date and end_date:
+            queryset = queryset.filter(joined_at__range=(start_date, end_date))
+
         waiting_times = [
-            p.get_wait_time() for p in
-            self.participant_set.exclude(state='waiting')
-            if p.get_wait_time() is not None
+            p.get_wait_time() for p in queryset if
+            p.get_wait_time() is not None
         ]
         max_wait_time = max(waiting_times) if waiting_times else 0
         return format_duration(max_wait_time)
 
-    def get_average_service_duration(self):
-        """Calculate the average service duration for participants in minutes."""
+    def get_average_service_duration(self, start_date=None, end_date=None):
+        """Calculate the average service duration for participants, optionally within a date range."""
+        queryset = self.participant_set.filter(state='completed')
+        if start_date and end_date:
+            queryset = queryset.filter(joined_at__range=(start_date, end_date))
+
         service_durations = [
-            p.get_service_duration() for p in
-            self.participant_set.filter(state='completed')
-            if p.get_service_duration() is not None
+            p.get_service_duration() for p in queryset if
+            p.get_service_duration() is not None
         ]
         average_service_time = math.ceil(sum(service_durations) / len(
             service_durations)) if service_durations else 0
         return format_duration(average_service_time)
 
-    def get_max_service_duration(self):
-        """Get the maximum service duration for participants in minutes."""
+    def get_max_service_duration(self, start_date=None, end_date=None):
+        """Get the maximum service duration for participants, optionally within a date range."""
+        queryset = self.participant_set.filter(state='completed')
+        if start_date and end_date:
+            queryset = queryset.filter(joined_at__range=(start_date, end_date))
+
         service_durations = [
-            p.get_service_duration() for p in
-            self.participant_set.filter(state='completed')
-            if p.get_service_duration() is not None
+            p.get_service_duration() for p in queryset if
+            p.get_service_duration() is not None
         ]
         max_service_time = max(service_durations) if service_durations else 0
         return format_duration(max_service_time)
@@ -333,19 +386,25 @@ class Queue(models.Model):
         line_length = self.participant_set.filter(state='waiting').count()
         QueueLineLength.objects.create(queue=self, line_length=line_length)
 
-    def get_peak_line_length(self):
-        """Calculate the peak line length (maximum number of participants waiting) in the queue."""
-        peak_record = QueueLineLength.objects.filter(queue=self).order_by(
-            '-line_length').first()
+    def get_peak_line_length(self, start_date=None, end_date=None):
+        """Calculate the peak line length within the specified date range."""
+        queryset = QueueLineLength.objects.filter(queue=self)
+        if start_date and end_date:
+            queryset = queryset.filter(timestamp__range=(start_date, end_date))
+
+        peak_record = queryset.order_by('-line_length').first()
         return peak_record.line_length if peak_record else 0
 
-    def get_avg_line_length(self):
-        """Calculate the average line length (average number of participants waiting) in the queue."""
-        line_lengths = QueueLineLength.objects.filter(queue=self)
-        total_records = line_lengths.count()
+    def get_avg_line_length(self, start_date=None, end_date=None):
+        """Calculate the average line length (average number of participants waiting) within a date range."""
+        queryset = QueueLineLength.objects.filter(queue=self)
+        if start_date and end_date:
+            queryset = queryset.filter(timestamp__range=(start_date, end_date))
+
+        total_records = queryset.count()
         if total_records == 0:
             return 0
-        total_line_length = sum(record.line_length for record in line_lengths)
+        total_line_length = sum(record.line_length for record in queryset)
         return math.ceil(total_line_length / total_records)
 
     def __str__(self) -> str:
@@ -423,53 +482,65 @@ class Resource(models.Model):
         """
         return self.assigned_to is not None
 
-    @property
-    def total(self):
-        """Return the total number of participants assigned to this resource."""
+    def total(self, start_date=None, end_date=None):
+        """Return the total number of participants assigned to this resource within a date range."""
         Participant = apps.get_model('participant', 'Participant')
-        return Participant.objects.filter(resource=self).count()
+        queryset = Participant.objects.filter(resource_assigned=self.name)
+        if start_date and end_date:
+            queryset = queryset.filter(joined_at__range=(start_date, end_date))
+        return queryset.count()
 
-    @property
-    def served(self):
-        """Return the number of participants who are currently being served or have completed service at this resource."""
+    def served(self, start_date=None, end_date=None):
+        """Return the number of participants who are currently being served or have completed service at this resource within a date range."""
         Participant = apps.get_model('participant', 'Participant')
-        return Participant.objects.filter(resource=self, state__in=['serving',
-                                                                    'completed']).count()
+        queryset = Participant.objects.filter(resource_assigned=self.name,
+                                              state__in=['serving',
+                                                         'completed'])
+        if start_date and end_date:
+            queryset = queryset.filter(joined_at__range=(start_date, end_date))
+        return queryset.count()
 
-    @property
-    def dropoff(self):
-        """Return the number of participants who have been removed or cancelled from this resource."""
+    def dropoff(self, start_date=None, end_date=None):
+        """Return the number of participants who have been removed or cancelled from this resource within a date range."""
         Participant = apps.get_model('participant', 'Participant')
-        return Participant.objects.filter(resource=self, state__in=['removed',
-                                                                    'cancelled']).count()
+        queryset = Participant.objects.filter(resource_assigned=self.name,
+                                              state__in=['removed',
+                                                         'cancelled'])
+        if start_date and end_date:
+            queryset = queryset.filter(joined_at__range=(start_date, end_date))
+        return queryset.count()
 
-    @property
-    def completed(self):
-        """Return the number of participants who have completed service at this resource."""
+    def completed(self, start_date=None, end_date=None):
+        """Return the number of participants who have completed service at this resource within a date range."""
         Participant = apps.get_model('participant', 'Participant')
-        return Participant.objects.filter(resource=self,
-                                          state='completed').count()
+        queryset = Participant.objects.filter(resource_assigned=self.name, state='completed')
+        if start_date and end_date:
+            queryset = queryset.filter(joined_at__range=(start_date, end_date))
+        return queryset.count()
 
-    @property
-    def avg_wait_time(self):
-        """Calculate the average wait time for participants in the 'serving' or 'completed' states at this resource."""
+    def avg_wait_time(self, start_date=None, end_date=None):
+        """Calculate the average wait time for participants in the 'serving' or 'completed' states at this resource within a date range."""
         Participant = apps.get_model('participant', 'Participant')
-        participants = Participant.objects.filter(resource=self,
-                                                  state__in=['serving',
-                                                             'completed'])
-        wait_times = [p.get_wait_time() for p in participants if
+        queryset = Participant.objects.filter(resource_assigned=self.name,
+                                              state__in=['serving',
+                                                         'completed'])
+        if start_date and end_date:
+            queryset = queryset.filter(joined_at__range=(start_date, end_date))
+
+        wait_times = [p.get_wait_time() for p in queryset if
                       p.get_wait_time() is not None]
         average_wait_time = math.ceil(
             sum(wait_times) / len(wait_times)) if wait_times else 0
         return format_duration(average_wait_time)
 
-    @property
-    def avg_serve_time(self):
-        """Calculate the average service duration for participants in the 'completed' state at this resource."""
+    def avg_serve_time(self, start_date=None, end_date=None):
+        """Calculate the average service duration for participants in the 'completed' state at this resource within a date range."""
         Participant = apps.get_model('participant', 'Participant')
-        participants = Participant.objects.filter(resource=self,
-                                                  state='completed')
-        serve_times = [p.get_service_duration() for p in participants if
+        queryset = Participant.objects.filter(resource_assigned=self.name, state='completed')
+        if start_date and end_date:
+            queryset = queryset.filter(joined_at__range=(start_date, end_date))
+
+        serve_times = [p.get_service_duration() for p in queryset if
                        p.get_service_duration() is not None]
         average_serve_time = math.ceil(
             sum(serve_times) / len(serve_times)) if serve_times else 0
