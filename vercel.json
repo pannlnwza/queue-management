@@ -1,12 +1,28 @@
 {
-  "builds": [{
-    "src": "config/wsgi.py",
-    "use": "@vercel/python",
-    "config": {"maxLambdaSize":  "15mb", "runtime":  "python3.11.3"}
-  }],
-  "routes": [{
-    "src": "/(.*)",
-    "dest": "config/wsgi.py"
-  }
+  "builds": [
+    {
+      "src": "config/wsgi.py",
+      "use": "@vercel/python",
+      "config": {
+        "runtime": "python3.11",
+        "maxLambdaSize": "15mb"
+      }
+    },
+    {
+      "src": "tailwind.config.js",
+      "use": "@vercel/static-build",
+      "config": {
+        "buildCommand": "npm run build"
+      }
+    }
+  ],
+  "env": {
+    "DJANGO_SETTINGS_MODULE": "config.settings"
+  },
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "config/wsgi.py"
+    }
   ]
 }
