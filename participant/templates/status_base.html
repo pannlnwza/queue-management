@@ -1,4 +1,5 @@
 {% load static tailwind_tags %}
+{% load django_browser_reload %}
 <!DOCTYPE html>
 <html lang="en" data-theme="light">
 <head>
@@ -32,3 +33,4 @@
     {% block content %}
     {% endblock %}
 </html>
+{% django_browser_reload_script %}
