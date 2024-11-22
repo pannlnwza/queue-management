@@ -159,8 +159,8 @@ class Queue(models.Model):
             participant.save(update_fields=["position"])
 
     def get_number_of_participants(self) -> int:
-        """Return the count of all participants in this queue."""
-        return self.participant_set.count()
+        """Return the count of all participants in this queue, excluding cancelled and removed participants."""
+        return self.participant_set.exclude(state__in=['cancelled', 'removed']).count()
 
     def get_participants_today(self) -> int:
         """Get the total number of participants added to the queue today."""

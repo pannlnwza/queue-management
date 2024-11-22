@@ -357,6 +357,7 @@ def participant_leave(request, participant_code):
 
     try:
         participant.state = 'cancelled'
+        participant.save()
         messages.success(request,
                          f"We are sorry to see you leave {participant.name}. See you next time!")
         logger.info(

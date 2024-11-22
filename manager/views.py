@@ -285,6 +285,7 @@ def delete_participant(request, participant_id):
 
     queue = participant.queue
     participant.state = 'removed'
+    participant.save()
     logger.info(f"Participant {participant_id} is deleted.")
 
     waiting_participants = Participant.objects.filter(queue=queue,
