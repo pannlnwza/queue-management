@@ -1,9 +1,11 @@
+from unittest.mock import patch
+
 from django.test import TestCase, Client
 from django.urls import reverse
 from django.contrib.auth.models import User
 from django.contrib.messages import get_messages
-from manager.models import UserProfile  # Adjust import path as needed
-from manager.forms import CustomUserCreationForm  # Adjust import path as needed
+from manager.models import UserProfile
+from manager.forms import CustomUserCreationForm
 import logging
 
 
@@ -79,6 +81,50 @@ class TestUserRegistration(TestCase):
         user = User.objects.get(username=self.user_data['username'])
         self.assertTrue(UserProfile.objects.filter(user=user).exists())
 
+    @patch('manager.views.authenticate')
+    def test_signup_authentication_failure(self, mock_authenticate):
+        """Test error handling when authentication after signup fails"""
+        # Make authenticate return None to simulate authentication failure
+        mock_authenticate.return_value = None
+
+        # Use a valid form submission that would normally succeed
+        response = self.client.post(self.signup_url, self.user_data, follow=True)
+
+        # Check that the error message is present
+        messages = list(get_messages(response.wsgi_request))
+        error_message = 'Error during signup process. Please try again.'
+        self.assertTrue(
+            any(message.message == error_message for message in messages),
+            f"Expected message '{error_message}' not found in messages: {[m.message for m in messages]}"
+        )
+
+        # Verify the user was created but not authenticated
+        self.assertEqual(User.objects.filter(username=self.user_data['username']).count(), 1)
+
+        # Verify we're not logged in
+        self.assertFalse('_auth_user_id' in self.client.session)
+
+        # Verify authenticate was called with correct credentials
+        mock_authenticate.assert_called_once_with(
+            username=self.user_data['username'],
+            password=self.user_data['password1']
+        )
+
+        # Check that we stayed on the signup page
+        self.assertEqual(response.status_code, 200)
+
+    @patch('manager.models.UserProfile.objects.get_or_create')
+    def test_signup_profile_creation_error(self, mock_get_or_create):
+        """Test error handling when UserProfile creation fails"""
+        # Mock get_or_create to return (None, False) indicating profile creation failure
+        mock_get_or_create.return_value = (None, False)
+
+        response = self.client.post(self.signup_url, self.user_data)
+
+        # Check error message
+        messages = list(get_messages(response.wsgi_request))
+        self.assertTrue(any(message.message == 'Error creating user profile. Please contact support.'
+                            for message in messages))
 
 class TestUserLogin(TestCase):
     def setUp(self):
