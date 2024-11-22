@@ -53,24 +53,54 @@
         </div>
 
         <!-- Customer Info Section -->
-        <div class="px-6 py-4 border-t border-base-100">
-            <div class="space-y-4">
-                <div>
-                    <label class="text-sm text-gray-500">Name</label>
-                    <p class="font-medium" id="participantName"></p>
-                </div>
-                <div>
-                    <label class="text-sm text-gray-500">Phone Number</label>
-                    <p class="font-medium" id='participantPhone'></p>
-                </div>
-                <div>
-                    <label class="text-sm text-gray-500">Email</label>
-                    <p class="font-medium" id="participantEmail"></p>
+        <!-- Customer Info Section -->
+            <div class="px-6 py-4 border-t border-base-100">
+                <div class="space-y-4">
+                    <div>
+                        <label class="text-sm text-gray-500">Name</label>
+                        <p class="font-medium" id="participantName"></p>
+                    </div>
+                    <div>
+                        <label class="text-sm text-gray-500">Phone Number</label>
+                        <p class="font-medium" id='participantPhone'></p>
+                    </div>
+                    <div>
+                        <label class="text-sm text-gray-500">Email</label>
+                        <p class="font-medium" id="participantEmail"></p>
+                    </div>
+
+                    {# Special attributes for different category of queues #}
+                    {% if queue.category == 'restaurant' %}
+                        <div>
+                            <label class="text-sm text-gray-500">Party Size</label>
+                            <p class="font-medium" id="special_1"></p>
+                        </div>
+                        <div>
+                            <label class="text-sm text-gray-500">Seating Preference</label>
+                            <p class="font-medium" id="special_2"></p>
+                        </div>
+                    {% elif queue.category == 'hospital' %}
+                        <div>
+                            <label class="text-sm text-gray-500">Medical Field</label>
+                            <p class="font-medium" id="special_1"></p>
+                        </div>
+                        <div>
+                            <label class="text-sm text-gray-500">Priority</label>
+                            <p class="font-medium" id="special_2"></p>
+                        </div>
+                    {% elif queue.category == 'bank' %}
+                        <div>
+                            <label class="text-sm text-gray-500">Service type</label>
+                            <p class="font-medium" id="special_2"></p>
+                            <p class="font-medium" id="special_1"  style="display: none;"></p>
+                        </div>
+                    {% endif %}
+
                 </div>
             </div>
         </div>
     </div>
-</div>
+
 
 <script>
     const eventSource = new EventSource('/status/{{ participant.code }}/sse');
@@ -78,29 +108,48 @@
     // Elements
     const notificationButton = document.getElementById('notificationButton');
     const modal = document.getElementById('my_modal_5');
-    const modalTitle = document.getElementById('modalTitle');
     const modalMessage = document.getElementById('modalMessage');
 
-    // Sound notification (optional)
-    const notificationSound = new Audio("{% static 'sounds/notification.mp3' %}");
+    // Notification sound
+    const notificationSound = new Audio("{% static 'participant/sounds/notification.mp3' %}");
+    let soundEnabled = false;
+
+    // Enable sound on user interaction
+    document.addEventListener('click', () => {
+        if (!soundEnabled) {
+            notificationSound.play().then(() => {
+                soundEnabled = true;
+                console.log('Sound enabled.');
+            }).catch(() => {
+                console.log('Sound blocked by browser.');
+            });
+        }
+    });
 
     eventSource.onmessage = function(event) {
         try {
             const data = JSON.parse(event.data);
             console.log("Received data:", data);
 
-            // Populate Participant Info
+            // Access data directly as it is a single object, not an array
             document.getElementById('participantName').innerText = data.name || 'N/A';
             document.getElementById('position').innerText = data.position || 'N/A';
             document.getElementById('participantPhone').innerText = data.phone || 'N/A';
             document.getElementById('participantEmail').innerText = data.email || 'N/A';
             document.getElementById('EstimatedWaitTime').innerText = data.estimated_wait_time || 'N/A';
+            document.getElementById('special_1').innerText = data.special_1 || 'N/A';
+            document.getElementById('special_2').innerText = data.special_2 || 'N/A';
 
-            // Reset Notification Messages
+            document.getElementById('first-in-queue-message').style.display = 'none';
+            document.getElementById('ETA-message').style.display = 'none';
+            document.getElementById('is-notified-message').style.display = 'none';
+
+
+            // Reset modal content
             modalMessage.innerHTML = "";
 
             if (data.notification_set && data.notification_set.length > 0) {
-                // Populate modal with notifications
+                // Populate notifications
                 data.notification_set.forEach(notification => {
                     const notificationElement = document.createElement('div');
                     notificationElement.classList.add('p-2', 'border-b', 'border-gray-200');
@@ -111,13 +160,13 @@
                     modalMessage.appendChild(notificationElement);
                 });
 
-                // Auto-open modal for new notifications
+                // Play sound and open modal for new notifications
+                if (soundEnabled) {
+                    notificationSound.play().catch(error => console.error('Error playing sound:', error));
+                }
                 modal.showModal();
 
-                // Play notification sound
-                notificationSound.play();
-
-                // Highlight the button
+                // Highlight notification button
                 notificationButton.classList.add('animate-pulse', 'bg-red-500', 'text-white');
             } else {
                 modalMessage.innerHTML = "<p>No new notifications</p>";
@@ -131,13 +180,12 @@
         console.error("Error in SSE connection:", error);
     };
 
-    function confirmLeaveQueue() {
-        return confirm("Are you sure you want to leave the queue? This action cannot be undone.");
-    }
-
-    // Reset Notification Effects on Modal Close
     modal.addEventListener('close', () => {
         notificationButton.classList.remove('animate-pulse', 'bg-red-500', 'text-white');
     });
+
+    function confirmLeaveQueue() {
+        return confirm("Are you sure you want to leave the queue? This action cannot be undone.");
+    }
 </script>
 {% endblock %}
