@@ -1,7 +1,4 @@
-import random
-import string
-
-from django.contrib.auth.models import User
+from manager.utils.code_generator import generate_unique_code
 from django.db import models
 from django.utils import timezone
 from manager.models import RestaurantQueue, BankQueue, Resource, HospitalQueue
@@ -46,20 +43,11 @@ class Participant(models.Model):
     def save(self, *args, **kwargs):
         """Generate a unique ticket code for the participant if not already."""
         if not self.pk:
-            self.code = self.generate_unique_queue_code()
+            self.code = generate_unique_code(Participant)
         if not self.position:  # Only set position if it's not already set
             last_position = Participant.objects.aggregate(models.Max('position'))['position__max'] or 0
             self.position = last_position + 1
         super().save(*args, **kwargs)
-
-    @staticmethod
-    def generate_unique_queue_code(length=12):
-        """Generate a unique code for each participant."""
-        characters = string.ascii_uppercase + string.digits
-        while True:
-            code = ''.join(random.choices(characters, k=length))
-            if not Participant.objects.filter(code=code).exists():
-                return code
 
     def update_position(self, new_position: int) -> None:
         """Update the position of the participant in the queue."""

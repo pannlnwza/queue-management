@@ -1,8 +1,5 @@
 import math
-import random
-import string
-
-from django.db.models import ManyToManyField
+from manager.utils.code_generator import generate_unique_code
 from django.dispatch import receiver
 from django.conf import settings
 from django.contrib.auth.models import User
@@ -48,7 +45,7 @@ class Queue(models.Model):
     category = models.CharField(max_length=20, choices=CATEGORY_CHOICES)
     logo = models.ImageField(upload_to='queue_logos/', blank=True, null=True)
     completed_participants_count = models.PositiveIntegerField(default=0)
-    code = models.CharField(max_length=6, unique=True, editable=False)
+    code = models.CharField(max_length=12, unique=True, editable=False)
     latitude = models.FloatField()
     longitude = models.FloatField()
     distance_from_user = models.FloatField(null=True, blank=True)
@@ -56,17 +53,8 @@ class Queue(models.Model):
     def save(self, *args, **kwargs):
         """Generate a unique ticket code for the participant if not already."""
         if not self.pk:
-            self.code = self.generate_unique_queue_code()
+            self.code = generate_unique_code(Queue)
         super().save(*args, **kwargs)
-
-    @staticmethod
-    def generate_unique_queue_code(length=12):
-        """Generate a unique code for each participant."""
-        characters = string.ascii_uppercase + string.digits
-        while True:
-            code = ''.join(random.choices(characters, k=length))
-            if not Queue.objects.filter(code=code).exists():
-                return code
 
     @staticmethod
     def get_top_featured_queues(category=None):
