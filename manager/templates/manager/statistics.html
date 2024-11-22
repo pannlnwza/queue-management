@@ -44,6 +44,7 @@
                     <option value="today" {% if date_filter == 'today' %}selected{% endif %}>Today</option>
                     <option value="last_7_days" {% if date_filter == 'last_7_days' %}selected{% endif %}>Last 7 days</option>
                     <option value="last_30_days" {% if date_filter == 'last_30_days' %}selected{% endif %}>Last 30 days</option>
+                    <option value="all_time" {% if date_filter == 'all_time' %}selected{% endif %}>All time</option>
                 </select>
             </form>
         </div>
@@ -84,7 +85,7 @@
             <div class="card bg-base-200">
                 <div class="card-body">
                     <h2 class="card-title flex items-center gap-2">
-                        Total visits last 7 days
+                        Total visits {{ date_filter_text }}
                     </h2>
                     {% if queue.get_number_served == 0 and queue.get_number_dropoff == 0 and queue.get_number_waiting_now == 0 %}
                     <p class="text-center text-gray-500 flex justify-center items-center">No data available</p>
@@ -96,7 +97,7 @@
                         <div class="percentage-info mt-4 text-center flex">
                             <p><strong>Completed:</strong> {{ served_percentage }}%</p>
                             <p><strong>Dropoff:</strong> {{ dropoff_percentage }}%</p>
-                            <p><strong>Unhandled:</strong> {{ unhandled_percentage }}%</p>
+                            <p><strong>In Progress:</strong> {{ unhandled_percentage }}%</p>
                         </div>
                     </div>
                     {% endif %}
@@ -120,9 +121,13 @@
                 <div class="card bg-base-200">
                     <div class="card-body">
                         <h2 class="card-title">Visit creator</h2>
+                        {% if staff_percentage == 0 and guest_percentage == 0 %}
+                        <p class="text-center text-gray-500 flex justify-center items-center">No data available</p>
+                        {% else %}
                         <div class="h-40">
                             <canvas id="visitCreatorChart"></canvas>
                         </div>
+                        {% endif %}
                     </div>
                 </div>
             </div>
@@ -237,7 +242,7 @@
             new Chart(visitsChartCtx, {
                 type: 'bar',
                 data: {
-                    labels: ['Completed', 'Dropoff', 'Unhandled'],
+                    labels: ['Completed', 'Dropoff', 'In Progress'],
                     datasets: [
                         {
                             label: 'Completed',
@@ -258,7 +263,7 @@
                             barPercentage: 1.2
                         },
                         {
-                            label: 'Unhandled',
+                            label: 'In Progress',
                             data: [{{ queue.get_number_unhandled }}],
                             backgroundColor: '#E5E7EB',
                             borderWidth: 0,

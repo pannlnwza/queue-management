@@ -302,7 +302,7 @@ class Queue(models.Model):
                      2) if num_participants else 0
 
     def get_unhandled_percentage(self, start_date=None, end_date=None):
-        """Return percentage of unattended participants, optionally within a date range."""
+        """Return percentage of unhandled participants, optionally within a date range."""
         num_participants = self.get_number_of_participants_by_date(start_date,
                                                            end_date)
         unhandled_count = self.get_number_unhandled(start_date, end_date)

@@ -606,15 +606,22 @@ class StatisticsView(LoginRequiredMixin, generic.TemplateView):
         participant_set = handler.get_participant_set(queue_id)
 
         date_filter = self.request.GET.get('date_filter', 'today')
+        date_filter_text = 'today'
         end_date = timezone.now()
 
         if date_filter == 'today':
             start_date = end_date.replace(hour=0, minute=0, second=0,
                                           microsecond=0)
+            date_filter_text = 'today'
         elif date_filter == 'last_7_days':
             start_date = end_date - timedelta(days=7)
+            date_filter_text = 'last 7 days'
         elif date_filter == 'last_30_days':
             start_date = end_date - timedelta(days=30)
+            date_filter_text = 'last 30 days'
+        elif date_filter == 'all_time':
+            start_date = None
+            date_filter_text = 'all time'
         else:
             start_date = None
 
@@ -640,6 +647,7 @@ class StatisticsView(LoginRequiredMixin, generic.TemplateView):
         context['guest_percentage'] = queue.get_guest_percentage(start_date, end_date)
         context['staff_percentage'] = queue.get_staff_percentage(start_date, end_date)
         context['date_filter'] = date_filter
+        context['date_filter_text'] = date_filter_text
         return context
 
 
