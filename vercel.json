@@ -7,16 +7,17 @@
         "runtime": "python3.11",
         "maxLambdaSize": "15mb"
       }
-    },
-    {
-      "src": "tailwind.config.js",
-      "use": "@vercel/static-build"
     }
   ],
   "env": {
     "DJANGO_SETTINGS_MODULE": "config.settings"
   },
+  "buildCommand": "python manage.py tailwind install && python manage.py tailwind build && python manage.py collectstatic --noinput",
   "routes": [
+    {
+      "src": "/static/(.*)",
+      "dest": "/static/$1"
+    },
     {
       "src": "/(.*)",
       "dest": "config/wsgi.py"
