@@ -363,7 +363,6 @@ def participant_leave(request, participant_code):
             f"Failed to delete participant {participant_code} from queue: {queue.name} code: {queue.code} ")
     return redirect('participant:welcome', queue_code=queue.code)
 
-  
 def set_location(request):
     if request.method == 'POST':
         data = json.loads(request.body)
