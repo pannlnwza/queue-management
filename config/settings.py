@@ -207,21 +207,15 @@ LOGGING = {
         },
     },
     'handlers': {
-        'file': {
+        'console': {  # Stream logs to the console
             'level': 'DEBUG',
-            'class': 'logging.FileHandler',
-            'filename': 'queue_management.log',
-            'formatter': 'verbose',
-        },
-        'console': {
-            'level': 'WARNING',
             'class': 'logging.StreamHandler',
-            'formatter': 'simple',
+            'formatter': 'verbose',
         },
     },
     'loggers': {
         'queue': {
-            'handlers': ['file', 'console'],
+            'handlers': ['console'],
             'level': 'DEBUG',
             'propagate': True,
         },
@@ -231,6 +225,7 @@ LOGGING = {
         'level': 'INFO',
     },
 }
+
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
