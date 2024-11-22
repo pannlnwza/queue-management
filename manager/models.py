@@ -482,53 +482,65 @@ class Resource(models.Model):
         """
         return self.assigned_to is not None
 
-    @property
-    def total(self):
-        """Return the total number of participants assigned to this resource."""
+    def total(self, start_date=None, end_date=None):
+        """Return the total number of participants assigned to this resource within a date range."""
         Participant = apps.get_model('participant', 'Participant')
-        return Participant.objects.filter(resource=self).count()
+        queryset = Participant.objects.filter(resource=self)
+        if start_date and end_date:
+            queryset = queryset.filter(joined_at__range=(start_date, end_date))
+        return queryset.count()
 
-    @property
-    def served(self):
-        """Return the number of participants who are currently being served or have completed service at this resource."""
+    def served(self, start_date=None, end_date=None):
+        """Return the number of participants who are currently being served or have completed service at this resource within a date range."""
         Participant = apps.get_model('participant', 'Participant')
-        return Participant.objects.filter(resource=self, state__in=['serving',
-                                                                    'completed']).count()
+        queryset = Participant.objects.filter(resource=self,
+                                              state__in=['serving',
+                                                         'completed'])
+        if start_date and end_date:
+            queryset = queryset.filter(joined_at__range=(start_date, end_date))
+        return queryset.count()
 
-    @property
-    def dropoff(self):
-        """Return the number of participants who have been removed or cancelled from this resource."""
+    def dropoff(self, start_date=None, end_date=None):
+        """Return the number of participants who have been removed or cancelled from this resource within a date range."""
         Participant = apps.get_model('participant', 'Participant')
-        return Participant.objects.filter(resource=self, state__in=['removed',
-                                                                    'cancelled']).count()
+        queryset = Participant.objects.filter(resource=self,
+                                              state__in=['removed',
+                                                         'cancelled'])
+        if start_date and end_date:
+            queryset = queryset.filter(joined_at__range=(start_date, end_date))
+        return queryset.count()
 
-    @property
-    def completed(self):
-        """Return the number of participants who have completed service at this resource."""
+    def completed(self, start_date=None, end_date=None):
+        """Return the number of participants who have completed service at this resource within a date range."""
         Participant = apps.get_model('participant', 'Participant')
-        return Participant.objects.filter(resource=self,
-                                          state='completed').count()
+        queryset = Participant.objects.filter(resource=self, state='completed')
+        if start_date and end_date:
+            queryset = queryset.filter(joined_at__range=(start_date, end_date))
+        return queryset.count()
 
-    @property
-    def avg_wait_time(self):
-        """Calculate the average wait time for participants in the 'serving' or 'completed' states at this resource."""
+    def avg_wait_time(self, start_date=None, end_date=None):
+        """Calculate the average wait time for participants in the 'serving' or 'completed' states at this resource within a date range."""
         Participant = apps.get_model('participant', 'Participant')
-        participants = Participant.objects.filter(resource=self,
-                                                  state__in=['serving',
-                                                             'completed'])
-        wait_times = [p.get_wait_time() for p in participants if
+        queryset = Participant.objects.filter(resource=self,
+                                              state__in=['serving',
+                                                         'completed'])
+        if start_date and end_date:
+            queryset = queryset.filter(joined_at__range=(start_date, end_date))
+
+        wait_times = [p.get_wait_time() for p in queryset if
                       p.get_wait_time() is not None]
         average_wait_time = math.ceil(
             sum(wait_times) / len(wait_times)) if wait_times else 0
         return format_duration(average_wait_time)
 
-    @property
-    def avg_serve_time(self):
-        """Calculate the average service duration for participants in the 'completed' state at this resource."""
+    def avg_serve_time(self, start_date=None, end_date=None):
+        """Calculate the average service duration for participants in the 'completed' state at this resource within a date range."""
         Participant = apps.get_model('participant', 'Participant')
-        participants = Participant.objects.filter(resource=self,
-                                                  state='completed')
-        serve_times = [p.get_service_duration() for p in participants if
+        queryset = Participant.objects.filter(resource=self, state='completed')
+        if start_date and end_date:
+            queryset = queryset.filter(joined_at__range=(start_date, end_date))
+
+        serve_times = [p.get_service_duration() for p in queryset if
                        p.get_service_duration() is not None]
         average_serve_time = math.ceil(
             sum(serve_times) / len(serve_times)) if serve_times else 0
