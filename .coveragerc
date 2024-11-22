@@ -20,7 +20,6 @@ omit =
     manager/forms.py
     manager/middleware.py
 
-    manager/utils/category_handler.py
     manager/utils/helpers.py
     manager/utils/queue_data.py
 

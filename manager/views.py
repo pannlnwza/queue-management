@@ -123,37 +123,37 @@ class MultiStepFormView(View):
         )
 
 
-class CreateQView(LoginRequiredMixin, generic.CreateView):
-    """
-    Create a new queue.
-
-    Provides a form for authenticated users to create a new queue.
-
-    :param model: The model to use for creating the queue.
-    :param form_class: The form class for queue creation.
-    :param template_name: The name of the template to render.
-    :param success_url: The URL to redirect to on successful queue creation.
-    """
-    model = Queue
-    form_class = QueueForm
-    template_name = 'manager/create_q.html'
-    success_url = reverse_lazy('manager:your-queue')
-
-    def form_valid(self, form):
-        """
-        Set the creator of the queue to the current user.
-
-        :param form: The form containing the queue data.
-        :returns: The response after the form has been successfully validated and saved.
-        """
-        queue_category = form.cleaned_data['category']
-        handler = CategoryHandlerFactory.get_handler(queue_category)
-
-        queue_data = form.cleaned_data.copy()
-        queue_data['created_by'] = self.request.user
-        handler.create_queue(queue_data)
-
-        return redirect(self.success_url)
+# class CreateQView(LoginRequiredMixin, generic.CreateView):
+#     """
+#     Create a new queue.
+#
+#     Provides a form for authenticated users to create a new queue.
+#
+#     :param model: The model to use for creating the queue.
+#     :param form_class: The form class for queue creation.
+#     :param template_name: The name of the template to render.
+#     :param success_url: The URL to redirect to on successful queue creation.
+#     """
+#     model = Queue
+#     form_class = QueueForm
+#     template_name = 'manager/create_q.html'
+#     success_url = reverse_lazy('manager:your-queue')
+#
+#     def form_valid(self, form):
+#         """
+#         Set the creator of the queue to the current user.
+#
+#         :param form: The form containing the queue data.
+#         :returns: The response after the form has been successfully validated and saved.
+#         """
+#         queue_category = form.cleaned_data['category']
+#         handler = CategoryHandlerFactory.get_handler(queue_category)
+#
+#         queue_data = form.cleaned_data.copy()
+#         queue_data['created_by'] = self.request.user
+#         handler.create_queue(queue_data)
+#
+#         return redirect(self.success_url)
 
 
 @require_http_methods(["POST"])
@@ -690,13 +690,6 @@ def login_view(request):
             profile, created = UserProfile.objects.get_or_create(user=user)
 
             social_accounts = user.socialaccount_set.filter(provider='google')
-            if social_accounts.exists():
-                extra_data = social_accounts.first().extra_data
-                profile_image_url = extra_data.get('picture')
-                if profile_image_url:
-                    profile.google_picture = profile_image_url
-                    profile.save()
-                    logger.info(f'Google profile image updated for user: {username}')
 
             return redirect('manager:your-queue')
         else:
