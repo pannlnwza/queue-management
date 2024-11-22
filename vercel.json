@@ -12,7 +12,7 @@
   "env": {
     "DJANGO_SETTINGS_MODULE": "config.settings"
   },
-  "buildCommand": "python manage.py tailwind install && python manage.py tailwind build && python manage.py collectstatic --noinput",
+  "buildCommand": "python manage.py tailwind install && python manage.py tailwind build && python manage.py collectstatic --noinput && python manage.py tailwind start",
   "routes": [
     {
       "src": "/static/(.*)",
