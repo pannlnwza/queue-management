@@ -2,8 +2,7 @@ from django.urls import path
 
 
 from manager.utils.queue_data import get_unique_queue_category_data, get_general_queue_data
-from manager.views import (CreateQView, \
-    notify_participant, delete_queue, delete_participant, ManageWaitlist, serve_participant, complete_participant, \
+from manager.views import (notify_participant, delete_queue, delete_participant, ManageWaitlist, serve_participant, complete_participant, \
     edit_participant, ParticipantListView, StatisticsView, YourQueueView, add_participant, QueueSettingsView, \
     ResourceSettings, edit_resource, add_resource, delete_resource, WaitingFull, edit_queue, EditProfileView,
                            MultiStepFormView)
@@ -11,7 +10,6 @@ from manager.views import (CreateQView, \
 
 app_name = 'manager'
 urlpatterns = [
-    path('create', CreateQView.as_view(), name='create_q'),
     path('delete_participant/<int:participant_id>/', delete_participant, name='delete_participant'),
     path('delete_queue/<int:queue_id>/', delete_queue, name='delete_queue'),
     path('notify/<int:participant_id>/', notify_participant, name='notify_participant'),
