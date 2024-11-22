@@ -230,10 +230,19 @@ class EditQueueView(LoginRequiredMixin, generic.UpdateView):
 def notify_participant(request, participant_id):
     participant = get_object_or_404(Participant, id=participant_id)
     queue = participant.queue
-    message = request.POST.get('message', 'Your queue is here!')
+
+    try:
+        # Parse the JSON body
+        body = json.loads(request.body)
+        message = body.get('message', 'Your queue is here!')
+    except json.JSONDecodeError:
+        return JsonResponse({'status': 'error', 'message': 'Invalid JSON data'}, status=400)
+
+    # Create the notification and mark the participant as notified
     Notification.objects.create(queue=queue, participant=participant, message=message)
     participant.is_notified = True
     participant.save()
+
     return JsonResponse({'status': 'success', 'message': 'Notification sent successfully!'})
 
 
