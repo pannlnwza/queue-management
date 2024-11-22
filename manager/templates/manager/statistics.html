@@ -39,11 +39,13 @@
 
     <div class="max-w">
         <div class="flex justify-between items-center mb-6">
-            <select class="select select-bordered w-40">
-                <option>Last 7 days</option>
-                <option>Last 30 days</option>
-                <option>Last 3 months</option>
-            </select>
+            <form method="get" action="{% url 'manager:statistics' queue.id %}">
+                <select class="select select-bordered w-40" name="date_filter" id="date_filter" onchange="this.form.submit()">
+                    <option value="today" {% if date_filter == 'today' %}selected{% endif %}>Today</option>
+                    <option value="last_7_days" {% if date_filter == 'last_7_days' %}selected{% endif %}>Last 7 days</option>
+                    <option value="last_30_days" {% if date_filter == 'last_30_days' %}selected{% endif %}>Last 30 days</option>
+                </select>
+            </form>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-8">
