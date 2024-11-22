@@ -115,12 +115,14 @@ class Queue(models.Model):
         return "Distance not available"
 
     def clean(self):
-        """Custom validation for latitude and longitude."""
+        if self.latitude is None or self.longitude is None:
+            raise ValidationError("Latitude and Longitude cannot be null.")
+
         if not (-90 <= self.latitude <= 90):
             raise ValidationError("Latitude must be between -90 and 90.")
+
         if not (-180 <= self.longitude <= 180):
             raise ValidationError("Longitude must be between -180 and 180.")
-        super().clean()
 
     def has_resources(self):
         return self.category != 'general'
