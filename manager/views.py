@@ -605,7 +605,7 @@ class StatisticsView(LoginRequiredMixin, generic.TemplateView):
         queue = handler.get_queue_object(queue_id)
         participant_set = handler.get_participant_set(queue_id)
 
-        date_filter = self.request.GET.get('date_filter')
+        date_filter = self.request.GET.get('date_filter', 'today')
         end_date = timezone.now()
 
         if date_filter == 'today':
