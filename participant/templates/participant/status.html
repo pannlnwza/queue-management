@@ -21,10 +21,10 @@
                     <p class="text-gray-600 font-bold mb-4">Your current position is <span id="position"></span></p>
                 </div>
                 <div>
-                    <p class="text-gray-600 font-bold mb-4">Estimated wait time: <span id="waitTime"></span> minutes</p>
+                    <p class="text-gray-600 font-bold mb-4">Estimated wait time: <span id="EstimatedWaitTime"></span> minutes</p>
                 </div>
 
-                <form method="POST" action="{% url 'participant:participant_leave' participant_code=participant.code %}">
+                <form method="POST" action="{% url 'participant:participant_leave' participant_code=participant.code %}" onsubmit="return confirmLeaveQueue();">
                     {% csrf_token %}
                     <button type="submit" class="btn btn-danger">Leave Queue</button>
                 </form>
@@ -119,7 +119,7 @@ eventSource.onmessage = function(event) {
         document.getElementById('position').innerText = data.position || 'N/A';
         document.getElementById('participantPhone').innerText = data.phone || 'N/A';
         document.getElementById('participantEmail').innerText = data.email || 'N/A';
-        document.getElementById('waitTime').innerText = data.waited || 'N/A';
+        document.getElementById('EstimatedWaitTime').innerText = data.estimated_wait_time || 'N/A';
         document.getElementById('special_1').innerText = data.special_1 || 'N/A';
         document.getElementById('special_2').innerText = data.special_2 || 'N/A';
 
@@ -140,10 +140,12 @@ eventSource.onmessage = function(event) {
 
 };
 
-eventSource.onerror = function(error) {
-    console.error("Error in SSE connection:", error);
-};
-
+    eventSource.onerror = function(error) {
+        console.error("Error in SSE connection:", error);
+    };
+    function confirmLeaveQueue() {
+        return confirm("Are you sure you want to leave the queue? This action cannot be undone.");
+    }
 
 </script>
 {% endblock %}

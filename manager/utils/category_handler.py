@@ -145,7 +145,8 @@ class GeneralQueueHandler(CategoryHandler):
             'position': participant.position,
             'notes': participant.note,
             'waited': participant.get_wait_time(),
-            'is_notified': participant.is_notified
+            'is_notified': participant.is_notified,
+            'estimated_wait_time': participant.calculate_estimated_wait_time()
         }
 
     def get_special_column(self):
@@ -285,7 +286,8 @@ class RestaurantQueueHandler(CategoryHandler):
             'resource_served': participant.resource_assigned,
             'resource': participant.resource.name if participant.resource else None,
             'resource_id': participant.resource.id if participant.resource else None,
-            'is_notified': participant.is_notified
+            'is_notified': participant.is_notified,
+            'estimated_wait_time': participant.calculate_estimated_wait_time()
         }
 
     def add_resource_attributes(self, queue):
@@ -473,7 +475,8 @@ class HospitalQueueHandler(CategoryHandler):
             'resource_served': participant.resource_assigned,
             'resource': participant.resource.name if participant.resource else None,
             'resource_id': participant.resource.id if participant.resource else None,
-            'is_notified': participant.is_notified
+            'is_notified': participant.is_notified,
+            'estimated_wait_time': participant.calculate_estimated_wait_time()
         }
 
     def add_resource_attributes(self, queue):
@@ -636,7 +639,8 @@ class BankQueueHandler(CategoryHandler):
             'resource': participant.resource.name if participant.resource else None,
             'resource_id': participant.resource.id if participant.resource else None,
             'resource_served': participant.resource_assigned,
-            'is_notified': participant.is_notified
+            'is_notified': participant.is_notified,
+            'estimated_wait_time': participant.calculate_estimated_wait_time()
         }
 
     def add_resource_attributes(self, queue):
