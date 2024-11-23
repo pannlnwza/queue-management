@@ -201,6 +201,7 @@ class RestaurantQueueHandler(CategoryHandler):
             raise ValueError('No resource available.')
         resource.assign_to_participant(participant, capacity=participant.party_size)
         participant.resource = resource
+        participant.resource_assigned = resource.name
         participant.save()
 
     def get_template_name(self):
@@ -373,6 +374,7 @@ class HospitalQueueHandler(CategoryHandler):
             raise ValueError('No resource available.')
         resource.assign_to_participant(participant)
         participant.resource = resource
+        participant.resource_assigned = resource.name
         participant.save()
 
     def get_template_name(self):
@@ -557,6 +559,7 @@ class BankQueueHandler(CategoryHandler):
             raise ValueError('No resource available.')
         resource.assign_to_participant(participant)
         participant.resource = resource
+        participant.resource_assigned = resource.name
         participant.save()
 
     def complete_service(self, participant):
