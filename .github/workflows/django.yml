@@ -46,17 +46,17 @@ jobs:
             sleep 1
           done
 
-      - name: Create environment variables for CI
+      - name: Create .env file from GitHub Secrets
         run: |
-          echo "DATABASE_NAME=test_db" >> .env
-          echo "DATABASE_USERNAME=postgres" >> .env
-          echo "DATABASE_PASSWORD=postgres" >> .env
-          echo "DATABASE_HOST=localhost" >> .env
-          echo "DATABASE_PORT=5432" >> .env
+          echo "DATABASE_NAME=${{ secrets.DATABASE_NAME }}" >> .env
+          echo "DATABASE_USERNAME=${{ secrets.DATABASE_USERNAME }}" >> .env
+          echo "DATABASE_PASSWORD=${{ secrets.DATABASE_PASSWORD }}" >> .env
+          echo "DATABASE_HOST=${{ secrets.DATABASE_HOST }}" >> .env
+          echo "DATABASE_PORT=${{ secrets.DATABASE_PORT }}" >> .env
           echo "DEBUG=True" >> .env
-          echo "SECRET_KEY=test-secret-key" >> .env
+          echo "SECRET_KEY=${{ secrets.SECRET_KEY }}" >> .env
           echo "ALLOWED_HOSTS=localhost,127.0.0.1" >> .env
-          echo "Environment variables set for CI."
+          echo ".env file created with secrets."
 
       - name: Run migrations
         run: |
