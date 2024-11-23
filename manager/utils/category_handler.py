@@ -3,7 +3,7 @@ from abc import ABC, abstractmethod
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 
-from manager.models import RestaurantQueue, Queue, BankQueue, HospitalQueue, Doctor, Resource, Table, Counter
+from manager.models import RestaurantQueue, Queue, BankQueue, HospitalQueue, Doctor, Table, Counter
 from manager.utils.helpers import extract_data_variables
 from participant.models import RestaurantParticipant, Participant, HospitalParticipant, BankParticipant
 
@@ -142,10 +142,13 @@ class GeneralQueueHandler(CategoryHandler):
             'id': participant.id,
             'name': participant.name,
             'phone': participant.phone,
+            'email': participant.email,
             'position': participant.position,
             'notes': participant.note,
             'waited': participant.get_wait_time(),
-            'is_notified': participant.is_notified
+            'is_notified': participant.is_notified,
+            'estimated_wait_time': participant.calculate_estimated_wait_time()
+
         }
 
     def get_special_column(self):
@@ -276,17 +279,16 @@ class RestaurantQueueHandler(CategoryHandler):
             'position': participant.position,
             'notes': participant.note,
             'waited': participant.waited if participant.state == 'completed' else participant.get_wait_time(),
-            'completed': participant.service_completed_at.strftime(
-                '%d %b. %Y %H:%M') if participant.service_completed_at else None,
+            'completed': timezone.localtime(participant.service_completed_at).strftime('%d %b. %Y %H:%M') if participant.service_completed_at else None,
             'special_1': f"{participant.party_size} people",
             'special_2': participant.get_service_type_display(),
             'service_duration': participant.get_service_duration(),
-            'served': participant.service_started_at.strftime(
-                '%d %b. %Y %H:%M') if participant.service_started_at else None,
+            'served': timezone.localtime(participant.service_started_at).strftime('%d %b. %Y %H:%M') if participant.service_started_at else None,
             'resource_served': participant.resource_assigned,
             'resource': participant.resource.name if participant.resource else None,
             'resource_id': participant.resource.id if participant.resource else None,
-            'is_notified': participant.is_notified
+            'is_notified': participant.is_notified,
+            'estimated_wait_time': participant.calculate_estimated_wait_time()
         }
 
     def add_resource_attributes(self, queue):
@@ -450,6 +452,8 @@ class HospitalQueueHandler(CategoryHandler):
                     participant.state = 'waiting'
                     participant.service_started_at = None
                 participant.save()
+            participant.state = new_state
+            participant.save()
 
     def get_participant_data(self, participant):
         """
@@ -465,17 +469,16 @@ class HospitalQueueHandler(CategoryHandler):
             'medical_field': participant.get_medical_field_display(),
             'priority': participant.get_priority_display(),
             'waited': participant.waited if participant.state == 'completed' else participant.get_wait_time(),
-            'completed': participant.service_completed_at.strftime(
-                '%d %b. %Y %H:%M') if participant.service_completed_at else None,
+            'completed': timezone.localtime(participant.service_completed_at).strftime('%d %b. %Y %H:%M') if participant.service_completed_at else None,
             'special_1': participant.get_medical_field_display(),
             'special_2': participant.get_priority_display(),
             'service_duration': participant.get_service_duration(),
-            'served': participant.service_started_at.strftime(
-                '%d %b. %Y %H:%M') if participant.service_started_at else None,
+            'served': timezone.localtime(participant.service_started_at).strftime('%d %b. %Y %H:%M') if participant.service_started_at else None,
             'resource_served': participant.resource_assigned,
             'resource': participant.resource.name if participant.resource else None,
             'resource_id': participant.resource.id if participant.resource else None,
-            'is_notified': participant.is_notified
+            'is_notified': participant.is_notified,
+            'estimated_wait_time': participant.calculate_estimated_wait_time()
         }
 
     def add_resource_attributes(self, queue):
@@ -619,6 +622,8 @@ class BankQueueHandler(CategoryHandler):
                     participant.state = 'waiting'
                     participant.service_started_at = None
                 participant.save()
+            participant.state = new_state
+            participant.save()
 
     def get_participant_data(self, participant):
         return {
@@ -631,15 +636,14 @@ class BankQueueHandler(CategoryHandler):
             'special_2': participant.get_service_type_display(),
             'notes': participant.note,
             'waited': participant.waited if participant.state == 'completed' else participant.get_wait_time(),
-            'completed': participant.service_completed_at.strftime(
-                '%d %b. %Y %H:%M') if participant.service_completed_at else None,
+            'completed': timezone.localtime(participant.service_completed_at).strftime('%d %b. %Y %H:%M') if participant.service_completed_at else None,
             'service_duration': participant.get_service_duration(),
-            'served': participant.service_started_at.strftime(
-                '%d %b. %Y %H:%M') if participant.service_started_at else None,
+            'served': timezone.localtime(participant.service_started_at).strftime('%d %b. %Y %H:%M') if participant.service_started_at else None,
             'resource': participant.resource.name if participant.resource else None,
             'resource_id': participant.resource.id if participant.resource else None,
             'resource_served': participant.resource_assigned,
-            'is_notified': participant.is_notified
+            'is_notified': participant.is_notified,
+            'estimated_wait_time': participant.calculate_estimated_wait_time()
         }
 
     def add_resource_attributes(self, queue):
