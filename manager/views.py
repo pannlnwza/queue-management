@@ -37,6 +37,7 @@ logger = logging.getLogger('queue')
 
 import traceback  # Import for detailed stack trace logging
 
+
 class MultiStepFormView(View):
     def get(self, request, step):
         try:
@@ -53,7 +54,6 @@ class MultiStepFormView(View):
                                     queue_category={'category': queue_category})  # Pass queue category dynamically
             else:
                 return redirect('manager:your-queue')  # Handle invalid steps
-
 
             return render(
                 request,
@@ -81,21 +81,15 @@ class MultiStepFormView(View):
                     latitude = request.POST.get('latitudeInput')
                     longitude = request.POST.get('longitudeInput')
 
-                time_and_location_data = {
-                    'open_time': form.cleaned_data['open_time'].strftime(
-                        '%H:%M:%S') if form.cleaned_data.get(
-                        'open_time') else None,
-                    'close_time': form.cleaned_data['close_time'].strftime(
-                        '%H:%M:%S') if form.cleaned_data.get(
-                        'close_time') else None,
-                    'latitude': latitude,
-                    'longitude': longitude,
-                }
+                    time_and_location_data = {
+                        'open_time': form.cleaned_data['open_time'].strftime('%H:%M:%S') if form.cleaned_data.get('open_time') else None,
+                        'close_time': form.cleaned_data['close_time'].strftime('%H:%M:%S') if form.cleaned_data.get('close_time') else None,
+                        'latitude': latitude,
+                        'longitude': longitude,
+                    }
 
-                request.session[
-                    'time_and_location_data'] = time_and_location_data
-
-                return redirect('manager:create_queue_step', step="3")
+                    request.session['time_and_location_data'] = time_and_location_data
+                    return redirect('manager:create_queue_step', step="3")
 
             elif step == "3":
                 queue_data = request.session.get('queue_data', {})
@@ -107,17 +101,26 @@ class MultiStepFormView(View):
 
                 if form.is_valid():
                     try:
-                        resource_data = form.cleaned_data
-                        queue_category = queue_data_raw['category']
-                        handler = CategoryHandlerFactory.get_handler(queue_category)
-                        queue_data_raw['created_by'] = request.user
-                        queue = handler.create_queue(queue_data_raw)
-                        resource_data['queue'] = queue
-                        logger.info(f"Resource data: {resource_data}")
-                        handler.add_resource(resource_data.copy())
+                        with transaction.atomic():  # Ensure atomicity for queue and resource creation
+                            resource_data = form.cleaned_data
+                            queue_category = queue_data_raw['category']
+                            handler = CategoryHandlerFactory.get_handler(queue_category)
+
+                            # Create the queue
+                            queue_data_raw['created_by'] = request.user
+                            queue = handler.create_queue(queue_data_raw)
+
+                            # Add the resource to the queue
+                            resource_data['queue'] = queue
+                            logger.info(f"Resource data: {resource_data}")
+                            handler.add_resource(resource_data.copy())
+
+                        # If both queue and resource are successfully created
                         messages.success(request, f"Successfully created queue: {queue.name}")
                         return redirect('manager:your-queue')
+
                     except Exception as e:
+                        # Rollback happens automatically if an exception is raised in the atomic block
                         logger.error(f"Error creating queue or adding resource: {e}\n{traceback.format_exc()}")
                         messages.error(
                             request,
@@ -137,7 +140,6 @@ class MultiStepFormView(View):
         except Exception as e:
             logger.error(f"Unexpected error in POST step {step}: {e}\n{traceback.format_exc()}")
             messages.error(request, "An unexpected error occurred. Please try again.")
-            return redirect('manager:your-queue')
 
 
 

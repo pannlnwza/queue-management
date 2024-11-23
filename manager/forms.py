@@ -71,7 +71,7 @@ class ResourceForm(forms.Form):
                 choices=Resource.RESOURCE_STATUS,
                 widget=forms.Select(attrs={'class': 'select select-bordered w-full m-4'}),
                 label="Status",
-                required=True
+                required=True,
             )
 
     def __init__(self, *args, queue_category=None, **kwargs):
