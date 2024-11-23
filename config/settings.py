@@ -14,6 +14,7 @@ from pathlib import Path
 from decouple import config, Csv
 from shutil import which
 import os
+from dj_database_url import config as db_config
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -101,14 +102,7 @@ WSGI_APPLICATION = 'config.wsgi.application'
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
 DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.postgresql",
-        "NAME": config("DATABASE_NAME", default=os.environ.get("DATABASE_NAME", "default_db_name")),
-        "USER": config("DATABASE_USERNAME", default=os.environ.get("DATABASE_USERNAME", "default_user")),
-        "PASSWORD": config("DATABASE_PASSWORD", default=os.environ.get("DATABASE_PASSWORD", "default_password")),
-        "HOST": config("DATABASE_HOST", default=os.environ.get("DATABASE_HOST", "localhost")),
-        "PORT": config("DATABASE_PORT", default=os.environ.get("DATABASE_PORT", "5432")),
-    }
+    "default": db_config(conn_max_age=600, ssl_require=True)
 }
 
 # Password validation
