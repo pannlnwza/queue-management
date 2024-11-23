@@ -35,46 +35,51 @@ from manager.utils.send_email import send_html_email
 logger = logging.getLogger('queue')
 
 
+import traceback  # Import for detailed stack trace logging
+
 class MultiStepFormView(View):
     def get(self, request, step):
-        # Get the form depending on the current step
-        if step == "1":
-            form = QueueForm()
-        elif step == "2":
-            form = OpeningHoursForm()
-        elif step == "3":
-            # Retrieve queue data and time/location data to pass category and other info
-            queue_data = request.session.get('queue_data', {})
+        try:
+            # Get the form depending on the current step
+            if step == "1":
+                form = QueueForm()
+            elif step == "2":
+                form = OpeningHoursForm()
+            elif step == "3":
+                # Retrieve queue data and time/location data to pass category and other info
+                queue_data = request.session.get('queue_data', {})
+                queue_category = queue_data.get('category', None)  # Ensure category is passed
+                form = ResourceForm(request.POST or None,  # Handle POST or empty on GET
+                                    queue_category={'category': queue_category})  # Pass queue category dynamically
+            else:
+                return redirect('manager:your-queue')  # Handle invalid steps
 
-            queue_category = queue_data.get('category',
-                                            None)  # Ensure category is passed
-            form = ResourceForm(request.POST or None,
-                                # Handle POST or empty on GET
-                                queue_category={
-                                    'category': queue_category})  # Pass queue category dynamically
-        else:
-            return redirect('manager:your-queue')  # Handle invalid steps
 
-        return render(
-            request,
-            f'manager/create_queue_steps/step_{step}.html',
-            {'form': form, 'step': step}
-        )
+            return render(
+                request,
+                f'manager/create_queue_steps/step_{step}.html',
+                {'form': form, 'step': step}
+            )
+        except Exception as e:
+            logger.error(f"Error in GET step {step}: {e}\n{traceback.format_exc()}")
+            messages.error(request, "An unexpected error occurred while loading the form. Please try again.")
+            return redirect('manager:your-queue')
 
     def post(self, request, step):
-        if step == "1":
-            form = QueueForm(request.POST, request.FILES)
-            if form.is_valid():
-                # Save queue data to session
-                request.session['queue_data'] = form.cleaned_data
-                return redirect('manager:create_queue_step', step="2")
+        try:
+            if step == "1":
+                form = QueueForm(request.POST, request.FILES)
+                if form.is_valid():
+                    # Save queue data to session
+                    request.session['queue_data'] = form.cleaned_data
+                    return redirect('manager:create_queue_step', step="2")
 
-        elif step == "2":
-            form = OpeningHoursForm(request.POST)
-            if form.is_valid():
-                # Save opening hours and location data to session
-                latitude = request.POST.get('latitudeInput')
-                longitude = request.POST.get('longitudeInput')
+            elif step == "2":
+                form = OpeningHoursForm(request.POST)
+                if form.is_valid():
+                    # Save opening hours and location data to session
+                    latitude = request.POST.get('latitudeInput')
+                    longitude = request.POST.get('longitudeInput')
 
                 time_and_location_data = {
                     'open_time': form.cleaned_data['open_time'].strftime(
@@ -92,44 +97,48 @@ class MultiStepFormView(View):
 
                 return redirect('manager:create_queue_step', step="3")
 
-        elif step == "3":
-            queue_data = request.session.get('queue_data', {})
-            time_and_location_data = request.session.get(
-                'time_and_location_data', {})
-            queue_data_raw = queue_data.copy()
-            queue_data_raw.update(time_and_location_data.copy())
-            queue_category = queue_data_raw.get('category',
-                                                None)  # Ensure category is present
-            form = ResourceForm(request.POST,
-                                queue_category={'category': queue_category})
+            elif step == "3":
+                queue_data = request.session.get('queue_data', {})
+                time_and_location_data = request.session.get('time_and_location_data', {})
+                queue_data_raw = queue_data.copy()
+                queue_data_raw.update(time_and_location_data.copy())
+                queue_category = queue_data_raw.get('category', None)  # Ensure category is present
+                form = ResourceForm(request.POST, queue_category={'category': queue_category})
 
-            if form.is_valid():
-                try:
-                    resource_data = form.cleaned_data
-                    queue_category = queue_data_raw['category']
-                    handler = CategoryHandlerFactory.get_handler(
-                        queue_category)
-                    queue_data_raw['created_by'] = request.user
-                    queue = handler.create_queue(queue_data_raw)
-                    resource_data['queue'] = queue
-                    logger.info(f"Resource data: {resource_data}")
-                    handler.add_resource(resource_data.copy())
-                    messages.success(request,
-                                     f"Successfully create queue: {queue.name}")
-                    return redirect('manager:your-queue')
-                except Exception as e:
-                    logger.error(
-                        f"Error creating queue or adding resource: {e}")
-                    messages.error(request,
-                                   f"Error creating queue or adding resource: {e}.")
-                    return redirect('manager:create_queue_step', step="3")
+                if form.is_valid():
+                    try:
+                        resource_data = form.cleaned_data
+                        queue_category = queue_data_raw['category']
+                        handler = CategoryHandlerFactory.get_handler(queue_category)
+                        queue_data_raw['created_by'] = request.user
+                        queue = handler.create_queue(queue_data_raw)
+                        resource_data['queue'] = queue
+                        logger.info(f"Resource data: {resource_data}")
+                        handler.add_resource(resource_data.copy())
+                        messages.success(request, f"Successfully created queue: {queue.name}")
+                        return redirect('manager:your-queue')
+                    except Exception as e:
+                        logger.error(f"Error creating queue or adding resource: {e}\n{traceback.format_exc()}")
+                        messages.error(
+                            request,
+                            f"An error occurred while creating the queue. "
+                            f"Please ensure all fields are valid. Technical details: {str(e)}"
+                        )
+                        return redirect('manager:create_queue_step', step="3")
 
-        # In case the form is not valid, render the current step
-        return render(
-            request,
-            f'manager/create_queue_steps/step_{step}.html',
-            {'form': form, 'step': step}
-        )
+            # If form is invalid
+            messages.error(request, "Please correct the errors in the form and try again.")
+            return render(
+                request,
+                f'manager/create_queue_steps/step_{step}.html',
+                {'form': form, 'step': step}
+            )
+
+        except Exception as e:
+            logger.error(f"Unexpected error in POST step {step}: {e}\n{traceback.format_exc()}")
+            messages.error(request, "An unexpected error occurred. Please try again.")
+            return redirect('manager:your-queue')
+
 
 
 class CreateQView(LoginRequiredMixin, generic.CreateView):
