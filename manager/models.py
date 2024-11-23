@@ -48,7 +48,7 @@ class Queue(models.Model):
     category = models.CharField(max_length=20, choices=CATEGORY_CHOICES)
     logo = models.ImageField(upload_to='queue_logos/', blank=True, null=True)
     completed_participants_count = models.PositiveIntegerField(default=0)
-    code = models.CharField(max_length=6, unique=True, editable=False)
+    code = models.CharField(max_length=12, unique=True, editable=False)
     latitude = models.FloatField()
     longitude = models.FloatField()
     distance_from_user = models.FloatField(null=True, blank=True)

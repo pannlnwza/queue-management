@@ -28,7 +28,7 @@ class Participant(models.Model):
     joined_at = models.DateTimeField(auto_now_add=True)
     position = models.PositiveIntegerField()
     note = models.TextField(max_length=150, null=True, blank=True)
-    code = models.CharField(max_length=6, unique=True, editable=False)
+    code = models.CharField(max_length=12, unique=True, editable=False)
     state = models.CharField(max_length=10, choices=PARTICIPANT_STATE,
                              default='waiting')
     service_started_at = models.DateTimeField(null=True, blank=True)
