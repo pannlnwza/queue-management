@@ -12,12 +12,8 @@
   "env": {
     "DJANGO_SETTINGS_MODULE": "config.settings"
   },
-  "buildCommand": "python manage.py tailwind install && python manage.py tailwind build && python manage.py collectstatic --noinput && python manage.py tailwind start",
+  "buildCommand": "python manage.py tailwind install && python manage.py tailwind build && python manage.py collectstatic --noinput",
   "routes": [
-    {
-      "src": "/static/(.*)",
-      "dest": "/static/$1"
-    },
     {
       "src": "/(.*)",
       "dest": "config/wsgi.py"
