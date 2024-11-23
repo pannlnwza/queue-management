@@ -1,16 +1,14 @@
 import os
 from datetime import timedelta
 from django.test import TestCase
-from unittest.mock import MagicMock, patch
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.contrib.auth.models import User
 from datetime import time
-
 from django.utils import timezone
-
 from manager.models import Queue, QueueLineLength
 from participant.models import Participant
 from django.core.exceptions import ValidationError
+
 
 class QueueModelTests(TestCase):
     def setUp(self):
