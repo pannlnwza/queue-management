@@ -4,9 +4,10 @@
 <div class="flex justify-center mt-20">
   <div class="card transform transition-all bg-base-100 rounded-xl overflow-hidden border-2">
     <div class="card-body">
-      <h2 class="card-title">{{ queue.name }}</h2>
+      <h2 class="card-title text-2xl">{{ queue.name }}</h2>
       <!-- Updated image with styling for size -->
       <img src="{{ queue.get_logo_url }}" alt="{{ queue.name }} logo" class="w-32 h-32 mx-auto">
+       <p class="text-neutral text-sm">{{ queue.description }}</p>
       <p class="text-neutral text-xl">There are currently {{ queue.get_number_of_participants }} participant(s) in the queue.</p>
       <div class="card-actions justify-end">
         <a href="{% url "participant:kiosk" queue.code %}">
