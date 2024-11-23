@@ -277,6 +277,7 @@ def delete_queue(request, queue_id):
 
     try:
         queue.delete()
+        messages.success(request, f"Queue {queue.name} has been deleted.")
         return JsonResponse({'success': 'Queue deleted successfully.'},
                             status=200)
     except Exception as e:
@@ -825,6 +826,7 @@ def edit_resource(request, resource_id):
         'status': request.POST.get('status'),
     }
     handler.edit_resource(resource, data)
+    messages.success(request, f"Resource {request.POST.get('name')} has been edited.")
     return redirect('manager:resources', resource.queue.id)
 
 
@@ -841,6 +843,7 @@ def add_resource(request, queue_id):
         'queue': queue,
     }
     handler.add_resource(data)
+    messages.success(request, f"Resource {request.POST.get('name')} has been added.")
     return redirect('manager:resources', queue_id)
 
 
@@ -855,6 +858,7 @@ def delete_resource(request, resource_id):
         return JsonResponse({'error': 'Unauthorized.'}, status=403)
     resource.delete()
     logger.info(f"Resource {resource_id} is deleted.")
+    messages.success(request, f"Resource {request.POST.get('name')} has been deleted.")
     return JsonResponse({'message': 'Resource deleted successfully.'})
 
 
