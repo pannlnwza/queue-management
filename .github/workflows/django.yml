@@ -1,4 +1,4 @@
-name: Django CI
+name: Django CI with PostgreSQL
 
 on:
   push:
@@ -14,48 +14,42 @@ jobs:
       postgres:
         image: postgres:13
         env:
-          POSTGRES_USER: ${{ secrets.POSTGRES_USER }} 
-          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}  
-          POSTGRES_DB: ${{ secrets.POSTGRES_DB }} 
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: password
+          POSTGRES_DB: test_db
         ports:
           - 5432:5432
         options: >-
-          --health-cmd "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
+          --health-cmd="pg_isready -U postgres"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v2
 
-      - name: Set up Python 3.11
-        uses: actions/setup-python@v4
+      - name: Set up Python
+        uses: actions/setup-python@v2
         with:
-          python-version: 3.11
+          python-version: 3.11  # Use the Python version you need
 
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
+      - name: Set DATABASE_URL for PostgreSQL from GitHub Secrets
+        run: echo "DATABASE_URL=${{ secrets.DATABASE_URL }}" >> $GITHUB_ENV
+
       - name: Wait for PostgreSQL to be ready
         run: |
-          until pg_isready -h localhost -p 5432 -U postgres -d test_db; do
-            echo "Waiting for PostgreSQL to be ready..."
-            sleep 1
-          done
-
-      - name: Set DATABASE_URL
-        run: echo "DATABASE_URL=${{ secrets.DATABASE_URL }}" >> .env
-
-      - name: Debug environment variables
-        run: cat .env
+          docker exec postgres pg_isready -U postgres
 
       - name: Run migrations
         run: |
           python manage.py makemigrations
           python manage.py migrate
-
+        
       - name: Run tests
         run: python manage.py test
