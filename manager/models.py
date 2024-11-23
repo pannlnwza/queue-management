@@ -208,7 +208,7 @@ class Queue(models.Model):
         """
         Returns the full URL to the welcome page for this queue.
         """
-        return f"{settings.SITE_DOMAIN}/welcome/{self.code}/"
+        return f"{settings.SITE_DOMAIN}welcome/{self.code}/"
 
     def get_number_waiting_now(self):
         """Return the number of participants currently waiting."""
