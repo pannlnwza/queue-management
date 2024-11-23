@@ -112,7 +112,6 @@
             <table class="table min-w-full bg-base-100 divide-y divide-gray-200" id="participantTable">
                 <thead>
                 <tr>
-                    <th class="w-10 px-2 py-3"></th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Waited
                     </th>
@@ -126,13 +125,6 @@
                 <tbody id="tableBody" class="divide-y divide-gray-200">
                 {% for participant in participant_set %}
                     <tr>
-                        <td class="w-10 px-2 py-4">
-                            <div class="form-control max-w-sm">
-                                <label class="label cursor-pointer">
-                                    <input type="checkbox" class="checkbox checkbox-primary border-base-content"/>
-                                </label>
-                            </div>
-                        </td>
                         <td class="px-6 py-4 whitespace-nowrap">
                             <div class="flex items-center space-x-3">
                                 <div class="avatar placeholder">
@@ -145,9 +137,9 @@
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap">
                             {% if participant.state == 'completed' or participant.state == 'no_show' %}
-                                {{ participant.waited }}
+                                {{ participant.waited }} min
                             {% else %}
-                                {{ participant.get_wait_time }}
+                                {{ participant.get_wait_time }} min
                             {% endif %}
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap">{{ participant.get_state_display }}</td>
