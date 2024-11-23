@@ -123,138 +123,6 @@ class MultiStepFormView(View):
         )
 
 
-# class CreateQView(LoginRequiredMixin, generic.CreateView):
-#     """
-#     Create a new queue.
-#
-#     Provides a form for authenticated users to create a new queue.
-#
-#     :param model: The model to use for creating the queue.
-#     :param form_class: The form class for queue creation.
-#     :param template_name: The name of the template to render.
-#     :param success_url: The URL to redirect to on successful queue creation.
-#     """
-#     model = Queue
-#     form_class = QueueForm
-#     template_name = 'manager/create_q.html'
-#     success_url = reverse_lazy('manager:your-queue')
-#
-#     def form_valid(self, form):
-#         """
-#         Set the creator of the queue to the current user.
-#
-#         :param form: The form containing the queue data.
-#         :returns: The response after the form has been successfully validated and saved.
-#         """
-#         queue_category = form.cleaned_data['category']
-#         handler = CategoryHandlerFactory.get_handler(queue_category)
-#
-#         queue_data = form.cleaned_data.copy()
-#         queue_data['created_by'] = self.request.user
-#         handler.create_queue(queue_data)
-#
-#         return redirect(self.success_url)
-
-
-@require_http_methods(["POST"])
-@login_required
-def notify_participant(request, participant_id):
-    participant = get_object_or_404(Participant, id=participant_id)
-    queue = participant.queue
-    message = request.POST.get('message', '')
-    Notification.objects.create(queue=queue, participant=participant, message=message)
-    participant.is_notified = True
-    participant.save()
-    return JsonResponse({'status': 'success', 'message': 'Notification sent successfully!'})
-
-
-@require_http_methods(["DELETE"])
-@login_required
-def delete_queue(request, queue_id):
-    try:
-        queue = Queue.objects.get(pk=queue_id)
-    except Queue.DoesNotExist:
-        return JsonResponse({'error': 'Queue not found.'}, status=404)
-
-    if request.user != queue.created_by:
-        return JsonResponse({'error': 'Unauthorized.'}, status=403)
-
-    try:
-        queue.delete()
-        return JsonResponse({'success': 'Queue deleted successfully.'}, status=200)
-    except Exception as e:
-        return JsonResponse({'error': str(e)}, status=500)
-
-
-@login_required
-@require_http_methods(["DELETE"])
-def delete_participant(request, participant_id):
-    participant = get_object_or_404(Participant, id=participant_id)
-    logger.info(f"Deleting participant {participant_id} from queue {participant.queue.id}")
-
-    if request.user != participant.queue.created_by:
-        return JsonResponse({'error': 'Unauthorized.'}, status=403)
-
-    queue = participant.queue
-    participant.state = 'removed'
-    participant.delete()
-    logger.info(f"Participant {participant_id} is deleted.")
-
-    waiting_participants = Participant.objects.filter(queue=queue, state='waiting').order_by('position')
-    for idx, p in enumerate(waiting_participants):
-        p.position = idx + 1
-        p.save()
-    return JsonResponse({'message': 'Participant deleted and positions updated.'})
-
-
-@require_http_methods(["POST"])
-def edit_participant(request, participant_id):
-    participant = get_object_or_404(Participant, id=participant_id)
-    if request.method == "POST":
-        data = {
-            'name': request.POST.get('name'),
-            'phone': request.POST.get('phone'),
-            'email': request.POST.get('email'),
-            'notes': request.POST.get('notes'),
-            'resource': request.POST.get('resource'),
-            'special_1': request.POST.get('special_1'),
-            'special_2': request.POST.get('special_2'),
-            'party_size': request.POST.get('party_size'),
-            'state': request.POST.get('state')
-        }
-        handler = CategoryHandlerFactory.get_handler(participant.queue.category)
-        participant = handler.get_participant_set(participant.queue.id).get(id=participant_id)
-        handler.update_participant(participant, data)
-        return redirect('manager:participant_list', participant.queue.id)
-
-
-@require_http_methods(["POST"])
-@login_required
-def add_participant(request, queue_id):
-    name = request.POST.get('name')
-    phone = request.POST.get('phone')
-    email = request.POST.get('email')
-    note = request.POST.get('notes', "")
-    special_1 = request.POST.get('special_1')
-    special_2 = request.POST.get('special_2')
-
-    queue = get_object_or_404(Queue, id=queue_id)
-    handler = CategoryHandlerFactory.get_handler(queue.category)
-    queue = handler.get_queue_object(queue_id)
-    data = {
-        'name': name,
-        'phone': phone,
-        'email': email,
-        'note': note,
-        'queue': queue,
-        'special_1': special_1,
-        'special_2': special_2,
-    }
-    handler.create_participant(data)
-    queue.record_line_length()
-    return redirect('manager:participant_list', queue_id)
-
-
 class ManageWaitlist(LoginRequiredMixin, generic.TemplateView):
     template_name = 'manager/manage_queue/manage_unique_category.html'
 
@@ -298,87 +166,6 @@ class ManageWaitlist(LoginRequiredMixin, generic.TemplateView):
         if category_context:
             context.update(category_context)
         return context
-
-
-@login_required
-@require_http_methods(["POST"])
-def serve_participant(request, participant_id):
-    participant = get_object_or_404(Participant, id=participant_id)
-    queue_id = participant.queue.id
-    handler = CategoryHandlerFactory.get_handler(participant.queue.category)
-    participant_set = handler.get_participant_set(queue_id)
-    participant = get_object_or_404(participant_set, id=participant_id)
-
-    try:
-        data = json.loads(request.body) if request.body else {}
-        resource_id = data.get('resource_id', None)
-
-        if participant.state != 'waiting':
-            logger.warning(f"Cannot serve participant {participant_id} because they are in state: {participant.state}")
-            return JsonResponse({
-                'error': f'{participant.name} cannot be served because they are currently in state: {participant.state}.'
-            }, status=400)
-
-        handler.assign_to_resource(participant, resource_id=resource_id)
-        participant.queue.update_estimated_wait_time_per_turn(participant.get_wait_time())
-        participant.start_service()
-        participant.save()
-        logger.info(f"Participant {participant_id} started service in queue {participant.queue.id}.")
-
-        waiting_list = Participant.objects.filter(state='waiting').values()
-        serving_list = Participant.objects.filter(state='serving').values()
-
-        return JsonResponse({
-            'waiting_list': list(waiting_list),
-            'serving_list': list(serving_list),
-            'success': True
-        })
-
-    except json.JSONDecodeError:
-        return JsonResponse({'error': 'Invalid JSON data.'}, status=400)
-
-    except Exception as e:
-        logger.error(f"Error serving participant {participant_id}: {str(e)}")
-        return JsonResponse({
-            'error': f'Error: {str(e)}'
-        }, status=500)
-
-
-@login_required
-def complete_participant(request, participant_id):
-    participant = get_object_or_404(Participant, id=participant_id)
-    queue = participant.queue
-    handler = CategoryHandlerFactory.get_handler(queue.category)
-    participant = handler.get_participant_set(queue.id).filter(id=participant_id).first()
-
-    if request.user != queue.created_by:
-        logger.error(f"Unauthorized edit attempt on queue {queue.id} by user {request.user.id}")
-        return JsonResponse({'error': 'Unauthorized.'}, status=403)
-
-    try:
-        if participant.state != 'serving':
-            logger.warning(
-                f"Cannot complete participant {participant_id} because they are in state: {participant.state}")
-            return JsonResponse({
-                'error': f'{participant.name} cannot be marked as completed because they are currently in state: {participant.state}.'
-            }, status=400)
-
-        handler.complete_service(participant)
-        participant.save()
-        logger.info(f"Participant {participant_id} completed service in queue {queue.id}.")
-
-        serving_list = Participant.objects.filter(state='serving').values()
-        completed_list = Participant.objects.filter(state='completed').values()
-
-        return JsonResponse({
-            'serving_list': list(serving_list),
-            'completed_list': list(completed_list)
-        })
-
-    except Exception as e:
-        return JsonResponse({
-            'error': f'Error: {str(e)}'
-        }, status=500)
 
 
 class ParticipantListView(LoginRequiredMixin, generic.TemplateView):
@@ -559,6 +346,220 @@ class ResourceSettings(LoginRequiredMixin, generic.TemplateView):
         return context
 
 
+class EditProfileView(LoginRequiredMixin, generic.UpdateView):
+    model = UserProfile
+    template_name = 'manager/edit_profile.html'
+    context_object_name = 'profile'
+    form_class = EditProfileForm
+
+    def get_success_url(self):
+        queue_id = self.kwargs.get('queue_id')
+        return reverse_lazy('manager:edit_profile', kwargs={'queue_id': queue_id})
+
+    def get_object(self, queryset=None):
+        profile, created = UserProfile.objects.get_or_create(user=self.request.user)
+        return profile
+
+    def form_valid(self, form):
+        """Handle both User and UserProfile updates"""
+        user = self.request.user
+        user.username = form.cleaned_data['username']
+        user.email = form.cleaned_data['email']
+        user.first_name = form.cleaned_data.get('first_name', user.first_name) or ''
+        user.last_name = form.cleaned_data.get('last_name', user.last_name) or ''
+        user.save()
+
+        profile = form.save(commit=False)
+        profile.user = user
+        profile.phone = form.cleaned_data.get('phone', profile.phone)
+
+        # Handle image removal and upload
+        if form.cleaned_data.get('remove_image') == 'true':
+            profile.image = 'profile_images/profile.jpg'
+            profile.google_picture = None
+        elif form.files.get('image'):
+            profile.image = form.files['image']
+            profile.google_picture = None
+
+        profile.save()
+        return super().form_valid(form)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        queue_id = self.kwargs.get('queue_id')
+        queue = get_object_or_404(Queue, id=queue_id)
+        handler = CategoryHandlerFactory.get_handler(queue.category)
+        queue = handler.get_queue_object(queue_id)
+        context['queue'] = queue
+        context['queue_id'] = queue_id
+        context['user'] = self.request.user
+        profile = self.get_object()
+        context['profile_image_url'] = profile.get_profile_image()
+        return context
+
+
+@require_http_methods(["POST"])
+@login_required
+def notify_participant(request, participant_id):
+    participant = get_object_or_404(Participant, id=participant_id)
+    queue = participant.queue
+    message = request.POST.get('message', '')
+    Notification.objects.create(queue=queue, participant=participant, message=message)
+    participant.is_notified = True
+    participant.save()
+    return JsonResponse({'status': 'success', 'message': 'Notification sent successfully!'})
+
+
+@login_required
+@require_http_methods(["DELETE"])
+def delete_participant(request, participant_id):
+    participant = get_object_or_404(Participant, id=participant_id)
+    logger.info(f"Deleting participant {participant_id} from queue {participant.queue.id}")
+
+    if request.user != participant.queue.created_by:
+        return JsonResponse({'error': 'Unauthorized.'}, status=403)
+
+    queue = participant.queue
+    participant.state = 'removed'
+    participant.delete()
+    logger.info(f"Participant {participant_id} is deleted.")
+
+    waiting_participants = Participant.objects.filter(queue=queue, state='waiting').order_by('position')
+    for idx, p in enumerate(waiting_participants):
+        p.position = idx + 1
+        p.save()
+    return JsonResponse({'message': 'Participant deleted and positions updated.'})
+
+
+@require_http_methods(["POST"])
+def edit_participant(request, participant_id):
+    participant = get_object_or_404(Participant, id=participant_id)
+    if request.method == "POST":
+        data = {
+            'name': request.POST.get('name'),
+            'phone': request.POST.get('phone'),
+            'email': request.POST.get('email'),
+            'notes': request.POST.get('notes'),
+            'resource': request.POST.get('resource'),
+            'special_1': request.POST.get('special_1'),
+            'special_2': request.POST.get('special_2'),
+            'party_size': request.POST.get('party_size'),
+            'state': request.POST.get('state')
+        }
+        handler = CategoryHandlerFactory.get_handler(participant.queue.category)
+        participant = handler.get_participant_set(participant.queue.id).get(id=participant_id)
+        handler.update_participant(participant, data)
+        return redirect('manager:participant_list', participant.queue.id)
+
+
+@require_http_methods(["POST"])
+@login_required
+def add_participant(request, queue_id):
+    name = request.POST.get('name')
+    phone = request.POST.get('phone')
+    email = request.POST.get('email')
+    note = request.POST.get('notes', "")
+    special_1 = request.POST.get('special_1')
+    special_2 = request.POST.get('special_2')
+
+    queue = get_object_or_404(Queue, id=queue_id)
+    handler = CategoryHandlerFactory.get_handler(queue.category)
+    queue = handler.get_queue_object(queue_id)
+    data = {
+        'name': name,
+        'phone': phone,
+        'email': email,
+        'note': note,
+        'queue': queue,
+        'special_1': special_1,
+        'special_2': special_2,
+    }
+    handler.create_participant(data)
+    queue.record_line_length()
+    return redirect('manager:participant_list', queue_id)
+
+
+@login_required
+@require_http_methods(["POST"])
+def serve_participant(request, participant_id):
+    participant = get_object_or_404(Participant, id=participant_id)
+    queue_id = participant.queue.id
+    handler = CategoryHandlerFactory.get_handler(participant.queue.category)
+    participant_set = handler.get_participant_set(queue_id)
+    participant = get_object_or_404(participant_set, id=participant_id)
+
+    try:
+        data = json.loads(request.body) if request.body else {}
+        resource_id = data.get('resource_id', None)
+
+        if participant.state != 'waiting':
+            logger.warning(f"Cannot serve participant {participant_id} because they are in state: {participant.state}")
+            return JsonResponse({
+                'error': f'{participant.name} cannot be served because they are currently in state: {participant.state}.'
+            }, status=400)
+
+        handler.assign_to_resource(participant, resource_id=resource_id)
+        participant.queue.update_estimated_wait_time_per_turn(participant.get_wait_time())
+        participant.start_service()
+        participant.save()
+        logger.info(f"Participant {participant_id} started service in queue {participant.queue.id}.")
+
+        waiting_list = Participant.objects.filter(state='waiting').values()
+        serving_list = Participant.objects.filter(state='serving').values()
+
+        return JsonResponse({
+            'waiting_list': list(waiting_list),
+            'serving_list': list(serving_list),
+            'success': True
+        })
+
+    except json.JSONDecodeError:
+        return JsonResponse({'error': 'Invalid JSON data.'}, status=400)
+
+    except Exception as e:
+        logger.error(f"Error serving participant {participant_id}: {str(e)}")
+        return JsonResponse({
+            'error': f'Error: {str(e)}'
+        }, status=500)
+
+
+@login_required
+@require_http_methods(["POST"])
+def complete_participant(request, participant_id):
+    participant = get_object_or_404(Participant, id=participant_id)
+    queue = participant.queue
+    handler = CategoryHandlerFactory.get_handler(queue.category)
+    participant = handler.get_participant_set(queue.id).filter(id=participant_id).first()
+
+    if request.user != queue.created_by:
+        logger.error(f"Unauthorized edit attempt on queue {queue.id} by user {request.user.id}")
+        return JsonResponse({'error': 'Unauthorized.'}, status=403)
+
+    try:
+        if participant.state != 'serving':
+            logger.warning(
+                f"Cannot complete participant {participant_id} because they are in state: {participant.state}")
+            return JsonResponse({
+                'error': f'{participant.name} cannot be marked as completed because they are currently in state: {participant.state}.'
+            }, status=400)
+
+        handler.complete_service(participant)
+        participant.save()
+        logger.info(f"Participant {participant_id} completed service in queue {queue.id}.")
+
+        serving_list = Participant.objects.filter(state='serving').values()
+        completed_list = Participant.objects.filter(state='completed').values()
+
+        return JsonResponse({
+            'serving_list': list(serving_list),
+            'completed_list': list(completed_list)
+        })
+
+    except Exception as e:
+        return JsonResponse({
+            'error': f'Error: {str(e)}'
+        }, status=500)
+
 @login_required
 @require_http_methods(["POST"])
 def edit_resource(request, resource_id):
@@ -602,6 +603,22 @@ def delete_resource(request, resource_id):
     logger.info(f"Resource {resource_id} is deleted.")
     return JsonResponse({'message': 'Resource deleted successfully.'})
 
+@require_http_methods(["DELETE"])
+@login_required
+def delete_queue(request, queue_id):
+    try:
+        queue = Queue.objects.get(pk=queue_id)
+    except Queue.DoesNotExist:
+        return JsonResponse({'error': 'Queue not found.'}, status=404)
+
+    if request.user != queue.created_by:
+        return JsonResponse({'error': 'Unauthorized.'}, status=403)
+
+    try:
+        queue.delete()
+        return JsonResponse({'success': 'Queue deleted successfully.'}, status=200)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
 
 def edit_queue(request, queue_id):
     queue = get_object_or_404(Queue, id=queue_id)
@@ -693,56 +710,7 @@ def login_view(request):
     return render(request, 'account/login.html')
 
 
-class EditProfileView(LoginRequiredMixin, generic.UpdateView):
-    model = UserProfile
-    template_name = 'manager/edit_profile.html'
-    context_object_name = 'profile'
-    form_class = EditProfileForm
 
-    def get_success_url(self):
-        queue_id = self.kwargs.get('queue_id')
-        return reverse_lazy('manager:edit_profile', kwargs={'queue_id': queue_id})
-
-    def get_object(self, queryset=None):
-        profile, created = UserProfile.objects.get_or_create(user=self.request.user)
-        return profile
-
-    def form_valid(self, form):
-        """Handle both User and UserProfile updates"""
-        user = self.request.user
-        user.username = form.cleaned_data['username']
-        user.email = form.cleaned_data['email']
-        user.first_name = form.cleaned_data.get('first_name', user.first_name) or ''
-        user.last_name = form.cleaned_data.get('last_name', user.last_name) or ''
-        user.save()
-
-        profile = form.save(commit=False)
-        profile.user = user
-        profile.phone = form.cleaned_data.get('phone', profile.phone)
-
-        # Handle image removal and upload
-        if form.cleaned_data.get('remove_image') == 'true':
-            profile.image = 'profile_images/profile.jpg'
-            profile.google_picture = None
-        elif form.files.get('image'):
-            profile.image = form.files['image']
-            profile.google_picture = None
-
-        profile.save()
-        return super().form_valid(form)
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        queue_id = self.kwargs.get('queue_id')
-        queue = get_object_or_404(Queue, id=queue_id)
-        handler = CategoryHandlerFactory.get_handler(queue.category)
-        queue = handler.get_queue_object(queue_id)
-        context['queue'] = queue
-        context['queue_id'] = queue_id
-        context['user'] = self.request.user
-        profile = self.get_object()
-        context['profile_image_url'] = profile.get_profile_image()
-        return context
 
 
 def get_client_ip(request):
