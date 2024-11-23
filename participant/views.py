@@ -412,7 +412,7 @@ def sse_queue_status(request, participant_code):
 
 
 def participant_leave(request, participant_code):
-    """Participant chose to leave the queue."""
+    """Participant choose to leave the queue."""
     try:
         participant = Participant.objects.get(code=participant_code)
     except Participant.DoesNotExist:
@@ -422,8 +422,8 @@ def participant_leave(request, participant_code):
     queue = participant.queue
 
     try:
-        participant.delete()
-
+        participant.state = 'cancelled'
+        participant.save()
         messages.success(request,
                          f"We are sorry to see you leave {participant.name}. See you next time!")
         logger.info(
@@ -434,7 +434,6 @@ def participant_leave(request, participant_code):
             f"Failed to delete participant {participant_code} from queue: {queue.name} code: {queue.code} ")
     return redirect('participant:welcome', queue_code=queue.code)
 
-  
 def set_location(request):
     if request.method == 'POST':
         data = json.loads(request.body)
