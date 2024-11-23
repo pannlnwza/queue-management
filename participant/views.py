@@ -27,6 +27,8 @@ from django.utils.html import strip_tags
 from manager.utils.send_email import send_html_email
 from django.conf import settings
 from django.core.files.base import ContentFile
+from django.views.decorators.http import require_POST
+
 
 class HomePageView(generic.TemplateView):
     template_name = 'participant/get_started.html'
@@ -55,22 +57,24 @@ class HomePageView(generic.TemplateView):
         return context
 
 
-@login_required
-def mark_notification_as_read(request, notification_id):
-    if request.method == "POST":
-        try:
-            notification = Notification.objects.get(id=notification_id)
-            notification.is_read = True  # Adjust according to your model's field
-            notification.save()
-            return JsonResponse({"status": "success"})
-        except Notification.DoesNotExist:
-            return JsonResponse(
-                {"status": "error", "message": "Notification not found"},
-                status=404
-            )
 
-    return JsonResponse({"status": "error", "message": "Invalid request"},
-                        status=400)
+@require_POST
+def mark_notification_as_read(request, notification_id):
+    try:
+        notification = Notification.objects.get(id=notification_id)
+        notification.is_read = True
+        notification.save()
+        return JsonResponse({"status": "success"})
+    except Notification.DoesNotExist:
+        return JsonResponse(
+            {"status": "error", "message": "Notification not found"},
+            status=404
+        )
+    except Exception as e:
+        return JsonResponse(
+            {"status": "error", "message": str(e)},
+            status=500
+        )
 
 
 class BaseQueueView(generic.ListView):
@@ -360,18 +364,35 @@ def sse_queue_status(request, participant_code):
         last_data = None
         while True:
             try:
+                # Get the queue and participant details
                 queue = get_object_or_404(Participant, code=participant_code).queue
                 handler = CategoryHandlerFactory.get_handler(queue.category)
                 participant = handler.get_participant_set(queue.id).get(code=participant_code)
 
+                # Fetch participant data
                 current_data = handler.get_participant_data(participant)
 
                 # Fetch notifications for the participant
                 notification_set = Notification.objects.filter(participant=participant)
-                current_data['notification_set'] = [
-                    {'message': notification.message, 'created_at': notification.created_at.strftime("%Y-%m-%d %H:%M:%S")}
-                    for notification in notification_set
-                ]
+                notification_list = []
+
+                for notification in notification_set:
+                    # Add notification details to the list
+                    notification_list.append({
+                        'message': notification.message,
+                        'created_at': notification.created_at.strftime("%Y-%m-%d %H:%M:%S"),
+                        'is_read': notification.is_read,
+                        'played_sound': notification.played_sound,
+                        'id': notification.id,
+                    })
+
+                    # If sound hasn't been played yet, mark it as played
+                    if not notification.played_sound:
+                        notification.played_sound = True
+                        notification.save()
+
+                # Add the notifications to the current data
+                current_data['notification_set'] = notification_list
 
                 if last_data != current_data:
                     # Prepare the data to send in the SSE stream
