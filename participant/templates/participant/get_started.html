@@ -5,345 +5,390 @@
 {% block content %}
 
 <div class="carousel w-full overflow-hidden relative">
-  <div id="carousel-slides" class="flex transition-transform duration-300">
-    <div class="carousel-item w-full flex-shrink-0 relative">
-      <div class="absolute top-0 left-0 w-full h-full flex items-center justify-center">
-        <a href="{% url 'manager:your-queue' %}" class="card bg-base-100 shadow-xl hover:shadow-2xl transform hover:scale-105 transition duration-300 z-20 w-80">
-          <div class="card-body items-center text-center">
-            <figure class="px-10 pt-10">
-              <img src="{% static 'participant/images/Krustykrab.jpg' %}" alt="Create Queue Icon" class="rounded-xl w-32 h-32 object-cover">
-            </figure>
-            <h5 class="card-title text-2xl font-bold text-primary">I'm a Business</h5>
-            <p class="text-accent text-lg">Start managing your customer queues efficiently by creating a queue.</p>
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 150" class="w-36 h-36 justify-center">
-                  <circle cx="100" cy="75" r="50" fill="none" stroke="#000" stroke-width="1"/>
-                  <path d="M75 75 L125 75 M100 50 L125 75 L100 100" stroke="#000" stroke-width="1" fill="none"/>
-                </svg>
-          </div>
-        </a>
+    <div id="carousel-slides" class="flex transition-transform duration-300">
+        <!-- Carousel Page 1 -->
+        <div class="carousel-item w-full flex-shrink-0 relative">
+            <div class="absolute top-0 left-0 w-full h-full flex items-center justify-center gap-4">
+                <!-- Business Owner Card -->
+                <a href="{% url 'manager:your-queue' %}"
+                   class="card bg-base-100 shadow-xl hover:shadow-2xl transform hover:scale-105 transition duration-300 z-20 w-80">
+                    <div class="card-body items-center text-center">
+                        <figure class="px-10 pt-10">
+                            <img src="{% static 'participant/images/Krustykrab.jpg' %}" alt="Create Queue Icon"
+                                 class="rounded-xl w-32 h-32 object-cover">
+                        </figure>
+                        <h5 class="card-title text-2xl font-bold">Business Owner</h5>
+                        <p class="text">Start managing your customer queues efficiently by creating a queue.</p>
+                    </div>
+                </a>
+                <!-- Browse Queues Card -->
+                <a href="{% url 'participant:queues' %}"
+                   class="card bg-base-100 shadow-xl hover:shadow-2xl transform hover:scale-105 transition duration-300 z-20 w-80">
+                    <div class="card-body items-center text-center">
+                        <figure class="px-10 pt-10">
+                            <img src="{% static 'participant/images/spongebob_queue.jpg' %}" alt="Browse Queue Icon"
+                                 class="rounded-xl w-32 h-32 object-cover">
+                        </figure>
+                        <h5 class="card-title text-2xl font-bold">Browse Queues</h5>
+                        <p class="text">Browse available queues if you're looking to join one.</p>
+                    </div>
+                </a>
+            </div>
+            <div class="w-full h-full z-10">
+                <img src="{% static 'participant/images/background_3.jpg' %}" class="w-full h-auto object-cover"
+                     loading="lazy" />
+            </div>
+        </div>
 
-      </div>
-      <div class="w-full h-full z-10">
-        <img src="{% static 'participant/images/background_3.jpg' %}" class="w-full h-auto object-cover" loading="lazy" />
-      </div>
+        <!-- Carousel Page 2 -->
+        <div class="carousel-item w-full flex-shrink-0 relative">
+            <div class="absolute top-0 left-0 w-full h-full flex items-center justify-center gap-4">
+                <!-- Business Owner Card -->
+                <a href="{% url 'manager:your-queue' %}"
+                   class="card bg-base-100 shadow-xl hover:shadow-2xl transform hover:scale-105 transition duration-300 z-20 w-80">
+                    <div class="card-body items-center text-center">
+                        <figure class="px-10 pt-10">
+                            <img src="{% static 'participant/images/Krustykrab.jpg' %}" alt="Create Queue Icon"
+                                 class="rounded-xl w-32 h-32 object-cover">
+                        </figure>
+                        <h5 class="card-title text-2xl font-bold">Business Owner</h5>
+                        <p class="text">Start managing your customer queues efficiently by creating a queue.</p>
+                    </div>
+                </a>
+                <!-- Browse Queues Card -->
+                <a href="{% url 'participant:queues' %}"
+                   class="card bg-base-100 shadow-xl hover:shadow-2xl transform hover:scale-105 transition duration-300 z-20 w-80">
+                    <div class="card-body items-center text-center">
+                        <figure class="px-10 pt-10">
+                            <img src="{% static 'participant/images/spongebob_queue.jpg' %}" alt="Browse Queue Icon"
+                                 class="rounded-xl w-32 h-32 object-cover">
+                        </figure>
+                        <h5 class="card-title text-2xl font-bold">Browse Queues</h5>
+                        <p class="text">Browse available queues if you're looking to join one.</p>
+                    </div>
+                </a>
+            </div>
+            <div class="w-full h-full z-10">
+                <img src="{% static 'participant/images/background_4.jpg' %}" class="w-full h-auto object-cover"
+                     loading="lazy" />
+            </div>
+        </div>
     </div>
 
-    <div class="carousel-item w-full flex-shrink-0 relative">
-      <div class="absolute top-0 left-0 w-full h-full flex items-center justify-center">
-        <a href="{% url 'participant:queues' %}" class="card bg-base-100 shadow-xl hover:shadow-2xl transform hover:scale-105 transition duration-300 z-20 w-80">
-          <div class="card-body items-center text-center">
-            <figure class="px-10 pt-10">
-              <img src="{% static 'participant/images/spongebob_queue.jpg' %}" alt="Browse Queue Icon" class="rounded-xl w-32 h-32 object-cover">
-            </figure>
-            <h5 class="card-title text-2xl font-bold text-primary">Browse Queues</h5>
-            <p class="text-accent text-lg">Browse available queues if you're looking to join one.</p>
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 150" class="w-36 h-36 justify-center">
-                  <circle cx="100" cy="75" r="50" fill="none" stroke="#000" stroke-width="1"/>
-                  <path d="M75 75 L125 75 M100 50 L125 75 L100 100" stroke="#000" stroke-width="1" fill="none"/>
-                </svg>
-          </div>
-        </a>
-      </div>
-      <div class="w-full h-full z-10">
-        <img src="{% static 'participant/images/background_4.jpg' %}" class="w-full h-auto object-cover" loading="lazy" />
-      </div>
-    </div>
-  </div>
-
-  <button id="prev" class="absolute left-2 top-1/2 btn btn-circle">❮</button>
-  <button id="next" class="absolute right-2 top-1/2 btn btn-circle">❯</button>
+    <button id="prev" class="absolute left-2 top-1/2 btn btn-circle">❮</button>
+    <button id="next" class="absolute right-2 top-1/2 btn btn-circle">❯</button>
 </div>
 
-<div class="container mx-auto px-4 py-12 ">
-    <section class="mb-12 px-4 max-w-7xl mx-auto relative">
-        {% if num_nearby_queues == 1 %}
-        <h1 class="mb-6 text-2xl font-bold text-gray-800">Nearby Queues (1 queue)</h1>
-        {% else %}
-        <h1 class="mb-6 text-2xl font-bold text-gray-800">Nearby Queues ({{ num_nearby_queues}} queues)</h1>
-        {% endif %}
-        <div class="relative flex items-center">
-            <div id="queue-container" class="flex gap-8 overflow-x-auto no-scrollbar scroll-smooth">
-                {% if nearby_queues %}
-                    {% for queue in nearby_queues %}
-                        <div class="flex-shrink-0 group bg-white rounded-xl border border-gray-300 shadow-md  hover:shadow-2xl transition-all duration-300 overflow-hidden w-64">
-                            <div class="p-6">
-                                <div class="bg-gray-50 rounded-xl p-6 mb-4 flex items-center justify-center">
-                                    <img class="w-24 h-auto object-contain" src="{{ queue.get_logo_url }}" alt="{{ queue.name }}">
-                                </div>
-                                <div class="space-y-3">
-                                    <div class="text-center">
-                                        <h2 class="text-xl font-bold text-gray-800">{{ queue.name | upper }}</h2>
-                                        <p class="text-sm text-indigo-600 font-medium">({{ queue.category.capitalize }})</p>
+    <div class="container mx-auto px-4 py-12 ">
+        <section class="mb-12 px-4 max-w-7xl mx-auto relative">
+            {% if num_nearby_queues == 1 %}
+                <h1 class="mb-6 text-2xl font-bold text-gray-800">Nearby Queues (1 queue)</h1>
+            {% else %}
+                <h1 class="mb-6 text-2xl font-bold text-gray-800">Nearby Queues ({{ num_nearby_queues }} queues)</h1>
+            {% endif %}
+            <div class="relative flex items-center">
+                <div id="queue-container" class="flex gap-8 overflow-x-auto no-scrollbar scroll-smooth">
+                    {% if nearby_queues %}
+                        {% for queue in nearby_queues %}
+                            <div class="flex-shrink-0 group bg-white rounded-xl border border-gray-300 shadow-md  hover:shadow-2xl transition-all duration-300 overflow-hidden w-64">
+                                <div class="p-6">
+                                    <div class="bg-gray-50 rounded-xl p-6 mb-4 flex items-center justify-center">
+                                        <img class="w-24 h-auto object-contain" src="{{ queue.get_logo_url }}"
+                                             alt="{{ queue.name }}">
                                     </div>
+                                    <div class="space-y-3">
+                                        <div class="text-center">
+                                            <h2 class="text-xl font-bold text-gray-800">{{ queue.name | upper }}</h2>
+                                            <p class="text-sm text-indigo-600 font-medium">
+                                                ({{ queue.category.capitalize }})</p>
+                                        </div>
 
-                                    <div class="relative">
-                                        <p class="text-sm text-gray-700 text-center">{{ queue.formatted_distance }} from your current location.</p>
+                                        <div class="relative">
+                                            <p class="text-sm text-gray-700 text-center">{{ queue.formatted_distance }}
+                                                from your current location.</p>
+                                        </div>
                                     </div>
+                                </div>
+
+                                <div class="px-6 pb-6 flex justify-center">
+                                    <a
+                                            href="https://www.google.com/maps?q={{ queue.latitude }},{{ queue.longitude }}"
+                                            target="_blank"
+                                            class="w-full btn btn-primary btn-md rounded-full shadow-md transition-all hover:shadow-lg mb-5">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20"
+                                             fill="currentColor">
+                                            <path fill-rule="evenodd"
+                                                  d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z"
+                                                  clip-rule="evenodd"/>
+                                        </svg>
+                                        View on Google Maps
+                                    </a>
                                 </div>
                             </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="col-span-full text-center py-12">
+                            <div class="bg-gray-50 rounded-xl p-8">
+                                <p class="text-gray-500 text-lg">No nearby queues available.</p>
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </section>
+    </div>
 
-                            <div class="px-6 pb-6 flex justify-center">
-                            <a
-                                href="https://www.google.com/maps?q={{ queue.latitude }},{{ queue.longitude }}"
-                                target="_blank"
-                                class="w-full btn btn-primary btn-md rounded-full shadow-md transition-all hover:shadow-lg mb-5">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
-                                    <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" />
-                                </svg>
-                                View on Google Maps
-                            </a>
+    <div class="w-full bg-base-content py-12">
+        <section class="px-4 max-w-7xl mx-auto relative">
+            <h2 class="pt-4 mb-6 text-2xl font-bold text-white">Top 3 Featured Restaurant Queues</h2>
+            {% if restaurant_featured_queues %}
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    {% for queue in restaurant_featured_queues %}
+                        <div class="card transform transition-all duration-300 hover:scale-105 hover:shadow-2xl bg-white rounded-xl overflow-hidden">
+                            <div class="relative">
+                                <div class="flex justify-center">
+                                    <img
+                                            src="{{ queue.get_logo_url }}"
+                                            alt="Queue Image"
+                                            class="w-auto h-32 object-cover filter brightness-90"
+                                    />
+                                </div>
+                            </div>
+                            <div class="card-body p-6 space-y-4">
+                                <h3 class="text-xl font-bold truncate">{{ queue.name }}</h3>
+                                <p class="text-gray-600 text-sm line-clamp-3">{{ queue.description }}</p>
+                                <div class="card-actions mt-4">
+                                    <a
+                                            href="https://www.google.com/maps?q={{ queue.latitude }},{{ queue.longitude }}"
+                                            target="_blank"
+                                            class="w-full btn btn-primary btn-md rounded-full shadow-md transition-all hover:shadow-lg">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20"
+                                             fill="currentColor">
+                                            <path fill-rule="evenodd"
+                                                  d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z"
+                                                  clip-rule="evenodd"/>
+                                        </svg>
+                                        View on Google Maps
+                                    </a>
+                                </div>
                             </div>
                         </div>
                     {% endfor %}
-                {% else %}
-                    <div class="col-span-full text-center py-12">
-                        <div class="bg-gray-50 rounded-xl p-8">
-                            <p class="text-gray-500 text-lg">No nearby queues available.</p>
-                        </div>
-                    </div>
-                {% endif %}
-            </div>
-        </div>
-    </section>
-</div>
-
-<div class="w-full bg-base-content py-12">
-    <section class="px-4 max-w-7xl mx-auto relative">
-        <h2 class="pt-4 mb-6 text-2xl font-bold text-white">Top 3 Featured Restaurant Queues</h2>
-        {% if restaurant_featured_queues %}
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {% for queue in restaurant_featured_queues %}
-                <div class="card transform transition-all duration-300 hover:scale-105 hover:shadow-2xl bg-white rounded-xl overflow-hidden">
-                    <div class="relative">
-                        <div class="flex justify-center">
-                            <img
-                                src="{{ queue.get_logo_url }}"
-                                alt="Queue Image"
-                                class="w-auto h-32 object-cover filter brightness-90"
-                            />
-                        </div>
-                    </div>
-                    <div class="card-body p-6 space-y-4">
-                        <h3 class="text-xl font-bold truncate">{{ queue.name }}</h3>
-                        <p class="text-gray-600 text-sm line-clamp-3">{{ queue.description }}</p>
-                        <div class="card-actions mt-4">
-                            <a
-                                href="https://www.google.com/maps?q={{ queue.latitude }},{{ queue.longitude }}"
-                                target="_blank"
-                                class="w-full btn btn-primary btn-md rounded-full shadow-md transition-all hover:shadow-lg">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
-                                    <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" />
-                                </svg>
-                                View on Google Maps
-                            </a>
-                        </div>
-                    </div>
-                </div>
-                {% endfor %}
-                    </div>
-                {% else %}
-                    <p class="text-center text-lg text-white pt-4">No featured restaurant queues available at the moment.</p>
-                {% endif %}
-    </section>
-</div>
-
-<div class="w-full bg-base-300 py-12">
-    <section class="px-4 max-w-7xl mx-auto relative">
-        <h2 class="pt-4 mb-6 text-2xl font-bold text-gray-800">Top 3 Featured General Queues</h2>
-        {% if general_featured_queues %}
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {% for queue in general_featured_queues %}
-                <div class="card transform transition-all duration-300 hover:scale-105 hover:shadow-2xl bg-white rounded-xl overflow-hidden">
-                        <div class="relative">
-                            <div class="flex justify-center">
-                                <img
-                                    src="{{ queue.get_logo_url }}"
-                                    alt="Queue Image"
-                                    class="w-auto h-32 object-cover filter brightness-90"
-                                />
-                            </div>
-                        </div>
-                        <div class="card-body p-6 space-y-4">
-                            <h3 class="text-xl font-bold truncate">{{ queue.name }}</h3>
-                            <p class="text-gray-600 text-sm line-clamp-3">{{ queue.description }}</p>
-                            <div class="card-actions mt-4">
-                                <a
-                                    href="https://www.google.com/maps?q={{ queue.latitude }},{{ queue.longitude }}"
-                                    target="_blank"
-                                    class="w-full btn btn-primary btn-md rounded-full shadow-md transition-all hover:shadow-lg">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
-                                        <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" />
-                                    </svg>
-                                    View on Google Maps
-                                </a>
-                            </div>
-                        </div>
-                </div>
-                {% endfor %}
                 </div>
             {% else %}
-                <p class="text-center text-lg text-gray-800 pt-4">No featured general queues available at the moment.</p>
+                <p class="text-center text-lg text-white pt-4">No featured restaurant queues available at the
+                    moment.</p>
             {% endif %}
-    </section>
-</div>
+        </section>
+    </div>
 
-<div class="w-full bg-base-content py-12">
-    <section class="px-4 max-w-7xl mx-auto relative">
-        <h2 class="pt-4 mb-6 text-2xl font-bold text-white">Top 3 Featured Hospital Queues</h2>
-        {% if hospital_featured_queues %}
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {% for queue in hospital_featured_queues %}
-                <div class="card transform transition-all duration-300 hover:scale-105 hover:shadow-2xl bg-white rounded-xl overflow-hidden">
-                    <div class="relative">
-                        <div class="flex justify-center">
-                            <img
-                                src="{{ queue.get_logo_url }}"
-                                alt="Queue Image"
-                                class="w-auto h-32 object-cover filter brightness-90"
-                            />
+    <div class="w-full bg-base-300 py-12">
+        <section class="px-4 max-w-7xl mx-auto relative">
+            <h2 class="pt-4 mb-6 text-2xl font-bold text-gray-800">Top 3 Featured General Queues</h2>
+            {% if general_featured_queues %}
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    {% for queue in general_featured_queues %}
+                        <div class="card transform transition-all duration-300 hover:scale-105 hover:shadow-2xl bg-white rounded-xl overflow-hidden">
+                            <div class="relative">
+                                <div class="flex justify-center">
+                                    <img
+                                            src="{{ queue.get_logo_url }}"
+                                            alt="Queue Image"
+                                            class="w-auto h-32 object-cover filter brightness-90"
+                                    />
+                                </div>
+                            </div>
+                            <div class="card-body p-6 space-y-4">
+                                <h3 class="text-xl font-bold truncate">{{ queue.name }}</h3>
+                                <p class="text-gray-600 text-sm line-clamp-3">{{ queue.description }}</p>
+                                <div class="card-actions mt-4">
+                                    <a
+                                            href="https://www.google.com/maps?q={{ queue.latitude }},{{ queue.longitude }}"
+                                            target="_blank"
+                                            class="w-full btn btn-primary btn-md rounded-full shadow-md transition-all hover:shadow-lg">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20"
+                                             fill="currentColor">
+                                            <path fill-rule="evenodd"
+                                                  d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z"
+                                                  clip-rule="evenodd"/>
+                                        </svg>
+                                        View on Google Maps
+                                    </a>
+                                </div>
+                            </div>
                         </div>
-                    </div>
-                    <div class="card-body p-6 space-y-4">
-                        <h3 class="text-xl font-bold truncate">{{ queue.name }}</h3>
-                        <p class="text-gray-600 text-sm line-clamp-3">{{ queue.description }}</p>
-                        <div class="card-actions mt-4">
-                            <a
-                                href="https://www.google.com/maps?q={{ queue.latitude }},{{ queue.longitude }}"
-                                target="_blank"
-                                class="w-full btn btn-primary btn-md rounded-full shadow-md transition-all hover:shadow-lg">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
-                                    <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" />
-                                </svg>
-                                View on Google Maps
-                            </a>
-                        </div>
-                    </div>
+                    {% endfor %}
                 </div>
-                {% endfor %}
-            </div>
-                {% else %}
+            {% else %}
+                <p class="text-center text-lg text-gray-800 pt-4">No featured general queues available at the
+                    moment.</p>
+            {% endif %}
+        </section>
+    </div>
+
+    <div class="w-full bg-base-content py-12">
+        <section class="px-4 max-w-7xl mx-auto relative">
+            <h2 class="pt-4 mb-6 text-2xl font-bold text-white">Top 3 Featured Hospital Queues</h2>
+            {% if hospital_featured_queues %}
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    {% for queue in hospital_featured_queues %}
+                        <div class="card transform transition-all duration-300 hover:scale-105 hover:shadow-2xl bg-white rounded-xl overflow-hidden">
+                            <div class="relative">
+                                <div class="flex justify-center">
+                                    <img
+                                            src="{{ queue.get_logo_url }}"
+                                            alt="Queue Image"
+                                            class="w-auto h-32 object-cover filter brightness-90"
+                                    />
+                                </div>
+                            </div>
+                            <div class="card-body p-6 space-y-4">
+                                <h3 class="text-xl font-bold truncate">{{ queue.name }}</h3>
+                                <p class="text-gray-600 text-sm line-clamp-3">{{ queue.description }}</p>
+                                <div class="card-actions mt-4">
+                                    <a
+                                            href="https://www.google.com/maps?q={{ queue.latitude }},{{ queue.longitude }}"
+                                            target="_blank"
+                                            class="w-full btn btn-primary btn-md rounded-full shadow-md transition-all hover:shadow-lg">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20"
+                                             fill="currentColor">
+                                            <path fill-rule="evenodd"
+                                                  d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z"
+                                                  clip-rule="evenodd"/>
+                                        </svg>
+                                        View on Google Maps
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
                 <p class="text-center text-lg text-white pt-4">No featured hospital queues available at the moment.</p>
-                {% endif %}
-    </section>
-</div>
+            {% endif %}
+        </section>
+    </div>
 
-<div class="w-full bg-base-300 py-12">
-    <section class="px-4 max-w-7xl mx-auto relative">
-        <h2 class="pt-4 mb-6 text-2xl font-bold text-gray-800">Top 3 Featured Bank Queues</h2>
-        {% if bank_featured_queues %}
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {% for queue in bank_featured_queues %}
-                <div class="card transform transition-all duration-300 hover:scale-105 hover:shadow-2xl bg-white rounded-xl overflow-hidden">
-                    <div class="relative">
-                        <div class="flex justify-center">
-                            <img
-                                src="{{ queue.get_logo_url }}"
-                                alt="Queue Image"
-                                class="w-auto h-32 object-cover filter brightness-90"
-                            />
+    <div class="w-full bg-base-300 py-12">
+        <section class="px-4 max-w-7xl mx-auto relative">
+            <h2 class="pt-4 mb-6 text-2xl font-bold text-gray-800">Top 3 Featured Bank Queues</h2>
+            {% if bank_featured_queues %}
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    {% for queue in bank_featured_queues %}
+                        <div class="card transform transition-all duration-300 hover:scale-105 hover:shadow-2xl bg-white rounded-xl overflow-hidden">
+                            <div class="relative">
+                                <div class="flex justify-center">
+                                    <img
+                                            src="{{ queue.get_logo_url }}"
+                                            alt="Queue Image"
+                                            class="w-auto h-32 object-cover filter brightness-90"
+                                    />
+                                </div>
+                            </div>
+                            <div class="card-body p-6 space-y-4">
+                                <h3 class="text-xl font-bold truncate">{{ queue.name }}</h3>
+                                <p class="text-gray-600 text-sm line-clamp-3">{{ queue.description }}</p>
+                                <div class="card-actions mt-4">
+                                    <a
+                                            href="https://www.google.com/maps?q={{ queue.latitude }},{{ queue.longitude }}"
+                                            target="_blank"
+                                            class="w-full btn btn-primary btn-md rounded-full shadow-md transition-all hover:shadow-lg">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20"
+                                             fill="currentColor">
+                                            <path fill-rule="evenodd"
+                                                  d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z"
+                                                  clip-rule="evenodd"/>
+                                        </svg>
+                                        View on Google Maps
+                                    </a>
+                                </div>
+                            </div>
                         </div>
-                    </div>
-                    <div class="card-body p-6 space-y-4">
-                        <h3 class="text-xl font-bold truncate">{{ queue.name }}</h3>
-                        <p class="text-gray-600 text-sm line-clamp-3">{{ queue.description }}</p>
-                        <div class="card-actions mt-4">
-                            <a
-                                href="https://www.google.com/maps?q={{ queue.latitude }},{{ queue.longitude }}"
-                                target="_blank"
-                                class="w-full btn btn-primary btn-md rounded-full shadow-md transition-all hover:shadow-lg">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
-                                    <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" />
-                                </svg>
-                                View on Google Maps
-                            </a>
-                        </div>
-                    </div>
+                    {% endfor %}
                 </div>
-                {% endfor %}
-            </div>
-        {% else %}
-            <p class="text-center text-lg text-gray-800 pt-4">No featured bank queues available at the moment.</p>
-        {% endif %}
-    </section>
-</div>
+            {% else %}
+                <p class="text-center text-lg text-gray-800 pt-4">No featured bank queues available at the moment.</p>
+            {% endif %}
+        </section>
+    </div>
 
 
-<script>
-    if (!sessionStorage.getItem('userLat') || !sessionStorage.getItem('userLon')) {
-        if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(function (position) {
-                const lat = position.coords.latitude;
-                const lon = position.coords.longitude;
+    <script>
+        if (!sessionStorage.getItem('userLat') || !sessionStorage.getItem('userLon')) {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(function (position) {
+                    const lat = position.coords.latitude;
+                    const lon = position.coords.longitude;
 
-                sessionStorage.setItem('userLat', lat);
-                sessionStorage.setItem('userLon', lon);
+                    sessionStorage.setItem('userLat', lat);
+                    sessionStorage.setItem('userLon', lon);
 
-                fetch("{% url 'participant:set_location' %}", {
-                    method: 'POST',
-                    body: JSON.stringify({ lat: lat, lon: lon }),
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRFToken': '{{ csrf_token }}'
-                    }
-                }).then(response => {
-                    if (response.ok) {
-                        console.log('Location saved in session');
-                    }
+                    fetch("{% url 'participant:set_location' %}", {
+                        method: 'POST',
+                        body: JSON.stringify({lat: lat, lon: lon}),
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': '{{ csrf_token }}'
+                        }
+                    }).then(response => {
+                        if (response.ok) {
+                            console.log('Location saved in session');
+                        }
+                    });
+                    window.location.reload();
+                }, function (error) {
+                    console.error('Error retrieving location:', error);
                 });
-                window.location.reload();
-            }, function (error) {
-                console.error('Error retrieving location:', error);
+            } else {
+                alert("Geolocation is not supported by your browser.");
+            }
+        }
+    </script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            let currentIndex = 0;
+            const slides = document.getElementById('carousel-slides');
+
+            function updateCarousel() {
+                slides.style.transform = `translateX(-${currentIndex * 100}%)`;
+            }
+
+            const images = document.querySelectorAll('.carousel-item img');
+            images.forEach(image => {
+                const img = new Image();
+                img.src = image.src;
             });
-        } else {
-            alert("Geolocation is not supported by your browser.");
-        }
-    }
-</script>
 
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
-        let currentIndex = 0;
-        const slides = document.getElementById('carousel-slides');
+            let isClicking = false;
 
-        function updateCarousel() {
-            slides.style.transform = `translateX(-${currentIndex * 100}%)`;
-        }
-
-        const images = document.querySelectorAll('.carousel-item img');
-        images.forEach(image => {
-            const img = new Image();
-            img.src = image.src;
-        });
-
-        let isClicking = false;
-
-        document.getElementById('prev').addEventListener('click', () => {
-            if (!isClicking) {
-                isClicking = true;
-                setTimeout(() => isClicking = false, 200);
-                if (currentIndex === 0) {
-                    currentIndex = 1;
-                } else {
-                    currentIndex = 0;
+            document.getElementById('prev').addEventListener('click', () => {
+                if (!isClicking) {
+                    isClicking = true;
+                    setTimeout(() => isClicking = false, 200);
+                    if (currentIndex === 0) {
+                        currentIndex = 1;
+                    } else {
+                        currentIndex = 0;
+                    }
+                    updateCarousel();
                 }
-                updateCarousel();
-            }
-        });
+            });
 
-        document.getElementById('next').addEventListener('click', () => {
-            if (!isClicking) {
-                isClicking = true;
-                setTimeout(() => isClicking = false, 200);
-                if (currentIndex === 0) {
-                    currentIndex = 1;
-                } else {
-                    currentIndex = 0;
+            document.getElementById('next').addEventListener('click', () => {
+                if (!isClicking) {
+                    isClicking = true;
+                    setTimeout(() => isClicking = false, 200);
+                    if (currentIndex === 0) {
+                        currentIndex = 1;
+                    } else {
+                        currentIndex = 0;
+                    }
+                    updateCarousel();
                 }
-                updateCarousel();
-            }
+            });
+            updateCarousel();
         });
-        updateCarousel();
-    });
-</script>
+    </script>
 
 {% endblock %}
