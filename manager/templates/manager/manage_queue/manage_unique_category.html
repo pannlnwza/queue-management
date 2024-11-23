@@ -768,8 +768,11 @@
                     if (data.status === 'success') {
                         alert('Notification sent successfully!');
                         document.getElementById("notify_modal").checked = false;
-                        const audio = new Audio(data.audio_url);
-                        audio.play();
+                        if (data.audio_url) {
+                            const audio = new Audio(data.audio_url);
+                            audio.play();
+                        }
+
 
                     } else {
                         alert('There was an error sending the notification');

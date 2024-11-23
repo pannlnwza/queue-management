@@ -47,6 +47,7 @@ class Queue(models.Model):
     latitude = models.FloatField()
     longitude = models.FloatField()
     distance_from_user = models.FloatField(null=True, blank=True)
+    tts_notifications_enabled = models.BooleanField(default=True)
 
     def save(self, *args, **kwargs):
         """Generate a unique ticket code for the participant if not already."""

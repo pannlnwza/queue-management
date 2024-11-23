@@ -251,14 +251,14 @@ def notify_participant(request, participant_id):
                                 message=message)
     participant.is_notified = True
 
-    tts = gTTS(text="ควยไท", lang='th')
-    audio_dir = os.path.join(settings.MEDIA_ROOT, 'announcements')
-    os.makedirs(audio_dir, exist_ok=True)
-    audio_path = os.path.join(audio_dir, f'announcement_{participant.id}.mp3')
-    tts.save(audio_path)
-
-    audio_url = f"{settings.MEDIA_URL}announcements/announcement_{participant.id}.mp3"
-    print(audio_url)
+    audio_url = None
+    if queue.tts_notifications_enabled:
+        tts = gTTS(text="ควยไท", lang='th')
+        audio_dir = os.path.join(settings.MEDIA_ROOT, 'announcements')
+        os.makedirs(audio_dir, exist_ok=True)
+        audio_path = os.path.join(audio_dir, f'announcement_{participant.id}.mp3')
+        tts.save(audio_path)
+        audio_url = f"{settings.MEDIA_URL}announcements/announcement_{participant.id}.mp3"
 
     participant.save()
     return JsonResponse({'status': 'success', 'message': 'Notification sent successfully!', 'audio_url': audio_url})
@@ -872,12 +872,14 @@ def edit_queue(request, queue_id):
         open_time = request.POST.get('open_time')
         close_time = request.POST.get('close_time')
         logo = request.FILES.get('logo', None)
+        tts_enabled = request.POST.get('tts')
 
         queue.name = name
         queue.description = description
         queue.latitude = latitude
         queue.longitude = longitude
         queue.is_closed = False if status == 'on' else True
+        queue.tts_notifications_enabled = True if tts_enabled == 'on' else False
         try:
             if open_time:
                 queue.open_time = datetime.strptime(open_time, "%H:%M").time()

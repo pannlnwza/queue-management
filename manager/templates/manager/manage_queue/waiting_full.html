@@ -55,9 +55,9 @@
                                                 Name
                                             </th>
                                             {% if queue.category == 'restaurant' and queue.category == 'bank' %}
-                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                {{ special_2 }}
-                                            </th>
+                                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                    {{ special_2 }}
+                                                </th>
                                             {% elif queue.category == 'hospital' %}
                                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                                     {{ special_1 }}
@@ -216,31 +216,31 @@
 
                 <!-- Resources Section -->
                 <div id="resourceContainer" class="grid gap-4">
-                {% if available_resource %}
-                    {% for resource in available_resource %}
-                        <div class="card bg-base-100 border hover:border-primary cursor-pointer"
-                             onclick="selectResource('{{ resource.id }}')"
-                             data-id="{{ resource.id }}" id="resource-{{ resource.id }}">
-                            <div class="card-body p-4">
-                                <div class="flex justify-between items-center">
-                                    <div>
-                                        <div class="flex items-center gap-2">
-                                            <span class="font-semibold">{{ resource.name }}</span>
+                    {% if available_resource %}
+                        {% for resource in available_resource %}
+                            <div class="card bg-base-100 border hover:border-primary cursor-pointer"
+                                 onclick="selectResource('{{ resource.id }}')"
+                                 data-id="{{ resource.id }}" id="resource-{{ resource.id }}">
+                                <div class="card-body p-4">
+                                    <div class="flex justify-between items-center">
+                                        <div>
+                                            <div class="flex items-center gap-2">
+                                                <span class="font-semibold">{{ resource.name }}</span>
+                                            </div>
+                                            <div class="text-sm text-gray-500">
+                                                {% if queue.category == 'restaurant' %}
+                                                    Capacity: {{ resource.capacity }}
+                                                {% endif %}
+                                            </div>
                                         </div>
-                                        <div class="text-sm text-gray-500">
-                                            {% if queue.category == 'restaurant' %}
-                                                Capacity: {{ resource.capacity }}
-                                            {% endif %}
-                                        </div>
+                                        <div class="badge badge-success badge-sm"></div>
                                     </div>
-                                    <div class="badge badge-success badge-sm"></div>
                                 </div>
                             </div>
-                        </div>
-                    {% endfor %}
-                {% else %}
-                    <span class="font-semibold">No {{ resource_name }}s available.</span>
-                {% endif %}
+                        {% endfor %}
+                    {% else %}
+                        <span class="font-semibold">No {{ resource_name }}s available.</span>
+                    {% endif %}
                 </div>
                 <div class="modal-action">
                     <button type="button" class="btn" onclick="serveParticipantNoResource()">Serve without assigning
@@ -670,13 +670,17 @@
                     if (data.status === 'success') {
                         alert('Notification sent successfully!');
                         document.getElementById("notify_modal").checked = false;
-                        const audio = new Audio(data.audio_url);
-                        audio.play();
+                        if (data.audio_url) {
+                            const audio = new Audio(data.audio_url);
+                            audio.play();
+                        }
+
 
                     } else {
                         alert('There was an error sending the notification');
                     }
                 });
+
         }
 
 
