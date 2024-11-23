@@ -53,6 +53,9 @@ jobs:
           echo "DATABASE_PASSWORD=postgres" >> .env
           echo "DATABASE_HOST=localhost" >> .env
           echo "DATABASE_PORT=5432" >> .env
+          echo "DEBUG=True" >> .env
+          echo "SECRET_KEY=test-secret-key" >> .env
+          echo "ALLOWED_HOSTS=localhost,127.0.0.1" >> .env
           echo "Environment variables set for CI."
 
       - name: Run migrations
