@@ -1,0 +1,22 @@
+{
+  "builds": [
+    {
+      "src": "config/wsgi.py",
+      "use": "@vercel/python",
+      "config": {
+        "runtime": "python3.11",
+        "maxLambdaSize": "15mb"
+      }
+    }
+  ],
+  "env": {
+    "DJANGO_SETTINGS_MODULE": "config.settings"
+  },
+  "buildCommand": "python manage.py tailwind install && python manage.py tailwind build && python manage.py collectstatic --noinput",
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "config/wsgi.py"
+    }
+  ]
+}
