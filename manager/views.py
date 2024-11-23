@@ -1,34 +1,35 @@
 import json
 import logging
+import os
 from datetime import timedelta, datetime
-from os import close
 
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, user_logged_in, \
     user_logged_out, user_login_failed
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.core.exceptions import PermissionDenied
 from django.db import transaction
-from django.contrib.auth.models import User
 from django.dispatch import receiver
 from django.http import JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse_lazy, reverse
 from django.utils import timezone
 from django.views import generic, View
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from gtts.tts import gTTS
+
+from manager.forms import OpeningHoursForm, ResourceForm
 from django.views.decorators.http import require_http_methods
 from manager.forms import QueueForm, CustomUserCreationForm, EditProfileForm, \
     OpeningHoursForm, ResourceForm
 from manager.models import Queue, Resource
 
-from django.views import generic
-from django.views.decorators.http import require_http_methods, require_POST
+from django.views.decorators.http import require_http_methods
 from manager.forms import QueueForm, CustomUserCreationForm, EditProfileForm
 from participant.models import Participant, Notification
-from manager.models import Queue, UserProfile, QueueLineLength
-from manager.utils.queue_handler import QueueHandlerFactory
+from manager.models import UserProfile
 from manager.utils.category_handler import CategoryHandlerFactory
+
 from django.views.decorators.csrf import csrf_exempt
 from manager.utils.send_email import send_html_email
 from django.core.files.storage import FileSystemStorage
@@ -283,8 +284,19 @@ def notify_participant(request, participant_id):
     # Create the notification and mark the participant as notified
     Notification.objects.create(queue=queue, participant=participant, message=message)
     participant.is_notified = True
-    participant.save()
 
+    audio_url = None
+    if queue.tts_notifications_enabled:
+        participant_notification_count = Notification.objects.filter(participant=participant).count()
+        if participant_notification_count == 1:
+            tts = gTTS(text=f"Attention Participant {participant.number}, your turn is now.", lang='en')
+            audio_dir = os.path.join(settings.MEDIA_ROOT, 'announcements')
+            os.makedirs(audio_dir, exist_ok=True)
+            audio_path = os.path.join(audio_dir, f'announcement_{participant.id}.mp3')
+            tts.save(audio_path)
+            audio_url = f"{settings.MEDIA_URL}announcements/announcement_{participant.id}.mp3"
+
+    participant.save()
     # Prepare email context
     email_context = {
         'participant': participant,
@@ -300,8 +312,7 @@ def notify_participant(request, participant_id):
         context=email_context,
     )
 
-    return JsonResponse({'status': 'success', 'message': 'Notification sent successfully!'})
-
+    return JsonResponse({'status': 'success', 'message': 'Notification sent successfully!', 'audio_url': audio_url})
 
 @require_http_methods(["DELETE"])
 @login_required
@@ -316,6 +327,7 @@ def delete_queue(request, queue_id):
 
     try:
         queue.delete()
+        messages.success(request, f"Queue {queue.name} has been deleted.")
         return JsonResponse({'success': 'Queue deleted successfully.'},
                             status=200)
     except Exception as e:
@@ -367,6 +379,7 @@ def edit_participant(request, participant_id):
         participant = handler.get_participant_set(participant.queue.id).get(
             id=participant_id)
         handler.update_participant(participant, data)
+        messages.success(request, "Participant's information has been edited.")
         return redirect('manager:participant_list', participant.queue.id)
 
 
@@ -394,6 +407,7 @@ def add_participant(request, queue_id):
     }
     handler.create_participant(data)
     queue.record_line_length()
+    messages.success(request, "Participant has been added.")
     return redirect('manager:participant_list', queue_id)
 
 
@@ -429,9 +443,9 @@ class ManageWaitlist(LoginRequiredMixin, generic.TemplateView):
             participant_set = participant_set.filter(
                 name__icontains=search_query)
 
-        context['waiting_list'] = participant_set.filter(state='waiting')
-        context['serving_list'] = participant_set.filter(state='serving')
-        context['completed_list'] = participant_set.filter(state='completed')
+        context['waiting_list'] = participant_set.filter(state='waiting').order_by('position')[:5]
+        context['serving_list'] = participant_set.filter(state='serving').order_by('-service_started_at')[:5]
+        context['completed_list'] = participant_set.filter(state='completed').order_by('-service_completed_at')[:5]
         context['queue'] = queue
         context['resources'] = queue.resource_set.all()
         context['available_resource'] = queue.get_resources_by_status(
@@ -467,9 +481,47 @@ def serve_participant(request, participant_id):
             }, status=400)
 
         handler.assign_to_resource(participant, resource_id=resource_id)
-        participant.queue.update_estimated_wait_time_per_turn(
-            participant.get_wait_time())
+        participant.queue.update_estimated_wait_time_per_turn(participant.get_wait_time())
         participant.start_service()
+        participant.queue.update_participants_positions()
+        participant.save()
+
+        logger.info(f"Participant {participant_id} started service in queue {participant.queue.id}.")
+
+        waiting_list = Participant.objects.filter(state='waiting').values()
+        serving_list = Participant.objects.filter(state='serving').values()
+
+        return JsonResponse({
+            'waiting_list': list(waiting_list),
+            'serving_list': list(serving_list),
+            'success': True
+        })
+
+    except json.JSONDecodeError:
+        return JsonResponse({'error': 'Invalid JSON data.'}, status=400)
+
+    except Exception as e:
+        logger.error(f"Error serving participant {participant_id}: {str(e)}")
+        return JsonResponse({
+            'error': f'Error: {str(e)}'
+        }, status=500)
+
+def serve_participant_no_resource(request, participant_id):
+    participant = get_object_or_404(Participant, id=participant_id)
+    queue_id = participant.queue.id
+    handler = CategoryHandlerFactory.get_handler(participant.queue.category)
+    participant_set = handler.get_participant_set(queue_id)
+    participant = get_object_or_404(participant_set, id=participant_id)
+    try:
+        if participant.state != 'waiting':
+            logger.warning(f"Cannot serve participant {participant_id} because they are in state: {participant.state}")
+            return JsonResponse({
+                'error': f'{participant.name} cannot be served because they are currently in state: {participant.state}.'
+            }, status=400)
+
+        participant.queue.update_estimated_wait_time_per_turn(participant.get_wait_time())
+        participant.start_service()
+        participant.queue.update_participants_positions()
         participant.save()
         logger.info(
             f"Participant {participant_id} started service in queue {participant.queue.id}.")
@@ -532,6 +584,22 @@ def complete_participant(request, participant_id):
             'error': f'Error: {str(e)}'
         }, status=500)
 
+@login_required
+def mark_no_show(request, participant_id):
+    participant = get_object_or_404(Participant, id=participant_id)
+
+    if participant.state in ['serving', 'cancelled', 'completed']:
+        messages.error(request, "Cannot mark this participant as No Show because they are not in the waiting list.")
+        return redirect('manager:manage_waitlist', participant.queue.id)
+    participant.state = 'no_show'
+    participant.is_notified = False
+    participant.waited = (timezone.localtime(timezone.now()) - participant.joined_at).total_seconds() / 60
+
+    participant.queue.update_participants_positions()
+    participant.save()
+    messages.success(request, f"{participant.name} has been marked as No Show.")
+
+    return redirect('manager:manage_waitlist', participant.queue.id)
 
 class ParticipantListView(LoginRequiredMixin, generic.TemplateView):
     template_name = 'manager/participant_list.html'
@@ -570,18 +638,29 @@ class ParticipantListView(LoginRequiredMixin, generic.TemplateView):
         if state_filter_option != 'any_state':
             participant_set = participant_set.filter(state=state_filter_option)
 
+        items_per_page = 10
+        paginator = Paginator(participant_set, items_per_page)
+        page = self.request.GET.get('page', 1)
+
+        try:
+            participants = paginator.page(page)
+        except PageNotAnInteger:
+            participants = paginator.page(1)
+        except EmptyPage:
+            participants = paginator.page(paginator.num_pages)
+
+
+
         context['queue'] = handler.get_queue_object(queue_id)
-        context['participant_set'] = participant_set
+        context['participant_set'] = participants
         context['participant_state'] = Participant.PARTICIPANT_STATE
-        context['resources'] = queue.resources.all()
+        context['page_obj'] = participants
+        if queue.category != 'general':
+            context['resources'] = queue.resources.all()
         context['time_filter_option'] = time_filter_option
-        context[
-            'time_filter_option_display'] = time_filter_options_display.get(
-            time_filter_option, 'All time')
+        context['time_filter_option_display'] = time_filter_options_display.get(time_filter_option, 'All time')
         context['state_filter_option'] = state_filter_option
-        context[
-            'state_filter_option_display'] = state_filter_options_display.get(
-            state_filter_option, 'Any state')
+        context['state_filter_option_display'] = state_filter_options_display.get(state_filter_option, 'Any state')
         category_context = handler.add_context_attributes(queue)
         if category_context:
             context.update(category_context)
@@ -611,9 +690,73 @@ class WaitingFull(LoginRequiredMixin, generic.TemplateView):
         queue = get_object_or_404(Queue, id=queue_id)
         handler = CategoryHandlerFactory.get_handler(queue.category)
         queue = handler.get_queue_object(queue_id)
+        participant_set = handler.get_participant_set(queue_id)
+        waiting_list = participant_set.filter(state='waiting')
+        serving_list = participant_set.filter(state='serving')
         context['queue'] = queue
-
+        context['waiting_list'] = waiting_list
+        context['serving_list'] = serving_list
+        if queue.category != 'general':
+            context['resources'] = queue.resources.all()
+        context['available_resource'] = queue.get_resources_by_status('available')
+        category_context = handler.add_context_attributes(queue)
+        if category_context:
+            context.update(category_context)
         return context
+
+
+class BaseViewAll(LoginRequiredMixin, generic.TemplateView):
+    state = None
+
+    def get_context_data(self, **kwargs):
+        if self.state is None:
+            raise ValueError("Subclasses must define 'state'")
+        context = super().get_context_data(**kwargs)
+        queue_id = self.kwargs.get('queue_id')
+        queue = get_object_or_404(Queue, id=queue_id)
+
+        handler = CategoryHandlerFactory.get_handler(queue.category)
+        queue = handler.get_queue_object(queue_id)
+        participant_set = handler.get_participant_set(queue_id)
+        filtered_list = participant_set.filter(state=self.state)
+
+        context['queue'] = queue
+        context[f'{self.state}_list'] = filtered_list
+        if queue.category != 'general':
+            context['resources'] = queue.resources.all()
+        context['available_resource'] = queue.get_resources_by_status('available')
+
+        category_context = handler.add_context_attributes(queue)
+        if category_context:
+            context.update(category_context)
+        return context
+
+    def get_template_names(self):
+        """
+        Dynamically determine the template name based on queue category and state.
+        """
+        queue_id = self.kwargs.get('queue_id')
+        queue = get_object_or_404(Queue, id=queue_id)
+
+        category_path = (
+            "manager/view_all/general/"
+            if queue.category == "general"
+            else "manager/view_all/unique_categories/"
+        )
+        return [f"{category_path}all_{self.state}.html"]
+
+
+class ViewAllWaiting(BaseViewAll):
+    state = 'waiting'
+
+
+class ViewAllServing(BaseViewAll):
+    state = 'serving'
+
+
+class ViewAllCompleted(BaseViewAll):
+    state = 'completed'
+
 
 
 class YourQueueView(LoginRequiredMixin, generic.TemplateView):
@@ -638,8 +781,7 @@ class YourQueueView(LoginRequiredMixin, generic.TemplateView):
             authorized_queues = authorized_queues.filter(is_closed=True)
 
         context['authorized_queues'] = authorized_queues
-        context['selected_state_filter'] = state_filter_options.get(
-            state_filter)
+        context['selected_state_filter'] = state_filter_options.get(state_filter)
         return context
 
 
@@ -773,6 +915,7 @@ def edit_resource(request, resource_id):
         'status': request.POST.get('status'),
     }
     handler.edit_resource(resource, data)
+    messages.success(request, f"Resource {request.POST.get('name')} has been edited.")
     return redirect('manager:resources', resource.queue.id)
 
 
@@ -789,6 +932,7 @@ def add_resource(request, queue_id):
         'queue': queue,
     }
     handler.add_resource(data)
+    messages.success(request, f"Resource {request.POST.get('name')} has been added.")
     return redirect('manager:resources', queue_id)
 
 
@@ -803,6 +947,7 @@ def delete_resource(request, resource_id):
         return JsonResponse({'error': 'Unauthorized.'}, status=403)
     resource.delete()
     logger.info(f"Resource {resource_id} is deleted.")
+    messages.success(request, f"Resource {request.POST.get('name')} has been deleted.")
     return JsonResponse({'message': 'Resource deleted successfully.'})
 
 
@@ -819,12 +964,14 @@ def edit_queue(request, queue_id):
         open_time = request.POST.get('open_time')
         close_time = request.POST.get('close_time')
         logo = request.FILES.get('logo', None)
+        tts_enabled = request.POST.get('tts')
 
         queue.name = name
         queue.description = description
         queue.latitude = latitude
         queue.longitude = longitude
         queue.is_closed = False if status == 'on' else True
+        queue.tts_notifications_enabled = True if tts_enabled == 'on' else False
         try:
             if open_time:
                 queue.open_time = datetime.strptime(open_time, "%H:%M").time()

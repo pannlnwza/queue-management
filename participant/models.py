@@ -13,7 +13,8 @@ class Participant(models.Model):
         ('serving', 'Serving'),
         ('completed', 'Completed'),
         ('cancelled', 'Cancelled'),
-        ('removed', 'Removed')
+        ('removed', 'Removed'),
+        ('no_show', 'No Show')
     ]
     CREATE_BY = [
         ('guest', 'Guest'),
@@ -24,7 +25,7 @@ class Participant(models.Model):
     phone = models.CharField(max_length=20, null=True, blank=True)
     queue = models.ForeignKey('manager.Queue', on_delete=models.CASCADE)
     joined_at = models.DateTimeField(auto_now_add=True)
-    position = models.PositiveIntegerField()
+    position = models.PositiveIntegerField(null=True, blank=True)
     note = models.TextField(max_length=150, null=True, blank=True)
     code = models.CharField(max_length=12, unique=True, editable=False)
     state = models.CharField(max_length=10, choices=PARTICIPANT_STATE,
@@ -70,6 +71,7 @@ class Participant(models.Model):
         """Mark the participant as serving."""
         if self.state == 'waiting':
             self.state = 'serving'
+            self.position = None
             self.service_started_at = timezone.localtime()
             self.save()
 
@@ -130,7 +132,6 @@ class RestaurantParticipant(Participant):
         ('dine_in', 'Dine-in'),
         ('takeout', 'Takeout'),
         ('delivery', 'Delivery'),
-        ('drive_thru', 'Drive-thru'),
     ]
     party_size = models.PositiveIntegerField(default=1)
     service_type = models.CharField(max_length=20,

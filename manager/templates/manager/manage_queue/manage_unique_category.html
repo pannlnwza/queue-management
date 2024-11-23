@@ -36,7 +36,13 @@
 
         <div class="flex justify-between items-center mb-5">
             <h1 class="text-2xl font-bold antialiased font-sans">Queue Manager</h1>
-            <div class="ml-auto">
+            <div class="ml-auto flex space-x-2">
+                <a href="{% url 'manager:waiting_full' queue.id %}" class="btn btn-primary cursor-pointer">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="size-5">
+                        <path d="m13.28 7.78 3.22-3.22v2.69a.75.75 0 0 0 1.5 0v-4.5a.75.75 0 0 0-.75-.75h-4.5a.75.75 0 0 0 0 1.5h2.69l-3.22 3.22a.75.75 0 0 0 1.06 1.06ZM2 17.25v-4.5a.75.75 0 0 1 1.5 0v2.69l3.22-3.22a.75.75 0 0 1 1.06 1.06L4.56 16.5h2.69a.75.75 0 0 1 0 1.5h-4.5a.747.747 0 0 1-.75-.75ZM12.22 13.28l3.22 3.22h-2.69a.75.75 0 0 0 0 1.5h4.5a.747.747 0 0 0 .75-.75v-4.5a.75.75 0 0 0-1.5 0v2.69l-3.22-3.22a.75.75 0 1 0-1.06 1.06ZM3.5 4.56l3.22 3.22a.75.75 0 0 0 1.06-1.06L4.56 3.5h2.69a.75.75 0 0 0 0-1.5h-4.5a.75.75 0 0 0-.75.75v4.5a.75.75 0 0 0 1.5 0V4.56Z"/>
+                    </svg>
+                    Expand
+                </a>
                 <label for="viewModal" class="btn btn-primary cursor-pointer">View {{ resource_name }}</label>
             </div>
         </div>
@@ -107,18 +113,30 @@
             </div>
         </div>
 
-
-        <div class="form-control w-full max-w-xs mb-6">
-            <div class="flex items-center gap-2">
-                <label class="input input-bordered flex items-center w-full">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                         stroke="currentColor" class="size-6">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                              d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"/>
-                    </svg>
-                    <input type="text" id="searchInput" placeholder="Search" class="pl-2 w-full"
-                           oninput="filterParticipants()"/>
-                </label>
+        <div class="flex items-center gap-2">
+            <div class="flex items-center mb-4">
+                <div class="flex items-center w-2/3 max-w-xs">
+                    <div class="relative w-full mr-2">
+                        <input type="text"
+                               id="searchInput"
+                               class="input input-bordered w-full pr-12"
+                               placeholder="Search" oninput="filterParticipants()">
+                        <button type="button"
+                                id="searchButton"
+                                class="absolute right-2 top-1/2 -translate-y-1/2 p-2 h-auto min-h-0">
+                            <svg xmlns="http://www.w3.org/2000/svg"
+                                 class="h-5 w-5"
+                                 fill="none"
+                                 viewBox="0 0 24 24"
+                                 stroke="currentColor">
+                                <path stroke-linecap="round"
+                                      stroke-linejoin="round"
+                                      stroke-width="2"
+                                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
                 <button class="btn no-animation" onclick="resetSearch()">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="size-5">
                         <path fill-rule="evenodd"
@@ -135,15 +153,6 @@
                 <div class="card-body">
                     <div class="inline-flex">
                         <h2 class="card-title">Waiting</h2>
-                        <a href="{% url 'manager:waiting_full' queue.id %}"
-                           class="btn btn-sm btn-square btn-ghost no-animation">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"
-                                 class="size-5">
-                                <path d="m13.28 7.78 3.22-3.22v2.69a.75.75 0 0 0 1.5 0v-4.5a.75.75 0 0 0-.75-.75h-4.5a.75.75 0 0 0 0 1.5h2.69l-3.22 3.22a.75.75 0 0 0 1.06 1.06ZM2 17.25v-4.5a.75.75 0 0 1 1.5 0v2.69l3.22-3.22a.75.75 0 0 1 1.06 1.06L4.56 16.5h2.69a.75.75 0 0 1 0 1.5h-4.5a.747.747 0 0 1-.75-.75ZM12.22 13.28l3.22 3.22h-2.69a.75.75 0 0 0 0 1.5h4.5a.747.747 0 0 0 .75-.75v-4.5a.75.75 0 0 0-1.5 0v2.69l-3.22-3.22a.75.75 0 1 0-1.06 1.06ZM3.5 4.56l3.22 3.22a.75.75 0 0 0 1.06-1.06L4.56 3.5h2.69a.75.75 0 0 0 0-1.5h-4.5a.75.75 0 0 0-.75.75v4.5a.75.75 0 0 0 1.5 0V4.56Z"/>
-                            </svg>
-
-
-                        </a>
                     </div>
 
                     <div>
@@ -213,6 +222,16 @@
                                 <td class="badge badge-primary justify-center flex mx-7 my-5"></td>
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <div class="flex gap-2">
+                                        <div class="tooltip" data-tip="No Show">
+                                            <button class="btn btn-error btn-square btn-sm text-base-100 no-animation"
+                                                    aria-label="No Show" data-participant-id="${participant.id}"
+                                                    onclick="openNotifyModal(this)">
+                                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"
+                                                     fill="currentColor" class="size-4">
+                                                    <path d="M5.28 4.22a.75.75 0 0 0-1.06 1.06L6.94 8l-2.72 2.72a.75.75 0 1 0 1.06 1.06L8 9.06l2.72 2.72a.75.75 0 1 0 1.06-1.06L9.06 8l2.72-2.72a.75.75 0 0 0-1.06-1.06L8 6.94 5.28 4.22Z"/>
+                                                </svg>
+                                            </button>
+                                        </div>
                                         <button class="btn btn-warning btn-square btn-sm text-base-100 no-animation"
                                                 aria-label="Notify" data-participant-id="{{ participant.id }}"
                                                 onclick="openNotifyModal(this)">
@@ -240,10 +259,15 @@
                         {% endfor %}
                         </tbody>
                     </table>
+                    <div class="divider m-1"></div>
+                    <div class="ml-auto text-sm text-gray-500">
+                        {{ waiting_list| length }} out of {{ queue.get_number_waiting_now }}
+                        <a href="{% url 'manager:view_all_waiting' queue_id %}" class="link link-hover">View All</a>
+                    </div>
                 </div>
             </div>
 
-            <div class="card w-full overflow-x-auto shadow bordered bg-base-100 w-full mb-5">
+            <div class="card w-full overflow-x-auto shadow bordered bg-base-100 mb-5">
                 <div class="card-body">
                     <h2 class="card-title">Serving</h2>
                     <p class="text-info-content font-thin">
@@ -300,7 +324,8 @@
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <button class="btn btn-success btn-square btn-sm text-base-100 no-animation"
                                             onclick="completeParticipant({{ participant.id }})">
-                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"
+                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"
+                                             fill="currentColor"
                                              class="size-5">
                                             <path fill-rule="evenodd"
                                                   d="M16.704 4.153a.75.75 0 0 1 .143 1.052l-8 10.5a.75.75 0 0 1-1.127.075l-4.5-4.5a.75.75 0 0 1 1.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 0 1 1.05-.143Z"
@@ -312,6 +337,11 @@
                         {% endfor %}
                         </tbody>
                     </table>
+                    <div class="divider m-1"></div>
+                    <div class="ml-auto text-sm text-gray-500">
+                        {{ serving_list| length }} out of {{ queue.get_number_serving_now }}
+                        <a href="{% url 'manager:view_all_serving' queue_id %}" class="link link-hover">View All</a>
+                    </div>
                 </div>
             </div>
         </div>
@@ -376,11 +406,16 @@
                                 <td id="table_{{ participant.id }}"
                                     class="px-6 py-4 whitespace-nowrap">{{ participant.table.name }}</td>
                                 <td id="seating_{{ participant.id }}"
-                                    class="badge badge-primary justify-center flex mx-7 my-5">{{ participant.seating_preference }}</td>
+                                    class="badge badge-primary justify-center flex mx-7 my-5">{{ participant.service_type }}</td>
                             </tr>
                         {% endfor %}
                         </tbody>
                     </table>
+                    <div class="divider m-1"></div>
+                    <div class="ml-auto text-sm text-gray-500">
+                        {{ completed_list| length }} out of {{ queue.get_number_completed_now }}
+                        <a href="{% url 'manager:view_all_completed' queue_id %}" class="link link-hover">View All</a>
+                    </div>
                 </div>
             </div>
         </div>
@@ -430,36 +465,54 @@
 
             <!-- Resources Section -->
             <div id="resourceContainer" class="grid gap-4">
-                {% for resource in available_resource %}
-                    <div class="card bg-base-100 border hover:border-primary cursor-pointer"
-                         onclick="selectResource('{{ resource.id }}')"
-                         data-id="{{ resource.id }}" id="resource-{{ resource.id }}">
-                        <div class="card-body p-4">
-                            <div class="flex justify-between items-center">
-                                <div>
-                                    <div class="flex items-center gap-2">
-                                        <span class="font-semibold">{{ resource.name }}</span>
+                {% if available_resource %}
+                    {% for resource in available_resource %}
+                        <div class="card bg-base-100 border hover:border-primary cursor-pointer"
+                             onclick="selectResource('{{ resource.id }}')"
+                             data-id="{{ resource.id }}" id="resource-{{ resource.id }}">
+                            <div class="card-body p-4">
+                                <div class="flex justify-between items-center">
+                                    <div>
+                                        <div class="flex items-center gap-2">
+                                            <span class="font-semibold">{{ resource.name }}</span>
+                                        </div>
+                                        <div class="text-sm text-gray-500">
+                                            {% if queue.category == 'restaurant' %}
+                                                Capacity: {{ resource.capacity }}
+                                            {% endif %}
+                                        </div>
                                     </div>
-                                    <div class="text-sm text-gray-500">
-                                        {% if queue.category == 'restaurant' %}
-                                            Capacity: {{ resource.capacity }}
-                                        {% endif %}
-                                    </div>
+                                    <div class="badge badge-success badge-sm"></div>
                                 </div>
-                                <div class="badge badge-success badge-sm"></div>
                             </div>
                         </div>
-                    </div>
-                {% endfor %}
+                    {% endfor %}
+                {% else %}
+                    <span class="font-semibold">No {{ resource_name }}s available.</span>
+                {% endif %}
             </div>
-
-            <!-- Footer with Auto Assign and Serve buttons -->
             <div class="modal-action">
+                <button type="button" class="btn" onclick="serveParticipantNoResource()">Serve without assigning
+                </button>
                 <button type="button" class="btn" onclick="autoAssignResource()">Auto assign</button>
                 <button class="btn btn-primary" onclick="serveSelectedParticipant()">Serve</button>
             </div>
         </div>
     </dialog>
+
+    <input type="checkbox" id="noShowModal" class="modal-toggle"/>
+    <div class="modal">
+        <div class="modal-box">
+            <h3 class="font-bold text-lg">Confirm No Show</h3>
+            <p class="py-4">This action cannot be undone. Are you sure you want to mark this participant as No Show?</p>
+            <div class="modal-action">
+                <button class="btn btn-error text-white" id="confirmNoShowButton" onclick="confirmNoShow()">Yes, Mark as
+                    No Show
+                </button>
+                <label for="noShowModal" class="btn">Cancel</label>
+            </div>
+        </div>
+    </div>
 
     <script>
         const queue_id = {{ queue.id }};
@@ -499,7 +552,6 @@
                 }
             }
 
-            // Mark the new selection
             const selectedCard = document.getElementById(`resource-${resourceId}`);
             if (selectedCard) {
                 selectedCard.classList.add('border-primary');
@@ -507,7 +559,6 @@
             }
         }
 
-        // Function to clear the current selection
         function clearSelection() {
             if (selectedResourceId) {
                 const selectedCard = document.getElementById(`resource-${selectedResourceId}`);
@@ -544,7 +595,6 @@
                 });
         }
 
-        // Function to serve the selected or auto-assigned resource
         function serveSelectedParticipant() {
             const participantId = document.getElementById('participantId').value;
 
@@ -573,11 +623,35 @@
                 .catch(error => console.error('Error:', error));
         }
 
+        function serveParticipantNoResource() {
+            const participantId = document.getElementById('participantId').value;
+
+            fetch(`/manager/serve_no_resource/${participantId}/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: JSON.stringify({resource_id: selectedResourceId})
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Participant served successfully!');
+                        location.reload();
+                    } else {
+                        alert(data.error || 'Error serving participant.');
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+        }
+
+
         function updateWaitingList(waitingList) {
             const waitingSection = document.getElementById('waiting-section');
             waitingSection.innerHTML = '';
 
-            waitingList.forEach(participant => {
+            waitingList.slice(0, 5).forEach(participant => {
                 const row = createWaitingRow(participant);
                 waitingSection.appendChild(row);
             });
@@ -587,7 +661,7 @@
             const servingSection = document.getElementById('serving-section');
             servingSection.innerHTML = '';
 
-            servingList.forEach(participant => {
+            servingList.slice(0, 5).forEach(participant => {
                 const row = createServingRow(participant);
                 servingSection.appendChild(row);
             });
@@ -597,7 +671,7 @@
             const completedSection = document.getElementById('completed-section');
             completedSection.innerHTML = '';
 
-            completedList.forEach(participant => {
+            completedList.slice(0, 5).forEach(participant => {
                 const row = createCompletedRow(participant);
                 completedSection.appendChild(row);
             });
@@ -630,7 +704,7 @@
                         <button>close</button>
                     </form>
                 </dialog>`
-                : '';
+                : '-';
 
             return notesHTML;
         }
@@ -694,10 +768,17 @@
                     if (data.status === 'success') {
                         alert('Notification sent successfully!');
                         document.getElementById("notify_modal").checked = false;
+                        if (data.audio_url) {
+                            const audio = new Audio(data.audio_url);
+                            audio.play();
+                        }
+
+
                     } else {
                         alert('There was an error sending the notification');
                     }
                 });
+
         }
 
 
@@ -735,6 +816,15 @@
             <td class="badge badge-primary justify-center flex mx-7 my-5">${participant.special_2 || '-'}</td>
             <td class="px-6 py-4 whitespace-nowrap">
                 <div class="flex gap-2">
+                    <div class="tooltip" data-tip="No Show">
+                    <button class="btn btn-error btn-square btn-sm text-base-100 no-animation"
+                        aria-label="No Show" onclick="openNoShowModal(${participant.id})">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="size-4">
+                          <path d="M5.28 4.22a.75.75 0 0 0-1.06 1.06L6.94 8l-2.72 2.72a.75.75 0 1 0 1.06 1.06L8 9.06l2.72 2.72a.75.75 0 1 0 1.06-1.06L9.06 8l2.72-2.72a.75.75 0 0 0-1.06-1.06L8 6.94 5.28 4.22Z" />
+                        </svg>
+                    </button>
+                    </div>
+                    <div class="tooltip" data-tip="Notify">
                     <button class="btn btn-warning btn-square btn-sm text-base-100 no-animation"
                         aria-label="Notify" data-participant-id="${participant.id}" onclick="openNotifyModal(this)">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="size-4">
@@ -742,12 +832,15 @@
                             <path fill-rule="evenodd" d="M8 1a4 4 0 0 1 4 4v2.379c0 .398.158.779.44 1.06l1.267 1.268a1 1 0 0 1 .293.707V11a1 1 0 0 1-1 1h-2a3 3 0 1 1-6 0H3a1 1 0 0 1-1-1v-.586a1 1 0 0 1 .293-.707L3.56 8.44A1.5 1.5 0 0 0 4 7.38V5a4 4 0 0 1 4-4Zm0 12.5A1.5 1.5 0 0 1 6.5 12h3A1.5 1.5 0 0 1 8 13.5Z" clip-rule="evenodd" />
                         </svg>
                     </button>
+                    </div>
+                    <div class="tooltip" data-tip="Serve">
                     <button class="btn btn-success btn-square btn-sm text-base-100 no-animation"
                         onclick="openResourceModal('${participant.id}')" aria-label="Serve">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="size-5">
                             <path fill-rule="evenodd" d="M16.704 4.153a.75.75 0 0 1 .143 1.052l-8 10.5a.75.75 0 0 1-1.127.075l-4.5-4.5a.75.75 0 0 1 1.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 0 1 1.05-.143Z" clip-rule="evenodd" />
                         </svg>
                     </button>
+                    </div>
                 </div>
 
             </td>
@@ -769,12 +862,14 @@
             <td class="px-6 py-4 whitespace-nowrap">${participant.resource || '-'}</td>
             <td class="badge badge-primary justify-center flex mx-7 my-5">${participant.special_2 || '-'}</td>
             <td class="px-6 py-4 whitespace-nowrap">
+                <div class="tooltip" data-tip="Complete">
                 <button class="btn btn-success btn-square btn-sm text-base-100 no-animation"
                         onclick="completeParticipant(${participant.id})">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="size-5">
                           <path fill-rule="evenodd" d="M16.704 4.153a.75.75 0 0 1 .143 1.052l-8 10.5a.75.75 0 0 1-1.127.075l-4.5-4.5a.75.75 0 0 1 1.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 0 1 1.05-.143Z" clip-rule="evenodd" />
                         </svg>
                 </button>
+                <div class="tooltip" data-tip="Notify">
             </td>
         `;
             return row;
@@ -799,22 +894,6 @@
             return row;
         }
 
-        function serveParticipant(id) {
-            fetch(`/manager/serve/${id}/`, {
-                method: 'POST',
-                headers: {
-                    'X-CSRFToken': '{{ csrf_token }}',
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({id})
-            })
-                .then(response => {
-                    if (!response.ok) throw new Error('Network response was not ok');
-                    fetchData();
-                })
-                .catch(error => console.error('Error serving participant:', error));
-        }
-
         function completeParticipant(id) {
             fetch(`/manager/complete/${id}/`, {
                 method: 'POST',
@@ -829,6 +908,19 @@
                     fetchData();
                 })
                 .catch(error => console.error('Error completing participant:', error));
+        }
+
+        let participantIdToMark = null;
+
+        function openNoShowModal(participantId) {
+            participantIdToMark = participantId;
+            document.getElementById('noShowModal').checked = true;
+        }
+
+        function confirmNoShow() {
+            if (participantIdToMark !== null) {
+                window.location.href = `/manager/mark_no_show/${participantIdToMark}/`;
+            }
         }
     </script>
 

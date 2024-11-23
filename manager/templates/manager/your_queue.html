@@ -15,17 +15,31 @@
         </div>
     </div>
     <div class="flex items-center mb-4">
-        <form class="flex items-center w-2/3 max-w-xs">
-            <label class="input input-bordered flex items-center w-full">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                     stroke="currentColor" class="w-5 h-5">
-                    <path stroke-linecap="round" stroke-linejoin="round"
-                          d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"/>
-                </svg>
-                <input type="text" name="search" placeholder="Search" class="pl-2 w-full text-sm"
-                       id="searchInput" oninput="queueSearch()"/>
-            </label>
-        </form>
+        <div class="flex items-center w-2/3 max-w-xs">
+            <div class="relative w-full">
+                <div class="relative">
+                    <input type="text"
+                           id="searchInput"
+                           class="input input-bordered w-full pr-12"
+                           placeholder="Search" oninput="queueSearch()">
+                    <button type="button"
+                            id="searchButton"
+                            class="absolute right-2 top-1/2 -translate-y-1/2 p-2 h-auto min-h-0">
+                        <svg xmlns="http://www.w3.org/2000/svg"
+                             class="h-5 w-5"
+                             fill="none"
+                             viewBox="0 0 24 24"
+                             stroke="currentColor">
+                            <path stroke-linecap="round"
+                                  stroke-linejoin="round"
+                                  stroke-width="2"
+                                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+
 
         <details class="dropdown ml-1">
             <summary class="btn no-animation flex items-center" id="selectedTimeFilter">
@@ -55,13 +69,12 @@
         <table class="table min-w-full bg-base-100 divide-y divide-gray-200" id="participantTable">
             <thead>
             <tr>
-                <th class="w-10 px-2 py-3"></th>
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">State</th>
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Serving</th>
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Waiting</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Wait time
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Average Wait time
                 </th>
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"></th>
             </tr>
@@ -70,18 +83,11 @@
             {% if authorized_queues %}
                 {% for queue in authorized_queues %}
                     <tr class="hover:bg-gray-100 cursor-pointer" onclick="handleRowClick(event, '{{ queue.id }}')">
-                        <td class="w-10 px-2 py-4">
-                            <div class="form-control max-w-sm">
-                                <label class="label cursor-pointer">
-                                    <input type="checkbox" class="checkbox checkbox-primary border-base-content"/>
-                                </label>
-                            </div>
-                        </td>
                         <td class="px-6 py-4 whitespace-nowrap">
                             <div class="flex items-center space-x-3">
                                 <div class="avatar">
                                     <div class="w-9 rounded-full">
-                                        <img src="https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.webp"/>
+                                        <img src="{{ queue.get_logo_url }}"/>
                                     </div>
                                 </div>
                                 <span class="font-semibold">{{ queue.name }}</span>
@@ -97,7 +103,7 @@
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap">{{ queue.get_number_serving_now }}</td>
                         <td class="px-6 py-4 whitespace-nowrap">{{ queue.get_number_waiting_now }}</td>
-                        <td class="px-6 py-4 whitespace-nowrap">{{ queue.estimated_wait_time }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">{{ queue.get_average_waiting_time }}</td>
                         <td class="px-6 py-4 whitespace-nowrap">
                             <div class="dropdown dropdown-left dropdown-end z-100">
                                 <div tabindex="0" role="button" class="btn btn-square btn-sm btn-ghost"
@@ -155,46 +161,6 @@
         </div>
     </div>
 
-    <!-- Edit Sidebar Drawer -->
-    <div class="drawer drawer-end drawer-overlay z-100">
-        <input id="editDrawer" type="checkbox" class="drawer-toggle"/>
-        <div class="drawer-side">
-            <label for="editDrawer" class="drawer-overlay"></label>
-            <div class="bg-base-100 min-h-full w-100">
-                <div class="p-4 space-y-4">
-                    <div class="drawer-header">
-                        <h2 class="text-lg font-bold">Edit Queue</h2>
-                        <hr class="border-base-300"/>
-                    </div>
-                    <form id="editForm" method="POST">
-                        {% csrf_token %}
-                        <input type="hidden" id="queue_id" name="queue_id">
-                        <div class="form-control w-full">
-                            <label class="label">
-                                <span class="label-text">Name*</span>
-                            </label>
-                            <input type="text" id="edit_name" name="name" class="input input-bordered w-full"/>
-                        </div>
-                        <div class="form-control w-full">
-                            <label class="label">
-                                <span class="label-text">Description</span>
-                            </label>
-                            <textarea id="edit_description" name="description"
-                                      class="textarea textarea-bordered w-full"></textarea>
-
-                        </div>
-                        <div class="form-control w-full">
-                            <label class="label">
-                                <span class="label-text">State</span>
-                            </label>
-                            <input type="tel" id="edit_state" name="state" class="input input-bordered w-full"/>
-                        </div>
-                        <button type="submit" class="btn btn-primary">Submit</button>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
 
     <script>
         let deleteQueueId = null;

@@ -5,11 +5,7 @@ from django.conf import settings
 from django.contrib.auth.models import User
 from django.db import models
 from django.templatetags.static import static
-from django.contrib.auth.models import User
-from django.urls import reverse
-from django.conf import settings
 from django.apps import apps
-from django.db.models import Sum
 from django.db.models.signals import post_save
 from manager.utils.helpers import format_duration
 from django.utils import timezone
@@ -49,6 +45,7 @@ class Queue(models.Model):
     latitude = models.FloatField()
     longitude = models.FloatField()
     distance_from_user = models.FloatField(null=True, blank=True)
+    tts_notifications_enabled = models.BooleanField(default=True)
 
     def save(self, *args, **kwargs):
         """Generate a unique ticket code for the participant if not already."""
@@ -141,7 +138,7 @@ class Queue(models.Model):
         return self.participant_set.all().order_by('joined_at')
 
     def update_participants_positions(self):
-        participants = self.participant_set.order_by('joined_at')
+        participants = self.participant_set.filter(state='waiting').order_by('joined_at')
         for index, participant in enumerate(participants, start=1):
             participant.position = index
             participant.save(update_fields=["position"])
@@ -200,7 +197,7 @@ class Queue(models.Model):
         """
         Returns the full URL to the welcome page for this queue.
         """
-        return f"{settings.SITE_DOMAIN}/welcome/{self.code}/"
+        return f"{settings.SITE_DOMAIN}welcome/{self.code}/"
 
     def get_number_of_participants_by_date(self, start_date, end_date):
         """Return the number of participants within a given date range."""
@@ -217,6 +214,13 @@ class Queue(models.Model):
             queryset = queryset.filter(joined_at__range=(start_date, end_date))
         return queryset.count()
 
+    def get_number_completed_now(self):
+        """Return the number of participant that completed the service."""
+        return self.participant_set.filter(state='completed').count()
+
+    def get_number_served(self):
+        """Return the number of participants served."""
+        return self.participant_set.filter(state='completed').count()
     def get_number_serving_now(self, start_date=None, end_date=None):
         """Return the number of participants currently serving, optionally within a date range."""
         queryset = self.participant_set.filter(state='serving')

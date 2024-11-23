@@ -14,7 +14,6 @@ from pathlib import Path
 from decouple import config, Csv
 from shutil import which
 import os
-from django.contrib.messages import constants as messages
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -242,5 +241,5 @@ LOGGING = {
 }
 
 MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / 'media'
-SITE_DOMAIN = 'http://127.0.0.1:8000'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+SITE_DOMAIN = 'http://127.0.0.1:8000/'

@@ -56,7 +56,6 @@
                         </div>
                     </div>
                 </div>
-                <!-- Queue Name, Status, and Description sections go here -->
                 <div class="divider"></div>
                 <div class="form-control my-3">
                     <span class="label-text font-medium px-1 mb-2">Name*</span>
@@ -84,7 +83,7 @@
                 <div class="grid grid-cols-2 gap-4">
                     <div class="form-control">
                         <label class="label">
-                            <span class="label-text font-medium">Start hour</span>
+                            <span class="label-text font-medium">Open hour</span>
                         </label>
                         <input type="time" id="open_time" name="open_time"
                                value="{{ queue.open_time|time:'H:i' }}"
@@ -92,7 +91,7 @@
                     </div>
                     <div class="form-control">
                         <label class="label">
-                            <span class="label-text font-medium">End hour</span>
+                            <span class="label-text font-medium">Closed hour</span>
                         </label>
                         <input type="time" id="close_time" name="close_time"
                                value="{{ queue.close_time|time:'H:i' }}"
@@ -100,6 +99,14 @@
                     </div>
                 </div>
                 <div class="divider"></div>
+                <div class="form-control my-3">
+                    <label class="label cursor-pointer flex items-center space-x-2">
+                        <span class="label-text font-medium">TTS Announcement</span>
+                        <input type="checkbox" name="tts" {% if queue.tts_notifications_enabled %}checked{% endif %}
+                               class="toggle toggle-success"/>
+                    </label>
+                    <span class="label-text-alt text-base-content/60 mx-1">Toggle to enable or disable text-to-speech notifications for this queue.</span>
+                </div>
             </div>
         </div>
 
