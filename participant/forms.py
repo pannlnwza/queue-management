@@ -10,7 +10,7 @@ class KioskForm(forms.Form):
         max_length=50
     )
     email = forms.EmailField(
-        widget=forms.EmailInput(attrs={'class': 'input input-bordered w-full', 'placeholder': 'sample@gmail.com'})
+        widget=forms.EmailInput(attrs={'class': 'input input-bordered w-full', 'placeholder': 'sample@gmail.com'}), required=False
     )
     phone = forms.CharField(
         widget=forms.TextInput(
