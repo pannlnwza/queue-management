@@ -620,6 +620,9 @@ def delete_queue(request, queue_id):
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
 
+
+@login_required
+@require_http_methods(["POST"])
 def edit_queue(request, queue_id):
     queue = get_object_or_404(Queue, id=queue_id)
     handler = CategoryHandlerFactory.get_handler(queue.category)
