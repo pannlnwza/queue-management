@@ -28,7 +28,7 @@ from manager.utils.send_email import send_html_email
 from django.conf import settings
 from django.core.files.base import ContentFile
 from django.views.decorators.http import require_POST
-
+from django.utils import timezone
 
 class HomePageView(generic.TemplateView):
     template_name = 'participant/get_started.html'
@@ -380,7 +380,7 @@ def sse_queue_status(request, participant_code):
                     # Add notification details to the list
                     notification_list.append({
                         'message': notification.message,
-                        'created_at': notification.created_at.strftime("%Y-%m-%d %H:%M:%S"),
+                        'created_at': timezone.localtime(notification.created_at).strftime("%Y-%m-%d %H:%M:%S"),
                         'is_read': notification.is_read,
                         'played_sound': notification.played_sound,
                         'id': notification.id,

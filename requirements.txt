@@ -26,3 +26,4 @@ django-tailwind==3.8.0
 django-formtools
 django-tailwind[reload]
 python-decouple
+psycopg2-binary
