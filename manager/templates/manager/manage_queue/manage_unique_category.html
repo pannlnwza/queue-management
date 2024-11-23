@@ -465,27 +465,31 @@
 
             <!-- Resources Section -->
             <div id="resourceContainer" class="grid gap-4">
-                {% for resource in available_resource %}
-                    <div class="card bg-base-100 border hover:border-primary cursor-pointer"
-                         onclick="selectResource('{{ resource.id }}')"
-                         data-id="{{ resource.id }}" id="resource-{{ resource.id }}">
-                        <div class="card-body p-4">
-                            <div class="flex justify-between items-center">
-                                <div>
-                                    <div class="flex items-center gap-2">
-                                        <span class="font-semibold">{{ resource.name }}</span>
+                {% if available_resource %}
+                    {% for resource in available_resource %}
+                        <div class="card bg-base-100 border hover:border-primary cursor-pointer"
+                             onclick="selectResource('{{ resource.id }}')"
+                             data-id="{{ resource.id }}" id="resource-{{ resource.id }}">
+                            <div class="card-body p-4">
+                                <div class="flex justify-between items-center">
+                                    <div>
+                                        <div class="flex items-center gap-2">
+                                            <span class="font-semibold">{{ resource.name }}</span>
+                                        </div>
+                                        <div class="text-sm text-gray-500">
+                                            {% if queue.category == 'restaurant' %}
+                                                Capacity: {{ resource.capacity }}
+                                            {% endif %}
+                                        </div>
                                     </div>
-                                    <div class="text-sm text-gray-500">
-                                        {% if queue.category == 'restaurant' %}
-                                            Capacity: {{ resource.capacity }}
-                                        {% endif %}
-                                    </div>
+                                    <div class="badge badge-success badge-sm"></div>
                                 </div>
-                                <div class="badge badge-success badge-sm"></div>
                             </div>
                         </div>
-                    </div>
-                {% endfor %}
+                    {% endfor %}
+                {% else %}
+                    <span class="font-semibold">No {{ resource_name }}s available.</span>
+                {% endif %}
             </div>
             <div class="modal-action">
                 <button type="button" class="btn" onclick="serveParticipantNoResource()">Serve without assigning

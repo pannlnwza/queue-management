@@ -54,6 +54,15 @@
                                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                                 Name
                                             </th>
+                                            {% if queue.category == 'restaurant' and queue.category == 'bank' %}
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                {{ special_2 }}
+                                            </th>
+                                            {% elif queue.category == 'hospital' %}
+                                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                    {{ special_1 }}
+                                                </th>
+                                            {% endif %}
                                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                                 Waited
                                             </th>
@@ -133,9 +142,9 @@
                                                 Served
                                             </th>
                                             {% if queue.category != 'general' %}
-                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                {{ resource_name }}
-                                            </th>
+                                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                    {{ resource_name }}
+                                                </th>
                                             {% endif %}
 
                                         </tr>
@@ -164,7 +173,7 @@
                                                 </td>
                                                 <td class="px-6 py-4 whitespace-nowrap">{{ participant.service_started_at }}</td>
                                                 {% if queue.category != 'general' %}
-                                                <td class="px-6 py-4 whitespace-nowrap">{{ participant.resource.name| default:"-" }}</td>
+                                                    <td class="px-6 py-4 whitespace-nowrap">{{ participant.resource.name| default:"-" }}</td>
                                                 {% endif %}
                                                 <td class="px-6 py-4 whitespace-nowrap">
 
@@ -207,6 +216,7 @@
 
                 <!-- Resources Section -->
                 <div id="resourceContainer" class="grid gap-4">
+                {% if available_resource %}
                     {% for resource in available_resource %}
                         <div class="card bg-base-100 border hover:border-primary cursor-pointer"
                              onclick="selectResource('{{ resource.id }}')"
@@ -228,6 +238,9 @@
                             </div>
                         </div>
                     {% endfor %}
+                {% else %}
+                    <span class="font-semibold">No {{ resource_name }}s available.</span>
+                {% endif %}
                 </div>
                 <div class="modal-action">
                     <button type="button" class="btn" onclick="serveParticipantNoResource()">Serve without assigning
