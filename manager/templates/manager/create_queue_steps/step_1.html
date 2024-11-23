@@ -14,25 +14,24 @@
     <form method="post" enctype="multipart/form-data">
         {% csrf_token %}
         <div>
-        <div><label class="text-m text-secondary">Name*</label></div>
+        <div><label class="text-m text-neutral">Name*</label></div>
         {{ form.name }}
         </div>
-        <div><label class="text-m text-secondary">Description*</label></div>
+        <div><label class="text-m text-neutral">Description*</label></div>
         <div>
             {{ form.description }}
         </div>
         <div class="grid grid-cols-2 gap-4">
             <!-- First column -->
             <div>
-                <label class="text-m text-secondary">Select Category*</label>
+                <label class="text-m text-neutral">Select Category*</label>
                 {{ form.category }}
             </div>
 
             <!-- Second column -->
             <div class="form-control w-full max-w-xs">
-                <label class="text-m text-secondary">Insert Your Logo</label>
+                <label class="text-m text-neutral">Insert Your Logo (Optional)</label>
                 {{ form.logo }}
-                <div><span class="label-text-alt text-red-600 ">Optional*</span></div>
             </div>
         </div>
         <div class="flex justify-end">

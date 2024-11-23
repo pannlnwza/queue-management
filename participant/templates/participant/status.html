@@ -56,7 +56,6 @@
         </div>
 
         <!-- Customer Info Section -->
-        <!-- Customer Info Section -->
             <div class="px-6 py-4 border-t border-base-100">
                 <div class="space-y-4">
                     <div>
@@ -93,9 +92,12 @@
                         </div>
                     {% elif queue.category == 'bank' %}
                         <div>
+                            <label class="text-sm text-gray-500">Participant Type</label>
+                            <p class="font-medium" id="special_1"></p>
+                        </div>
+                        <div>
                             <label class="text-sm text-gray-500">Service type</label>
                             <p class="font-medium" id="special_2"></p>
-                            <p class="font-medium" id="special_1"  style="display: none;"></p>
                         </div>
                     {% endif %}
                     <div class="justify-center flex">
