@@ -432,10 +432,7 @@ def serve_participant(request, participant_id):
             }, status=400)
 
         handler.assign_to_resource(participant, resource_id=resource_id)
-        participant.queue.update_estimated_wait_time_per_turn(
-            participant.get_wait_time())
-        if participant.queue.category != 'general':
-            handler.assign_to_resource(participant, resource_id=resource_id)
+        participant.queue.update_estimated_wait_time_per_turn(participant.get_wait_time())
         participant.queue.update_estimated_wait_time_per_turn(participant.get_wait_time())
         participant.start_service()
         participant.queue.update_participants_positions()
