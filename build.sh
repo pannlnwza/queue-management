@@ -1,13 +1,18 @@
 #!/bin/bash
-pip install -r requirements.txt
 
-# Install and build Tailwind styles
-python manage.py tailwind install
-python manage.py tailwind build
+# Ensure pip is up-to-date
+python3 -m pip install --upgrade pip
+
+# Install dependencies from requirements.txt
+pip3 install -r requirements.txt
+
+# Install Tailwind CSS and build assets (if applicable)
+python3 manage.py tailwind install
+python3 manage.py tailwind build
 
 # Collect static files
-python manage.py collectstatic --noinput
+python3 manage.py collectstatic --noinput
 
-# Apply database migrations
-python manage.py makemigrations --noinput
-python manage.py migrate --noinput
+# Make migrations and apply them
+python3 manage.py makemigrations --noinput
+python3 manage.py migrate --noinput
