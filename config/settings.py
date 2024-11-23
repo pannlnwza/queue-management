@@ -102,13 +102,13 @@ WSGI_APPLICATION = 'config.wsgi.application'
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        "NAME": "Queue_management_db",
-        "USER": "postgres",
-        "PASSWORD": "",
-        "HOST": "localhost",
-        "PORT": "5432",
+    "default": {
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": config("DATABASE_NAME"),
+        "USER": config("DATABASE_USERNAME"),
+        "PASSWORD": config("DATABASE_PASSWORD"),
+        "HOST": config("DATABASE_HOST"),
+        "PORT": config("DATABASE_PORT")
     }
 }
 
@@ -238,4 +238,4 @@ LOGGING = {
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
-SITE_DOMAIN = 'http://127.0.0.1:8000/'
+SITE_DOMAIN = 'http://127.0.0.1:8000'
