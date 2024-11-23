@@ -300,7 +300,8 @@ class RestaurantQueueHandler(CategoryHandler):
         status = data.get('status')
         queue = data.get('queue')
         table = Table.objects.create(name=name, capacity=capacity, status=status, queue=queue)
-        queue.resources.add(table)
+        # queue.resources.add(table)
+        queue.resource_set.add(table)
         queue.save()
 
     def edit_resource(self, resource, data):
