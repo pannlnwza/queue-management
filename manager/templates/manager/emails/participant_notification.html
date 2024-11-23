@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+        }
+        .email-container {
+            max-width: 600px;
+            margin: 0 auto;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            padding: 20px;
+            background-color: #f9f9f9;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .header h1 {
+            margin: 0;
+            color: #0056b3;
+        }
+        .content {
+            margin-bottom: 20px;
+        }
+        .footer {
+            text-align: center;
+            font-size: 12px;
+            color: #666;
+        }
+        .highlight {
+            color: #0056b3;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <div class="header">
+            <h1>Queue Notification</h1>
+        </div>
+        <div class="content">
+            <p>Dear {{ participant.name }},</p>
+            <p class="highlight">{{ message }}</p>
+            <p>Your queue position is: <strong>{{ participant.position }}</strong></p>
+            <p>Your queue number is: <strong>{{ participant.number }}</strong></p>
+            <p>Thank you for your patience!</p>
+        </div>
+        <div class="footer">
+            <p>This is an automated message from {{ queue.name }}.</p>
+        </div>
+    </div>
+</body>
+</html>

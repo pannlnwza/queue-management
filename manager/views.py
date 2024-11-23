@@ -243,7 +243,23 @@ def notify_participant(request, participant_id):
     participant.is_notified = True
     participant.save()
 
+    # Prepare email context
+    email_context = {
+        'participant': participant,
+        'message': message,
+        'queue': queue
+    }
+
+    # Send an email to the participant
+    send_html_email(
+        subject="Your Queue Notification",
+        to_email=participant.email,
+        template_name="manager/emails/participant_notification.html",
+        context=email_context,
+    )
+
     return JsonResponse({'status': 'success', 'message': 'Notification sent successfully!'})
+
 
 
 @require_http_methods(["DELETE"])
