@@ -10,6 +10,21 @@ jobs:
   test:
     runs-on: ubuntu-latest
 
+    services:
+      postgres:
+        image: postgres:13
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: test_db
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -24,16 +39,30 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Copy sample.env to .env
+      - name: Wait for PostgreSQL to be ready
         run: |
-          cp sample.env .env
+          until pg_isready -h localhost -p 5432 -U postgres; do
+            echo "Waiting for PostgreSQL to be ready..."
+            sleep 1
+          done
+
+      - name: Copy sample.env to .env
+        run: cp sample.env .env
+
+      - name: Set environment variables
+        env:
+          DATABASE_URL: postgres://postgres:postgres@localhost:5432/test_db
+        run: echo "Database environment variables set."
 
       - name: Run migrations
+        env:
+          DATABASE_URL: postgres://postgres:postgres@localhost:5432/test_db
         run: |
           python manage.py makemigrations manager
           python manage.py makemigrations participant
           python manage.py migrate
 
       - name: Run tests
-        run: |
-          python manage.py test
+        env:
+          DATABASE_URL: postgres://postgres:postgres@localhost:5432/test_db
+        run: python manage.py test

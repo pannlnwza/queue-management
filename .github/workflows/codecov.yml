@@ -13,6 +13,21 @@ jobs:
     name: Run tests and collect coverage
     runs-on: ubuntu-latest
 
+    services:
+      postgres:
+        image: postgres:13
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: test_db
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -22,7 +37,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.11' 
+          python-version: '3.11'
 
       - name: Install dependencies
         run: |
@@ -33,16 +48,32 @@ jobs:
         run: |
           cp sample.env .env
 
+      - name: Wait for PostgreSQL to be ready
+        run: |
+          until pg_isready -h localhost -p 5432 -U postgres; do
+            echo "Waiting for PostgreSQL to be ready..."
+            sleep 1
+          done
+
+      - name: Set environment variables
+        env:
+          DATABASE_URL: postgres://postgres:postgres@localhost:5432/test_db
+        run: echo "Database environment variables set."
+
       - name: Make migrations
+        env:
+          DATABASE_URL: postgres://postgres:postgres@localhost:5432/test_db
         run: |
           python manage.py makemigrations manager
           python manage.py makemigrations participant
           python manage.py migrate
 
       - name: Run tests and collect coverage
+        env:
+          DATABASE_URL: postgres://postgres:postgres@localhost:5432/test_db
         run: | 
-          coverage run manage.py test participant
-          coverage run manage.py test manager
+          coverage run --source='.' manage.py test participant
+          coverage run --source='.' manage.py test manager
 
       - name: Generate coverage report
         run: coverage xml
