@@ -8,6 +8,8 @@
     {% tailwind_css %}
     <link rel="icon" href="{% static 'favicon.ico' %}" type="image/x-icon">
     {% block title %}<title>Queue Management</title>{% endblock %}
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.14/dist/full.min.css" rel="stylesheet" type="text/css"/>
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body>
 
@@ -38,14 +40,15 @@
                     {{ user.username }}
                     <form method="post" enctype="multipart/form-data">
                         <div class="avatar">
-                           <div class="ring-primary ring-offset-base-100 w-8 h-8 rounded-full ring-2 ring-offset-2 ml-2">
-                               <img src="{{ user.userprofile.get_profile_image }}" alt="{{ user.username }}'s profile"
+                            <div class="ring-primary ring-offset-base-100 w-8 h-8 rounded-full ring-2 ring-offset-2 ml-2">
+                                <img src="{{ user.userprofile.get_profile_image }}" alt="{{ user.username }}'s profile"
                                      class="rounded-full h-24 w-24 object-cover">
                             </div>
                         </div>
                     </form>
                 </label>
-                <ul tabindex="0" class="menu dropdown-content bg-base-100 rounded-box w-40 p-2 shadow flex justify-center">
+                <ul tabindex="0"
+                    class="menu dropdown-content bg-base-100 rounded-box w-40 p-2 shadow flex justify-center">
                     <form action="{% url 'account_logout' %}" method="post" style="display: inline;">
                         {% csrf_token %}
                         <button type="submit" class="btn btn-error btn-sm text-white self-center ml-2">
