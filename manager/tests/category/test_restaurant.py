@@ -15,7 +15,7 @@ class TestRestaurantQueueHandler(TestCase):
         self.handler = RestaurantQueueHandler()
         self.queue = RestaurantQueue.objects.create(
             name="Test Queue",
-            category="general",
+            category="restaurant",
             created_by=self.user,
             open_time=time(8, 0),
             close_time=time(18, 0),

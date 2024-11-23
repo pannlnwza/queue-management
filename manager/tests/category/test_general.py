@@ -12,7 +12,7 @@ class TestGeneralQueueHandler(TestCase):
         self.user = User.objects.create_user(username='testuser', password='password')
         self.handler = GeneralQueueHandler()
         self.queue = Queue.objects.create(
-            name="Test Queue",
+            name="Test general Queue",
             category="general",
             created_by=self.user,
             open_time=time(8, 0),

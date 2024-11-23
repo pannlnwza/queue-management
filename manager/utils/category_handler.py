@@ -491,7 +491,7 @@ class HospitalQueueHandler(CategoryHandler):
         status = data.get('status')
         queue = data.get('queue')
         doctor = Doctor.objects.create(name=name, specialty=medical_field, status=status, queue=queue)
-        queue.resources.add(doctor)
+        queue.resource_set.add(doctor)
         queue.save()
 
     def edit_resource(self, resource, data):
@@ -650,7 +650,7 @@ class BankQueueHandler(CategoryHandler):
         status = data.get('status')
         queue = data.get('queue')
         counter = Counter.objects.create(name=name, status=status, queue=queue)
-        queue.resources.add(counter)
+        queue.resource_set.add(counter)
         queue.save()
 
     def edit_resource(self, resource, data):
