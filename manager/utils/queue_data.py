@@ -1,5 +1,6 @@
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
+from django.utils import timezone
 from django.shortcuts import get_object_or_404
 from manager.models import Queue
 from manager.utils.category_handler import CategoryHandlerFactory
@@ -34,7 +35,7 @@ def get_general_queue_data(request, queue_id):
                 'notes': participant.note,
                 'waited': participant.get_wait_time(),
                 'service_duration': participant.get_service_duration(),
-                'served': participant.service_started_at.strftime('%d %b. %Y %H:%M') if participant.service_started_at else None,
+                'served': timezone.localtime(participant.service_started_at).strftime('%d %b. %Y %H:%M') if participant.service_started_at else None,
                 'is_notified': participant.is_notified
             } for participant in serving_participants
         ],
@@ -46,8 +47,8 @@ def get_general_queue_data(request, queue_id):
                 'notes': participant.note,
                 'waited': participant.waited,
                 'service_duration': participant.get_service_duration(),
-                'served': participant.service_started_at.strftime('%d %b. %Y %H:%M') if participant.service_started_at else None,
-                'completed': participant.service_completed_at.strftime('%d %b. %Y %H:%M') if participant.service_completed_at else None,
+                'served': timezone.localtime(participant.service_started_at).strftime('%d %b. %Y %H:%M') if participant.service_started_at else None,
+                'completed': timezone.localtime(participant.service_completed_at).strftime('%d %b. %Y %H:%M') if participant.service_completed_at else None,
                 'is_notified': participant.is_notified
             } for participant in completed_participants
         ],
