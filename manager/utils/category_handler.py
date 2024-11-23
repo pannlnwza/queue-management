@@ -142,11 +142,13 @@ class GeneralQueueHandler(CategoryHandler):
             'id': participant.id,
             'name': participant.name,
             'phone': participant.phone,
+            'email': participant.email,
             'position': participant.position,
             'notes': participant.note,
             'waited': participant.get_wait_time(),
             'is_notified': participant.is_notified,
             'estimated_wait_time': participant.calculate_estimated_wait_time()
+
         }
 
     def get_special_column(self):

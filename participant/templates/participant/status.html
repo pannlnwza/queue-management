@@ -99,6 +99,9 @@
                             <label class="text-sm text-gray-500">Service type</label>
                             <p class="font-medium" id="special_2"></p>
                         </div>
+                     {% else %}
+                        <p class="font-medium" id="special_1" style="display: none;"></p>
+                        <p class="font-medium" id="special_2" style="display: none;"></p>
                     {% endif %}
                     <div class="justify-center flex">
                         <p class="font-sm text-sm text-gray-600">Thank you for your patience! You’ve waited <span id="waitTime"></span> minutes.</p>
