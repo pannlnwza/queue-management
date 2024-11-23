@@ -17,7 +17,6 @@ class KioskForm(forms.Form):
             attrs={'class': 'input input-bordered w-full', 'placeholder': 'ex. 086-652-xxxx'}),
         max_length=15,
         required=False,
-        help_text="Format: (xxx) xxx-xxxx"
     )
 
     def __init__(self, *args, queue=None, **kwargs):
