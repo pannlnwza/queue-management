@@ -28,7 +28,7 @@ from manager.models import Queue, UserProfile, QueueLineLength
 from manager.utils.queue_handler import QueueHandlerFactory
 from manager.utils.category_handler import CategoryHandlerFactory
 from django.views.decorators.csrf import csrf_exempt
-from django.core.mail import send_mail
+from manager.utils.send_email import send_html_email
 
 
 logger = logging.getLogger('queue')
