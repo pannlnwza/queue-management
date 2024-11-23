@@ -14,7 +14,7 @@ from django.core.wsgi import get_wsgi_application
 
 from django.conf import settings
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'project.settings')
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings')
 if settings.DEBUG:
     application = StaticFilesHandler(get_wsgi_application())
 else:
