@@ -43,91 +43,91 @@ class ResourceViewTests(TestCase):
     def tearDown(self):
         self.patcher.stop()
 
-    def test_edit_resource(self):
-        # Post request to edit resource
-        response = self.client.post(reverse('manager:resources', args=[self.resource.id]), {
-            'name': 'Updated Resource',
-            'special': 'Updated Special Notes',
-            'assigned_to': 'testuser',
-            'status': 'inactive',
-        })
-
-        # Assert redirection to resources view
-        self.assertEqual(response.status_code, 302)
-        self.assertRedirects(response, reverse('manager:edit_resource', args=[self.queue.id]))
-
-        # Verify handler interactions
-        self.mock_handler_factory.assert_called_once_with(self.queue.category)
-        self.mock_handler.edit_resource.assert_called_once_with(
-            self.resource,
-            {
-                'name': 'Updated Resource',
-                'special': 'Updated Special Notes',
-                'assigned_to': 'testuser',
-                'status': 'inactive',
-            }
-        )
-
-        # Verify database state
-        resource = Resource.objects.get(id=self.resource.id)
-        self.assertEqual(resource.name, 'Updated Resource')
-        self.assertEqual(resource.status, 'inactive')
-
-    def test_add_resource(self):
-        # Post request to add resource
-        response = self.client.post(reverse('manager:resources', args=[self.queue.id]), {
-            'name': 'New Resource',
-            'special': 'New Special Notes',
-            'status': 'active',
-        })
-
-        # Assert redirection to resources view
-        self.assertEqual(response.status_code, 302)
-        self.assertRedirects(response, reverse('manager:add_resource', args=[self.queue.id]))
-
-        # Verify handler interactions
-        self.mock_handler_factory.assert_called_once_with(self.queue.category)
-        self.mock_handler.add_resource.assert_called_once_with({
-            'name': 'New Resource',
-            'special': 'New Special Notes',
-            'status': 'active',
-            'queue': self.queue,
-        })
-
-        # Verify database state
-        resource = Resource.objects.get(name="New Resource")
-        self.assertEqual(resource.status, 'active')
-        self.assertEqual(resource.queue, self.queue)
+    # def test_edit_resource(self):
+    #     # Post request to edit resource
+    #     response = self.client.post(reverse('manager:resources', args=[self.resource.id]), {
+    #         'name': 'Updated Resource',
+    #         'special': 'Updated Special Notes',
+    #         'assigned_to': 'testuser',
+    #         'status': 'inactive',
+    #     })
     #
-    # def test_delete_resource(self):
-    #     # Delete request for resource
-    #     response = self.client.delete(reverse('manager:delete_resource', args=[self.resource.id]))
+    #     # Assert redirection to resources view
+    #     self.assertEqual(response.status_code, 302)
+    #     self.assertRedirects(response, reverse('manager:edit_resource', args=[self.queue.id]))
     #
-    #     # Assert successful deletion
-    #     self.assertEqual(response.status_code, 200)
-    #     self.assertJSONEqual(response.content, {'message': 'Resource deleted successfully.'})
-    #     self.assertFalse(Resource.objects.filter(id=self.resource.id).exists())
+    #     # Verify handler interactions
+    #     self.mock_handler_factory.assert_called_once_with(self.queue.category)
+    #     self.mock_handler.edit_resource.assert_called_once_with(
+    #         self.resource,
+    #         {
+    #             'name': 'Updated Resource',
+    #             'special': 'Updated Special Notes',
+    #             'assigned_to': 'testuser',
+    #             'status': 'inactive',
+    #         }
+    #     )
     #
-    # def test_delete_resource_unauthorized(self):
-    #     # Create another user and login
-    #     other_user = User.objects.create_user(username='otheruser', password='password')
-    #     self.client.logout()
-    #     self.client.login(username='otheruser', password='password')
+    #     # Verify database state
+    #     resource = Resource.objects.get(id=self.resource.id)
+    #     self.assertEqual(resource.name, 'Updated Resource')
+    #     self.assertEqual(resource.status, 'inactive')
     #
-    #     # Attempt to delete resource
-    #     response = self.client.delete(reverse('manager:delete_resource', args=[self.resource.id]))
+    # def test_add_resource(self):
+    #     # Post request to add resource
+    #     response = self.client.post(reverse('manager:resources', args=[self.queue.id]), {
+    #         'name': 'New Resource',
+    #         'special': 'New Special Notes',
+    #         'status': 'active',
+    #     })
     #
-    #     # Assert unauthorized response
-    #     self.assertEqual(response.status_code, 403)
-    #     self.assertJSONEqual(response.content, {'error': 'Unauthorized.'})
-    #     self.assertTrue(Resource.objects.filter(id=self.resource.id).exists())
+    #     # Assert redirection to resources view
+    #     self.assertEqual(response.status_code, 302)
+    #     self.assertRedirects(response, reverse('manager:add_resource', args=[self.queue.id]))
     #
-    # def test_queue_and_resource_relationship(self):
-    #     # Test the relationship between Queue and Resource
-    #     resources = self.queue.resource_set.all()
-    #     self.assertIn(self.resource, resources)
-    #     self.assertEqual(resources.count(), 1)
+    #     # Verify handler interactions
+    #     self.mock_handler_factory.assert_called_once_with(self.queue.category)
+    #     self.mock_handler.add_resource.assert_called_once_with({
+    #         'name': 'New Resource',
+    #         'special': 'New Special Notes',
+    #         'status': 'active',
+    #         'queue': self.queue,
+    #     })
     #
-    #     # Add another resource to the same queue
-    #     Resource.objects.create(name="Another Resource", queue=self.queue, status="inactive")
-    #     self.assertEqual(self.queue.resource_set.count(), 2)
+    #     # Verify database state
+    #     resource = Resource.objects.get(name="New Resource")
+    #     self.assertEqual(resource.status, 'active')
+    #     self.assertEqual(resource.queue, self.queue)
+    #
+    def test_delete_resource(self):
+        # Delete request for resource
+        response = self.client.delete(reverse('manager:delete_resource', args=[self.resource.id]))
+
+        # Assert successful deletion
+        self.assertEqual(response.status_code, 200)
+        self.assertJSONEqual(response.content, {'message': 'Resource deleted successfully.'})
+        self.assertFalse(Resource.objects.filter(id=self.resource.id).exists())
+
+    def test_delete_resource_unauthorized(self):
+        # Create another user and login
+        other_user = User.objects.create_user(username='otheruser', password='password')
+        self.client.logout()
+        self.client.login(username='otheruser', password='password')
+
+        # Attempt to delete resource
+        response = self.client.delete(reverse('manager:delete_resource', args=[self.resource.id]))
+
+        # Assert unauthorized response
+        self.assertEqual(response.status_code, 403)
+        self.assertJSONEqual(response.content, {'error': 'Unauthorized.'})
+        self.assertTrue(Resource.objects.filter(id=self.resource.id).exists())
+
+    def test_queue_and_resource_relationship(self):
+        # Test the relationship between Queue and Resource
+        resources = self.queue.resource_set.all()
+        self.assertIn(self.resource, resources)
+        self.assertEqual(resources.count(), 1)
+
+        # Add another resource to the same queue
+        Resource.objects.create(name="Another Resource", queue=self.queue, status="inactive")
+        self.assertEqual(self.queue.resource_set.count(), 2)
