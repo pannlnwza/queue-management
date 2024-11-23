@@ -41,12 +41,12 @@ jobs:
 
       - name: Install dependencies
         run: |
+          python -m pip install --upgrade pip
           pip install -r requirements.txt
           pip install coverage
 
-      - name: Copy sample.env to .env
-        run: |
-          cp sample.env .env
+      - name: Copy environment file
+        run: cp sample.env .env
 
       - name: Wait for PostgreSQL to be ready
         run: |
@@ -60,7 +60,7 @@ jobs:
           DATABASE_URL: postgres://postgres:postgres@localhost:5432/test_db
         run: echo "Database environment variables set."
 
-      - name: Make migrations
+      - name: Run migrations
         env:
           DATABASE_URL: postgres://postgres:postgres@localhost:5432/test_db
         run: |
@@ -71,9 +71,8 @@ jobs:
       - name: Run tests and collect coverage
         env:
           DATABASE_URL: postgres://postgres:postgres@localhost:5432/test_db
-        run: | 
-          coverage run --source='.' manage.py test participant
-          coverage run --source='.' manage.py test manager
+        run: |
+          coverage run --source='.' manage.py test
 
       - name: Generate coverage report
         run: coverage xml
@@ -84,4 +83,4 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: ./coverage.xml
           flags: unittests
-          name: codecov-coverage
+          name: django-coverage

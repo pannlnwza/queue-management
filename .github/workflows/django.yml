@@ -20,7 +20,7 @@ jobs:
         ports:
           - 5432:5432
         options: >-
-          --health-cmd pg_isready
+          --health-cmd "pg_isready -U postgres -d test_db"
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
@@ -41,28 +41,25 @@ jobs:
 
       - name: Wait for PostgreSQL to be ready
         run: |
-          until pg_isready -h localhost -p 5432 -U postgres; do
+          until pg_isready -h localhost -p 5432 -U postgres -d test_db; do
             echo "Waiting for PostgreSQL to be ready..."
             sleep 1
           done
 
-      - name: Copy sample.env to .env
-        run: cp sample.env .env
-
-      - name: Set environment variables
-        env:
-          DATABASE_URL: postgres://postgres:postgres@localhost:5432/test_db
-        run: echo "Database environment variables set."
+      - name: Create environment variables for CI
+        run: |
+          echo "DATABASE_NAME=test_db" >> .env
+          echo "DATABASE_USERNAME=postgres" >> .env
+          echo "DATABASE_PASSWORD=postgres" >> .env
+          echo "DATABASE_HOST=localhost" >> .env
+          echo "DATABASE_PORT=5432" >> .env
+          echo "Environment variables set for CI."
 
       - name: Run migrations
-        env:
-          DATABASE_URL: postgres://postgres:postgres@localhost:5432/test_db
         run: |
           python manage.py makemigrations manager
           python manage.py makemigrations participant
           python manage.py migrate
 
       - name: Run tests
-        env:
-          DATABASE_URL: postgres://postgres:postgres@localhost:5432/test_db
         run: python manage.py test
