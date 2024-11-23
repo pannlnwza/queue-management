@@ -1,11 +1,9 @@
-import random
-import string
-
-from django.contrib.auth.models import User
+from manager.utils.code_generator import generate_unique_code, generate_unique_number
 from django.db import models
 from django.utils import timezone
 from manager.models import RestaurantQueue, BankQueue, Resource, HospitalQueue
 from datetime import timedelta
+from django.conf import settings
 
 
 class Participant(models.Model):
@@ -28,7 +26,7 @@ class Participant(models.Model):
     joined_at = models.DateTimeField(auto_now_add=True)
     position = models.PositiveIntegerField()
     note = models.TextField(max_length=150, null=True, blank=True)
-    code = models.CharField(max_length=6, unique=True, editable=False)
+    code = models.CharField(max_length=12, unique=True, editable=False)
     state = models.CharField(max_length=10, choices=PARTICIPANT_STATE,
                              default='waiting')
     service_started_at = models.DateTimeField(null=True, blank=True)
@@ -40,24 +38,22 @@ class Participant(models.Model):
     resource_assigned = models.CharField(max_length=20, null=True, blank=True)
     is_notified = models.BooleanField(default=False)
     created_by = models.CharField(max_length=10, choices=CREATE_BY, default='guest')
+    status_qr_code = models.ImageField(upload_to='qrcodes/', null=True, blank=True)
+    number = models.CharField(max_length=4, editable=False)
+
+    class Meta:
+        unique_together = ('number', 'queue')
+
 
     def save(self, *args, **kwargs):
-        """Generate a unique ticket code for the participant if not already."""
-        if not self.pk:
-            self.code = self.generate_unique_queue_code()
+        """Assign unique code and number upon creation."""
+        if not self.pk:  # Only set these fields for new instances
+            self.code = generate_unique_code(Participant)
+            self.number = generate_unique_number(self.queue)
         if not self.position:  # Only set position if it's not already set
             last_position = Participant.objects.aggregate(models.Max('position'))['position__max'] or 0
             self.position = last_position + 1
         super().save(*args, **kwargs)
-
-    @staticmethod
-    def generate_unique_queue_code(length=12):
-        """Generate a unique code for each participant."""
-        characters = string.ascii_uppercase + string.digits
-        while True:
-            code = ''.join(random.choices(characters, k=length))
-            if not Participant.objects.filter(code=code).exists():
-                return code
 
     def update_position(self, new_position: int) -> None:
         """Update the position of the participant in the queue."""
@@ -116,6 +112,12 @@ class Participant(models.Model):
         cutoff_time = timezone.localtime() - timedelta(days=30)
         Participant.objects.filter(state='completed',
                                    service_completed_at__lte=cutoff_time).delete()
+
+    def get_status_link(self):
+        """
+        Returns the full URL to the welcome page for this queue.
+        """
+        return f"{settings.SITE_DOMAIN}/status/{self.code}"
 
     def __str__(self) -> str:
         """Return a string representation of the participant."""
@@ -198,6 +200,7 @@ class Notification(models.Model):
     message = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
     is_read = models.BooleanField(default=False)
+    played_sound = models.BooleanField(default=False)
 
     def __str__(self):
         return f"Notification for {self.participant}: {self.message}"
