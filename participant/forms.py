@@ -14,10 +14,9 @@ class KioskForm(forms.Form):
     )
     phone = forms.CharField(
         widget=forms.TextInput(
-            attrs={'class': 'input input-bordered w-full', 'placeholder': 'Enter Your Phone Number'}),
+            attrs={'class': 'input input-bordered w-full', 'placeholder': 'ex. 086-652-xxxx'}),
         max_length=15,
         required=False,
-        help_text="Format: (xxx) xxx-xxxx"
     )
 
     def __init__(self, *args, queue=None, **kwargs):
@@ -33,7 +32,7 @@ class KioskForm(forms.Form):
                 )
                 self.fields['special_2'] = forms.ChoiceField(
                     choices=RestaurantParticipant.SERVICE_TYPE_CHOICE,
-                    widget=forms.Select(attrs={'class': 'select select-bordered w-full select-md max-w-xs'}),
+                    widget=forms.Select(attrs={'class': 'select select-bordered w-full select-md'}),
                     required=False,
                     initial='first_available',
                     label='Seating Preference',
@@ -52,11 +51,17 @@ class KioskForm(forms.Form):
                     label='Priority Level',
                 )
             elif queue.category == 'bank':
+                self.fields['special_1'] = forms.ChoiceField(
+                    choices=BankParticipant.PARTICIPANT_CATEGORY_CHOICES,
+                    widget=forms.Select(attrs={'class': 'select select-bordered w-full select-md max-w-xs'}),
+                    required=True,
+                    label="Select Your Participant Type",
+                )
                 self.fields['special_2'] = forms.ChoiceField(
                     choices=BankParticipant.SERVICE_TYPE_CHOICES,
                     widget=forms.Select(attrs={'class': 'select select-bordered w-full select-md max-w-xs'}),
                     required=False,
-                    label='Service Type',
+                    label='Select Service Type',
                 )
             self.fields['note'] = forms.CharField(
                 required=False,

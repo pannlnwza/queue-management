@@ -1,18 +1,11 @@
 import math
-import random
-import string
-
-from django.db.models import ManyToManyField
+from manager.utils.code_generator import generate_unique_code
 from django.dispatch import receiver
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.db import models
 from django.templatetags.static import static
-from django.contrib.auth.models import User
-from django.urls import reverse
-from django.conf import settings
 from django.apps import apps
-from django.db.models import Sum
 from django.db.models.signals import post_save
 from manager.utils.helpers import format_duration
 from django.utils import timezone
@@ -48,25 +41,17 @@ class Queue(models.Model):
     category = models.CharField(max_length=20, choices=CATEGORY_CHOICES)
     logo = models.ImageField(upload_to='queue_logos/', blank=True, null=True)
     completed_participants_count = models.PositiveIntegerField(default=0)
-    code = models.CharField(max_length=6, unique=True, editable=False)
+    code = models.CharField(max_length=12, unique=True, editable=False)
     latitude = models.FloatField()
     longitude = models.FloatField()
     distance_from_user = models.FloatField(null=True, blank=True)
+    tts_notifications_enabled = models.BooleanField(default=True)
 
     def save(self, *args, **kwargs):
         """Generate a unique ticket code for the participant if not already."""
         if not self.pk:
-            self.code = self.generate_unique_queue_code()
+            self.code = generate_unique_code(Queue)
         super().save(*args, **kwargs)
-
-    @staticmethod
-    def generate_unique_queue_code(length=12):
-        """Generate a unique code for each participant."""
-        characters = string.ascii_uppercase + string.digits
-        while True:
-            code = ''.join(random.choices(characters, k=length))
-            if not Queue.objects.filter(code=code).exists():
-                return code
 
     @staticmethod
     def get_top_featured_queues(category=None):
@@ -153,7 +138,7 @@ class Queue(models.Model):
         return self.participant_set.all().order_by('joined_at')
 
     def update_participants_positions(self):
-        participants = self.participant_set.order_by('joined_at')
+        participants = self.participant_set.filter(state='waiting').order_by('joined_at')
         for index, participant in enumerate(participants, start=1):
             participant.position = index
             participant.save(update_fields=["position"])
@@ -212,7 +197,7 @@ class Queue(models.Model):
         """
         Returns the full URL to the welcome page for this queue.
         """
-        return f"{settings.SITE_DOMAIN}/welcome/{self.code}/"
+        return f"{settings.SITE_DOMAIN}welcome/{self.code}/"
 
     def get_number_of_participants_by_date(self, start_date, end_date):
         """Return the number of participants within a given date range."""
@@ -229,6 +214,13 @@ class Queue(models.Model):
             queryset = queryset.filter(joined_at__range=(start_date, end_date))
         return queryset.count()
 
+    def get_number_completed_now(self):
+        """Return the number of participant that completed the service."""
+        return self.participant_set.filter(state='completed').count()
+
+    def get_number_served(self):
+        """Return the number of participants served."""
+        return self.participant_set.filter(state='completed').count()
     def get_number_serving_now(self, start_date=None, end_date=None):
         """Return the number of participants currently serving, optionally within a date range."""
         queryset = self.participant_set.filter(state='serving')

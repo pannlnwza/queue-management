@@ -12,13 +12,22 @@
 <div class="card border-2 border-base-200 max-w-4xl w-full sm:w-3/4 md:w-1/2 mx-auto p-6 mt-4">
     <form method="post">
         {% csrf_token %}
-        <div class="text-left text-2xl m-4"><p>Add a {{ form.get_resource_name }}</p></div>
 
-        {{ form.as_p }}
+        {% if form.category == 'general' %}
+            <div class="text-center text-2xl p-8">
+              <p>General queues don't need a resource. You're all set!</p>
+            </div>
+
+
+        {% else %}
+            <div class="text-left text-2xl m-4"><p>Add a {{ form.get_resource_name }}</p></div>
+
+            {{ form.as_p }}
+        {% endif %}
 
         <div class="flex justify-between items-center">
             <!-- Left-aligned button -->
-            <a href="{% url 'manager:create_queue_step' step='2' %}" class="btn btn-primary">Previous</a>
+            <a href="{% url 'manager:create_queue_step' step="2" %}" class="btn btn-primary">Back</a>
             <!-- Right-aligned button -->
             <button type="submit" class="btn btn-primary">Create Queue</button>
         </div>

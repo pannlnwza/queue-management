@@ -6,4 +6,4 @@ class ParticipantConfig(AppConfig):
     name = 'participant'
 
     def ready(self):
-        import participant.signals
+        pass

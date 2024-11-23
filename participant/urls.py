@@ -1,4 +1,4 @@
-from django.urls import path
+from django.urls import path, include
 from participant.views import mark_notification_as_read, RestaurantQueueView, GeneralQueueView, HospitalQueueView, \
     BankQueueView, ServiceCenterQueueView, BrowseQueueView, welcome, HomePageView, KioskView, QRcodeView, \
     QueueStatusView, sse_queue_status, participant_leave, set_location

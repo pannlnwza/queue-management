@@ -1,8 +1,5 @@
 from abc import ABC, abstractmethod
-from participant.models import RestaurantParticipant, Participant
-from manager.models import Resource, RestaurantQueue, Queue
-from django.shortcuts import get_object_or_404
-from django.utils import timezone
+from manager.models import RestaurantQueue, Queue
 
 
 class QueueHandlerFactory:
