@@ -14,13 +14,13 @@ jobs:
       postgres:
         image: postgres:13
         env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: test_db
+          POSTGRES_USER: ${{ secrets.POSTGRES_USER }} 
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}  
+          POSTGRES_DB: ${{ secrets.POSTGRES_DB }} 
         ports:
           - 5432:5432
         options: >-
-          --health-cmd "pg_isready -U postgres -d test_db"
+          --health-cmd "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
@@ -46,25 +46,16 @@ jobs:
             sleep 1
           done
 
-      - name: Create environment variables for CI
-        run: |
-            echo "DATABASE_URL=${{ secrets.DATABASE_URL }}" >> .env
-            echo "DEBUG=True" >> .env
-            echo "SECRET_KEY=${{ secrets.SECRET_KEY }}" >> .env
-            echo "ALLOWED_HOSTS=localhost,127.0.0.1" >> .env
+      - name: Set DATABASE_URL
+        run: echo "DATABASE_URL=${{ secrets.DATABASE_URL }}" >> .env
 
       - name: Debug environment variables
         run: cat .env
 
       - name: Run migrations
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
         run: |
-          python manage.py makemigrations manager
-          python manage.py makemigrations participant
+          python manage.py makemigrations
           python manage.py migrate
 
       - name: Run tests
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
         run: python manage.py test
