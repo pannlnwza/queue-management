@@ -7,31 +7,29 @@ from django.contrib.auth.models import User
 class QueueForm(forms.ModelForm):
     """
     Form for creating or updating a Queue instance.
-
-    This form allows users to input the necessary details for a queue,
-    including its name and description.
     """
 
     class Meta:
         model = Queue
-        fields = ['name', 'logo', 'description', 'category']
+        fields = ['name', 'description', 'category']  # Exclude 'logo'
         labels = {
-            'logo': 'Logo (Optional)'
+            'description': 'Description (Optional)',
         }
         widgets = {
             'name': forms.TextInput(
-                attrs={'class': 'input input-bordered w-full max-w-xs m-4',
-                       'placeholder': 'Enter Queue Name (Max Length: 50)'}),
+                attrs={
+                    'class': 'input input-bordered w-full max-w-xs m-4',
+                    'placeholder': 'Enter Queue Name (Max Length: 50)',
+                }),
             'description': forms.Textarea(
-                attrs={'class': 'textarea textarea-bordered w-full m-4',
-                       'placeholder': 'About This Queue (Max Length: 255)',
-                       'rows': 4}),
+                attrs={
+                    'class': 'textarea textarea-bordered w-full m-4',
+                    'placeholder': 'About This Queue (Max Length: 255)',
+                    'rows': 4,
+                }),
             'category': forms.Select(
-                attrs={'class': 'select select-bordered w-full max-w-xs m-4'}),
-            'logo': forms.ClearableFileInput(
-                attrs={'class': 'file-input file-input-bordered w-full max-w-xs m-4',
-                       'accept': 'image/*'}),
-
+                attrs={'class': 'select select-bordered w-full max-w-xs m-4'}
+            ),
         }
 
 

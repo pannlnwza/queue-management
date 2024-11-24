@@ -40,123 +40,138 @@ import os
 logger = logging.getLogger('queue')
 
 
-
 class MultiStepFormView(View):
     def get(self, request, step):
         try:
-            # Determine which form to render based on the step
+            # Determine the form to render based on the step
+            form = None
             if step == "1":
                 form = QueueForm()
             elif step == "2":
                 form = OpeningHoursForm()
             elif step == "3":
-                queue_data = request.session.get('queue_data', {})
-                queue_category = queue_data.get('category', None)
-                form = ResourceForm(queue_category={'category': queue_category})
+                queue_data = request.session.get("queue_data", {})
+                queue_category = queue_data.get("category")
+                form = ResourceForm(queue_category={"category": queue_category})
             else:
-                return redirect('manager:your-queue')  # Redirect for invalid steps
+                messages.error(request, "Invalid step.")
+                return redirect("manager:your-queue")
 
             return render(
                 request,
-                f'manager/create_queue_steps/step_{step}.html',
-                {'form': form, 'step': step}
+                f"manager/create_queue_steps/step_{step}.html",
+                {"form": form, "step": step},
             )
         except Exception as e:
             logger.error(f"Error in GET step {step}: {e}\n{traceback.format_exc()}")
-            messages.error(request, "An error occurred while loading the form. Please try again.")
-            return redirect('manager:your-queue')
+            messages.error(request, "An error occurred while loading the form.")
+            return redirect("manager:your-queue")
 
     def post(self, request, step):
         try:
             if step == "1":
-                form = QueueForm(request.POST, request.FILES)
-                if form.is_valid():
-                    queue_data = form.cleaned_data.copy()
-
-                    # Handle the logo field separately
-                    if 'logo' in request.FILES:
-                        file = request.FILES['logo']
-                        fs = FileSystemStorage(location=os.path.join(settings.MEDIA_ROOT, 'temp'))
-                        filename = fs.save(file.name, file)  # Save the file temporarily
-                        request.session['logo_path'] = filename  # Save only the filename in session
-
-                    # Remove 'logo' from queue_data to avoid serialization issues
-                    queue_data.pop('logo', None)
-                    request.session['queue_data'] = queue_data
-
-                    return redirect('manager:create_queue_step', step="2")
-                else:
-                    messages.error(request, "Please correct the errors in the form.")
-                    return render(request, 'manager/create_queue_steps/step_1.html', {'form': form, 'step': step})
-
+                return self.handle_step_1(request)
             elif step == "2":
-                form = OpeningHoursForm(request.POST)
-                if form.is_valid():
-                    latitude = request.POST.get('latitudeInput')
-                    longitude = request.POST.get('longitudeInput')
-
-                    time_and_location_data = {
-                        'open_time': form.cleaned_data['open_time'].strftime('%H:%M:%S') if form.cleaned_data.get('open_time') else None,
-                        'close_time': form.cleaned_data['close_time'].strftime('%H:%M:%S') if form.cleaned_data.get('close_time') else None,
-                        'latitude': latitude,
-                        'longitude': longitude,
-                    }
-                    request.session['time_and_location_data'] = time_and_location_data
-
-                    return redirect('manager:create_queue_step', step="3")
-                else:
-                    messages.error(request, "Please correct the errors in the form.")
-                    return render(request, 'manager/create_queue_steps/step_2.html', {'form': form, 'step': step})
-
+                return self.handle_step_2(request)
             elif step == "3":
-                queue_data = request.session.get('queue_data', {})
-                time_and_location_data = request.session.get('time_and_location_data', {})
-                queue_data.update(time_and_location_data)
-
-                form = ResourceForm(request.POST, queue_category={'category': queue_data.get('category')})
-                if form.is_valid():
-                    try:
-                        with transaction.atomic():
-                            resource_data = form.cleaned_data
-                            handler = CategoryHandlerFactory.get_handler(queue_data['category'])
-
-                            # Create the queue
-                            queue_data['created_by'] = request.user
-                            queue = handler.create_queue(queue_data)
-
-                            # Assign the logo to the queue
-                            logo_path = request.session.pop('logo_path', None)
-                            if logo_path:
-                                temp_file_path = os.path.join(settings.MEDIA_ROOT, 'temp', logo_path)
-                                final_storage = FileSystemStorage(location=os.path.join(settings.MEDIA_ROOT, 'queue_logos'))
-                                final_file_name = final_storage.save(os.path.basename(temp_file_path), open(temp_file_path, 'rb'))
-                                queue.logo = os.path.join('queue_logos', final_file_name)
-                                queue.save()
-
-                                # Delete the temporary file
-                                os.remove(temp_file_path)
-
-                            # Add resources to the queue
-                            resource_data['queue'] = queue
-                            handler.add_resource(resource_data)
-
-                        messages.success(request, f"Successfully created queue: {queue.name}")
-                        del request.session['queue_data']
-                        del request.session['time_and_location_data']
-                        return redirect('manager:your-queue')
-
-                    except Exception as e:
-                        logger.error(f"Error creating queue or adding resource: {e}\n{traceback.format_exc()}")
-                        messages.error(request, f"An error occurred: {e}")
-                        return redirect('manager:create_queue_step', step="3")
-                else:
-                    messages.error(request, "Please correct the errors in the form.")
-                    return render(request, 'manager/create_queue_steps/step_3.html', {'form': form, 'step': step})
-
+                return self.handle_step_3(request)
+            else:
+                messages.error(request, "Invalid step.")
+                return redirect("manager:your-queue")
         except Exception as e:
-            logger.error(f"Unexpected error in step {step}: {e}\n{traceback.format_exc()}")
+            logger.error(f"Unexpected error in POST step {step}: {e}\n{traceback.format_exc()}")
             messages.error(request, "An unexpected error occurred. Please try again.")
-            return redirect('manager:your-queue')
+            return redirect("manager:your-queue")
+
+    def handle_step_1(self, request):
+        form = QueueForm(request.POST)
+        if form.is_valid():
+            queue_data = form.cleaned_data.copy()
+
+            # Handle logo upload
+            if "logo" in request.FILES:
+                logo_file = request.FILES["logo"]
+                temp_dir = os.path.join(settings.MEDIA_ROOT, "temp")
+                os.makedirs(temp_dir, exist_ok=True)
+                temp_file_path = os.path.join(temp_dir, logo_file.name)
+                with open(temp_file_path, "wb") as temp_file:
+                    for chunk in logo_file.chunks():
+                        temp_file.write(chunk)
+                request.session["logo_temp_path"] = temp_file_path
+
+            request.session["queue_data"] = queue_data
+            return redirect("manager:create_queue_step", step="2")
+
+        messages.error(request, "Please correct the errors in the form.")
+        return render(request, "manager/create_queue_steps/step_1.html", {"form": form, "step": "1"})
+
+    def handle_step_2(self, request):
+        form = OpeningHoursForm(request.POST)
+        if form.is_valid():
+            latitude = request.POST.get("latitudeInput")
+            longitude = request.POST.get("longitudeInput")
+
+            time_and_location_data = {
+                "open_time": form.cleaned_data.get("open_time").strftime("%H:%M:%S") if form.cleaned_data.get(
+                    "open_time") else None,
+                "close_time": form.cleaned_data.get("close_time").strftime("%H:%M:%S") if form.cleaned_data.get(
+                    "close_time") else None,
+                "latitude": latitude,
+                "longitude": longitude,
+            }
+            request.session["time_and_location_data"] = time_and_location_data
+            return redirect("manager:create_queue_step", step="3")
+
+        messages.error(request, "Please correct the errors in the form.")
+        return render(request, "manager/create_queue_steps/step_2.html", {"form": form, "step": "2"})
+
+    def handle_step_3(self, request):
+        queue_data = request.session.get("queue_data", {})
+        time_and_location_data = request.session.get("time_and_location_data", {})
+        queue_data.update(time_and_location_data)
+
+        form = ResourceForm(request.POST, queue_category={"category": queue_data.get("category")})
+        if form.is_valid():
+            try:
+                with transaction.atomic():
+                    resource_data = form.cleaned_data
+                    handler = CategoryHandlerFactory.get_handler(queue_data["category"])
+                    queue_data["created_by_id"] = request.user.id
+                    queue = handler.create_queue(queue_data)
+
+                    # Handle logo
+                    logo_path = request.session.pop("logo_temp_path", None)
+                    if logo_path:
+                        try:
+                            # Read and store the binary data in the BinaryField
+                            with open(logo_path, "rb") as logo_file:
+                                queue.logo = logo_file.read()
+                            queue.save()
+
+                            # Clean up the temporary file
+                            if os.path.exists(logo_path):
+                                os.remove(logo_path)
+                        except Exception as e:
+                            logger.error(f"Error processing the logo file: {e}")
+                            raise
+
+                    # Add resources to the queue
+                    resource_data["queue"] = queue
+                    handler.add_resource(resource_data)
+
+                    # Cleanup session data
+                    request.session.pop("queue_data", None)
+                    request.session.pop("time_and_location_data", None)
+
+                    messages.success(request, f"Successfully created queue: {queue.name}")
+                    return redirect("manager:your-queue")
+            except Exception as e:
+                logger.error(f"Error creating queue or adding resource: {e}\n{traceback.format_exc()}")
+                messages.error(request, f"An error occurred: {e}")
+                return redirect("manager:create_queue_step", step="3")
+
+        messages.error(request, "Please correct the errors in the form.")
+        return render(request, "manager/create_queue_steps/step_3.html", {"form": form, "step": "3"})
 
 
 class CreateQView(LoginRequiredMixin, generic.CreateView):
