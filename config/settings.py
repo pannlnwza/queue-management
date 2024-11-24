@@ -106,6 +106,10 @@ DATABASES = {
     'default': dj_database_url.config(default=config('DATABASE_URL'))
 }
 
+DATABASES['default'] = dj_database_url.config(
+    default=config('DATABASE_URL'),
+    conn_max_age=300,
+    ssl_require=True)
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
@@ -233,6 +237,6 @@ LOGGING = {
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
-SITE_DOMAIN = 'http://127.0.0.1:8000/'
+SITE_DOMAIN = config('SITE_DOMAIN')
 
 CORS_ALLOW_ALL_ORIGINS = True

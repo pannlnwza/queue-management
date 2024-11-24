@@ -119,7 +119,7 @@ class Participant(models.Model):
         """
         Returns the full URL to the welcome page for this queue.
         """
-        return f"{settings.SITE_DOMAIN}/status/{self.code}"
+        return f"{settings.SITE_DOMAIN}status/{self.code}"
 
     def __str__(self) -> str:
         """Return a string representation of the participant."""

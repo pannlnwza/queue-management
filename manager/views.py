@@ -297,6 +297,7 @@ def notify_participant(request, participant_id):
             audio_url = f"{settings.MEDIA_URL}announcements/announcement_{participant.id}.mp3"
 
     participant.save()
+
     # Prepare email context
     email_context = {
         'participant': participant,
@@ -304,15 +305,31 @@ def notify_participant(request, participant_id):
         'queue': queue
     }
 
-    # Send an email to the participant
-    send_html_email(
-        subject="Your Queue Notification",
-        to_email=participant.email,
-        template_name="manager/emails/participant_notification.html",
-        context=email_context,
-    )
+    # Attempt to send the email
+    email_error = None
+    try:
+        send_html_email(
+            subject="Your Queue Notification",
+            to_email=participant.email,
+            template_name="manager/emails/participant_notification.html",
+            context=email_context,
+        )
+    except Exception as e:
+        # Log the email sending error but do not interrupt the response
+        logger = logging.getLogger(__name__)
+        logger.error(f"Failed to send email to participant {participant.email}: {str(e)}")
+        email_error = f"Failed to send email to participant {participant.email}: {str(e)}"
 
-    return JsonResponse({'status': 'success', 'message': 'Notification sent successfully!', 'audio_url': audio_url})
+    # Respond with success for audio and email status
+    response = {
+        'status': 'success',
+        'message': 'Notification sent successfully!',
+        'audio_url': audio_url,
+    }
+    if email_error:
+        response['email_status'] = 'error'
+        response['email_message'] = email_error
+    return JsonResponse(response)
 
 @require_http_methods(["DELETE"])
 @login_required
