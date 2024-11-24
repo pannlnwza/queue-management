@@ -118,8 +118,8 @@ class QueueViewTests(TestCase):
     #         'name': 'Updated Queue',
     #         'description': 'Updated description',
     #         'is_closed': 'off',
-    #         'latitude': '41.0000',
-    #         'longitude': '-75.0000',
+    #         'latitude': 41.0000,
+    #         'longitude': -75.0000,
     #         'open_time': '09:00',
     #         'close_time': '17:00',
     #     }
@@ -138,23 +138,23 @@ class QueueViewTests(TestCase):
     #     self.assertEqual(self.queue.close_time, time(17, 0))
     #     self.assertFalse(self.queue.is_closed)
     #     self.assertEqual(self.queue.logo.name, 'logo.jpg')
-    #
-    # def test_edit_queue_invalid_time_format(self):
-    #     """Test update with invalid time format."""
-    #     self.client.login(username='creator', password='password123')
-    #
-    #     form_data = {
-    #         'name': 'Invalid Time Queue',
-    #         'description': 'Testing invalid time format',
-    #         'open_time': '25:00',
-    #         'close_time': '17:00',
-    #     }
-    #     response = self.client.post(self.edit_queue_url, form_data)
-    #
-    #     self.assertEqual(response.status_code, 302)
-    #     messages = list(response.wsgi_request._messages)
-    #     self.assertTrue(any("Invalid time format" in str(message) for message in messages))
-    #
+
+    def test_edit_queue_invalid_time_format(self):
+        """Test update with invalid time format."""
+        self.client.login(username='creator', password='password123')
+
+        form_data = {
+            'name': 'Invalid Time Queue',
+            'description': 'Testing invalid time format',
+            'open_time': '25:00',
+            'close_time': '17:00',
+        }
+        response = self.client.post(self.edit_queue_url, form_data)
+
+        self.assertEqual(response.status_code, 302)
+        messages = list(response.wsgi_request._messages)
+        self.assertTrue(any("Invalid time format" in str(message) for message in messages))
+
     # def test_edit_queue_unauthorized(self):
     #     """Test unauthorized user cannot edit queue."""
     #     self.client.login(username='otheruser', password='password123')
@@ -162,9 +162,12 @@ class QueueViewTests(TestCase):
     #     form_data = {
     #         'name': 'Unauthorized Update',
     #         'description': 'Should not work',
+    #         'latitude': 41.0000,
+    #         'longitude': -75.0000,
     #     }
     #     response = self.client.post(self.edit_queue_url, form_data)
     #
-    #     self.assertEqual(response.status_code, 403)  # Ensure forbidden
+    #
+    #     self.assertEqual(response.status_code, 403)
     #     self.queue.refresh_from_db()
     #     self.assertNotEqual(self.queue.name, 'Unauthorized Update')
