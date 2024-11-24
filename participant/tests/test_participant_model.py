@@ -1,6 +1,7 @@
 from django.test import TestCase
 from django.utils import timezone
 from participant.models import Participant, RestaurantParticipant
+from manager.models import Queue, RestaurantQueue, Table
 from manager.models import Queue, RestaurantQueue, Table, Resource
 from django.contrib.auth.models import User
 from datetime import timedelta

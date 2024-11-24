@@ -1,88 +1,691 @@
 {% extends 'sidebar_manage.html' %}
-
 {% block content %}
+    <body>
+    <div class="flex">
+        <a href="{% url 'manager:manage_waitlist' queue_id %}" class="btn btn-sm btn-square btn-ghost no-animation">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="size-5">
+                <path fill-rule="evenodd"
+                      d="M11.78 5.22a.75.75 0 0 1 0 1.06L8.06 10l3.72 3.72a.75.75 0 1 1-1.06 1.06l-4.25-4.25a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 0Z"
+                      clip-rule="evenodd"/>
+            </svg>
+        </a>
+        <h1 class="text-2xl font-bold antialiased font-sans">Waiting</h1>
 
-<body>
-  <div class="flex justify-center min-w-screen p-10">
-    <!-- Adjusted grid columns for receipt-like layout -->
-    <div class="grid grid-cols-[4fr_2fr] gap-6 w-full max-w-7xl">
-      <!-- Left side (wider section) with taller height -->
-      <div class="card bg-base-100 border-2 border-base-300 h-[40rem]">
-        <div class="card-body">
-          <div class="form-control">
-            <input type="text" placeholder="Search" class="input input-bordered" />
-          </div>
-          <div class="tabs mt-4">
-            <a class="tab tab-lifted tab-active">Upcoming</a>
-            <a class="tab tab-lifted">No show</a>
-            <a class="tab tab-lifted">Done</a>
-          </div>
-          <div class="overflow-y-auto h-[30rem] mt-4">
-            <table class="table w-full">
-              <thead>
-                <tr>
-                  <th>Token</th>
-                  <th>Waited</th>
-                  <th>Joined at</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td>023</td>
-                  <td>20 Oct, 2021</td>
-                  <td>02:40 PM</td>
-                </tr>
-                <tr>
-                  <td>024</td>
-                  <td>20 Oct, 2021</td>
-                  <td>02:55 PM</td>
-                </tr>
-                <tr>
-                  <td>025</td>
-                  <td>20 Oct, 2021</td>
-                  <td>03:20 PM</td>
-                </tr>
-                <tr>
-                  <td>026</td>
-                  <td>20 Oct, 2021</td>
-                  <td>03:40 PM</td>
-                </tr>
-                <tr>
-                  <td>027</td>
-                  <td>20 Oct, 2021</td>
-                  <td>04:10 PM</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-
-      <!-- Right side (narrower section) with dynamic height -->
-      <div class="card bg-base-100 border-2 border-base-300 max-h-[37rem] overflow-y-auto">
-        <div class="card-body">
-          <div class="text-gray-500 mx-auto">Current Ticket for</div>
-          <div class="font-semibold mx-auto">Deposit....</div>
-          <div class="divider"></div>
-
-          <div class="text-gray-500 mx-auto">John Doe</div>
-          <div class="text-5xl font-bold mx-auto mb-5">M005</div>
-
-          <!-- Wait Time Section -->
-          <div class="flex flex-col items-center mb-4">
-            <div class="text-gray-500">Waited for</div>
-            <div class="text-2xl font-bold">8 min</div>
-          </div>
-          <div class="divider"></div>
-
-          <!-- Buttons Section -->
-          <div class="flex flex-col items-center gap-4 mt-4">
-            <button class="btn btn-success">Done & Next</button>
-            <button class="btn btn-error">No Show</button>
-          </div>
-        </div>
-      </div>
     </div>
-  </div>
-</body>
+    <div class="flex justify-center min-w-screen p-10">
+        <div class="w-full max-w-86">
+            <div class="mb-4">
+                <div class="relative w-full max-w-xs">
+                    <input type="text"
+                           id="searchInput"
+                           class="input input-bordered w-full pr-12"
+                           placeholder="Search Participant's name"
+                           oninput="participantSearch()">
+                    <button type="button"
+                            id="searchButton"
+                            class="absolute inset-y-0 right-2 flex items-center pr-2">
+                        <svg xmlns="http://www.w3.org/2000/svg"
+                             class="h-5 w-5"
+                             fill="none"
+                             viewBox="0 0 24 24"
+                             stroke="currentColor">
+                            <path stroke-linecap="round"
+                                  stroke-linejoin="round"
+                                  stroke-width="2"
+                                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            <div class="grid grid-cols-[4fr_2fr] gap-6 w-full max-w-86">
+                <div class="card bg-base-100 border-2 border-base-300 h-[50rem] overflow-y-auto">
+                    <div class="card-body">
+                        <div class="h-[50rem]">
+                            <div role="tablist" class="tabs tabs-lifted bg-base-100  ">
+                                <input type="radio" name="my_tabs_1" role="tab" class="tab " aria-label="Waiting"
+                                       id="tab1"/>
+                                <div role="tabpanel" class="tab-content bg-base-100">
+                                    <table class="table w-full overflow-y-auto" id="participantTable">
+                                        <thead class="bg-base-100 sticky top-0 z-10">
+                                        <tr>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                Token
+                                            </th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                Name
+                                            </th>
+                                            {% if queue.category == 'restaurant' and queue.category == 'bank' %}
+                                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                    {{ special_2 }}
+                                                </th>
+                                            {% elif queue.category == 'hospital' %}
+                                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                    {{ special_1 }}
+                                                </th>
+                                            {% endif %}
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                Waited
+                                            </th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                Joined at
+                                            </th>
+                                        </tr>
+                                        </thead>
+                                        <tbody>
+                                        {% for participant in waiting_list %}
+                                            <tr
+                                                    class="hover:bg-gray-100 cursor-pointer"
+                                                    onclick="showParticipantDetails(
+                                                            '{{ participant.id }}',
+                                                            '{{ participant.position }}',
+                                                            '{{ participant.name }}',
+                                                            '{{ participant.get_wait_time }}',
+                                                            '{{ participant.get_service_type_display|default:"" }}',
+                                                            '{{ participant.get_medical_field_display|default:"" }}',
+                                                            '{{ queue.category }}'
+                                                            )"
+                                            >
+                                                <td class="px-6 py-4 whitespace-nowrap">{{ participant.position }}</td>
+                                                <td class="px-6 py-4 whitespace-nowrap font-semibold">
+                                                    <div class="flex">
+                                                        {{ participant.name }}
+                                                        {% if participant.is_notified %}
+                                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"
+                                                                 fill="currentColor"
+                                                                 class="size-4 text-yellow-500 ml-2 mt-1">
+                                                                <path d="M3.6 1.7A.75.75 0 1 0 2.4.799a6.978 6.978 0 0 0-1.123 2.247.75.75 0 1 0 1.44.418c.187-.644.489-1.24.883-1.764ZM13.6.799a.75.75 0 1 0-1.2.9 5.48 5.48 0 0 1 .883 1.765.75.75 0 1 0 1.44-.418A6.978 6.978 0 0 0 13.6.799Z"/>
+                                                                <path fill-rule="evenodd"
+                                                                      d="M8 1a4 4 0 0 1 4 4v2.379c0 .398.158.779.44 1.06l1.267 1.268a1 1 0 0 1 .293.707V11a1 1 0 0 1-1 1h-2a3 3 0 1 1-6 0H3a1 1 0 0 1-1-1v-.586a1 1 0 0 1 .293-.707L3.56 8.44A1.5 1.5 0 0 0 4 7.38V5a4 4 0 0 1 4-4Zm0 12.5A1.5 1.5 0 0 1 6.5 12h3A1.5 1.5 0 0 1 8 13.5Z"
+                                                                      clip-rule="evenodd"/>
+                                                            </svg>
+                                                        {% endif %}
+                                                    </div>
+                                                </td>
+                                                {% if queue.category == 'restaurant' or queue.category == 'bank' %}
+                                                    <td class="px-6 py-4 whitespace-nowrap">{{ participant.get_service_type_display }}</td>
+                                                {% elif queue.category == 'hospital' %}
+                                                    <td class="px-6 py-4 whitespace-nowrap">{{ participant.get_medical_field_display }}</td>
+                                                {% endif %}
+                                                <td class="px-6 py-4 whitespace-nowrap">{{ participant.get_wait_time }}
+                                                    min
+                                                </td>
+                                                <td class="px-6 py-4 whitespace-nowrap">{{ participant.joined_at }}</td>
+                                            </tr>
+                                        {% endfor %}
+                                        </tbody>
+                                    </table>
+
+                                </div>
+
+                                <input
+                                        type="radio"
+                                        name="my_tabs_1"
+                                        role="tab"
+                                        class="tab"
+                                        aria-label="Serving"
+                                        id="tab2"
+                                />
+                                <div role="tabpanel" class="tab-content">
+                                    <table class="min-w-full bg-base-100 divide-y divide-gray-200">
+                                        <thead>
+                                        <tr>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                Name
+                                            </th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                Waited
+                                            </th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                Service Duration
+                                            </th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                Served
+                                            </th>
+                                            {% if queue.category != 'general' %}
+                                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                    {{ resource_name }}
+                                                </th>
+                                            {% endif %}
+
+                                        </tr>
+                                        </thead>
+                                        <tbody id="serving-section" class="bg-base-100 divide-y divide-gray-200">
+                                        {% for participant in serving_list %}
+                                            <tr class="hover:bg-gray-100 cursor-pointer"
+                                                onclick="showServingDetails(
+                                                        '{{ participant.id }}',
+                                                        '{{ participant.name }}',
+                                                        '{{ participant.position }}',
+                                                        '{{ participant.get_service_duration }}',
+                                                        '{{ participant.get_service_type_display|default:"" }}',
+                                                        '{{ participant.get_medical_field_display|default:"" }}',
+                                                        '{{ participant.resource.name|default:"-" }}',
+                                                        '{{ queue.category }}'
+                                                        )"
+                                            >
+                                                <td class="px-6 py-4 whitespace-nowrap font-semibold">
+                                                    {{ participant.name }}
+                                                </td>
+                                                <td class="px-6 py-4 whitespace-nowrap">{{ participant.waited }} min
+                                                </td>
+                                                <td class="px-6 py-4 whitespace-nowrap">{{ participant.get_service_duration }}
+                                                    min
+                                                </td>
+                                                <td class="px-6 py-4 whitespace-nowrap">{{ participant.service_started_at }}</td>
+                                                {% if queue.category != 'general' %}
+                                                    <td class="px-6 py-4 whitespace-nowrap">{{ participant.resource.name| default:"-" }}</td>
+                                                {% endif %}
+                                                <td class="px-6 py-4 whitespace-nowrap">
+
+                                                </td>
+                                            </tr>
+                                        {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+
+
+                            </div>
+
+
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right side (narrower section) with dynamic height -->
+                <div class="card bg-base-100 border-2 border-base-300 max-h-[40rem] max-w-96 ml-4 overflow-y-auto">
+                    <div class="card-body" id="participant-details">
+                        <div class="text-gray-500 mx-auto my-auto">Select participant to see details</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <dialog id="choose_resource_modal" class="modal">
+            <div class="modal-box w-11/12 max-w-xl">
+                <!-- Header -->
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="font-bold text-lg">Choose {{ resource_name }}</h3>
+                    <form method="dialog">
+                        <button class="btn btn-sm btn-circle">✕</button>
+                    </form>
+                </div>
+
+                <!-- Hidden input to store participant ID -->
+                <input type="hidden" id="participantId" value="">
+
+                <!-- Resources Section -->
+                <div id="resourceContainer" class="grid gap-4">
+                    {% if available_resource %}
+                        {% for resource in available_resource %}
+                            <div class="card bg-base-100 border hover:border-primary cursor-pointer"
+                                 onclick="selectResource('{{ resource.id }}')"
+                                 data-id="{{ resource.id }}" id="resource-{{ resource.id }}">
+                                <div class="card-body p-4">
+                                    <div class="flex justify-between items-center">
+                                        <div>
+                                            <div class="flex items-center gap-2">
+                                                <span class="font-semibold">{{ resource.name }}</span>
+                                            </div>
+                                            <div class="text-sm text-gray-500">
+                                                {% if queue.category == 'restaurant' %}
+                                                    Capacity: {{ resource.capacity }}
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                        <div class="badge badge-success badge-sm"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <span class="font-semibold">No {{ resource_name }}s available.</span>
+                    {% endif %}
+                </div>
+                <div class="modal-action">
+                    <button type="button" class="btn" onclick="serveParticipantNoResource()">Serve without assigning
+                    </button>
+                    <button type="button" class="btn" onclick="autoAssignResource()">Auto assign</button>
+                    <button class="btn btn-primary" onclick="serveSelectedParticipant()">Serve</button>
+                </div>
+            </div>
+        </dialog>
+
+        <input type="checkbox" id="notify_modal" class="modal-toggle"/>
+        <div class="modal">
+            <div class="modal-box relative  p-10">
+                <label for="notify_modal" class="btn btn-sm btn-square btn-ghost absolute right-2 top-2">✕</label>
+
+                <div class="flex items-center gap-2 my-1">
+                    <h2 class="font-semibold text-2xl">Notify Participant</h2>
+                </div>
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text">Message (Optional)</span>
+                    </label>
+                    <textarea id="message" class="textarea textarea-bordered w-full h-24"
+                              placeholder="Type your message here..."></textarea>
+                </div>
+                <div class="modal-action">
+                    <button class="btn btn-primary no-animation" onclick="sendNotification()">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="size-4">
+                            <path d="M3.6 1.7A.75.75 0 1 0 2.4.799a6.978 6.978 0 0 0-1.123 2.247.75.75 0 1 0 1.44.418c.187-.644.489-1.24.883-1.764ZM13.6.799a.75.75 0 1 0-1.2.9 5.48 5.48 0 0 1 .883 1.765.75.75 0 1 0 1.44-.418A6.978 6.978 0 0 0 13.6.799Z"/>
+                            <path fill-rule="evenodd"
+                                  d="M8 1a4 4 0 0 1 4 4v2.379c0 .398.158.779.44 1.06l1.267 1.268a1 1 0 0 1 .293.707V11a1 1 0 0 1-1 1h-2a3 3 0 1 1-6 0H3a1 1 0 0 1-1-1v-.586a1 1 0 0 1 .293-.707L3.56 8.44A1.5 1.5 0 0 0 4 7.38V5a4 4 0 0 1 4-4Zm0 12.5A1.5 1.5 0 0 1 6.5 12h3A1.5 1.5 0 0 1 8 13.5Z"
+                                  clip-rule="evenodd"/>
+                        </svg>
+                        Notify
+                    </button>
+                </div>
+            </div>
+        </div>
+
+
+        <input type="checkbox" id="noShowModal" class="modal-toggle"/>
+        <div class="modal">
+            <div class="modal-box">
+                <h3 class="font-bold text-lg">Confirm No Show</h3>
+                <p class="py-4">This action cannot be undone. Are you sure you want to mark this participant as No
+                    Show?</p>
+                <div class="modal-action">
+                    <button class="btn btn-error text-white" id="confirmNoShowButton" onclick="confirmNoShow()">Yes,
+                        Mark as No Show
+                    </button>
+                    <label for="noShowModal" class="btn">Cancel</label>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <input type="checkbox" id="completeModal" class="modal-toggle"/>
+    <div class="modal">
+        <div class="modal-box">
+            <h3 class="font-bold text-lg">Confirm Complete Participant</h3>
+            <p class="py-4">This action cannot be undone. Are you sure you want to mark this participant as
+                Complete?</p>
+            <div class="modal-action">
+                <button class="btn btn-success text-white" id="confirmCompleteButton" onclick="confirmComplete()">Yes,
+                    Mark as Complete
+                </button>
+                <label for="completeModal" class="btn">Cancel</label>
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+        window.onload = function () {
+            const urlParams = new URLSearchParams(window.location.search);
+            const tabId = urlParams.get('tab');
+
+            const allTabs = document.querySelectorAll('input[type="radio"][name="my_tabs_1"]');
+            allTabs.forEach(tab => tab.checked = false);
+
+            if (tabId) {
+                const selectedTab = document.getElementById('tab' + tabId);
+                if (selectedTab) {
+                    selectedTab.checked = true;
+                }
+            } else {
+                document.getElementById('tab1').checked = true;
+            }
+        };
+
+        function showParticipantDetails(participantId, position, name, waitTime, serviceType, medicalField, category) {
+            let specialField = "";
+            if (category === "restaurant" || category === "bank") {
+                specialField = serviceType;
+            } else if (category === "hospital") {
+                specialField = medicalField;
+            }
+
+            const detailsDiv = document.getElementById('participant-details');
+            detailsDiv.innerHTML = `
+
+            {% if queue.category != 'general' %}
+            <div class="text-gray-500 mx-auto">Current Ticket for</div>
+            <div class="font-semibold mx-auto">${specialField}</div>
+            <div class="divider"></div>
+            {% endif %}
+
+            <div class="text-gray-500 mx-auto">${name}</div>
+            <div class="text-5xl font-bold mx-auto mb-5">${position}</div>
+
+            <div class="flex flex-col items-center mb-4">
+                <div class="text-gray-500">Waited for</div>
+                <div class="text-2xl font-bold">${waitTime} min</div>
+            </div>
+            <div class="divider"></div>
+
+            <div class="flex flex-col items-center gap-4">
+                <button class="btn btn-warning text-white" onclick="openNotifyModal(${participantId})">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="size-4">
+                      <path d="M3.6 1.7A.75.75 0 1 0 2.4.799a6.978 6.978 0 0 0-1.123 2.247.75.75 0 1 0 1.44.418c.187-.644.489-1.24.883-1.764ZM13.6.799a.75.75 0 1 0-1.2.9 5.48 5.48 0 0 1 .883 1.765.75.75 0 1 0 1.44-.418A6.978 6.978 0 0 0 13.6.799Z" />
+                      <path fill-rule="evenodd" d="M8 1a4 4 0 0 1 4 4v2.379c0 .398.158.779.44 1.06l1.267 1.268a1 1 0 0 1 .293.707V11a1 1 0 0 1-1 1h-2a3 3 0 1 1-6 0H3a1 1 0 0 1-1-1v-.586a1 1 0 0 1 .293-.707L3.56 8.44A1.5 1.5 0 0 0 4 7.38V5a4 4 0 0 1 4-4Zm0 12.5A1.5 1.5 0 0 1 6.5 12h3A1.5 1.5 0 0 1 8 13.5Z" clip-rule="evenodd" />
+                    </svg>
+                    Notify
+                </button>
+                <button class="btn btn-success text-white" onclick="openResourceModal(${participantId})">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="size-4">
+                      <path fill-rule="evenodd" d="M8 15A7 7 0 1 0 8 1a7 7 0 0 0 0 14Zm3.844-8.791a.75.75 0 0 0-1.188-.918l-3.7 4.79-1.649-1.833a.75.75 0 1 0-1.114 1.004l2.25 2.5a.75.75 0 0 0 1.15-.043l4.25-5.5Z" clip-rule="evenodd" />
+                    </svg>
+                    Serve</button>
+                <button class="btn btn-error text-white mb-3" onclick="openNoShowModal(${participantId})">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="size-4">
+                      <path fill-rule="evenodd" d="M8 15A7 7 0 1 0 8 1a7 7 0 0 0 0 14Zm2.78-4.22a.75.75 0 0 1-1.06 0L8 9.06l-1.72 1.72a.75.75 0 1 1-1.06-1.06L6.94 8 5.22 6.28a.75.75 0 0 1 1.06-1.06L8 6.94l1.72-1.72a.75.75 0 1 1 1.06 1.06L9.06 8l1.72 1.72a.75.75 0 0 1 0 1.06Z" clip-rule="evenodd" />
+                    </svg>
+                    No Show
+                </button>
+            </div>
+        `;
+        }
+
+        function showServingDetails(participantId, name, position, serviceDuration, serviceType, medicalField, resource, category) {
+            let specialField = "";
+            if (category === "restaurant" || category === "bank") {
+                specialField = serviceType;
+            } else if (category === "hospital") {
+                specialField = medicalField;
+            }
+
+            const detailsDiv = document.getElementById('participant-details');
+            detailsDiv.innerHTML = `
+            {% if queue.category != 'general' %}
+            <div class="text-gray-500 mx-auto">Current Ticket for</div>
+            <div class="font-semibold mx-auto">${specialField}</div>
+            <div class="divider"></div>
+            {% endif %}
+
+            <div class="text-gray-500 mx-auto">${name}</div>
+            <div class="text-5xl font-bold mx-auto mb-5">${position}</div>
+
+            <div class="flex flex-col items-center mb-4">
+                {% if queue.category != 'general' %}
+                <div class="text-gray-500">Resource Assigned</div>
+                <div class="text-2xl font-bold mb-5">${resource}</div>
+                {% endif %}
+                <div class="text-gray-500">Served for</div>
+                <div class="text-2xl font-bold">${serviceDuration} min</div>
+            </div>
+            <div class="divider"></div>
+
+            <div class="flex flex-col items-center gap-4">
+
+                <button class="btn btn-success text-white" onclick="openCompleteModal(${participantId})">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="size-4">
+                      <path fill-rule="evenodd" d="M8 15A7 7 0 1 0 8 1a7 7 0 0 0 0 14Zm3.844-8.791a.75.75 0 0 0-1.188-.918l-3.7 4.79-1.649-1.833a.75.75 0 1 0-1.114 1.004l2.25 2.5a.75.75 0 0 0 1.15-.043l4.25-5.5Z" clip-rule="evenodd" />
+                    </svg>
+                    Complete</button>
+
+            </div>
+        `;
+        }
+
+        let selectedResourceId = null;
+
+        function openResourceModal(participantId) {
+            document.getElementById('participantId').value = participantId;
+            document.getElementById('choose_resource_modal').showModal();
+        }
+
+        function selectResource(resourceId) {
+            if (selectedResourceId) {
+                const prevSelected = document.getElementById(`resource-${selectedResourceId}`);
+                if (prevSelected) {
+                    prevSelected.classList.remove('border-primary');
+                }
+            }
+
+            const selectedCard = document.getElementById(`resource-${resourceId}`);
+            if (selectedCard) {
+                selectedCard.classList.add('border-primary');
+                selectedResourceId = resourceId;
+            }
+        }
+
+        function clearSelection() {
+            if (selectedResourceId) {
+                const selectedCard = document.getElementById(`resource-${selectedResourceId}`);
+                if (selectedCard) {
+                    selectedCard.classList.remove('border-primary');
+                }
+                selectedResourceId = null;
+            }
+        }
+
+        function autoAssignResource() {
+            clearSelection();
+            const participantId = document.getElementById('participantId').value;
+
+            fetch(`/manager/serve/${participantId}/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                }
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Auto-assigned a resource successfully!');
+                        location.reload();
+                    } else {
+                        alert(data.error || 'Error auto-assigning resource.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Unexpected error occurred.');
+                });
+        }
+
+        function serveSelectedParticipant() {
+            const participantId = document.getElementById('participantId').value;
+
+            if (!selectedResourceId) {
+                alert("No resource selected. Please auto-assign or select a resource first.");
+                return;
+            }
+
+            fetch(`/manager/serve/${participantId}/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: JSON.stringify({resource_id: selectedResourceId})
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Participant served successfully!');
+                        location.reload();
+                    } else {
+                        alert(data.error || 'Error serving participant.');
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+        }
+
+        function serveParticipantNoResource() {
+            const participantId = document.getElementById('participantId').value;
+
+            fetch(`/manager/serve_no_resource/${participantId}/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: JSON.stringify({resource_id: selectedResourceId})
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Participant served successfully!');
+                        location.reload();
+                    } else {
+                        alert(data.error || 'Error serving participant.');
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+        }
+
+        function createNotesModal(participant) {
+            const modalId = `notes-modal-${participant.id}`;
+            const notesHTML = participant.notes
+                ? `
+                <button class="btn btn-sm no-animation" onclick="document.getElementById('${modalId}').showModal()">
+                    View Note
+                </button>
+
+                <dialog id="${modalId}" class="modal">
+                    <div class="modal-box">
+                        <form method="dialog">
+                            <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
+                        </form>
+                        <h3 class="font-bold text-lg mb-4">${participant.name}'s note</h3>
+                        <div class="bg-base-200 p-4 rounded-lg min-h-[200px] shadow-inner">
+                            <p class="whitespace-pre-wrap">${participant.notes}</p>
+                        </div>
+                        <div class="modal-action">
+                            <form method="dialog">
+                                <button class="btn">Close</button>
+                            </form>
+                        </div>
+                    </div>
+                    <form method="dialog" class="modal-backdrop">
+                        <button>close</button>
+                    </form>
+                </dialog>`
+                : '-';
+
+            return notesHTML;
+        }
+
+
+        function participantSearch() {
+            const searchValue = document.getElementById('searchInput').value.toLowerCase();
+
+            const rows = document.querySelectorAll('#participantTable tbody tr');
+
+            rows.forEach(row => {
+                const name = row.querySelector('td:nth-child(2)').textContent.toLowerCase();
+
+                if (name.includes(searchValue)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        }
+
+        let currentParticipantId = null;
+
+        function openCompleteModal(participantId) {
+            currentParticipantId = participantId;
+            document.getElementById('completeModal').checked = true;
+        }
+
+        function confirmComplete() {
+            if (currentParticipantId === null) {
+                alert("No participant selected.");
+                return;
+            }
+            fetch(`/manager/complete/${currentParticipantId}/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+            })
+                .then(response => {
+                    if (response.ok) {
+                        document.getElementById('completeModal').checked = false;
+                        window.location.href = window.location.pathname + '?tab=2';
+                    } else {
+                        alert("There was an error marking the participant as complete.");
+                    }
+                })
+                .catch(error => {
+                    console.error("Error completing participant:", error);
+                    alert("There was an error. Please try again.");
+                });
+        }
+
+
+        let participantIdToMark = null;
+
+        function openNoShowModal(participantId) {
+            participantIdToMark = participantId;
+            document.getElementById('noShowModal').checked = true;
+        }
+
+        function confirmNoShow() {
+            if (participantIdToMark !== null) {
+                fetch(`/manager/mark_no_show/${participantIdToMark}/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    },
+                })
+                    .then(response => {
+                        if (response.ok) {
+                            window.location.href = window.location.pathname + '?tab=1';
+                        } else {
+                            alert("There was an error marking the participant as No Show.");
+                        }
+                    })
+                    .catch(error => {
+                        console.error("Error marking participant as No Show:", error);
+                        alert("There was an error. Please try again.");
+                    });
+            }
+        }
+
+        function openNotifyModal(participantId) {
+            document.getElementById("notify_modal").checked = true;
+            window.selectedParticipantId = participantId;
+        }
+
+        function sendNotification() {
+            const message = document.getElementById("message").value;
+            const participantId = window.selectedParticipantId;
+
+            if (!participantId) {
+                alert("Please select a participant to notify.");
+                return;
+            }
+
+            fetch(`/manager/notify/${participantId}/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}',
+                },
+                body: JSON.stringify({message: message})
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        alert('Notification sent successfully!');
+                        document.getElementById("notify_modal").checked = false;
+                        if (data.audio_url) {
+                            const audio = new Audio(data.audio_url);
+                            audio.play();
+                        }
+
+
+                    } else {
+                        alert('There was an error sending the notification');
+                    }
+                });
+
+        }
+
+
+    </script>
+    </body>
+
+
 {% endblock %}

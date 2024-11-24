@@ -1,6 +1,5 @@
 from django.test import TestCase
-from manager.utils.category_handler import (CategoryHandlerFactory, GeneralQueueHandler, RestaurantQueueHandler,
-                                            BankQueueHandler, HospitalQueueHandler)
+from manager.utils.category_handler import *
 
 
 class CategoryHandlerFactoryTest(TestCase):
