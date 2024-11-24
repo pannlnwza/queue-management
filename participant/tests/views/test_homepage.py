@@ -1,8 +1,10 @@
-from django.test import TestCase, RequestFactory
+from django.test import TestCase, RequestFactory, Client
 from django.urls import reverse
 from unittest.mock import patch, MagicMock
 from participant.views import HomePageView
 from manager.models import Queue
+from django.contrib.auth.models import User
+from participant.models import Notification, Participant
 
 
 class TestHomePageView(TestCase):
@@ -66,3 +68,73 @@ class TestHomePageView(TestCase):
         # Verify context
         self.assertIn('error', response.context_data)
         self.assertEqual(response.context_data['error'], "Invalid latitude or longitude provided.")
+
+
+
+
+class MarkNotificationAsReadTests(TestCase):
+    def setUp(self):
+        self.client = Client()
+
+        # Create test user and login
+        self.user = User.objects.create_user(username='testuser', password='password123')
+        self.client.login(username='testuser', password='password123')
+
+        # Create test queue and participant
+        self.queue = Queue.objects.create(
+            name="Test general Queue",
+            category="general",
+            created_by=self.user,
+            estimated_wait_time_per_turn=5,
+            average_service_duration=10,
+            is_closed=False,
+            status="normal",
+            latitude=55.7128,
+            longitude=-77.0060,
+        )
+        self.participant = Participant.objects.create(
+            queue=self.queue,
+            name="John Doe",
+            position=1,
+            code="12345"
+        )
+
+        # Create a notification for the participant
+        self.notification = Notification.objects.create(
+            queue=self.queue,
+            participant=self.participant,
+            message="Test notification",
+            is_read=False
+        )
+
+        # URL for marking notification as read
+        self.mark_notification_url = reverse('participant:mark_notification_as_read', kwargs={'notification_id': self.notification.id})
+
+    def test_mark_notification_as_read_success(self):
+        """Test marking a notification as read successfully."""
+        response = self.client.post(self.mark_notification_url)
+
+        # Assert response status and content
+        self.assertEqual(response.status_code, 200)
+        self.assertJSONEqual(response.content, {"status": "success"})
+
+        # Verify the notification is marked as read
+        self.notification.refresh_from_db()
+        self.assertTrue(self.notification.is_read)
+
+    def test_mark_notification_as_read_not_found(self):
+        """Test marking a non-existent notification as read."""
+        invalid_url = reverse('participant:mark_notification_as_read', kwargs={'notification_id': 9999})
+        response = self.client.post(invalid_url)
+
+        # Assert response status and content
+        self.assertEqual(response.status_code, 404)
+        self.assertJSONEqual(response.content, {"status": "error", "message": "Notification not found"})
+
+    def test_mark_notification_as_read_invalid_method(self):
+        """Test accessing the endpoint with an invalid method."""
+        response = self.client.get(self.mark_notification_url)
+
+        # Assert response status and content
+        self.assertEqual(response.status_code, 400)
+        self.assertJSONEqual(response.content, {"status": "error", "message": "Invalid request"})
