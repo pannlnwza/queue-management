@@ -6,10 +6,10 @@
 {% block content %}
 <div class="bg-base-100 py-12">
   <div class="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8">
-    <h1 class="text-4xl font-bold text-left mb-8 ml-6 text-primary">Browse Queues</h1>
+    <h1 class="text-4xl font-bold text-left mb-8 text-gray-800 ml-10">Browse Queues</h1>
 
-    <div class="flex flex-col lg:flex-row gap-6">
-      <a href="{% url 'participant:restaurant_queues' %}" class="card bg-white shadow-lg border border-gray-200 hover:shadow-xl transition-shadow duration-300 w-full lg:w-2/4">
+    <div class="flex flex-col lg:flex-row gap-9">
+      <a href="{% url 'participant:restaurant_queues' %}" class="card bg-white shadow-lg border border-gray-200 hover:shadow-2xl hover:scale-105 transition-transform duration-300 w-full lg:w-1/4">
         <div class="card-body">
           <h2 class="text-xl font-bold mb-4 text-gray-800">Restaurant Queues</h2>
           <img src="{% static 'participant/images/restaurant.jpg' %}" alt="Restaurant Queues" class="w-full rounded-md mb-4">
@@ -17,7 +17,7 @@
         </div>
       </a>
 
-      <a href="{% url 'participant:general_queues' %}" class="card bg-white shadow-lg border border-gray-200 hover:shadow-xl transition-shadow duration-300 w-full lg:w-2/4">
+      <a href="{% url 'participant:general_queues' %}" class="card bg-white shadow-lg border border-gray-200 hover:shadow-2xl hover:scale-105 transition-transform duration-300 w-full lg:w-1/4">
         <div class="card-body">
           <h2 class="text-xl font-bold mb-4 text-gray-800">General Queues</h2>
           <img src="{% static 'participant/images/general.jpg' %}" alt="General Queues" class="w-full rounded-md mb-4">
@@ -25,7 +25,7 @@
         </div>
       </a>
 
-      <a href="{% url 'participant:hospital_queues' %}" class="card bg-white shadow-lg border border-gray-200 hover:shadow-xl transition-shadow duration-300 w-full lg:w-2/4">
+      <a href="{% url 'participant:hospital_queues' %}" class="card bg-white shadow-lg border border-gray-200 hover:shadow-2xl hover:scale-105 transition-transform duration-300 w-full lg:w-1/4">
         <div class="card-body">
           <h2 class="text-xl font-bold mb-4 text-gray-800">Hospital Queues</h2>
           <img src="{% static 'participant/images/hospital.jpg' %}" alt="Hospital Queues" class="w-full rounded-md mb-4">
@@ -33,7 +33,7 @@
         </div>
       </a>
 
-      <a href="{% url 'participant:bank_queues' %}" class="card bg-white shadow-lg border border-gray-200 hover:shadow-xl transition-shadow duration-300 w-full lg:w-2/4">
+      <a href="{% url 'participant:bank_queues' %}" class="card bg-white shadow-lg border border-gray-200 hover:shadow-2xl hover:scale-105 transition-transform duration-300 w-full lg:w-1/4">
         <div class="card-body">
           <h2 class="text-xl font-bold mb-4 text-gray-800">Bank Queues</h2>
           <img src="{% static 'participant/images/bank.jpg' %}" alt="Bank Queues" class="w-full rounded-md mb-4">
@@ -42,6 +42,5 @@
       </a>
     </div>
   </div>
-
 </div>
 {% endblock %}
