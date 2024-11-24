@@ -95,33 +95,37 @@
                         {% endif %}
                     {% endfor %}
                 {% else %}
-                    <div class="text-center py-8 text-base-content/70 col-span-2">
+                    <div id="noQueuesMessage" class="text-center py-8 text-base-content/70 col-span-2">
                         No queues available.
                     </div>
                 {% endif %}
+                <div id="noResultsMessage" class="text-center py-8 text-base-content/70 col-span-2 hidden">
+                    No queues found matching your search and filter criteria.
+                </div>
             </div>
         </div>
     </div>
 </div>
 
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', function () {
         const searchInput = document.getElementById('searchInput');
         const queueItems = document.querySelectorAll('.queue-item');
         const statusFilter = document.getElementById('statusFilter');
 
-        searchInput.addEventListener('input', function(e) {
-            const searchTerm = e.target.value.toLowerCase();
-            filterQueues(searchTerm, statusFilter.value);
-        });
+        const noQueuesMessage = document.getElementById('noQueuesMessage');
+        const noResultsMessage = document.getElementById('noResultsMessage');
 
-        statusFilter.addEventListener('change', function(e) {
-            const status = e.target.value.toLowerCase();
-            filterQueues(searchInput.value, status);
-        });
+        const hasQueues = queueItems.length > 0;
 
         function filterQueues(searchTerm, status) {
             let hasVisibleQueues = false;
+
+            if (!hasQueues) {
+                noQueuesMessage?.classList.remove('hidden');
+                noResultsMessage.classList.add('hidden');
+                return;
+            }
 
             queueItems.forEach(item => {
                 const queueName = item.dataset.queueName;
@@ -138,18 +142,29 @@
                 }
             });
 
-            let noResultsMsg = document.getElementById('noResultsMessage');
             if (!hasVisibleQueues) {
-                if (!noResultsMsg) {
-                    noResultsMsg = document.createElement('div');
-                    noResultsMsg.id = 'noResultsMessage';
-                    noResultsMsg.className = 'text-center py-8 text-base-content/70 col-span-2';
-                    noResultsMsg.textContent = 'No queues found matching your search and filter criteria.';
-                    document.getElementById('queueList').appendChild(noResultsMsg);
-                }
-            } else if (noResultsMsg) {
-                noResultsMsg.remove();
+                noResultsMessage.classList.remove('hidden');
+            } else {
+                noResultsMessage.classList.add('hidden');
             }
+
+            noQueuesMessage?.classList.add('hidden');
+        }
+
+        searchInput.addEventListener('input', function (e) {
+            const searchTerm = e.target.value.toLowerCase();
+            filterQueues(searchTerm, statusFilter.value);
+        });
+
+        statusFilter.addEventListener('change', function (e) {
+            const status = e.target.value.toLowerCase();
+            filterQueues(searchInput.value.toLowerCase(), status);
+        });
+
+        if (!hasQueues) {
+            noQueuesMessage?.classList.remove('hidden');
+        } else {
+            noQueuesMessage?.classList.add('hidden');
         }
     });
 </script>
