@@ -4,7 +4,7 @@
 {% block title %}<title>Queue Management</title>{% endblock %}
 
 {% block content %}
-<div class="min-h-screen bg-base-100 py-12">
+<div class="min-h-screen bg-base-100 py-6">
   <div class="max-w-7xl mx-auto px-4">
 
     <div class="hero rounded-box mb-8 p-4">
@@ -17,7 +17,7 @@
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-      <a href="{% url 'participant:restaurant_queues' %}" class="card bg-base-100 shadow-xl hover:shadow-xl transition-all duration-300 hover:scale-105">
+      <a href="{% url 'participant:restaurant_queues' %}" class="card bg-base-100 shadow-xl hover:shadow-xl transition-all duration-300 hover:scale-110 active:translate-y-4 focus:outline-none focus:border-none !border-none">
         <figure class="px-6 pt-6">
           <img src="{% static 'participant/images/restaurant.jpg' %}" alt="Restaurant" class="rounded-xl h-49 w-full object-cover" />
         </figure>
@@ -27,7 +27,7 @@
         </div>
       </a>
 
-      <a href="{% url 'participant:general_queues' %}" class="card bg-base-100 shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105">
+      <a href="{% url 'participant:general_queues' %}" class="card bg-base-100 shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-110 active:transform active:translate-y-4 active:border-0 focus:outline-none focus:border-none !border-none">
         <figure class="px-6 pt-6">
           <img src="{% static 'participant/images/general.jpg' %}" alt="General" class="rounded-xl h-49 w-full object-cover" />
         </figure>
@@ -37,7 +37,7 @@
         </div>
       </a>
 
-      <a href="{% url 'participant:hospital_queues' %}" class="card bg-base-100 shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105">
+      <a href="{% url 'participant:hospital_queues' %}" class="card bg-base-100 shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-110 active:transform active:translate-y-4 active:border-0 focus:outline-none focus:border-none !border-none">
         <figure class="px-6 pt-6">
           <img src="{% static 'participant/images/hospital.jpg' %}" alt="Hospital" class="rounded-xl h-49 w-full object-cover" />
         </figure>
@@ -47,7 +47,7 @@
         </div>
       </a>
 
-      <a href="{% url 'participant:bank_queues' %}" class="card bg-base-100 shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105">
+      <a href="{% url 'participant:bank_queues' %}" class="card bg-base-100 shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-110 active:transform active:translate-y-4 active:border-0 focus:outline-none focus:border-none !border-none">
         <figure class="px-6 pt-6">
           <img src="{% static 'participant/images/bank.jpg' %}" alt="Bank" class="rounded-xl h-49 w-full object-cover" />
         </figure>
