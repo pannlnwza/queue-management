@@ -1,36 +1,86 @@
 {% extends 'base.html' %}
 {% block content %}
-<div class="flex justify-center items-center">
-  <ul class="steps steps-vertical lg:steps-horizontal steps-center">
-    <li class="step step-primary p-2">Queue Setup</li>
-    <li class="step step-primary p-2">Specify Hours & Location</li>
-    <li class="step step-primary p-2">Add Resources</li>
-  </ul>
-</div>
+<div class="container mx-auto px-4 py-8">
+    <!-- Stepper -->
+    <div class="mb-12 flex justify-center">
+        <ul class="steps steps-horizontal w-full max-w-2xl">
+            <li class="step step-primary">Queue Setup</li>
+            <li class="step step-primary">Hours & Location</li>
+            <li class="step step-primary">Add Resources</li>
+        </ul>
+    </div>
 
+    <!-- Main Card -->
+    <div class="card bg-base-100 border-2 border-base-200 max-w-4xl mx-auto">
+        <div class="card-body">
+            <form method="post">
+                {% csrf_token %}
 
-<div class="card border-2 border-base-200 max-w-4xl w-full sm:w-3/4 md:w-1/2 mx-auto p-6 mt-4">
-    <form method="post">
-        {% csrf_token %}
+                {% if form.category == 'general' %}
+                    <div class="flex flex-col items-center justify-center py-12">
+                        <div class="rounded-full bg-success/20 p-4 mb-6">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-success" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                            </svg>
+                        </div>
+                        <h2 class="text-2xl font-bold text-center mb-4">You're All Set!</h2>
+                        <p class="text-lg text-center text-base-content/70">
+                            General queues don't need a resource.
+                        </p>
+                    </div>
+                {% else %}
+                    <div class="space-y-6">
+                        <div class="border-b border-base-200 pb-4">
+                            <h2 class="text-2xl font-bold">Add {{ form.get_resource_name }}</h2>
+                            <p class="text-base-content/70 mt-2">Configure your resource details below</p>
+                        </div>
 
-        {% if form.category == 'general' %}
-            <div class="text-center text-2xl p-8">
-              <p>General queues don't need a resource. You're all set!</p>
-            </div>
+                        {% for field in form %}
+                            {% if field.name != 'csrfmiddlewaretoken' %}
+                                <div class="form-control w-full">
+                                    <label class="label">
+                                        <span class="label-text font-medium">{{ field.label }}{% if field.field.required %}*{% endif %}</span>
+                                        {% if field.help_text %}
+                                            <span class="label-text-alt text-base-content/60">{{ field.help_text }}</span>
+                                        {% endif %}
+                                    </label>
+                                    <div class="{% if field.errors %}has-error{% endif %}">
+                                        {% if field.field.widget.input_type == 'checkbox' %}
+                                            <label class="cursor-pointer label justify-start gap-4">
+                                                {{ field }}
+                                                <span class="label-text">{{ field.label }}</span>
+                                            </label>
+                                        {% else %}
+                                            {{ field }}
+                                        {% endif %}
+                                    </div>
+                                    {% if field.errors %}
+                                        <div class="text-error text-sm mt-1">{{ field.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                {% endif %}
 
-
-        {% else %}
-            <div class="text-left text-2xl m-4"><p>Add a {{ form.get_resource_name }}</p></div>
-
-            {{ form.as_p }}
-        {% endif %}
-
-        <div class="flex justify-between items-center">
-            <!-- Left-aligned button -->
-            <a href="{% url 'manager:create_queue_step' step="2" %}" class="btn btn-primary">Back</a>
-            <!-- Right-aligned button -->
-            <button type="submit" class="btn btn-primary">Create Queue</button>
+                <!-- Navigation Buttons -->
+                <div class="flex justify-between items-center mt-8 pt-4 border-t border-base-200">
+                    <a href="{% url 'manager:create_queue_step' step='2' %}" class="btn btn-outline gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clip-rule="evenodd" />
+                        </svg>
+                        Previous
+                    </a>
+                    <button type="submit" class="btn btn-primary gap-2">
+                        Create Queue
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
+                        </svg>
+                    </button>
+                </div>
+            </form>
         </div>
-    </form>
+    </div>
 </div>
+
 {% endblock %}
