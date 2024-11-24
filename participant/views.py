@@ -105,67 +105,6 @@ class BrowseQueueView(generic.ListView):
     template_name = "participant/browse_queue.html"
 
 
-class IndexView(generic.ListView):
-    """
-    Display the index page for the user's queues.
-    Lists the queues the authenticated user is participating in.
-
-    :param template_name: The name of the template to render.
-    :param context_object_name: The name of the context variable to hold the queue list.
-    """
-
-    template_name = "participant/index.html"
-    context_object_name = "queue_list"
-
-    def get_queryset(self):
-        """
-        Get the list of queues for the authenticated user.
-        :returns: A queryset of queues the user is participating in, or an empty queryset if not authenticated.
-        """
-        if self.request.user.is_authenticated:
-            return Queue.objects.filter(participant__user=self.request.user)
-        return Queue.objects.none()
-
-    def get_context_data(self, **kwargs):
-        """
-        Add additional context data to the template.
-
-        :param kwargs: Additional keyword arguments passed to the method.
-        :returns: The updated context dictionary with user's queue positions.
-        """
-        context = super().get_context_data(**kwargs)
-        if self.request.user.is_authenticated:
-            user_participants = Participant.objects.filter(
-                user=self.request.user)
-            queue_positions = {
-                participant.queue.id: participant.position
-                for participant in user_participants
-            }
-            estimated_wait_time = {
-                participant.queue.id: participant.calculate_estimated_wait_time()
-                for participant in user_participants
-            }
-            active_participants = {
-                participant.queue.id: participant.id
-                for participant in user_participants
-            }
-            expected_service_time = {
-                participant.queue.id: datetime.now()
-                                      + timedelta(
-                    minutes=participant.calculate_estimated_wait_time())
-                for participant in user_participants
-            }
-            notification = Notification.objects.filter(
-                participant__user=self.request.user
-            ).order_by("-created_at")
-            context["queue_positions"] = queue_positions
-            context["estimated_wait_time"] = estimated_wait_time
-            context["expected_service_time"] = expected_service_time
-            context["notification"] = notification
-            context["active_participants"] = active_participants
-        return context
-
-
 def welcome(request, queue_code):
     queue = get_object_or_404(Queue, code=queue_code)
     return render(request, 'participant/welcome.html', {'queue': queue})
@@ -201,7 +140,6 @@ class KioskView(generic.FormView):
         return redirect('participant:qrcode', participant_code=participant.code)
 
     def form_invalid(self, form):
-        print(form.errors)
         return super().form_invalid(form)
 
 

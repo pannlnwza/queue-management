@@ -33,8 +33,8 @@ class TestBankQueueHandler(TestCase):
             "phone": "1234567890",
             "note": "General inquiry",
             "queue": self.queue,
-            "participant_category": "regular",  # Customer category
-            "service_type": "deposit",  # Service type
+            "participant_category": "regular",
+            "service_type": "deposit",
         }
 
     def test_create_queue(self):
