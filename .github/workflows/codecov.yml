@@ -58,19 +58,15 @@ jobs:
       - name: Set environment variables
         env:
           DATABASE_URL: postgres://postgres:postgres@localhost:5432/test_db
-        run: echo "Database environment variables set."
+          SITE_DOMAIN: ${{ secrets.SITE_DOMAIN }}
+        run: echo "Database environment variables and SITE_DOMAIN set."
 
       - name: Run migrations
-        env:
-          DATABASE_URL: postgres://postgres:postgres@localhost:5432/test_db
         run: |
-          python manage.py makemigrations manager
-          python manage.py makemigrations participant
+          python manage.py makemigrations
           python manage.py migrate
 
       - name: Run tests and collect coverage
-        env:
-          DATABASE_URL: postgres://postgres:postgres@localhost:5432/test_db
         run: |
           coverage run --source='.' manage.py test
 
