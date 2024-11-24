@@ -48,6 +48,9 @@ jobs:
       - name: Copy environment file
         run: cp sample.env .env
 
+      - name: Write DATABASE_URL to .env
+        run: echo "DATABASE_URL=postgres://postgres:postgres@localhost:5432/test_db" >> .env
+
       - name: Wait for PostgreSQL to be ready
         run: |
           until pg_isready -h localhost -p 5432 -U postgres; do
@@ -57,9 +60,8 @@ jobs:
 
       - name: Set environment variables
         env:
-          DATABASE_URL: postgres://postgres:postgres@localhost:5432/test_db
           SITE_DOMAIN: ${{ secrets.SITE_DOMAIN }}
-        run: echo "Database environment variables and SITE_DOMAIN set."
+        run: echo "SITE_DOMAIN set."
 
       - name: Run migrations
         run: |
