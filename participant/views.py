@@ -19,7 +19,7 @@ from manager.utils.category_handler import CategoryHandlerFactory
 import time
 from django.http import StreamingHttpResponse
 import json
-
+from manager.utils.send_email import generate_qr_code
 # Create your views here.
 
 
@@ -290,27 +290,14 @@ class QRcodeView(generic.DetailView):
         )
 
         # Generate and save QR code
-        qr_code_binary = self.generate_qr_code(check_queue_url)
+        qr_code_binary = generate_qr_code(check_queue_url)
         qr_code_base64 = base64.b64encode(qr_code_binary).decode()
         context['qr_image'] = qr_code_base64
 
-        # Send email with QR code if participant has an email
         self.send_email_with_qr(participant, qr_code_base64, check_queue_url)
 
         return context
 
-    @staticmethod
-    def generate_qr_code(data):
-        """
-        Generate a QR code as binary data.
-        """
-        qr = qrcode.QRCode(version=1, box_size=10, border=5)
-        qr.add_data(data)
-        qr.make(fit=True)
-        img = qr.make_image(fill='black', back_color='white')
-        buffer = BytesIO()
-        img.save(buffer, format='PNG')
-        return buffer.getvalue()
 
     def send_email_with_qr(self, participant, qr_code_base64, check_queue_url):
         """
