@@ -24,15 +24,19 @@
                 {{ form.description }}
             </div>
         </div>
-        <div>
-            <label class="text-m text-neutral">Select Category*</label>
-            <div>
-                {{ form.category }}
+        <div class="flex flex-wrap items-center gap-4">
+            <!-- Category Selection -->
+            <div class="flex items-center">
+                <label class="text-m text-neutral mr-2">Select Category*</label>
+                <div>
+                    {{ form.category }}
+                </div>
             </div>
-        </div>
-        <div class="form-control w-full max-w-xs mt-4">
-            <label class="text-m text-neutral">Upload Your Logo (Optional)</label>
-            <input type="file" name="logo" class="file-input file-input-bordered w-full max-w-xs" accept="image/*" />
+            <!-- Logo Upload -->
+            <div class="flex items-center">
+                <label class="text-m text-neutral">Upload Your Logo (Optional)</label>
+                <input type="file" name="logo" class="file-input file-input-bordered w-full max-w-xs" accept="image/*" />
+            </div>
         </div>
         <div class="flex justify-end mt-4">
             <button type="submit" class="btn btn-primary">Next</button>
