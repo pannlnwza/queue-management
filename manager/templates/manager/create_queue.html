@@ -15,11 +15,11 @@
         <!-- Form Container -->
         <div class="card bg-base-100 border-2 border-base-200 max-w-4xl mx-auto">
             <div class="card-body">
-                <form method="post" id="multiStepForm" enctype="multipart/form-data">
+                <form method="post" id="multiStepForm" enctype="multipart/form-data"
+                      action="{% url 'manager:create_queue' %}" novalidate>
                     {% csrf_token %}
 
                     <div class="step-form-content" id="stepFormContent">
-                        <!-- Step 1: Queue Details -->
                         <div id="step1" class="step-section {% if step != 1 %}hidden{% endif %}">
                             <h2 class="text-2xl font-bold">Queue Details</h2>
                             <p class="text-base-content/70 mt-2">Fill in the basic details of your queue.</p>
@@ -30,45 +30,31 @@
                                 <input type="text" name="name"
                                        class="input input-bordered w-full focus:input-primary"
                                        required>
-                                {% if form.name.errors %}
-                                    <div class="text-error text-sm mt-1">{{ form.name.errors.0 }}</div>
-                                {% endif %}
                             </div>
 
-                            <!-- Description Field -->
                             <div class="form-control w-full mb-2">
                                 <label class="label">
                                     <span class="label-text text-base font-medium">Description*</span>
                                 </label>
-                                <textarea name="{{ form.description.name }}"
+                                <textarea name="description"
                                           class="textarea textarea-bordered h-24 focus:textarea-primary"
-                                          required>{% if form.description.value %}
-                                    {{ form.description.value }}{% endif %}</textarea>
-                                {% if form.description.errors %}
-                                    <div class="text-error text-sm mt-1">{{ form.description.errors.0 }}</div>
-                                {% endif %}
+                                          required></textarea>
                             </div>
 
-                            <!-- Two Column Layout -->
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <!-- Category Field -->
                                 <div class="form-control w-full">
                                     <label class="label">
                                         <span class="label-text text-base font-medium">Select Category*</span>
                                     </label>
-                                    <select name="{{ form.category.name }}"
+                                    <select name="category" id="category"
                                             class="select select-bordered w-full focus:select-primary"
                                             required>
-                                        {% for value, label in form.category.field.choices %}
-                                            <option value="{{ value }}"
-                                                    {% if form.category.value == value|stringformat:"s" %}selected{% endif %}>
-                                                {{ label }}
-                                            </option>
+                                        <option></option>
+                                        {% for value, label in categories %}
+                                            <option value="{{ value }}">{{ label }}</option>
                                         {% endfor %}
                                     </select>
-                                    {% if form.category.errors %}
-                                        <div class="text-error text-sm mt-1">{{ form.category.errors.0 }}</div>
-                                    {% endif %}
                                 </div>
 
                                 <!-- Logo Upload Field -->
@@ -168,21 +154,23 @@
 
                         <!-- Step 3: Add Resource -->
                         <div id="step3" class="step-section {% if step != 3 %}hidden{% endif %}">
-                            <h2 class="text-2xl font-bold">Add Resource</h2>
-                            <p class="text-base-content/70 mt-2">Add resources related to the queue.</p>
-                            <div class="form-content">
-                                <label for="resource_name" class="block">Resource Name</label>
-                                <input type="text" id="resource_name" name="resource_name"
-                                       class="input input-bordered w-full" required>
+                            <div id="resource-section" class="form-content">
+                                <h2 id="resource-label" class="text-2xl font-bold"></h2>
+                                <p id="resource-message" class="text-base-content/70 mt-2 hidden">You're all set to
+                                    proceed!</p>
 
-                                <label for="resource_type" class="block mt-4">Resource Type</label>
-                                <select id="resource_type" name="resource_type" class="select select-bordered w-full"
-                                        required>
-                                    <option value="table">Table</option>
-                                    <option value="counter">Counter</option>
-                                    <option value="doctor">Doctor</option>
-                                    <option value="service">Service</option>
-                                </select>
+                                <div id="resource-fields">
+                                    <label id="resource-name-label" for="resource_name" class="block mt-4"></label>
+                                    <input type="text" id="resource_name" name="resource_name"
+                                           class="input input-bordered w-full">
+
+                                    <label id="dynamic-label" for="resource_detail" class="block mt-4"></label>
+                                    <input type="text" id="resource_detail" name="resource_detail"
+                                           class="input input-bordered w-full hidden">
+
+                                    <select id="resource_dropdown" name="resource_detail"
+                                            class="select select-bordered w-full hidden"></select>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -204,12 +192,14 @@
                             {% else %}
                                 Submit
                             {% endif %}
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20"
-                                 fill="currentColor">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor"
+                                 class="size-4">
                                 <path fill-rule="evenodd"
-                                      d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
+                                      d="M6.22 4.22a.75.75 0 0 1 1.06 0l3.25 3.25a.75.75 0 0 1 0 1.06l-3.25 3.25a.75.75 0 0 1-1.06-1.06L8.94 8 6.22 5.28a.75.75 0 0 1 0-1.06Z"
                                       clip-rule="evenodd"/>
                             </svg>
+
+
                         </button>
                     </div>
                 </form>
@@ -265,13 +255,119 @@
 
             if (currentStep === totalSteps) {
                 document.getElementById('nextBtn').textContent = "Submit";
+                nextBtn.onclick = () => {
+                    const form = document.getElementById('multiStepForm');
+                    if (form.checkValidity()) {
+                        form.requestSubmit();
+                    } else {
+                        changeStep(-2)
+                        form.reportValidity();
+                    }
+                };
             } else {
-                document.getElementById('nextBtn').textContent = "Next";
+                document.getElementById('nextBtn').textContent = "Next ";
+
+                document.getElementById('nextBtn').innerHTML += `
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="size-4">
+                    <path fill-rule="evenodd" d="M6.22 4.22a.75.75 0 0 1 1.06 0l3.25 3.25a.75.75 0 0 1 0 1.06l-3.25 3.25a.75.75 0 0 1-1.06-1.06L8.94 8 6.22 5.28a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd"/>
+                </svg>
+            `;
             }
         }
 
-        // Initialize the form display on page load
         showStep(currentStep);
+        document.addEventListener('DOMContentLoaded', () => {
+            const categorySelect = document.getElementById('category');
+            const resourceLabel = document.getElementById('resource-label');
+            const resourceMessage = document.getElementById('resource-message');
+            const resourceFields = document.getElementById('resource-fields');
+            const resourceNameLabel = document.getElementById('resource-name-label');
+            const dynamicLabel = document.getElementById('dynamic-label');
+            const resourceName = document.getElementById('resource_name');
+            const resourceDetailInput = document.getElementById('resource_detail');
+            const resourceDropdown = document.getElementById('resource_dropdown');
+
+            const resourceMapping = {
+                restaurant: {
+                    label: 'Table',
+                    showMessage: false,
+                    useDropdown: false,
+                    detailLabel: 'Table Capacity',
+                    detailPlaceholder: 'Enter number of seats',
+                },
+                bank: {
+                    label: 'Counter',
+                    showMessage: false,
+                    useDropdown: true, // Use dropdown for counters
+                    detailLabel: 'Select Service Type',
+                },
+                hospital: {
+                    label: 'Doctor',
+                    showMessage: false,
+                    useDropdown: true, // Use dropdown for doctors
+                    detailLabel: 'Select Doctor Specialty',
+                },
+                default: {
+                    label: 'Resource',
+                    showMessage: true,
+                    useDropdown: false,
+                    detailLabel: '',
+                },
+            };
+
+            const dynamicOptions = {
+                bank: JSON.parse('{{ service_type|escapejs }}'),
+                hospital: JSON.parse('{{ specialty|escapejs }}'),
+            };
+
+            categorySelect.addEventListener('change', () => {
+                const selectedCategory = categorySelect.value;
+                const mapping = resourceMapping[selectedCategory] || resourceMapping.default;
+
+                // Update resource label
+                resourceLabel.textContent = mapping.showMessage
+                    ? ''
+                    : `Add ${mapping.label} (Optional)`;
+
+                // Show or hide "You're all set" message
+                resourceMessage.classList.toggle('hidden', !mapping.showMessage);
+                resourceFields.classList.toggle('hidden', mapping.showMessage);
+
+                if (!mapping.showMessage) {
+                    // Update resource name label and input
+                    resourceNameLabel.textContent = `${mapping.label} Name`;
+                    resourceName.placeholder = `Enter ${mapping.label.toLowerCase()} name`;
+                    resourceName.classList.remove('hidden');
+
+                    if (mapping.useDropdown) {
+                        resourceDropdown.innerHTML = ''; // Clear existing options
+
+                        // Access the service type options from the dynamicOptions
+                        const options = dynamicOptions[selectedCategory] || [];
+
+                        // Dynamically create option elements
+                        options.forEach(option => {
+                            const opt = document.createElement('option');
+                            opt.value = option.value;
+                            opt.textContent = option.label; // Visible text
+                            resourceDropdown.appendChild(opt);
+                        });
+
+                        resourceDropdown.classList.remove('hidden'); // Show the dropdown
+                        resourceDetailInput.classList.add('hidden'); // Hide the input field
+                    } else {
+                        // Use detail input for restaurant or other cases
+                        resourceDetailInput.placeholder = mapping.detailPlaceholder;
+                        resourceDetailInput.classList.remove('hidden');
+                        resourceDropdown.classList.add('hidden');
+                    }
+
+                    dynamicLabel.textContent = mapping.detailLabel;
+                }
+            });
+        });
+
+
         const map = new ol.Map({
             target: 'map',
             layers: [
