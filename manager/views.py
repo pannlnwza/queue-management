@@ -17,6 +17,7 @@ from django.utils import timezone
 from django.views import generic, View
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from gtts.tts import gTTS
+import base64
 
 from manager.forms import OpeningHoursForm, ResourceForm
 from django.views.decorators.http import require_http_methods
@@ -300,16 +301,23 @@ def notify_participant(request, participant_id):
     Notification.objects.create(queue=queue, participant=participant, message=message)
     participant.is_notified = True
 
+    # Generate Text-to-Speech (TTS) notification if enabled
     audio_url = None
     if queue.tts_notifications_enabled:
         participant_notification_count = Notification.objects.filter(participant=participant).count()
-        if participant_notification_count == 1:
-            tts = gTTS(text=f"Attention Participant {participant.number}, your turn is now.", lang='en')
-            audio_dir = os.path.join(settings.MEDIA_ROOT, 'announcements')
-            os.makedirs(audio_dir, exist_ok=True)
-            audio_path = os.path.join(audio_dir, f'announcement_{participant.id}.mp3')
-            tts.save(audio_path)
-            audio_url = f"{settings.MEDIA_URL}announcements/announcement_{participant.id}.mp3"
+        if participant_notification_count == 1:  # Generate TTS only for the first notification
+            try:
+                tts = gTTS(text=f"Attention Participant {participant.number}, your turn is now.", lang='en')
+                audio_buffer = BytesIO()
+                tts.write_to_fp(audio_buffer)
+                audio_buffer.seek(0)
+
+                # Encode MP3 in base64
+                audio_base64 = base64.b64encode(audio_buffer.read()).decode('utf-8')
+                participant.announcement_audio = audio_base64
+            except Exception as e:
+                logger = logging.getLogger(__name__)
+                logger.error(f"Failed to generate TTS announcement for participant {participant.id}: {str(e)}")
 
     participant.save()
 
@@ -322,28 +330,30 @@ def notify_participant(request, participant_id):
 
     # Attempt to send the email
     email_error = None
-    try:
-        send_html_email(
-            subject="Your Queue Notification",
-            to_email=participant.email,
-            template_name="manager/emails/participant_notification.html",
-            context=email_context,
-        )
-    except Exception as e:
-        # Log the email sending error but do not interrupt the response
-        logger = logging.getLogger(__name__)
-        logger.error(f"Failed to send email to participant {participant.email}: {str(e)}")
-        email_error = f"Failed to send email to participant {participant.email}: {str(e)}"
+    if participant.email:
+        try:
+            send_html_email(
+                subject="Your Queue Notification",
+                to_email=participant.email,
+                template_name="manager/emails/participant_notification.html",
+                context=email_context,
+            )
+        except Exception as e:
+            # Log the email sending error but do not interrupt the response
+            logger = logging.getLogger(__name__)
+            logger.error(f"Failed to send email to participant {participant.email}: {str(e)}")
+            email_error = f"Failed to send email to participant {participant.email}: {str(e)}"
 
-    # Respond with success for audio and email status
+    # Prepare the JSON response
     response = {
         'status': 'success',
         'message': 'Notification sent successfully!',
-        'audio_url': audio_url,
+        'audio_base64': participant.announcement_audio,  # Return the base64 string in the response
     }
     if email_error:
         response['email_status'] = 'error'
         response['email_message'] = email_error
+
     return JsonResponse(response)
 
 @require_http_methods(["DELETE"])
@@ -987,6 +997,7 @@ def edit_queue(request, queue_id):
     queue = get_object_or_404(Queue, id=queue_id)
     handler = CategoryHandlerFactory.get_handler(queue.category)
     queue = handler.get_queue_object(queue_id)
+
     if request.method == 'POST':
         name = request.POST.get('name')
         description = request.POST.get('description')
@@ -998,30 +1009,39 @@ def edit_queue(request, queue_id):
         logo = request.FILES.get('logo', None)
         tts_enabled = request.POST.get('tts')
 
+        # Update basic queue fields
         queue.name = name
         queue.description = description
         queue.latitude = latitude
         queue.longitude = longitude
         queue.is_closed = False if status == 'on' else True
         queue.tts_notifications_enabled = True if tts_enabled == 'on' else False
+
         try:
+            # Parse open and close time
             if open_time:
                 queue.open_time = datetime.strptime(open_time, "%H:%M").time()
             if close_time:
-                queue.close_time = datetime.strptime(close_time,
-                                                     "%H:%M").time()
+                queue.close_time = datetime.strptime(close_time, "%H:%M").time()
         except ValueError as e:
-            print(f"Error while parsing time: {e}")
-            messages.error(request,
-                           'Invalid time format. Please use HH:MM format.')
+            logger.error(f"Error parsing time: {e}")
+            messages.error(request, 'Invalid time format. Please use HH:MM.')
             return redirect('manager:queue_settings', queue_id=queue_id)
-        queue.is_closed = False if status == 'on' else True
+
+        # Handle the logo update
         if logo:
-            queue.logo = logo
+            try:
+                logo_content = logo.read()
+                queue.logo = base64.b64decode(base64.b64encode(logo_content))
+            except Exception as e:
+                logger.error(f"Error processing logo file: {e}")
+                messages.error(request, 'An error occurred while processing the logo.')
+                return redirect('manager:queue_settings', queue_id=queue_id)
+
+        # Save the updated queue
         queue.save()
         messages.success(request, 'Queue settings updated successfully.')
-        return redirect('manager:queue_settings', queue_id)
-
+        return redirect('manager:queue_settings', queue_id=queue_id)
 
 def signup(request):
     """
