@@ -13,6 +13,21 @@ jobs:
     name: Run tests and collect coverage
     runs-on: ubuntu-latest
 
+    services:
+      postgres:
+        image: postgres:13
+        env:
+          POSTGRES_USER: user
+          POSTGRES_PASSWORD: password
+          POSTGRES_DB: test_db
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U user"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -22,7 +37,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.11' 
+          python-version: '3.11'
 
       - name: Install dependencies
         run: |
@@ -32,6 +47,10 @@ jobs:
       - name: Copy sample.env to .env
         run: |
           cp sample.env .env
+
+      - name: Update .env for PostgreSQL
+        run: |
+          echo "DATABASE_URL=postgres://user:password@localhost:5432/test_db" >> .env
 
       - name: Make migrations
         run: |
