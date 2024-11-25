@@ -4,60 +4,81 @@
 {% block title %}<title>Queue Management</title>{% endblock %}
 
 {% block content %}
-<div class="bg-base-100 py-12">
-  <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-    <h1 class="text-4xl font-bold text-center mb-8">Browse Queues</h1>
+<div class="min-h-screen bg-base-100 py-6">
+  <div class="max-w-7xl mx-auto px-4">
 
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-      <a href="{% url 'participant:restaurant_queues' %}" class="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300">
-        <div class="bg-gradient-to-r from-orange-400 to-red-400 p-6">
-          <h2 class="text-2xl font-bold text-white ">Restaurant Queues</h2>
+    <div class="hero rounded-box mb-8 p-4">
+      <div class="hero-content text-center">
+        <div>
+          <h1 class="text-5xl font-bold text-primary">Browse Queues</h1>
+          <p class="py-6 text-2xl text-base-content/80">Select a category below to view available queue efficiently</p>
         </div>
-        <div class="p-6">
-          <img src="{% static 'participant/images/restaurant.jpg' %}" alt="Restaurant Queues" class="w-full rounded-md mb-4">
-          <p class="text-gray-600 font-bold">Find available restaurant queues.</p>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <a href="{% url 'participant:restaurant_queues' %}" class="card bg-base-100 shadow-xl hover:shadow-xl transition-all duration-300 hover:scale-105 active:translate-y-4 focus:outline-none focus:border-none !border-none">
+        <figure class="px-6 pt-6">
+          <img src="{% static 'participant/images/restaurant.jpg' %}" alt="Restaurant" class="rounded-xl h-49 w-full object-cover" />
+        </figure>
+        <div class="card-body">
+          <h2 class="card-title text-gray-800 text-[1.375rem]">Restaurant Queues</h2>
+          <p class="text-base-content/70">Find available restaurant queues</p>
         </div>
       </a>
 
-      <a href="{% url 'participant:general_queues' %}" class="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300">
-        <div class="bg-gradient-to-r from-red-400 to-pink-400 p-6">
-          <h2 class="text-2xl font-bold text-white">General Queues</h2>
-        </div>
-        <div class="p-6">
-          <img src="{% static 'participant/images/general.jpg' %}" alt="General Queues" class="w-full rounded-md mb-4">
-          <p class="text-gray-600 font-bold">Find available general queues.</p>
-        </div>
-      </a>
-
-      <a href="{% url 'participant:hospital_queues' %}" class="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300">
-        <div class="bg-gradient-to-r from-pink-400 to-purple-400 p-6">
-          <h2 class="text-2xl font-bold text-white">Hospital Queues</h2>
-        </div>
-        <div class="p-6">
-          <img src="{% static 'participant/images/hospital.jpg' %}" alt="Hospital Queues" class="w-full rounded-md mb-4">
-          <p class="text-gray-600 font-bold">Find available hospital queues.</p>
+      <a href="{% url 'participant:general_queues' %}" class="card bg-base-100 shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 active:transform active:translate-y-4 active:border-0 focus:outline-none focus:border-none !border-none">
+        <figure class="px-6 pt-6">
+          <img src="{% static 'participant/images/general.jpg' %}" alt="General" class="rounded-xl h-49 w-full object-cover" />
+        </figure>
+        <div class="card-body">
+          <h2 class="card-title text-gray-800 text-[1.375rem]">General Queues</h2>
+          <p class="text-base-content/70">Find available general queues</p>
         </div>
       </a>
 
-      <a href="{% url 'participant:bank_queues' %}" class="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300">
-        <div class="bg-gradient-to-r from-purple-400 to-indigo-400 p-6">
-          <h2 class="text-2xl font-bold text-white">Bank Queues</h2>
-        </div>
-        <div class="p-6">
-          <img src="{% static 'participant/images/bank.jpg' %}" alt="Bank Queues" class="w-full rounded-md mb-4">
-          <p class="text-gray-600 font-bold">Find available bank queues.</p>
+      <a href="{% url 'participant:hospital_queues' %}" class="card bg-base-100 shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 active:transform active:translate-y-4 active:border-0 focus:outline-none focus:border-none !border-none">
+        <figure class="px-6 pt-6">
+          <img src="{% static 'participant/images/hospital.jpg' %}" alt="Hospital" class="rounded-xl h-49 w-full object-cover" />
+        </figure>
+        <div class="card-body">
+          <h2 class="card-title text-gray-800 text-[1.375rem]">Hospital Queues</h2>
+          <p class="text-base-content/70">Find available hospital queues</p>
         </div>
       </a>
 
-      <a href="{% url 'participant:service_center_queues' %}" class="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300">
-        <div class="bg-gradient-to-r from-indigo-400 to-blue-400 p-6">
-          <h2 class="text-2xl font-bold text-white">Service Center Queues</h2>
-        </div>
-        <div class="p-6">
-          <img src="{% static 'participant/images/service_center.jpg' %}" alt="Service Center Queues" class="w-full rounded-md mb-4">
-          <p class="text-gray-600 font-bold">Find available service center queues.</p>
+      <a href="{% url 'participant:bank_queues' %}" class="card bg-base-100 shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 active:transform active:translate-y-4 active:border-0 focus:outline-none focus:border-none !border-none">
+        <figure class="px-6 pt-6">
+          <img src="{% static 'participant/images/bank.jpg' %}" alt="Bank" class="rounded-xl h-49 w-full object-cover" />
+        </figure>
+        <div class="card-body">
+          <h2 class="card-title text-gray-800 text-[1.375rem]">Bank Queues</h2>
+          <p class="text-base-content/70">Find available bank queues</p>
         </div>
       </a>
+    </div>
+
+    <div class="stats shadow mt-12 w-full bg-base-100">
+      <div class="stat">
+        <div class="stat-figure text-primary">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="inline-block w-8 h-8 stroke-current">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+          </svg>
+        </div>
+        <div class="stat-title">Total Queues</div>
+        <div class="stat-value text-primary mb-1">{{ total_queues }}</div>
+        <div class="stat-desc">Total number of queues currently available.</div>
+      </div>
+
+
+      <div class="stat">
+        <div class="stat-figure text-secondary">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="inline-block w-8 h-8 stroke-current"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+        </div>
+        <div class="stat-title">Active Users</div>
+        <div class="stat-value text-secondary mb-1">{{ active_users }}</div>
+        <div class="stat-desc">Number of users currently using now.</div>
+      </div>
     </div>
   </div>
 </div>
