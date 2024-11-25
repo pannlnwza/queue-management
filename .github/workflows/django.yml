@@ -16,14 +16,14 @@ jobs:
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: test_db
+          POSTGRES_DB: mydatabase
         ports:
           - 5432:5432
         options: >-
-          --health-cmd "pg_isready -U postgres -d test_db"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
+          --health-cmd="pg_isready -U postgres"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
 
     steps:
       - name: Checkout code
@@ -39,32 +39,24 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Wait for PostgreSQL to be ready
+      - name: Copy sample.env to .env
         run: |
-          until pg_isready -h localhost -p 5432 -U postgres -d test_db; do
-            echo "Waiting for PostgreSQL to be ready..."
-            sleep 1
-          done
+          cp sample.env .env
 
-      - name: Create environment variables for CI
+      - name: Set TEST environment variable
         run: |
-            echo "DATABASE_URL=${{ secrets.DATABASE_URL }}" >> .env
-            echo "DEBUG=True" >> .env
-            echo "SECRET_KEY=${{ secrets.SECRET_KEY }}" >> .env
-            echo "ALLOWED_HOSTS=localhost,127.0.0.1" >> .env
+          echo "TEST=True" >> .env
+          echo "DATABASE_URL=postgres://postgres:postgres@localhost:5432/mydatabase" >> .env
 
-      - name: Debug environment variables
-        run: cat .env
+      - name: Load environment variables
+        run: |
+          source .env
 
       - name: Run migrations
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
         run: |
-          python manage.py makemigrations manager
-          python manage.py makemigrations participant
+          python manage.py makemigrations
           python manage.py migrate
 
       - name: Run tests
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-        run: python manage.py test
+        run: |
+          python manage.py test
