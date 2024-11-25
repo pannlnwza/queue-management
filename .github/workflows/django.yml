@@ -28,6 +28,10 @@ jobs:
         run: |
           cp sample.env .env
 
+      - name: Set TEST environment variable
+        run: |
+          echo "TEST=True" >> .env
+
       - name: Run migrations
         run: |
           python manage.py makemigrations
