@@ -8,7 +8,7 @@
       <!-- Updated image with styling for size -->
       <img src="{{ queue.get_logo_url }}" alt="{{ queue.name }} logo" class="w-32 h-32 mx-auto">
        <p class="text-neutral text-sm">{{ queue.description }}</p>
-      <p class="text-neutral text-xl">There are currently {{ queue.get_number_of_participants }} participant(s) in the queue.</p>
+      <p class="text-neutral text-xl">There are currently {{ queue.get_number_waiting_now }} participant(s) in the queue.</p>
       <div class="card-actions justify-end">
         <a href="{% url "participant:kiosk" queue.code %}">
           <button class="btn btn-primary">Join the queue.</button>

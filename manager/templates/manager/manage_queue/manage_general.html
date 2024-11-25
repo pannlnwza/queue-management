@@ -454,7 +454,6 @@
                             const audio = new Audio(data.audio_url);
                             audio.play();
 
-                            // Delete the audio file after playback
                             audio.onended = () => {
                                 const audioURL = new URL(data.audio_url, window.location.origin);
                                 const filename = audioURL.pathname.split("/").pop();

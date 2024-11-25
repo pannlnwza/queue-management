@@ -9,31 +9,26 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import JsonResponse, HttpResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
-from django.views import generic
-
 from participant.models import Participant, Notification
-from manager.models import Queue
 from manager.views import logger
 from .forms import KioskForm
 from manager.utils.category_handler import CategoryHandlerFactory
-import time
 from django.http import StreamingHttpResponse
 import json
 from manager.utils.send_email import generate_qr_code
-# Create your views here.
-
-
 from django.views import generic
 from manager.models import Queue
 from django.shortcuts import render
 from django.core.mail import EmailMessage
 from django.template.loader import render_to_string
-from django.utils.html import strip_tags
-from manager.utils.send_email import send_html_email
 from django.conf import settings
-from django.core.files.base import ContentFile
 from django.views.decorators.http import require_POST
 from django.utils import timezone
+from django.http import StreamingHttpResponse
+from asgiref.sync import sync_to_async
+import asyncio
+import json
+import threading
 
 class HomePageView(generic.TemplateView):
     template_name = 'participant/get_started.html'
@@ -349,59 +344,100 @@ class QueueStatusView(generic.TemplateView):
         return context
 
 
+import threading
+from queue import Queue as ThreadSafeQueue  # Renamed to ThreadSafeQueue for clarity
+from asgiref.sync import sync_to_async
+from django.http import StreamingHttpResponse
+import json
+import asyncio
+
+
+
 def sse_queue_status(request, participant_code):
     """Server-sent Events endpoint to stream the queue status."""
 
     def event_stream():
+        """Synchronous generator to stream events."""
+        while True:
+            try:
+                message = event_queue.get()
+                if message is None:  # Sentinel value to terminate the stream
+                    break
+                yield f"data: {message}\n\n"
+            except Exception as e:
+                print("Error in synchronous event stream:", e)
+                break
+
+    async def async_event_producer():
+        """Asynchronous task to fetch and send data."""
         last_data = None
         while True:
             try:
-                # Get the queue and participant details
-                queue = get_object_or_404(Participant, code=participant_code).queue
-                handler = CategoryHandlerFactory.get_handler(queue.category)
-                participant = handler.get_participant_set(queue.id).get(code=participant_code)
+                # Wrap all sync database or blocking operations in `sync_to_async`
+                participant, queue, handler = await fetch_participant_and_queue()
 
                 # Fetch participant data
-                current_data = handler.get_participant_data(participant)
+                participant_data = await sync_to_async(handler.get_participant_data)(participant)
 
-                # Fetch notifications for the participant
-                notification_set = Notification.objects.filter(participant=participant)
-                notification_list = []
+                # Fetch notifications
+                notifications = await fetch_notifications(participant)
 
-                for notification in notification_set:
-                    # Add notification details to the list
-                    notification_list.append({
-                        'message': notification.message,
-                        'created_at': timezone.localtime(notification.created_at).strftime("%Y-%m-%d %H:%M:%S"),
-                        'is_read': notification.is_read,
-                        'played_sound': notification.played_sound,
-                        'id': notification.id,
-                    })
+                # Mark notifications as played
+                notification_ids = [notif['id'] for notif in notifications if not notif['played_sound']]
+                if notification_ids:
+                    await mark_notifications_played(notification_ids)
 
-                    # If sound hasn't been played yet, mark it as played
-                    if not notification.played_sound:
-                        notification.played_sound = True
-                        notification.save()
+                participant_data['notification_set'] = notifications
 
-                # Add the notifications to the current data
-                current_data['notification_set'] = notification_list
+                if last_data != participant_data:
+                    message = json.dumps(participant_data)
+                    event_queue.put(message)
+                    last_data = participant_data
 
-                if last_data != current_data:
-                    # Prepare the data to send in the SSE stream
-                    message = json.dumps(current_data)
-                    yield f"data: {message}\n\n"
-                    last_data = current_data
-
-                time.sleep(5)
+                # await asyncio.sleep(15)
             except Exception as e:
-                print("Error in event stream:", e)
+                print("Error in async event producer:", e)
                 break
+        event_queue.put(None)  # Send sentinel value to stop the stream
 
-    response = StreamingHttpResponse(event_stream(), content_type='text/event-stream')
-    response['Cache-Control'] = 'no-cache'
-    return response
+    @sync_to_async
+    def fetch_participant_and_queue():
+        """Fetch participant and queue details synchronously."""
+        participant_instance = get_object_or_404(Participant, code=participant_code)
+        queue = participant_instance.queue
+        handler = CategoryHandlerFactory.get_handler(queue.category)
+        participant = handler.get_participant_set(queue_id=queue.id).get(code=participant_code)
+        return participant, queue, handler
 
+    @sync_to_async
+    def fetch_notifications(participant):
+        """Fetch notifications for the participant."""
+        notifications = Notification.objects.filter(participant=participant)
+        return [
+            {
+                'message': notif.message,
+                'created_at': timezone.localtime(notif.created_at).strftime("%Y-%m-%d %H:%M:%S"),
+                'is_read': notif.is_read,
+                'played_sound': notif.played_sound,
+                'id': notif.id,
+            }
+            for notif in notifications
+        ]
 
+    @sync_to_async
+    def mark_notifications_played(notification_ids):
+        """Mark notifications as played."""
+        Notification.objects.filter(id__in=notification_ids).update(played_sound=True)
+
+    # Set up a thread-safe queue to bridge async and sync contexts
+    event_queue = ThreadSafeQueue()
+
+    # Start the async event producer in a separate thread
+    producer_thread = threading.Thread(target=lambda: asyncio.run(async_event_producer()))
+    producer_thread.start()
+
+    # Return the StreamingHttpResponse that consumes the sync iterator
+    return StreamingHttpResponse(event_stream(), content_type="text/event-stream")
 
 def participant_leave(request, participant_code):
     """Participant choose to leave the queue."""

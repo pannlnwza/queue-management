@@ -342,6 +342,10 @@ class RestaurantQueueHandler(CategoryHandler):
             print(f"Participant with ID {assigned_to} does not exist.")
         resource.save()
 
+    def get_participant_type(self):
+        """Return Restaurant Participanti subclass"""
+        return RestaurantParticipant
+
 
 class HospitalQueueHandler(CategoryHandler):
     def create_queue(self, data):
