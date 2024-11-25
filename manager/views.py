@@ -293,9 +293,9 @@ def notify_participant(request, participant_id):
     try:
         # Parse the JSON body
         body = json.loads(request.body)
-        message = body.get('message', 'Your queue is here!')
+        message = body.get("message", "Your queue is here!")
     except json.JSONDecodeError:
-        return JsonResponse({'status': 'error', 'message': 'Invalid JSON data'}, status=400)
+        return JsonResponse({"status": "error", "message": "Invalid JSON data"}, status=400)
 
     # Create the notification and mark the participant as notified
     Notification.objects.create(queue=queue, participant=participant, message=message)
@@ -307,14 +307,16 @@ def notify_participant(request, participant_id):
         participant_notification_count = Notification.objects.filter(participant=participant).count()
         if participant_notification_count == 1:  # Generate TTS only for the first notification
             try:
-                tts = gTTS(text=f"Attention Participant {participant.number}, your turn is now.", lang='en')
-                audio_buffer = BytesIO()
-                tts.write_to_fp(audio_buffer)
-                audio_buffer.seek(0)
+                tts = gTTS(text=f"Attention Participant {participant.number}, your turn is now.", lang="en")
+                audio_dir = os.path.join(settings.MEDIA_ROOT, "announcements")
+                os.makedirs(audio_dir, exist_ok=True)
+                audio_filename = f"announcement_{participant.id}.mp3"
+                audio_path = os.path.join(audio_dir, audio_filename)
+                tts.save(audio_path)
 
-                # Encode MP3 in base64
-                audio_base64 = base64.b64encode(audio_buffer.read()).decode('utf-8')
-                participant.announcement_audio = audio_base64
+                # Save the file path to the participant
+                participant.announcement_audio = audio_filename
+                audio_url = f"{settings.MEDIA_URL}announcements/{audio_filename}"
             except Exception as e:
                 logger = logging.getLogger(__name__)
                 logger.error(f"Failed to generate TTS announcement for participant {participant.id}: {str(e)}")
@@ -323,9 +325,9 @@ def notify_participant(request, participant_id):
 
     # Prepare email context
     email_context = {
-        'participant': participant,
-        'message': message,
-        'queue': queue
+        "participant": participant,
+        "message": message,
+        "queue": queue,
     }
 
     # Attempt to send the email
@@ -339,22 +341,35 @@ def notify_participant(request, participant_id):
                 context=email_context,
             )
         except Exception as e:
-            # Log the email sending error but do not interrupt the response
             logger = logging.getLogger(__name__)
             logger.error(f"Failed to send email to participant {participant.email}: {str(e)}")
             email_error = f"Failed to send email to participant {participant.email}: {str(e)}"
 
     # Prepare the JSON response
     response = {
-        'status': 'success',
-        'message': 'Notification sent successfully!',
-        'audio_base64': participant.announcement_audio,  # Return the base64 string in the response
+        "status": "success",
+        "message": "Notification sent successfully!",
+        "audio_url": audio_url,  # Return the audio URL for playback
     }
     if email_error:
-        response['email_status'] = 'error'
-        response['email_message'] = email_error
+        response["email_status"] = "error"
+        response["email_message"] = email_error
 
     return JsonResponse(response)
+
+
+@require_http_methods(["DELETE"])
+def delete_audio_file(request, filename):
+    logger.info(f"Attempting to delete audio file: {filename}")
+
+    audio_path = os.path.join(settings.MEDIA_ROOT, "announcements", filename)
+    if os.path.exists(audio_path):
+        os.remove(audio_path)
+        logger.info(f"Deleted audio file: {audio_path}")
+        return JsonResponse({"status": "success", "message": "Audio file deleted successfully."})
+    logger.warning(f"Audio file not found: {audio_path}")
+    return JsonResponse({"status": "error", "message": "Audio file not found."}, status=404)
+
 
 @require_http_methods(["DELETE"])
 @login_required
