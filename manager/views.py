@@ -342,6 +342,64 @@ def notify_participant(request, participant_id):
         response['email_message'] = email_error
     return JsonResponse(response)
 
+
+@login_required
+def mark_no_show(request, participant_id):
+    participant = get_object_or_404(Participant, id=participant_id)
+
+    if participant.state in ['serving', 'cancelled', 'completed']:
+        messages.error(request, "Cannot mark this participant as No Show because they are not in the waiting list.")
+        return redirect('manager:manage_waitlist', participant.queue.id)
+    participant.state = 'no_show'
+    participant.is_notified = False
+    participant.waited = (timezone.localtime(timezone.now()) - participant.joined_at).total_seconds() / 60
+
+    participant.queue.update_participants_positions()
+    participant.save()
+    messages.success(request, f"{participant.name} has been marked as No Show.")
+
+    return redirect('manager:manage_waitlist', participant.queue.id)
+
+def serve_participant_no_resource(request, participant_id):
+    participant = get_object_or_404(Participant, id=participant_id)
+    queue_id = participant.queue.id
+    handler = CategoryHandlerFactory.get_handler(participant.queue.category)
+    participant_set = handler.get_participant_set(queue_id)
+    participant = get_object_or_404(participant_set, id=participant_id)
+    try:
+        if participant.state != 'waiting':
+            logger.warning(f"Cannot serve participant {participant_id} because they are in state: {participant.state}")
+            return JsonResponse({
+                'error': f'{participant.name} cannot be served because they are currently in state: {participant.state}.'
+            }, status=400)
+
+        participant.queue.update_estimated_wait_time_per_turn(participant.get_wait_time())
+        participant.start_service()
+        participant.queue.update_participants_positions()
+        participant.save()
+        logger.info(
+            f"Participant {participant_id} started service in queue {participant.queue.id}.")
+
+        waiting_list = Participant.objects.filter(state='waiting').values()
+        serving_list = Participant.objects.filter(state='serving').values()
+
+        return JsonResponse({
+            'waiting_list': list(waiting_list),
+            'serving_list': list(serving_list),
+            'success': True
+        })
+
+    except json.JSONDecodeError:
+        return JsonResponse({'error': 'Invalid JSON data.'}, status=400)
+
+    except Exception as e:
+        logger.error(f"Error serving participant {participant_id}: {str(e)}")
+        return JsonResponse({
+            'error': f'Error: {str(e)}'
+        }, status=500)
+
+
+
 @require_http_methods(["DELETE"])
 @login_required
 def delete_queue(request, queue_id):
