@@ -413,6 +413,15 @@
             window.selectedParticipantId = participantId;
         }
 
+        function getCSRFToken() {
+            // Fetch CSRF token dynamically
+            const cookieValue = document.cookie
+                .split("; ")
+                .find((row) => row.startsWith("csrftoken="))
+                ?.split("=")[1];
+            return cookieValue || "{{ csrf_token }}";
+        }
+
         function sendNotification() {
             const message = document.getElementById("message").value;
             const participantId = window.selectedParticipantId;
@@ -423,30 +432,62 @@
             }
 
             fetch(`/manager/notify/${participantId}/`, {
-                method: 'POST',
+                method: "POST",
                 headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': '{{ csrf_token }}',
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": getCSRFToken(),
                 },
-                body: JSON.stringify({message: message})
+                body: JSON.stringify({ message: message }),
             })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.status === 'success') {
-                        alert('Notification sent successfully!');
+                .then((response) => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then((data) => {
+                    if (data.status === "success") {
+                        alert("Notification sent successfully!");
                         document.getElementById("notify_modal").checked = false;
+
                         if (data.audio_url) {
                             const audio = new Audio(data.audio_url);
                             audio.play();
+
+                            audio.onended = () => {
+                                const audioURL = new URL(data.audio_url, window.location.origin);
+                                const filename = audioURL.pathname.split("/").pop();
+
+                                console.log("Attempting to delete file:", filename);
+
+                                fetch(`/manager/delete_audio/${filename}/`, {
+                                    method: "DELETE",
+                                    headers: {
+                                        "X-CSRFToken": getCSRFToken(),
+                                    },
+                                })
+                                    .then((deleteResponse) => deleteResponse.json().then((data) => {
+                                        console.log("Delete Response:", data);
+                                        if (deleteResponse.ok) {
+                                            console.log("Audio file deleted successfully.");
+                                        } else {
+                                            console.error("Failed to delete audio file. Status:", deleteResponse.status, "Message:", data.message);
+                                        }
+                                    }))
+                                    .catch((error) => console.error("Error deleting audio file:", error));
+                            };
                         }
-
-
                     } else {
-                        alert('There was an error sending the notification');
+                        alert("There was an error sending the notification.");
                     }
+                })
+                .catch((error) => {
+                    console.error("Error sending notification:", error);
+                    alert("An unexpected error occurred.");
                 });
-
         }
+
+
 
 
         function filterParticipants() {

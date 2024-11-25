@@ -6,6 +6,7 @@ from django.utils import timezone
 from manager.models import RestaurantQueue, Queue, BankQueue, HospitalQueue, Doctor, Table, Counter
 from manager.utils.helpers import extract_data_variables
 from participant.models import RestaurantParticipant, Participant, HospitalParticipant, BankParticipant
+from django.contrib.auth.models import User
 
 
 class CategoryHandlerFactory:
@@ -92,6 +93,13 @@ class GeneralQueueHandler(CategoryHandler):
         """
         Creates a general queue.
         """
+        user_id = data.pop("created_by_id", None)
+        if user_id:
+            try:
+                user = User.objects.get(pk=user_id)
+                data["created_by"] = user
+            except User.DoesNotExist:
+                raise ValueError(f"User with id {user_id} does not exist.")
         return Queue.objects.create(**data)
 
     def create_participant(self, data):
@@ -169,6 +177,13 @@ class RestaurantQueueHandler(CategoryHandler):
         """
         Creates a general queue.
         """
+        user_id = data.pop("created_by_id", None)
+        if user_id:
+            try:
+                user = User.objects.get(pk=user_id)
+                data["created_by"] = user
+            except User.DoesNotExist:
+                raise ValueError(f"User with id {user_id} does not exist.")
         return RestaurantQueue.objects.create(**data)
 
     def create_participant(self, data):
@@ -303,7 +318,8 @@ class RestaurantQueueHandler(CategoryHandler):
         status = data.get('status')
         queue = data.get('queue')
         table = Table.objects.create(name=name, capacity=capacity, status=status, queue=queue)
-        queue.resources.add(table)
+        # queue.resources.add(table)
+        queue.resource_set.add(table)
         queue.save()
 
     def edit_resource(self, resource, data):
@@ -327,12 +343,23 @@ class RestaurantQueueHandler(CategoryHandler):
             print(f"Participant with ID {assigned_to} does not exist.")
         resource.save()
 
+    def get_participant_type(self):
+        """Return Restaurant Participanti subclass"""
+        return RestaurantParticipant
+
 
 class HospitalQueueHandler(CategoryHandler):
     def create_queue(self, data):
         """
         Creates a hospital queue.
         """
+        user_id = data.pop("created_by_id", None)
+        if user_id:
+            try:
+                user = User.objects.get(pk=user_id)
+                data["created_by"] = user
+            except User.DoesNotExist:
+                raise ValueError(f"User with id {user_id} does not exist.")
         return HospitalQueue.objects.create(**data)
 
     def create_participant(self, data):
@@ -495,7 +522,7 @@ class HospitalQueueHandler(CategoryHandler):
         status = data.get('status')
         queue = data.get('queue')
         doctor = Doctor.objects.create(name=name, specialty=medical_field, status=status, queue=queue)
-        queue.resources.add(doctor)
+        queue.resource_set.add(doctor)
         queue.save()
 
     def edit_resource(self, resource, data):
@@ -526,6 +553,13 @@ class BankQueueHandler(CategoryHandler):
         """
         Creates a general queue.
         """
+        user_id = data.pop("created_by_id", None)
+        if user_id:
+            try:
+                user = User.objects.get(pk=user_id)
+                data["created_by"] = user
+            except User.DoesNotExist:
+                raise ValueError(f"User with id {user_id} does not exist.")
         return BankQueue.objects.create(**data)
 
     def create_participant(self, data):
@@ -656,7 +690,7 @@ class BankQueueHandler(CategoryHandler):
         status = data.get('status')
         queue = data.get('queue')
         counter = Counter.objects.create(name=name, status=status, queue=queue)
-        queue.resources.add(counter)
+        queue.resource_set.add(counter)
         queue.save()
 
     def edit_resource(self, resource, data):
