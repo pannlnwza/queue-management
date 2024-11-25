@@ -1,8 +1,12 @@
 import math
+import random
+import string
+
 from manager.utils.code_generator import generate_unique_code
 from django.dispatch import receiver
 from django.conf import settings
 from django.contrib.auth.models import User
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.templatetags.static import static
 from django.apps import apps
@@ -104,6 +108,16 @@ class Queue(models.Model):
                 return f"{int(distance_m)} m"
         return "Distance not available"
 
+    def clean(self):
+        if self.latitude is None or self.longitude is None:
+            raise ValidationError("Latitude and Longitude cannot be null.")
+
+        if not (-90 <= self.latitude <= 90):
+            raise ValidationError("Latitude must be between -90 and 90.")
+
+        if not (-180 <= self.longitude <= 180):
+            raise ValidationError("Longitude must be between -180 and 180.")
+
     def has_resources(self):
         return self.category != 'general'
 
@@ -124,8 +138,7 @@ class Queue(models.Model):
     def calculate_average_service_duration(self, serve_time: int):
         """Update the average serve duration based on recent serve time."""
         if self.completed_participants_count > 0:
-            total_serve_time = (
-                                       self.average_service_duration * self.completed_participants_count) + serve_time
+            total_serve_time = (self.average_service_duration * self.completed_participants_count) + serve_time
             self.completed_participants_count += 1
             self.average_service_duration = math.ceil(
                 total_serve_time / self.completed_participants_count)
@@ -133,6 +146,17 @@ class Queue(models.Model):
             self.average_service_duration = serve_time
             self.completed_participants_count += 1
         self.save()
+
+    def get_average_service_duration(self):
+        """Calculate the average service duration for participants in minutes."""
+        service_durations = [
+            p.get_service_duration() for p in
+            self.participant_set.filter(state='completed')
+            if p.get_service_duration() is not None
+        ]
+        average_service_time = math.ceil(sum(service_durations) / len(
+            service_durations)) if service_durations else 0
+        return format_duration(average_service_time)
 
     def get_participants(self) -> models.QuerySet:
         """Return a queryset of all participants in this queue. Ordered by joined_at"""
@@ -173,10 +197,9 @@ class Queue(models.Model):
     def edit(self, name: str = None, description: str = None,
              is_closed: bool = None, status: str = None) -> None:
         """Edit the queue's name, description, or closed status."""
-        if name:
+        if name is not None:  # Adjusted to ensure empty string validation is included
             if not (1 <= len(name) <= 255):
-                raise ValueError(
-                    "The name must be between 1 and 255 characters.")
+                raise ValueError("The name must be between 1 and 255 characters.")
             self.name = name
         if description is not None:
             self.description = description
@@ -610,23 +633,29 @@ class UserProfile(models.Model):
 
     def get_profile_image(self):
         """Returns the appropriate profile image URL."""
-        if self.image and self.image.name != 'profile_images/profile.jpg':  # Check for a custom image
+        if self.image and self.image.name != 'profile_images/profile.jpg':
             return self.image.url
         elif self.user.socialaccount_set.exists():
             social_account = self.user.socialaccount_set.first()
             if hasattr(social_account, 'get_avatar_url') and social_account.get_avatar_url():
                 return social_account.get_avatar_url()
-        # Fallback to a default static image
         return static('participant/images/profile.jpg')
 
+
 @receiver(post_save, sender=User)
-def create_or_update_user_profile(sender, instance, created, **kwargs):
+def create_user_profile(sender, instance, created, **kwargs):
     """
-    Automatically create or update a UserProfile when a User is created or saved.
+    Automatically create a UserProfile when a new User is created.
+    """
+    if created:
+        UserProfile.objects.create(user=instance)
+
+@receiver(post_save, sender=User)
+def save_user_profile(sender, instance, **kwargs):
+    """
+    Automatically save the UserProfile when the User is saved.
     """
     try:
-        profile = instance.userprofile
-        if created:
-            profile.save()
+        instance.userprofile.save()
     except UserProfile.DoesNotExist:
         UserProfile.objects.create(user=instance)
