@@ -49,7 +49,7 @@ class CategoryHandler(ABC):
         pass
 
     @abstractmethod
-    def assign_to_resource(self, participant):
+    def assign_to_resource(self, participant, resource_id=None):
         pass
 
     @abstractmethod
@@ -154,7 +154,7 @@ class GeneralQueueHandler(CategoryHandler):
     def get_special_column(self):
         pass
 
-    def add_resource_attributes(self, queue):
+    def add_resource_attributes(self, queue, resource_id=None):
         pass
 
     def add_resource(self, queue):
