@@ -114,7 +114,7 @@ if TEST or 'test' in sys.argv:
 else:
     DATABASES = {
         'default': dj_database_url.config(
-            default=config('DATABASE_URL'),
+            default=config('DATABASE_URL', default='postgres://user:password@localhost:5432/mydatabase'),
             conn_max_age=300,
             ssl_require=True
         )
