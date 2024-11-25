@@ -102,26 +102,26 @@ WSGI_APPLICATION = 'config.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
-# DATABASES = {
-#     'default': dj_database_url.config(default=config('DATABASE_URL'))
-# }
-#
-# DATABASES['default'] = dj_database_url.config(
-#     default=config('DATABASE_URL'),
-#     conn_max_age=300,
-#     ssl_require=True)
-
-
 DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.postgresql",
-        "NAME": config("DATABASE_NAME", default=os.environ.get("DATABASE_NAME", "default_db_name")),
-        "USER": config("DATABASE_USERNAME", default=os.environ.get("DATABASE_USERNAME", "default_user")),
-        "PASSWORD": config("DATABASE_PASSWORD", default=os.environ.get("DATABASE_PASSWORD", "default_password")),
-        "HOST": config("DATABASE_HOST", default=os.environ.get("DATABASE_HOST", "localhost")),
-        "PORT": config("DATABASE_PORT", default=os.environ.get("DATABASE_PORT", "5432")),
-    }
+    'default': dj_database_url.config(default=config('DATABASE_URL'))
 }
+
+DATABASES['default'] = dj_database_url.config(
+    default=config('DATABASE_URL'),
+    conn_max_age=300,
+    ssl_require=True)
+
+
+# DATABASES = {
+#     "default": {
+#         "ENGINE": "django.db.backends.postgresql",
+#         "NAME": config("DATABASE_NAME", default=os.environ.get("DATABASE_NAME", "default_db_name")),
+#         "USER": config("DATABASE_USERNAME", default=os.environ.get("DATABASE_USERNAME", "default_user")),
+#         "PASSWORD": config("DATABASE_PASSWORD", default=os.environ.get("DATABASE_PASSWORD", "default_password")),
+#         "HOST": config("DATABASE_HOST", default=os.environ.get("DATABASE_HOST", "localhost")),
+#         "PORT": config("DATABASE_PORT", default=os.environ.get("DATABASE_PORT", "5432")),
+#     }
+# }
 
 
 # Password validation
