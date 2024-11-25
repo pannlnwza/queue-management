@@ -9,6 +9,8 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import JsonResponse, HttpResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
+from django.contrib.sessions.models import Session
+from django.contrib.auth.models import User
 from django.views import generic
 
 from participant.models import Participant, Notification
@@ -122,6 +124,17 @@ class BrowseQueueView(generic.ListView):
     model = Queue
     template_name = "participant/browse_queue.html"
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['total_queues'] = Queue.objects.all().count()
+        active_sessions = Session.objects.filter(expire_date__gte=timezone.now())
+        user_ids = [
+            session.get_decoded().get('_auth_user_id')
+            for session in active_sessions
+        ]
+        context['active_users'] = User.objects.filter(id__in=user_ids).count()
+
+        return context
 
 # @login_required
 # def join_queue(request):
