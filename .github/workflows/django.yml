@@ -32,6 +32,10 @@ jobs:
         run: |
           echo "TEST=True" >> .env
 
+      - name: Load environment variables
+        run: |
+          source .env
+
       - name: Run migrations
         run: |
           python manage.py makemigrations
