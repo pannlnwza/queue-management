@@ -20,8 +20,8 @@ class Queue(models.Model):
         ('full', 'Full'),
     ]
     CATEGORY_CHOICES = [
-        ('restaurant', 'Restaurant'),
         ('general', 'General'),
+        ('restaurant', 'Restaurant'),
         ('hospital', 'Hospital'),
         ('bank', 'Bank'),
     ]
@@ -578,7 +578,6 @@ class Table(Resource):
 
 class RestaurantQueue(Queue):
     """Represents a queue specifically for restaurant."""
-    has_outdoor = models.BooleanField(default=False)
     resources = models.ManyToManyField(Table)
     resource_name = 'Tables'
 
