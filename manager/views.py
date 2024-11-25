@@ -149,35 +149,40 @@ class EditQueueView(LoginRequiredMixin, generic.UpdateView):
         context['participants'] = queue.participant_set.all()
         return context
 
-    def post(self, request, *args, **kwargs):
-        """
-        Handle POST requests to update the queue and manage participants.
 
-        :param request: The HTTP request object containing data for the queue and participants.
-        :returns: Redirects to the success URL after processing.
-        """
-        self.object = self.get_object()
+def create_queue(request):
+    data = request.POST.dict()
+    category = data.get('category')
+    resource_name = data.get('resource_name')
+    resource_special = data.get('resource_detail')
 
-        if request.POST.get('action') == 'queue_status':
-            return self.queue_status_handler()
-        if request.POST.get('action') == 'edit_queue':
-            name = request.POST.get('name')
-            description = request.POST.get('description')
-            is_closed = request.POST.get('is_closed') == 'true'
-            try:
-                self.object.edit(name=name, description=description,
-                                 is_closed=is_closed)
-                messages.success(self.request, "Queue updated successfully.")
-            except ValueError as e:
-                messages.error(self.request, str(e))
-        return super().post(request, *args, **kwargs)
+    queue_data = {
+        'category': category,
+        'name': data.get('name'),
+        'description': data.get('description'),
+        'open_time': data.get('open_time'),
+        'close_time': data.get('close_time'),
+        'latitude': data.get('latitude'),
+        'longitude': data.get('longitude'),
+        'created_by': request.user,
+    }
 
-    def queue_status_handler(self):
-        """Close the queue."""
-        self.object.is_closed = not self.object.is_closed
-        self.object.save()
-        messages.success(self.request, "Queue status updated successfully.")
-        return redirect('manager:manage_queues')
+    handler = CategoryHandlerFactory.get_handler(category)
+    try:
+        queue = handler.create_queue(queue_data)
+        if resource_name and resource_special:
+            resource_data = {
+                'name': resource_name,
+                'special': resource_special,
+                'queue': queue,
+                'status': 'available'
+            }
+            handler.add_resource(resource_data)
+        messages.success(request, f"Queue '{data.get('name')}' created successfully.")
+        return redirect('manager:your-queue')
+    except Exception as e:
+        messages.error(request, f"An error occurred while creating the queue: {str(e)}")
+        return redirect('manager:your-queue')
 
 
 @require_http_methods(["POST"])
@@ -377,15 +382,17 @@ class ManageWaitlist(LoginRequiredMixin, generic.TemplateView):
         context['completed_list'] = participant_set.filter(state='completed').order_by('-service_completed_at')[:5]
         context['queue'] = queue
         context['resources'] = queue.resource_set.all()
-        context['available_resource'] = queue.get_resources_by_status(
-            'available')
         context['busy_resource'] = queue.get_resources_by_status('busy')
         context['unavailable_resource'] = queue.get_resources_by_status(
             'unavailable')
 
         category_context = handler.add_context_attributes(queue)
+        resource_context = handler.add_resource_attributes(queue)
         if category_context:
             context.update(category_context)
+        if resource_context:
+            context.update(resource_context)
+        context['available_resource'] = context['resources'].filter(status='available')
         return context
 
 

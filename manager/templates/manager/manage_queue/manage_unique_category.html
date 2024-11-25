@@ -479,6 +479,10 @@
                                         <div class="text-sm text-gray-500">
                                             {% if queue.category == 'restaurant' %}
                                                 Capacity: {{ resource.capacity }}
+                                            {% elif queue.category == 'hospital' %}
+                                                Specialty: {{ resource.get_specialty_display }}
+                                             {% elif queue.category == 'bank' %}
+                                                Service: {{ resource.get_service_type_display }}
                                             {% endif %}
                                         </div>
                                     </div>

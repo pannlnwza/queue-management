@@ -83,7 +83,7 @@
                                         </label>
                                         <input type="time" id="open_time" name="open_time"
                                                value="{{ queue.open_time|time:'H:i' }}"
-                                               class="input input-bordered"/>
+                                               class="input input-bordered" required/>
                                     </div>
                                     <div class="form-control">
                                         <label class="label">
@@ -91,7 +91,7 @@
                                         </label>
                                         <input type="time" id="close_time" name="close_time"
                                                value="{{ queue.open_time|time:'H:i' }}"
-                                               class="input input-bordered"/>
+                                               class="input input-bordered" required/>
                                     </div>
                                 </div>
                                 <!-- Location Section -->
@@ -126,7 +126,7 @@
                                                    id="latitudeInput"
                                                    class="input input-bordered w-full"
                                                    placeholder="Latitude"
-                                                   step="any">
+                                                   step="any" required>
                                         </div>
                                         <div class="form-control">
                                             <label class="label">
@@ -136,7 +136,7 @@
                                                    id="longitudeInput"
                                                    class="input input-bordered w-full"
                                                    placeholder="Longitude"
-                                                   step="any">
+                                                   step="any" required>
                                         </div>
                                     </div>
 
@@ -165,7 +165,7 @@
                                            class="input input-bordered w-full">
 
                                     <label id="dynamic-label" for="resource_detail" class="block mt-4"></label>
-                                    <input type="text" id="resource_detail" name="resource_detail"
+                                    <input type="number" id="resource_detail" name="resource_detail"
                                            class="input input-bordered w-full hidden">
 
                                     <select id="resource_dropdown" name="resource_detail"
@@ -235,47 +235,92 @@
             });
         }
 
-        // Handle next and previous button clicks
-        function changeStep(stepChange) {
-            currentStep += stepChange;
+        function validateStepsUpToCurrent() {
+            let isValid = true;
 
-            // Ensure currentStep stays within bounds
-            if (currentStep < 1) currentStep = 1;
-            if (currentStep > totalSteps) currentStep = totalSteps;
+            // Loop through all steps up to the current step
+            for (let step = 1; step <= currentStep; step++) {
+                const stepElement = document.getElementById('step' + step);
+                const inputs = stepElement.querySelectorAll('input, select, textarea');
 
-            // Update form step visibility and step indicators
-            showStep(currentStep);
+                // Validate each input in the step
+                inputs.forEach((input) => {
+                    if (!input.checkValidity()) {
+                        isValid = false;
+                        input.reportValidity(); // Show validation message
+                    }
+                });
 
-            // Disable or enable next/previous buttons based on current step
-            if (currentStep === 1) {
-                document.getElementById('previousBtn').disabled = true;
-            } else {
-                document.getElementById('previousBtn').disabled = false;
+                // If any step is invalid, stop further validation
+                if (!isValid) break;
             }
 
-            if (currentStep === totalSteps) {
-                document.getElementById('nextBtn').textContent = "Submit";
+            return isValid;
+        }
+
+        document.getElementById('nextBtn').onclick = () => {
+            if (validateStepsUpToCurrent()) {
+                changeStep(1); // Move to the next step
+            }
+        };
+
+        function updateStepIndicator() {
+            const stepIndicators = document.querySelectorAll('#stepIndicator .step');
+
+            stepIndicators.forEach((indicator, index) => {
+                // Highlight completed and current steps
+                if (index < currentStep) {
+                    indicator.classList.add('step-primary'); // Completed steps
+                } else {
+                    indicator.classList.remove('step-primary'); // Upcoming steps
+                }
+            });
+        }
+
+        // Call this function inside `changeStep` after updating `currentStep`
+        function changeStep(stepChange) {
+            const form = document.getElementById('multiStepForm');
+            const stepSections = document.querySelectorAll('.step-section');
+
+            // Update the current step
+            currentStep += stepChange;
+
+            // Ensure currentStep is within bounds
+            if (currentStep < 1) currentStep = 1;
+            if (currentStep > stepSections.length) currentStep = stepSections.length;
+
+            // Hide all steps and show only the current step
+            stepSections.forEach((section, index) => {
+                section.classList.toggle('hidden', index + 1 !== currentStep);
+            });
+
+            // Update navigation buttons
+            const nextBtn = document.getElementById('nextBtn');
+            const previousBtn = document.getElementById('previousBtn');
+            previousBtn.disabled = currentStep === 1;
+
+            if (currentStep === stepSections.length) {
+                // Last step: Set Next button to submit form
+                nextBtn.textContent = "Submit";
                 nextBtn.onclick = () => {
-                    const form = document.getElementById('multiStepForm');
-                    if (form.checkValidity()) {
+                    if (validateStepsUpToCurrent()) {
                         form.requestSubmit();
-                    } else {
-                        changeStep(-2)
-                        form.reportValidity();
                     }
                 };
             } else {
-                document.getElementById('nextBtn').textContent = "Next ";
-
-                document.getElementById('nextBtn').innerHTML += `
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="size-4">
-                    <path fill-rule="evenodd" d="M6.22 4.22a.75.75 0 0 1 1.06 0l3.25 3.25a.75.75 0 0 1 0 1.06l-3.25 3.25a.75.75 0 0 1-1.06-1.06L8.94 8 6.22 5.28a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd"/>
-                </svg>
-            `;
+                // Not the last step: Set Next button to move to the next step
+                nextBtn.textContent = "Next";
+                nextBtn.onclick = () => {
+                    if (validateStepsUpToCurrent()) {
+                        changeStep(1); // Proceed to the next step
+                    }
+                };
             }
+
+            // Update step indicators
+            updateStepIndicator();
         }
 
-        showStep(currentStep);
         document.addEventListener('DOMContentLoaded', () => {
             const categorySelect = document.getElementById('category');
             const resourceLabel = document.getElementById('resource-label');
