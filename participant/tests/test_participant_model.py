@@ -2,6 +2,7 @@ from django.test import TestCase
 from django.utils import timezone
 from participant.models import Participant, RestaurantParticipant
 from manager.models import Queue, RestaurantQueue, Table
+from manager.models import Queue, RestaurantQueue, Table, Resource
 from django.contrib.auth.models import User
 from datetime import timedelta
 
@@ -27,6 +28,7 @@ class ParticipantModelTests(TestCase):
             position=1,
             note='Test note'
         )
+        self.resource = Resource.objects.create(name="Test Resource", status="available")
 
     def test_generate_unique_queue_code(self):
         """Test that a unique queue code is generated for each participant."""
@@ -35,10 +37,27 @@ class ParticipantModelTests(TestCase):
         self.assertTrue(code.isalnum())
         self.assertEqual(Participant.objects.filter(code=code).count(), 1)
 
+    def test_save_method(self):
+        """Test save method for unique code and position generation."""
+        self.assertIsNotNone(self.participant.code)
+        self.assertEqual(self.participant.position, 1)
+
     def test_update_position(self):
         """Test updating the position of the participant."""
         self.participant.update_position(3)
         self.assertEqual(self.participant.position, 3)
+
+        with self.assertRaises(ValueError) as context:
+            self.participant.update_position(0)  # Attempt to set position to 0
+
+        # Verify the exception message
+        self.assertEqual(str(context.exception), "Position must be positive.")
+
+        with self.assertRaises(ValueError) as context:
+            self.participant.update_position(-5)  # Attempt to set position to a negative value
+
+        # Verify the exception message
+        self.assertEqual(str(context.exception), "Position must be positive.")
 
     def test_calculate_estimated_wait_time(self):
         """Test that estimated wait time is calculated correctly."""
@@ -52,30 +71,59 @@ class ParticipantModelTests(TestCase):
 
     def test_get_wait_time(self):
         """Test the wait time calculation."""
-        self.assertEqual(self.participant.get_wait_time(), 0)  #
+        self.assertEqual(self.participant.get_wait_time(), 0)
         self.participant.state = 'waiting'
         self.participant.joined_at = timezone.localtime() - timedelta(
             minutes=10)
         self.participant.save()
         self.assertEqual(self.participant.get_wait_time(), 10)
 
-    def test_get_service_duration(self):
-        """Test the service duration calculation."""
-        self.participant.start_service()
-        service_duration_minutes = 5
-        self.participant.service_started_at = timezone.localtime()
+    def test_get_wait_time_with_service_started(self):
+        """Test get_wait_time method when service_started_at is set."""
+        # Set up a participant with joined_at and service_started_at
+        self.participant.joined_at = timezone.now() - timedelta(minutes=20)
+        self.participant.service_started_at = timezone.now() - timedelta(minutes=10)
+        self.participant.state = 'serving'
         self.participant.save()
-        self.participant.service_completed_at = self.participant.service_started_at + timedelta(
-            minutes=service_duration_minutes)
+
+        # Call get_wait_time and verify the calculated wait time
+        wait_time = self.participant.get_wait_time()
+        self.assertEqual(wait_time, 10)
+
+    def test_get_service_duration_serving(self):
+        """Test get_service_duration when participant is serving."""
+        # Set up a participant in 'serving' state
+        self.participant.state = 'serving'
+        self.participant.service_started_at = timezone.now() - timedelta(minutes=15)
+        self.participant.save()
+
+        # Call get_service_duration and verify the result
+        service_duration = self.participant.get_service_duration()
+        self.assertEqual(service_duration, 15)  # Service started 15 minutes ago
+
+    def test_get_service_duration_completed(self):
+        """Test get_service_duration when participant has completed service."""
+        # Set up a participant in 'completed' state
         self.participant.state = 'completed'
+        self.participant.service_started_at = timezone.now() - timedelta(minutes=30)
+        self.participant.service_completed_at = timezone.now() - timedelta(minutes=10)
         self.participant.save()
 
-        # Refresh participant instance
-        self.participant.refresh_from_db()
+        # Call get_service_duration and verify the result
+        service_duration = self.participant.get_service_duration()
+        self.assertEqual(service_duration, 20)  # 30 minutes started - 10 minutes completed
 
-        # Now we should get the duration equal to service_duration_minutes
-        self.assertEqual(self.participant.get_service_duration(),
-                         service_duration_minutes)
+    def test_get_service_duration_default(self):
+        """Test get_service_duration when no service has started."""
+        # Set up a participant without service started or completed
+        self.participant.state = 'waiting'  # Neither 'serving' nor 'completed'
+        self.participant.service_started_at = None
+        self.participant.service_completed_at = None
+        self.participant.save()
+
+        # Call get_service_duration and verify the result
+        service_duration = self.participant.get_service_duration()
+        self.assertEqual(service_duration, 0)
 
     def test_remove_old_completed_participants(self):
         """Test that old completed participants are removed."""
@@ -88,6 +136,41 @@ class ParticipantModelTests(TestCase):
         Participant.remove_old_completed_participants()
         self.assertFalse(
             Participant.objects.filter(id=old_participant.id).exists())
+
+    def test_assign_to_resource(self):
+        """Test assign_to_resource method."""
+        # Ensure the resource is available and associated with the queue
+        self.resource.status = 'available'
+        self.resource.queue = self.queue  # Associate the resource with the queue
+        self.resource.save()
+
+        # Test resource assignment without required capacity
+        self.participant.assign_to_resource()
+        self.resource.refresh_from_db()  # Reload the resource from the database
+        self.assertEqual(self.participant.resource, self.resource)
+        self.assertEqual(self.resource.status, 'busy')  # Verify status update
+
+        # Reset resource and test with required capacity
+        self.resource.status = 'available'
+        self.resource.capacity = 10
+        self.resource.save()
+        self.participant.assign_to_resource(required_capacity=5)
+        self.resource.refresh_from_db()  # Reload the resource
+        self.assertEqual(self.participant.resource, self.resource)
+        self.assertEqual(self.resource.status, 'busy')
+
+    def test_assign_to_resource_no_available_resources(self):
+        """Test assign_to_resource raises ValueError when no resources are available."""
+        # Ensure there are no available resources
+        self.resource.status = 'busy'  # Set the resource to busy
+        self.resource.save()
+
+        # Attempt to assign a resource and expect a ValueError
+        with self.assertRaises(ValueError) as context:
+            self.participant.assign_to_resource()
+
+        # Verify the exception message
+        self.assertEqual(str(context.exception), "No available resources")
 
 
 class RestaurantParticipantModelTests(TestCase):
