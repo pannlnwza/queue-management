@@ -113,7 +113,9 @@
 
 
 <script>
-    const eventSource = new EventSource('/status/{{ participant.code }}/sse');
+    const participantCode = "{{ participant.code }}";  // Pass the participant code dynamically from the backend
+    const socketUrl = `ws://${window.location.host}/ws/status/${participantCode}/`;
+    const socket = new WebSocket(socketUrl);
 
     // Elements
     const notificationButton = document.getElementById('notificationButton');
@@ -138,7 +140,12 @@
         }
     });
 
-    eventSource.onmessage = function (event) {
+    // WebSocket event handlers
+    socket.onopen = function () {
+        console.log("WebSocket connection established!");
+    };
+
+    socket.onmessage = function (event) {
         try {
             const data = JSON.parse(event.data);
             console.log("Received data:", data);
@@ -217,14 +224,22 @@
             if (data.served) {
                 document.getElementById('served-message').style.display = 'block';
                 document.getElementById('leave-button').style.display = 'none';
-            } else if (data.position === 1  && data.served === null) {
+            } else if (data.position === 1 && data.served === null) {
                 document.getElementById('first-in-queue-message').style.display = 'block';
             } else {
                 document.getElementById('ETA-message').style.display = 'block';
             }
         } catch (error) {
-            console.error("Error parsing SSE data:", error);
+            console.error("Error parsing WebSocket data:", error);
         }
+    };
+
+    socket.onclose = function () {
+        console.log("WebSocket connection closed.");
+    };
+
+    socket.onerror = function (error) {
+        console.error("WebSocket error:", error);
     };
 
     function markAsRead(notificationId) {
@@ -262,12 +277,9 @@
         });
     }
 
-    eventSource.onerror = function(error) {
-        console.error("Error in SSE connection:", error);
-    };
-
     function confirmLeaveQueue() {
         return confirm("Are you sure you want to leave the queue? This action cannot be undone.");
     }
 </script>
+
 {% endblock %}
