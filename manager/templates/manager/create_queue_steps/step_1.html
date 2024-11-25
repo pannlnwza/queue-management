@@ -9,32 +9,36 @@
   </ul>
 </div>
 
-
 <div class="card flex border-2 border-base-300 max-w-4xl w-full sm:w-3/4 md:w-1/2 mx-auto p-6 mt-4">
     <form method="post" enctype="multipart/form-data">
         {% csrf_token %}
         <div>
-        <div><label class="text-m text-neutral">Name*</label></div>
-        {{ form.name }}
-        </div>
-        <div><label class="text-m text-neutral">Description*</label></div>
-        <div>
-            {{ form.description }}
-        </div>
-        <div class="grid grid-cols-2 gap-4">
-            <!-- First column -->
             <div>
-                <label class="text-m text-neutral">Select Category*</label>
-                {{ form.category }}
-            </div>
-
-            <!-- Second column -->
-            <div class="form-control w-full max-w-xs">
-                <label class="text-m text-neutral">Insert Your Logo (Optional)</label>
-                {{ form.logo }}
+                <label class="text-m text-neutral">Name*</label>
+                {{ form.name }}
             </div>
         </div>
-        <div class="flex justify-end">
+        <div>
+            <label class="text-m text-neutral">Description (Optional)</label>
+            <div>
+                {{ form.description }}
+            </div>
+        </div>
+        <div class="flex flex-wrap items-center gap-4">
+            <!-- Category Selection -->
+            <div class="flex items-center">
+                <label class="text-m text-neutral mr-2">Select Category*</label>
+                <div>
+                    {{ form.category }}
+                </div>
+            </div>
+            <!-- Logo Upload -->
+            <div class="flex items-center">
+                <label class="text-m text-neutral">Upload Your Logo (Optional)</label>
+                <input type="file" name="logo" class="file-input file-input-bordered w-full max-w-xs" accept="image/*" />
+            </div>
+        </div>
+        <div class="flex justify-end mt-4">
             <button type="submit" class="btn btn-primary">Next</button>
         </div>
     </form>

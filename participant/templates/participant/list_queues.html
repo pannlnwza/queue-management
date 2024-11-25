@@ -2,7 +2,18 @@
 {% load static %}
 
 {% block content %}
+
 <div class="container mx-auto p-4">
+
+    <div class="mb-6">
+        <button onclick="history.back()" class="btn btn-ghost gap-2 hover:bg-base-200 text-lg">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M19 12H5M12 19l-7-7 7-7"/>
+            </svg>
+            <span class="text-lg font-medium">Back</span>
+        </button>
+    </div>
+
     <div class="card bg-base-100 shadow-xl">
         <div class="card-body">
             <h2 class="card-title text-2xl font-bold mb-6">{{ queue_type }} Queues</h2>
@@ -95,33 +106,37 @@
                         {% endif %}
                     {% endfor %}
                 {% else %}
-                    <div class="text-center py-8 text-base-content/70 col-span-2">
-                        No queues available.
+                    <div id="noQueuesMessage" class="text-center py-8 text-base-content/70 col-span-2">
+                        No queues available now.
                     </div>
                 {% endif %}
+                <div id="noResultsMessage" class="text-center py-8 text-base-content/70 col-span-2 hidden">
+                    No queues found matching your search and filter criteria.
+                </div>
             </div>
         </div>
     </div>
 </div>
 
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', function () {
         const searchInput = document.getElementById('searchInput');
         const queueItems = document.querySelectorAll('.queue-item');
         const statusFilter = document.getElementById('statusFilter');
 
-        searchInput.addEventListener('input', function(e) {
-            const searchTerm = e.target.value.toLowerCase();
-            filterQueues(searchTerm, statusFilter.value);
-        });
+        const noQueuesMessage = document.getElementById('noQueuesMessage');
+        const noResultsMessage = document.getElementById('noResultsMessage');
 
-        statusFilter.addEventListener('change', function(e) {
-            const status = e.target.value.toLowerCase();
-            filterQueues(searchInput.value, status);
-        });
+        const hasQueues = queueItems.length > 0;
 
         function filterQueues(searchTerm, status) {
             let hasVisibleQueues = false;
+
+            if (!hasQueues) {
+                noQueuesMessage?.classList.remove('hidden');
+                noResultsMessage.classList.add('hidden');
+                return;
+            }
 
             queueItems.forEach(item => {
                 const queueName = item.dataset.queueName;
@@ -138,18 +153,29 @@
                 }
             });
 
-            let noResultsMsg = document.getElementById('noResultsMessage');
             if (!hasVisibleQueues) {
-                if (!noResultsMsg) {
-                    noResultsMsg = document.createElement('div');
-                    noResultsMsg.id = 'noResultsMessage';
-                    noResultsMsg.className = 'text-center py-8 text-base-content/70 col-span-2';
-                    noResultsMsg.textContent = 'No queues found matching your search and filter criteria.';
-                    document.getElementById('queueList').appendChild(noResultsMsg);
-                }
-            } else if (noResultsMsg) {
-                noResultsMsg.remove();
+                noResultsMessage.classList.remove('hidden');
+            } else {
+                noResultsMessage.classList.add('hidden');
             }
+
+            noQueuesMessage?.classList.add('hidden');
+        }
+
+        searchInput.addEventListener('input', function (e) {
+            const searchTerm = e.target.value.toLowerCase();
+            filterQueues(searchTerm, statusFilter.value);
+        });
+
+        statusFilter.addEventListener('change', function (e) {
+            const status = e.target.value.toLowerCase();
+            filterQueues(searchInput.value.toLowerCase(), status);
+        });
+
+        if (!hasQueues) {
+            noQueuesMessage?.classList.remove('hidden');
+        } else {
+            noQueuesMessage?.classList.add('hidden');
         }
     });
 </script>

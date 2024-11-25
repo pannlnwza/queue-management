@@ -14,6 +14,7 @@ from django.db.models.signals import post_save
 from manager.utils.helpers import format_duration
 from django.utils import timezone
 from math import radians, sin, cos, sqrt, atan2
+import base64
 
 
 class Queue(models.Model):
@@ -43,7 +44,7 @@ class Queue(models.Model):
     status = models.CharField(max_length=10, choices=STATUS_CHOICES,
                               default='normal')
     category = models.CharField(max_length=20, choices=CATEGORY_CHOICES)
-    logo = models.ImageField(upload_to='queue_logos/', blank=True, null=True)
+    logo = models.BinaryField(blank=True, null=True)
     completed_participants_count = models.PositiveIntegerField(default=0)
     code = models.CharField(max_length=12, unique=True, editable=False)
     latitude = models.FloatField()
@@ -179,17 +180,19 @@ class Queue(models.Model):
     def get_logo_url(self):
         """Get a logo URL for the queue, or return a default logo based on category."""
         if self.logo:
-            return self.logo.url
+            # Convert binary data to base64 and create a data URL
+            logo_base64 = base64.b64encode(self.logo).decode('utf-8')
+            return f"data:image/jpeg;base64,{logo_base64}"
+
+        # Fallback to default logos based on the queue category
         default_logos = {
-            'restaurant': static(
-                'participant/images/restaurant_default_logo.png'),
+            'restaurant': static('participant/images/restaurant_default_logo.png'),
             'bank': static('participant/images/bank_default_logo.jpg'),
             'general': static('participant/images/general_default_logo.png'),
             'hospital': static('participant/images/hospital_default_logo.jpg'),
-            'service center': static(
-                'participant/images/service_center_default_logo.png')
+            'service center': static('participant/images/service_center_default_logo.png'),
         }
-        return default_logos.get(str(self.category))
+        return default_logos.get(self.category, static('participant/images/general_default_logo.png'))
 
     def edit(self, name: str = None, description: str = None,
              is_closed: bool = None, status: str = None) -> None:
@@ -241,9 +244,6 @@ class Queue(models.Model):
         """Return the number of participant that completed the service."""
         return self.participant_set.filter(state='completed').count()
 
-    def get_number_served(self):
-        """Return the number of participants served."""
-        return self.participant_set.filter(state='completed').count()
     def get_number_serving_now(self, start_date=None, end_date=None):
         """Return the number of participants currently serving, optionally within a date range."""
         queryset = self.participant_set.filter(state='serving')

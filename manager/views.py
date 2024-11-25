@@ -19,6 +19,7 @@ from django.utils import timezone
 from django.views import generic, View
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from gtts.tts import gTTS
+import base64
 
 from manager.forms import OpeningHoursForm, ResourceForm
 from django.views.decorators.http import require_http_methods
@@ -49,7 +50,6 @@ from participant.models import Participant, Notification
 logger = logging.getLogger('queue')
 
 
-
 class MultiStepFormView(View):
     """
     Multistep form for creating a queue.
@@ -78,27 +78,29 @@ class MultiStepFormView(View):
         else:
             return redirect('manager:your-queue')
         try:
-            # Determine which form to render based on the step
+            # Determine the form to render based on the step
+            form = None
             if step == "1":
                 form = QueueForm()
             elif step == "2":
                 form = OpeningHoursForm()
             elif step == "3":
-                queue_data = request.session.get('queue_data', {})
-                queue_category = queue_data.get('category', None)
-                form = ResourceForm(queue_category={'category': queue_category})
+                queue_data = request.session.get("queue_data", {})
+                queue_category = queue_data.get("category")
+                form = ResourceForm(queue_category={"category": queue_category})
             else:
-                return redirect('manager:your-queue')  # Redirect for invalid steps
+                messages.error(request, "Invalid step.")
+                return redirect("manager:your-queue")
 
             return render(
                 request,
-                f'manager/create_queue_steps/step_{step}.html',
-                {'form': form, 'step': step}
+                f"manager/create_queue_steps/step_{step}.html",
+                {"form": form, "step": step},
             )
         except Exception as e:
             logger.error(f"Error in GET step {step}: {e}\n{traceback.format_exc()}")
-            messages.error(request, "An error occurred while loading the form. Please try again.")
-            return redirect('manager:your-queue')
+            messages.error(request, "An error occurred while loading the form.")
+            return redirect("manager:your-queue")
 
     def post(self, request, step):
         """
@@ -115,94 +117,108 @@ class MultiStepFormView(View):
                 return redirect('manager:create_queue_step', step="2")
         try:
             if step == "1":
-                form = QueueForm(request.POST, request.FILES)
-                if form.is_valid():
-                    queue_data = form.cleaned_data.copy()
-
-                    # Handle the logo field separately
-                    if 'logo' in request.FILES:
-                        file = request.FILES['logo']
-                        fs = FileSystemStorage(location=os.path.join(settings.MEDIA_ROOT, 'temp'))
-                        filename = fs.save(file.name, file)  # Save the file temporarily
-                        request.session['logo_path'] = filename  # Save only the filename in session
-
-                    # Remove 'logo' from queue_data to avoid serialization issues
-                    queue_data.pop('logo', None)
-                    request.session['queue_data'] = queue_data
-
-                    return redirect('manager:create_queue_step', step="2")
-                else:
-                    messages.error(request, "Please correct the errors in the form.")
-                    return render(request, 'manager/create_queue_steps/step_1.html', {'form': form, 'step': step})
-
+                return self.handle_step_1(request)
             elif step == "2":
-                form = OpeningHoursForm(request.POST)
-                if form.is_valid():
-                    latitude = request.POST.get('latitudeInput')
-                    longitude = request.POST.get('longitudeInput')
-
-                    time_and_location_data = {
-                        'open_time': form.cleaned_data['open_time'].strftime('%H:%M:%S') if form.cleaned_data.get('open_time') else None,
-                        'close_time': form.cleaned_data['close_time'].strftime('%H:%M:%S') if form.cleaned_data.get('close_time') else None,
-                        'latitude': latitude,
-                        'longitude': longitude,
-                    }
-                    request.session['time_and_location_data'] = time_and_location_data
-
-                    return redirect('manager:create_queue_step', step="3")
-                else:
-                    messages.error(request, "Please correct the errors in the form.")
-                    return render(request, 'manager/create_queue_steps/step_2.html', {'form': form, 'step': step})
-
+                return self.handle_step_2(request)
             elif step == "3":
-                queue_data = request.session.get('queue_data', {})
-                time_and_location_data = request.session.get('time_and_location_data', {})
-                queue_data.update(time_and_location_data)
-
-                form = ResourceForm(request.POST, queue_category={'category': queue_data.get('category')})
-                if form.is_valid():
-                    try:
-                        with transaction.atomic():
-                            resource_data = form.cleaned_data
-                            handler = CategoryHandlerFactory.get_handler(queue_data['category'])
-
-                            # Create the queue
-                            queue_data['created_by'] = request.user
-                            queue = handler.create_queue(queue_data)
-
-                            # Assign the logo to the queue
-                            logo_path = request.session.pop('logo_path', None)
-                            if logo_path:
-                                temp_file_path = os.path.join(settings.MEDIA_ROOT, 'temp', logo_path)
-                                final_storage = FileSystemStorage(location=os.path.join(settings.MEDIA_ROOT, 'queue_logos'))
-                                final_file_name = final_storage.save(os.path.basename(temp_file_path), open(temp_file_path, 'rb'))
-                                queue.logo = os.path.join('queue_logos', final_file_name)
-                                queue.save()
-
-                                # Delete the temporary file
-                                os.remove(temp_file_path)
-
-                            # Add resources to the queue
-                            resource_data['queue'] = queue
-                            handler.add_resource(resource_data)
-
-                        messages.success(request, f"Successfully created queue: {queue.name}")
-                        del request.session['queue_data']
-                        del request.session['time_and_location_data']
-                        return redirect('manager:your-queue')
-
-                    except Exception as e:
-                        logger.error(f"Error creating queue or adding resource: {e}\n{traceback.format_exc()}")
-                        messages.error(request, f"An error occurred: {e}")
-                        return redirect('manager:create_queue_step', step="3")
-                else:
-                    messages.error(request, "Please correct the errors in the form.")
-                    return render(request, 'manager/create_queue_steps/step_3.html', {'form': form, 'step': step})
-
+                return self.handle_step_3(request)
+            else:
+                messages.error(request, "Invalid step.")
+                return redirect("manager:your-queue")
         except Exception as e:
-            logger.error(f"Unexpected error in step {step}: {e}\n{traceback.format_exc()}")
+            logger.error(f"Unexpected error in POST step {step}: {e}\n{traceback.format_exc()}")
             messages.error(request, "An unexpected error occurred. Please try again.")
-            return redirect('manager:your-queue')
+            return redirect("manager:your-queue")
+
+    def handle_step_1(self, request):
+        form = QueueForm(request.POST)
+        if form.is_valid():
+            queue_data = form.cleaned_data.copy()
+
+            # Handle logo upload
+            if "logo" in request.FILES:
+                logo_file = request.FILES["logo"]
+                temp_dir = os.path.join(settings.MEDIA_ROOT, "temp")
+                os.makedirs(temp_dir, exist_ok=True)
+                temp_file_path = os.path.join(temp_dir, logo_file.name)
+                with open(temp_file_path, "wb") as temp_file:
+                    for chunk in logo_file.chunks():
+                        temp_file.write(chunk)
+                request.session["logo_temp_path"] = temp_file_path
+
+            request.session["queue_data"] = queue_data
+            return redirect("manager:create_queue_step", step="2")
+
+        messages.error(request, "Please correct the errors in the form.")
+        return render(request, "manager/create_queue_steps/step_1.html", {"form": form, "step": "1"})
+
+    def handle_step_2(self, request):
+        form = OpeningHoursForm(request.POST)
+        if form.is_valid():
+            latitude = request.POST.get("latitudeInput")
+            longitude = request.POST.get("longitudeInput")
+
+            time_and_location_data = {
+                "open_time": form.cleaned_data.get("open_time").strftime("%H:%M:%S") if form.cleaned_data.get(
+                    "open_time") else None,
+                "close_time": form.cleaned_data.get("close_time").strftime("%H:%M:%S") if form.cleaned_data.get(
+                    "close_time") else None,
+                "latitude": latitude,
+                "longitude": longitude,
+            }
+            request.session["time_and_location_data"] = time_and_location_data
+            return redirect("manager:create_queue_step", step="3")
+
+        messages.error(request, "Please correct the errors in the form.")
+        return render(request, "manager/create_queue_steps/step_2.html", {"form": form, "step": "2"})
+
+    def handle_step_3(self, request):
+        queue_data = request.session.get("queue_data", {})
+        time_and_location_data = request.session.get("time_and_location_data", {})
+        queue_data.update(time_and_location_data)
+
+        form = ResourceForm(request.POST, queue_category={"category": queue_data.get("category")})
+        if form.is_valid():
+            try:
+                with transaction.atomic():
+                    resource_data = form.cleaned_data
+                    handler = CategoryHandlerFactory.get_handler(queue_data["category"])
+                    queue_data["created_by_id"] = request.user.id
+                    queue = handler.create_queue(queue_data)
+
+                    # Handle logo
+                    logo_path = request.session.pop("logo_temp_path", None)
+                    if logo_path:
+                        try:
+                            # Read and store the binary data in the BinaryField
+                            with open(logo_path, "rb") as logo_file:
+                                queue.logo = logo_file.read()
+                            queue.save()
+
+                            # Clean up the temporary file
+                            if os.path.exists(logo_path):
+                                os.remove(logo_path)
+                        except Exception as e:
+                            logger.error(f"Error processing the logo file: {e}")
+                            raise
+
+                    # Add resources to the queue
+                    resource_data["queue"] = queue
+                    handler.add_resource(resource_data)
+
+                    # Cleanup session data
+                    request.session.pop("queue_data", None)
+                    request.session.pop("time_and_location_data", None)
+
+                    messages.success(request, f"Successfully created queue: {queue.name}")
+                    return redirect("manager:your-queue")
+            except Exception as e:
+                logger.error(f"Error creating queue or adding resource: {e}\n{traceback.format_exc()}")
+                messages.error(request, f"An error occurred: {e}")
+                return redirect("manager:create_queue_step", step="3")
+
+        messages.error(request, "Please correct the errors in the form.")
+        return render(request, "manager/create_queue_steps/step_3.html", {"form": form, "step": "3"})
 
 class EditQueueView(LoginRequiredMixin, generic.UpdateView):
     """
@@ -288,58 +304,68 @@ def notify_participant(request, participant_id):
     try:
         # Parse the JSON body
         body = json.loads(request.body)
-        message = body.get('message', 'Your queue is here!')
+        message = body.get("message", "Your queue is here!")
     except json.JSONDecodeError:
-        return JsonResponse({'status': 'error', 'message': 'Invalid JSON data'}, status=400)
+        return JsonResponse({"status": "error", "message": "Invalid JSON data"}, status=400)
 
     # Create the notification and mark the participant as notified
     Notification.objects.create(queue=queue, participant=participant, message=message)
     participant.is_notified = True
 
+    # Generate Text-to-Speech (TTS) notification if enabled
     audio_url = None
     if queue.tts_notifications_enabled:
         participant_notification_count = Notification.objects.filter(participant=participant).count()
-        if participant_notification_count == 1:
-            tts = gTTS(text=f"Attention Participant {participant.number}, your turn is now.", lang='en')
-            audio_dir = os.path.join(settings.MEDIA_ROOT, 'announcements')
-            os.makedirs(audio_dir, exist_ok=True)
-            audio_path = os.path.join(audio_dir, f'announcement_{participant.id}.mp3')
-            tts.save(audio_path)
-            audio_url = f"{settings.MEDIA_URL}announcements/announcement_{participant.id}.mp3"
+        if participant_notification_count == 1:  # Generate TTS only for the first notification
+            try:
+                tts = gTTS(text=f"Attention Participant {participant.number}, your turn is now.", lang="en")
+                audio_dir = os.path.join(settings.MEDIA_ROOT, "announcements")
+                os.makedirs(audio_dir, exist_ok=True)
+                audio_filename = f"announcement_{participant.id}.mp3"
+                audio_path = os.path.join(audio_dir, audio_filename)
+                tts.save(audio_path)
+
+                # Save the file path to the participant
+                participant.announcement_audio = audio_filename
+                audio_url = f"{settings.MEDIA_URL}announcements/{audio_filename}"
+            except Exception as e:
+                logger = logging.getLogger(__name__)
+                logger.error(f"Failed to generate TTS announcement for participant {participant.id}: {str(e)}")
 
     participant.save()
 
     # Prepare email context
     email_context = {
-        'participant': participant,
-        'message': message,
-        'queue': queue
+        "participant": participant,
+        "message": message,
+        "queue": queue,
     }
 
     # Attempt to send the email
     email_error = None
-    try:
-        send_html_email(
-            subject="Your Queue Notification",
-            to_email=participant.email,
-            template_name="manager/emails/participant_notification.html",
-            context=email_context,
-        )
-    except Exception as e:
-        # Log the email sending error but do not interrupt the response
-        logger = logging.getLogger(__name__)
-        logger.error(f"Failed to send email to participant {participant.email}: {str(e)}")
-        email_error = f"Failed to send email to participant {participant.email}: {str(e)}"
+    if participant.email:
+        try:
+            send_html_email(
+                subject="Your Queue Notification",
+                to_email=participant.email,
+                template_name="manager/emails/participant_notification.html",
+                context=email_context,
+            )
+        except Exception as e:
+            logger = logging.getLogger(__name__)
+            logger.error(f"Failed to send email to participant {participant.email}: {str(e)}")
+            email_error = f"Failed to send email to participant {participant.email}: {str(e)}"
 
-    # Respond with success for audio and email status
+    # Prepare the JSON response
     response = {
-        'status': 'success',
-        'message': 'Notification sent successfully!',
-        'audio_url': audio_url,
+        "status": "success",
+        "message": "Notification sent successfully!",
+        "audio_url": audio_url,  # Return the audio URL for playback
     }
     if email_error:
-        response['email_status'] = 'error'
-        response['email_message'] = email_error
+        response["email_status"] = "error"
+        response["email_message"] = email_error
+
     return JsonResponse(response)
 
 
@@ -398,6 +424,17 @@ def serve_participant_no_resource(request, participant_id):
             'error': f'Error: {str(e)}'
         }, status=500)
 
+@require_http_methods(["DELETE"])
+def delete_audio_file(request, filename):
+    logger.info(f"Attempting to delete audio file: {filename}")
+
+    audio_path = os.path.join(settings.MEDIA_ROOT, "announcements", filename)
+    if os.path.exists(audio_path):
+        os.remove(audio_path)
+        logger.info(f"Deleted audio file: {audio_path}")
+        return JsonResponse({"status": "success", "message": "Audio file deleted successfully."})
+    logger.warning(f"Audio file not found: {audio_path}")
+    return JsonResponse({"status": "error", "message": "Audio file not found."}, status=404)
 
 
 @require_http_methods(["DELETE"])
@@ -1133,6 +1170,7 @@ def edit_queue(request, queue_id):
     queue = get_object_or_404(Queue, id=queue_id)
     handler = CategoryHandlerFactory.get_handler(queue.category)
     queue = handler.get_queue_object(queue_id)
+
     if request.method == 'POST':
         name = request.POST.get('name')
         description = request.POST.get('description')
@@ -1144,31 +1182,38 @@ def edit_queue(request, queue_id):
         logo = request.FILES.get('logo', None)
         tts_enabled = request.POST.get('tts')
 
-
         queue.name = name
         queue.description = description
         queue.latitude = latitude
         queue.longitude = longitude
         queue.is_closed = False if status == 'on' else True
         queue.tts_notifications_enabled = True if tts_enabled == 'on' else False
+
         try:
+            # Parse open and close time
             if open_time:
                 queue.open_time = datetime.strptime(open_time, "%H:%M").time()
             if close_time:
-                queue.close_time = datetime.strptime(close_time,
-                                                     "%H:%M").time()
+                queue.close_time = datetime.strptime(close_time, "%H:%M").time()
         except ValueError as e:
-            print(f"Error while parsing time: {e}")
-            messages.error(request,
-                           'Invalid time format. Please use HH:MM format.')
+            logger.error(f"Error parsing time: {e}")
+            messages.error(request, 'Invalid time format. Please use HH:MM.')
             return redirect('manager:queue_settings', queue_id=queue_id)
-        queue.is_closed = False if status == 'on' else True
+
+        # Handle the logo update
         if logo:
-            queue.logo = logo
+            try:
+                logo_content = logo.read()
+                queue.logo = base64.b64decode(base64.b64encode(logo_content))
+            except Exception as e:
+                logger.error(f"Error processing logo file: {e}")
+                messages.error(request, 'An error occurred while processing the logo.')
+                return redirect('manager:queue_settings', queue_id=queue_id)
+
+        # Save the updated queue
         queue.save()
         messages.success(request, 'Queue settings updated successfully.')
-        return redirect('manager:queue_settings', queue_id)
-
+        return redirect('manager:queue_settings', queue_id=queue_id)
 
 def signup(request):
     """
