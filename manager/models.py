@@ -221,9 +221,6 @@ class Queue(models.Model):
         """Return the number of participant that completed the service."""
         return self.participant_set.filter(state='completed').count()
 
-    def get_number_served(self):
-        """Return the number of participants served."""
-        return self.participant_set.filter(state='completed').count()
     def get_number_serving_now(self, start_date=None, end_date=None):
         """Return the number of participants currently serving, optionally within a date range."""
         queryset = self.participant_set.filter(state='serving')
