@@ -67,92 +67,6 @@ class CreateQueueView(generic.TemplateView):
 def create_queue(request):
     data = request.POST.dict()
     category = data.get('category')
-
-
-
-    queue_data = {
-        'category': category,
-        'name': data.get('name'),
-        'description': data.get('description'),
-        'open_time': data.get('open_time'),
-        'close_time': data.get('close_time'),
-        'latitude': data.get('latitude'),
-        'longitude': data.get('longitude'),
-        'created_by': request.user,
-    }
-
-    resource_data = {
-        'name': data.get('resource_name')
-
-    }
-
-    handler = CategoryHandlerFactory.get_handler(category)
-    try:
-        # Create the queue with the extracted data
-        queue = handler.create_queue(queue_data)
-
-        queue.delete()
-
-        messages.success(request, f"Queue '{data.get('name')}' created successfully.")
-        return redirect('manager:your-queue')
-    except Exception as e:
-        messages.error(request, f"An error occurred while creating the queue: {str(e)}")
-        return redirect('manager:your-queue')
-
-
-
-
-
-
-
-class EditQueueView(LoginRequiredMixin, generic.UpdateView):
-    """
-    Edit an existing queue.
-
-    Allows authenticated users to change the queue's name, delete participants,
-    or close the queue.
-
-    :param model: The model to use for editing the queue.
-    :param form_class: The form class for queue editing.
-    :param template_name: The name of the template to render.
-    """
-    model = Queue
-    form_class = QueueForm
-    template_name = 'manager/edit_queue.html'
-
-    def dispatch(self, request, *args, **kwargs):
-        """
-        Check if the user is the creator of the queue before allowing access.
-        """
-        queue = self.get_object()
-        if queue.created_by != request.user:
-            messages.error(self.request,
-                           "You do not have permission to edit this queue.")
-            logger.warning(
-                f"Unauthorized attempt to access edit queue page for queue: {queue.name} by user: {request.user}")
-            return redirect('manager:manage_queues')
-        return super().dispatch(request, *args, **kwargs)
-
-    def get_success_url(self):
-        """redirect user back to manage queues page, if the edit was saved successfully."""
-        return reverse('manager:manage_queues')
-
-    def get_context_data(self, **kwargs):
-        """
-        Add additional context data to the template.
-
-        :param kwargs: Additional keyword arguments passed to the method.
-        :returns: The updated context dictionary.
-        """
-        context = super().get_context_data(**kwargs)
-        queue = self.object
-        context['participants'] = queue.participant_set.all()
-        return context
-
-
-def create_queue(request):
-    data = request.POST.dict()
-    category = data.get('category')
     resource_name = data.get('resource_name')
     resource_special = data.get('resource_detail')
 
@@ -166,6 +80,14 @@ def create_queue(request):
         'longitude': data.get('longitude'),
         'created_by': request.user,
     }
+
+    if 'logo' in request.FILES:
+        try:
+            logo_file = request.FILES['logo']
+            queue_data['logo'] = logo_file.read()
+        except Exception as e:
+            messages.error(request, f"Error processing the logo file: {e}")
+            return redirect('manager:your-queue')
 
     handler = CategoryHandlerFactory.get_handler(category)
     try:
@@ -899,8 +821,15 @@ def edit_queue(request, queue_id):
         longitude = request.POST.get('longitude')
         open_time = request.POST.get('open_time')
         close_time = request.POST.get('close_time')
-        logo = request.FILES.get('logo', None)
         tts_enabled = request.POST.get('tts')
+
+        if 'logo' in request.FILES:
+            try:
+                logo_file = request.FILES['logo']
+                queue.logo = logo_file.read()
+            except Exception as e:
+                messages.error(request, f"Error processing the logo file: {e}")
+                return redirect('manager:your-queue')
 
         queue.name = name
         queue.description = description
@@ -920,8 +849,6 @@ def edit_queue(request, queue_id):
                            'Invalid time format. Please use HH:MM format.')
             return redirect('manager:queue_settings', queue_id=queue_id)
         queue.is_closed = False if status == 'on' else True
-        if logo:
-            queue.logo = logo
         queue.save()
         messages.success(request, 'Queue settings updated successfully.')
         return redirect('manager:queue_settings', queue_id)
