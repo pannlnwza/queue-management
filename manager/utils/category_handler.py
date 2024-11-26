@@ -256,7 +256,7 @@ class RestaurantQueueHandler(CategoryHandler):
         }
 
     def update_participant(self, participant, data):
-        Table = apps.get_model('participant', 'Table')
+        Table = apps.get_model('manager', 'Table')
         participant.name = data.get('name', participant.name)
         participant.phone = data.get('phone', participant.phone)
         participant.party_size = data.get('special_1', participant.party_size)
@@ -315,7 +315,7 @@ class RestaurantQueueHandler(CategoryHandler):
         }
 
     def add_resource(self, data):
-        Table = apps.get_model('participant', 'Table')
+        Table = apps.get_model('manager', 'Table')
         name = data.get('name')
         capacity = data.get('special')
         status = data.get('status')
