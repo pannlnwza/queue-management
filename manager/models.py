@@ -58,6 +58,17 @@ class Queue(models.Model):
             self.code = generate_unique_code(Queue)
         super().save(*args, **kwargs)
 
+    def is_queue_closed(self):
+        """Check if the queue is closed based on open and close times."""
+        if self.is_closed:
+            return True
+
+        if self.open_time and self.close_time:
+            current_time = timezone.localtime().time()
+            return not (self.open_time <= current_time <= self.close_time)
+
+        return False
+
     @staticmethod
     def get_top_featured_queues(category=None):
         """Get the top 3 featured queues based on their Queue Length / Max Capacity * 100."""
@@ -147,15 +158,19 @@ class Queue(models.Model):
             self.completed_participants_count += 1
         self.save()
 
-    def get_average_service_duration(self):
-        """Calculate the average service duration for participants in minutes."""
+    def get_average_service_duration(self, start_date=None, end_date=None):
+        """
+            Calculate the average service duration for participants.
+            Optionally filter participants by a date range (`start_date` and `end_date`).
+        """
+        queryset = self.participant_set.filter(state='completed')
+        if start_date and end_date:
+            queryset = queryset.filter(joined_at__range=(start_date, end_date))
         service_durations = [
-            p.get_service_duration() for p in
-            self.participant_set.filter(state='completed')
+            p.get_service_duration() for p in queryset
             if p.get_service_duration() is not None
         ]
-        average_service_time = math.ceil(sum(service_durations) / len(
-            service_durations)) if service_durations else 0
+        average_service_time = math.ceil(sum(service_durations) / len(service_durations)) if service_durations else 0
         return format_duration(average_service_time)
 
     def get_participants(self) -> models.QuerySet:
@@ -368,20 +383,6 @@ class Queue(models.Model):
         ]
         max_wait_time = max(waiting_times) if waiting_times else 0
         return format_duration(max_wait_time)
-
-    def get_average_service_duration(self, start_date=None, end_date=None):
-        """Calculate the average service duration for participants, optionally within a date range."""
-        queryset = self.participant_set.filter(state='completed')
-        if start_date and end_date:
-            queryset = queryset.filter(joined_at__range=(start_date, end_date))
-
-        service_durations = [
-            p.get_service_duration() for p in queryset if
-            p.get_service_duration() is not None
-        ]
-        average_service_time = math.ceil(sum(service_durations) / len(
-            service_durations)) if service_durations else 0
-        return format_duration(average_service_time)
 
     def get_max_service_duration(self, start_date=None, end_date=None):
         """Get the maximum service duration for participants, optionally within a date range."""
