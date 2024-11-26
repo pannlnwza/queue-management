@@ -1,100 +1,46 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="container mx-auto px-4 py-8 max-w-4xl">
-    <!-- Stepper -->
-    <div class="mb-12">
-        <ul class="steps w-full">
-            <li class="step step-primary data-[content=active]:after:!bg-primary">Queue Setup</li>
-            <li class="step">Hours & Location</li>
-            <li class="step">Resources</li>
-        </ul>
-    </div>
+<div class="flex justify-center items-center">
+  <ul class="steps steps-vertical lg:steps-horizontal steps-center">
+    <li class="step step-primary p-2">Queue Setup</li>
+    <li class="step p-2">Specify Hours & Location</li>
+    <li class="step p-2">Add Resources</li>
+  </ul>
+</div>
 
-    <!-- Main Card -->
-    <div class="card bg-base-100 border-2 border-base-200">
-        <div class="card-body">
-            <h2 class="card-title text-2xl font-bold">Queue Setup</h2>
-
-            <form method="post" enctype="multipart/form-data" class="space-y-6">
-                {% csrf_token %}
-
-                <!-- Name Field -->
-                <div class="form-control w-full">
-                    <label class="label">
-                        <span class="label-text text-base font-medium">Name*</span>
-                    </label>
-                    <input type="text" name="{{ form.name.name }}"
-                           class="input input-bordered w-full focus:input-primary"
-                           {% if form.name.value %}value="{{ form.name.value }}"{% endif %}
-                           required>
-                    {% if form.name.errors %}
-                        <div class="text-error text-sm mt-1">{{ form.name.errors.0 }}</div>
-                    {% endif %}
-                </div>
-
-                <!-- Description Field -->
-                <div class="form-control w-full">
-                    <label class="label">
-                        <span class="label-text text-base font-medium">Description*</span>
-                    </label>
-                    <textarea name="{{ form.description.name }}"
-                              class="textarea textarea-bordered h-24 focus:textarea-primary"
-                              required>{% if form.description.value %}{{ form.description.value }}{% endif %}</textarea>
-                    {% if form.description.errors %}
-                        <div class="text-error text-sm mt-1">{{ form.description.errors.0 }}</div>
-                    {% endif %}
-                </div>
-
-                <!-- Two Column Layout -->
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <!-- Category Field -->
-                    <div class="form-control w-full">
-                        <label class="label">
-                            <span class="label-text text-base font-medium">Select Category*</span>
-                        </label>
-                        <select name="{{ form.category.name }}"
-                                class="select select-bordered w-full focus:select-primary"
-                                required>
-                            {% for value, label in form.category.field.choices %}
-                                <option value="{{ value }}"
-                                        {% if form.category.value == value|stringformat:"s" %}selected{% endif %}>
-                                    {{ label }}
-                                </option>
-                            {% endfor %}
-                        </select>
-                        {% if form.category.errors %}
-                            <div class="text-error text-sm mt-1">{{ form.category.errors.0 }}</div>
-                        {% endif %}
-                    </div>
-
-                    <!-- Logo Upload Field -->
-                    <div class="form-control w-full">
-                        <label class="label">
-                            <span class="label-text text-base font-medium">Insert Your Logo</span>
-                            <span class="label-text-alt text-base-content/60">(Optional)</span>
-                        </label>
-                        <input type="file" name="{{ form.logo.name }}"
-                               class="file-input file-input-bordered w-full focus:file-input-primary"
-                               accept="image/*">
-                        {% if form.logo.errors %}
-                            <div class="text-error text-sm mt-1">{{ form.logo.errors.0 }}</div>
-                        {% endif %}
-                    </div>
-                </div>
-
-                <!-- Action Buttons -->
-                <div class="card-actions justify-end mt-8">
-                    <button type="button" class="btn btn-ghost">Cancel</button>
-                    <button type="submit" class="btn btn-primary">
-                        Next
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
-                        </svg>
-                    </button>
-                </div>
-            </form>
+<div class="card flex border-2 border-base-300 max-w-4xl w-full sm:w-3/4 md:w-1/2 mx-auto p-6 mt-4">
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div>
+            <div>
+                <label class="text-m text-neutral">Name*</label>
+                {{ form.name }}
+            </div>
         </div>
-    </div>
+        <div>
+            <label class="text-m text-neutral">Description (Optional)</label>
+            <div>
+                {{ form.description }}
+            </div>
+        </div>
+        <div class="flex flex-wrap items-center gap-4">
+            <!-- Category Selection -->
+            <div class="flex items-center">
+                <label class="text-m text-neutral mr-2">Select Category*</label>
+                <div>
+                    {{ form.category }}
+                </div>
+            </div>
+            <!-- Logo Upload -->
+            <div class="flex items-center">
+                <label class="text-m text-neutral">Upload Your Logo (Optional)</label>
+                <input type="file" name="logo" class="file-input file-input-bordered w-full max-w-xs" accept="image/*" />
+            </div>
+        </div>
+        <div class="flex justify-end mt-4">
+            <button type="submit" class="btn btn-primary">Next</button>
+        </div>
+    </form>
 </div>
 {% endblock %}

@@ -10,7 +10,7 @@ from manager.views import (
     ResourceSettings, edit_resource, add_resource, delete_resource, WaitingFull, edit_queue,
     EditProfileView,
     CreateQueueView, mark_no_show, ViewAllWaiting, ViewAllServing, ViewAllCompleted,
-    serve_participant_no_resource, set_location, create_queue)
+    serve_participant_no_resource, set_location, create_queue, )
 
 
 app_name = 'manager'

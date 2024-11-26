@@ -1,7 +1,7 @@
 from manager.utils.code_generator import generate_unique_code, generate_unique_number
 from django.db import models
 from django.utils import timezone
-from manager.models import RestaurantQueue, BankQueue, Resource, HospitalQueue
+from manager.models import Resource
 from datetime import timedelta
 from django.conf import settings
 
@@ -41,6 +41,7 @@ class Participant(models.Model):
     created_by = models.CharField(max_length=10, choices=CREATE_BY, default='guest')
     status_qr_code = models.ImageField(upload_to='qrcodes/', null=True, blank=True)
     number = models.CharField(max_length=4, editable=False)
+    announcement_audio = models.TextField(null=True)
 
     class Meta:
         unique_together = ('number', 'queue')
@@ -97,8 +98,12 @@ class Participant(models.Model):
         Assigns this participant to an available resource based on the queue category.
         """
         queue = self.queue
-        resource = queue.get_available_resource(
-            required_capacity=required_capacity)
+
+        # Get the resource, filtering by capacity if provided
+        if required_capacity is not None:
+            resource = queue.get_available_resource(required_capacity=required_capacity)
+        else:
+            resource = queue.get_available_resource()
 
         if resource:
             resource.status = 'busy'

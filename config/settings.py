@@ -9,7 +9,7 @@ https://docs.djangoproject.com/en/5.1/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.1/ref/settings/
 """
-
+import sys
 from pathlib import Path
 
 import dj_database_url
@@ -102,14 +102,35 @@ WSGI_APPLICATION = 'config.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
+# TEST = config('TEST', default=False, cast=bool)
+#
+# if TEST or 'test' in sys.argv:
+#     DATABASES = {
+#         'default': {
+#             'ENGINE': 'django.db.backends.sqlite3',
+#             'NAME': BASE_DIR / 'db.sqlite3',
+#         }
+#     }
+# else:
+#     DATABASES = {
+#         'default': dj_database_url.config(
+#             default=config('DATABASE_URL', default='postgres://user:password@localhost:5432/mydatabase'),
+#             conn_max_age=300
+#         )
+#     }
+
+
 DATABASES = {
-    'default': dj_database_url.config(default=config('DATABASE_URL'))
+    "default": {
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": config("DATABASE_NAME", default=os.environ.get("DATABASE_NAME", "default_db_name")),
+        "USER": config("DATABASE_USERNAME", default=os.environ.get("DATABASE_USERNAME", "default_user")),
+        "PASSWORD": config("DATABASE_PASSWORD", default=os.environ.get("DATABASE_PASSWORD", "default_password")),
+        "HOST": config("DATABASE_HOST", default=os.environ.get("DATABASE_HOST", "localhost")),
+        "PORT": config("DATABASE_PORT", default=os.environ.get("DATABASE_PORT", "5432")),
+    }
 }
 
-DATABASES['default'] = dj_database_url.config(
-    default=config('DATABASE_URL'),
-    conn_max_age=300,
-    ssl_require=True)
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
@@ -237,6 +258,6 @@ LOGGING = {
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
-SITE_DOMAIN = config('SITE_DOMAIN')
+SITE_DOMAIN = config('SITE_DOMAIN', default='http://127.0.0.1:8000/')
 
 CORS_ALLOW_ALL_ORIGINS = True
