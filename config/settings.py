@@ -30,8 +30,8 @@ SECRET_KEY = config('SECRET_KEY', default='your-default-secret-key')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config('DEBUG', default=False)
 
-ALLOWED_HOSTS = ['*']
-
+ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='*', cast=lambda v: v.split(','))
+CSRF_TRUSTED_ORIGINS = config('CSRF_TRUSTED_ORIGINS', default='http://localhost,http://127.0.0.1', cast=lambda v: v.split(','))
 
 # Application definition
 
@@ -39,8 +39,8 @@ INSTALLED_APPS = [
     'daphne',
     'channels',
     'whitenoise.runserver_nostatic',
-    'manager.apps.ManagerConfig',
-    'participant.apps.ParticipantConfig',
+    'manager',
+    'participant',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -56,8 +56,6 @@ INSTALLED_APPS = [
     'theme',
     'django_browser_reload',
 ]
-
-ASGI_APPLICATION = 'config.asgi.application'
 
 CHANNEL_LAYERS = {
     'default': {
@@ -107,39 +105,40 @@ TEMPLATES = [
 
 
 WSGI_APPLICATION = 'config.wsgi.application'
-
+ASGI_APPLICATION = "config.asgi.application"
 
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
-#
-# TEST = config('TEST', default=False, cast=bool)
-#
-# if TEST or 'test' in sys.argv:
-#     DATABASES = {
-#         'default': {
-#             'ENGINE': 'django.db.backends.sqlite3',
-#             'NAME': BASE_DIR / 'db.sqlite3',
-#         }
-#     }
-# else:
-#     DATABASES = {
-#         'default': dj_database_url.config(
-#             default=config('DATABASE_URL', default='postgres://user:password@localhost:5432/mydatabase'),
-#             conn_max_age=300
-#         )
-#     }
 
 
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.postgresql",
-        "NAME": config("DATABASE_NAME", default=os.environ.get("DATABASE_NAME", "default_db_name")),
-        "USER": config("DATABASE_USERNAME", default=os.environ.get("DATABASE_USERNAME", "default_user")),
-        "PASSWORD": config("DATABASE_PASSWORD", default=os.environ.get("DATABASE_PASSWORD", "default_password")),
-        "HOST": config("DATABASE_HOST", default=os.environ.get("DATABASE_HOST", "localhost")),
-        "PORT": config("DATABASE_PORT", default=os.environ.get("DATABASE_PORT", "5432")),
+TEST = config('TEST', default=False, cast=bool)
+
+if TEST or 'test' in sys.argv:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
     }
-}
+else:
+    DATABASES = {
+        'default': dj_database_url.config(
+            default=config('DATABASE_URL', default='postgres://user:password@localhost:5432/mydatabase'),
+            conn_max_age=300
+        )
+    }
+
+
+# DATABASES = {
+#     "default": {
+#         "ENGINE": "django.db.backends.postgresql",
+#         "NAME": config("DATABASE_NAME", default=os.environ.get("DATABASE_NAME", "default_db_name")),
+#         "USER": config("DATABASE_USERNAME", default=os.environ.get("DATABASE_USERNAME", "default_user")),
+#         "PASSWORD": config("DATABASE_PASSWORD", default=os.environ.get("DATABASE_PASSWORD", "default_password")),
+#         "HOST": config("DATABASE_HOST", default=os.environ.get("DATABASE_HOST", "localhost")),
+#         "PORT": config("DATABASE_PORT", default=os.environ.get("DATABASE_PORT", "5432")),
+#     }
+# }
 
 
 # Password validation
