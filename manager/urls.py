@@ -10,7 +10,7 @@ from manager.views import (
     ResourceSettings, edit_resource, add_resource, delete_resource, WaitingFull, edit_queue,
     EditProfileView,
     CreateQueueView, mark_no_show, ViewAllWaiting, ViewAllServing, ViewAllCompleted,
-    serve_participant_no_resource, set_location, create_queue, )
+    serve_participant_no_resource, set_location, create_queue, delete_audio_file)
 
 
 app_name = 'manager'
@@ -45,4 +45,5 @@ urlpatterns = [
     path('view_all_serving/<int:queue_id>/', ViewAllServing.as_view(), name='view_all_serving'),
     path('view_all_completed/<int:queue_id>/', ViewAllCompleted.as_view(), name='view_all_completed'),
     path('set_location/', set_location, name='set_location'),
+    path("delete_audio/<str:filename>/", delete_audio_file, name="delete_audio"),
 ]
