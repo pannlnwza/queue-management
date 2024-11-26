@@ -1,12 +1,8 @@
 from abc import ABC, abstractmethod
-
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
-
-from manager.models import RestaurantQueue, Queue, BankQueue, HospitalQueue, Doctor, Table, Counter
 from manager.utils.helpers import extract_data_variables
-from participant.models import RestaurantParticipant, Participant, HospitalParticipant, BankParticipant
-from django.contrib.auth.models import User
+from django.apps import apps
 
 
 class CategoryHandlerFactory:
@@ -90,9 +86,8 @@ class CategoryHandler(ABC):
 
 class GeneralQueueHandler(CategoryHandler):
     def create_queue(self, data):
-        """
-        Creates a general queue.
-        """
+        Queue = apps.get_model('manager', 'Queue')  # Lazy load
+        User = apps.get_model('auth', 'User')  # Lazy load
         user_id = data.pop("created_by_id", None)
         if user_id:
             try:
@@ -103,6 +98,7 @@ class GeneralQueueHandler(CategoryHandler):
         return Queue.objects.create(**data)
 
     def create_participant(self, data):
+        Participant = apps.get_model('participant', 'Participant')  # Lazy load
         participant_info = extract_data_variables(data)
         queue_length = participant_info['queue'].participant_set.filter(state='waiting').count()
         return Participant.objects.create(
@@ -115,9 +111,11 @@ class GeneralQueueHandler(CategoryHandler):
         )
 
     def get_participant_set(self, queue_id):
+        Participant = apps.get_model('participant', 'Participant')  # Lazy load
         return Participant.objects.filter(queue_id=queue_id)
 
     def get_queue_object(self, queue_id):
+        Queue = apps.get_model('manager', 'Queue')  # Lazy load
         return get_object_or_404(Queue, id=queue_id)
 
     def assign_to_resource(self, participant, resource_id=None):
@@ -174,9 +172,8 @@ class GeneralQueueHandler(CategoryHandler):
 
 class RestaurantQueueHandler(CategoryHandler):
     def create_queue(self, data):
-        """
-        Creates a general queue.
-        """
+        RestaurantQueue = apps.get_model('manager', 'RestaurantQueue')  # Lazy load
+        User = apps.get_model('auth', 'User')  # Lazy load
         user_id = data.pop("created_by_id", None)
         if user_id:
             try:
@@ -187,6 +184,7 @@ class RestaurantQueueHandler(CategoryHandler):
         return RestaurantQueue.objects.create(**data)
 
     def create_participant(self, data):
+        RestaurantParticipant = apps.get_model('participant', 'RestaurantParticipant')  # Lazy load
         participant_info = extract_data_variables(data)
         queue_length = participant_info['queue'].participant_set.filter(state='waiting').count()
         return RestaurantParticipant.objects.create(
@@ -201,15 +199,9 @@ class RestaurantQueueHandler(CategoryHandler):
             created_by='staff'
         )
 
-    def get_participant_set(self, queue_id):
-        return RestaurantParticipant.objects.filter(queue_id=queue_id).all()
-
-    def get_queue_object(self, queue_id):
-        return get_object_or_404(RestaurantQueue, id=queue_id)
-
     def assign_to_resource(self, participant, resource_id=None):
+        Table = apps.get_model('manager', 'Table')  # Lazy load
         queue = participant.queue
-
         if resource_id:
             resource = get_object_or_404(Table, id=resource_id)
         else:
@@ -220,6 +212,14 @@ class RestaurantQueueHandler(CategoryHandler):
         participant.resource = resource
         participant.resource_assigned = resource.name
         participant.save()
+
+    def get_participant_set(self, queue_id):
+        RestaurantParticipant = apps.get_model('participant', 'RestaurantParticipant')
+        return RestaurantParticipant.objects.filter(queue_id=queue_id).all()
+
+    def get_queue_object(self, queue_id):
+        RestaurantQueue = apps.get_model('manager', 'RestaurantQueue')
+        return get_object_or_404(RestaurantQueue, id=queue_id)
 
     def get_template_name(self):
         return 'manager/manage_queue/manage_unique_category.html'
@@ -246,6 +246,7 @@ class RestaurantQueueHandler(CategoryHandler):
         """
         Returns restaurant-specific attributes for the context.
         """
+        RestaurantParticipant = apps.get_model('participant', 'RestaurantParticipant')
         return {
             'special_1': 'Party Size',
             'special_2': 'Service Type',
@@ -255,6 +256,7 @@ class RestaurantQueueHandler(CategoryHandler):
         }
 
     def update_participant(self, participant, data):
+        Table = apps.get_model('participant', 'Table')
         participant.name = data.get('name', participant.name)
         participant.phone = data.get('phone', participant.phone)
         participant.party_size = data.get('special_1', participant.party_size)
@@ -313,6 +315,7 @@ class RestaurantQueueHandler(CategoryHandler):
         }
 
     def add_resource(self, data):
+        Table = apps.get_model('participant', 'Table')
         name = data.get('name')
         capacity = data.get('special')
         status = data.get('status')
@@ -322,6 +325,7 @@ class RestaurantQueueHandler(CategoryHandler):
         queue.save()
 
     def edit_resource(self, resource, data):
+        RestaurantParticipant = apps.get_model('participant', 'RestaurantParticipant')
         resource.name = data.get('name', resource.name)
         resource.capacity = data.get('special', resource.capacity)
         resource.status = data.get('status', resource.status)
@@ -344,14 +348,14 @@ class RestaurantQueueHandler(CategoryHandler):
 
     def get_participant_type(self):
         """Return Restaurant Participanti subclass"""
+        RestaurantParticipant = apps.get_model('participant', 'RestaurantParticipant')
         return RestaurantParticipant
 
 
 class HospitalQueueHandler(CategoryHandler):
     def create_queue(self, data):
-        """
-        Creates a hospital queue.
-        """
+        HospitalQueue = apps.get_model('manager', 'HospitalQueue')  # Lazy load
+        User = apps.get_model('auth', 'User')  # Lazy load
         user_id = data.pop("created_by_id", None)
         if user_id:
             try:
@@ -362,6 +366,7 @@ class HospitalQueueHandler(CategoryHandler):
         return HospitalQueue.objects.create(**data)
 
     def create_participant(self, data):
+        HospitalParticipant = apps.get_model('participant', 'HospitalParticipant')  # Lazy load
         participant_info = extract_data_variables(data)
         queue_length = participant_info['queue'].participant_set.filter(state='waiting').count()
         return HospitalParticipant.objects.create(
@@ -380,18 +385,21 @@ class HospitalQueueHandler(CategoryHandler):
         """
         Returns all participants in a hospital queue.
         """
+        HospitalParticipant = apps.get_model('participant', 'HospitalParticipant')  # Lazy load
         return HospitalParticipant.objects.filter(queue_id=queue_id).all()
 
     def get_queue_object(self, queue_id):
         """
         Fetches the hospital queue by ID.
         """
+        HospitalQueue = apps.get_model('manager', 'HospitalQueue')  # Lazy load
         return get_object_or_404(HospitalQueue, id=queue_id)
 
     def assign_to_resource(self, participant, resource_id=None):
         """
         Assigns a doctor to a hospital participant based on their medical field and priority.
         """
+        Doctor = apps.get_model('manager', 'Doctor')  # Lazy load
         if resource_id:
             resource = get_object_or_404(Doctor, id=resource_id)
         else:
@@ -433,6 +441,8 @@ class HospitalQueueHandler(CategoryHandler):
         """
         Returns restaurant-specific attributes for the context.
         """
+        Doctor = apps.get_model('manager', 'Doctor')  # Lazy load
+        HospitalParticipant = apps.get_model('participant', 'HospitalParticipant')
         return {
             'special_1': 'Medical Field Needed',
             'special_2': 'Priority',
@@ -465,6 +475,7 @@ class HospitalQueueHandler(CategoryHandler):
             # Handle resource assignment (e.g., doctor)
             doctor_id = data.get('resource')
             if doctor_id:
+                Doctor = apps.get_model('manager', 'Doctor')  # Lazy load
                 doctor = get_object_or_404(Doctor, id=doctor_id)
                 doctor.assign_to_participant(participant=participant)
                 participant.resource = doctor
@@ -508,6 +519,7 @@ class HospitalQueueHandler(CategoryHandler):
         }
 
     def add_resource_attributes(self, queue):
+        Doctor = apps.get_model('manager', 'Doctor')  # Lazy load
         return {
             'resource_name': 'Doctor',
             'resources': Doctor.objects.filter(queue=queue),
@@ -516,6 +528,7 @@ class HospitalQueueHandler(CategoryHandler):
         }
 
     def add_resource(self, data):
+        Doctor = apps.get_model('manager', 'Doctor')  # Lazy load
         name = data.get('name')
         medical_field = data.get('special')
         status = data.get('status')
@@ -525,6 +538,8 @@ class HospitalQueueHandler(CategoryHandler):
         queue.save()
 
     def edit_resource(self, resource, data):
+        Doctor = apps.get_model('manager', 'Doctor')  # Lazy load
+        HospitalParticipant = apps.get_model('participant', 'HospitalParticipant')
         doctor = get_object_or_404(Doctor, id=resource.id)
         doctor.name = data.get('name', doctor.name)
         doctor.specialty = data.get('special', doctor.specialty)
@@ -549,9 +564,8 @@ class HospitalQueueHandler(CategoryHandler):
 
 class BankQueueHandler(CategoryHandler):
     def create_queue(self, data):
-        """
-        Creates a general queue.
-        """
+        BankQueue = apps.get_model('manager', 'BankQueue')  # Lazy load
+        User = apps.get_model('auth', 'User')  # Lazy load
         user_id = data.pop("created_by_id", None)
         if user_id:
             try:
@@ -562,6 +576,7 @@ class BankQueueHandler(CategoryHandler):
         return BankQueue.objects.create(**data)
 
     def create_participant(self, data):
+        BankParticipant = apps.get_model('participant', 'BankParticipant')  # Lazy load
         participant_info = extract_data_variables(data)
         queue_length = participant_info['queue'].participant_set.count()
         return BankParticipant.objects.create(
@@ -577,16 +592,20 @@ class BankQueueHandler(CategoryHandler):
         )
 
     def get_participant_set(self, queue_id):
+        BankParticipant = apps.get_model('participant', 'BankParticipant')
         return BankParticipant.objects.filter(queue_id=queue_id)
 
     def get_queue_object(self, queue_id):
+        BankQueue = apps.get_model('manager', 'BankQueue')
         return get_object_or_404(BankQueue, id=queue_id)
 
     def assign_to_resource(self, participant, resource_id=None):
+        Counter = apps.get_model('manager', 'Counter')
         if resource_id:
             resource = get_object_or_404(Counter, id=resource_id)
         else:
-            resource = Counter.objects.filter(service_type=participant.service_type, status='available').first()
+            resource = Counter.objects.filter(status='available').first()
+
         if not resource:
             raise ValueError('No resource available.')
         resource.assign_to_participant(participant)
@@ -618,6 +637,7 @@ class BankQueueHandler(CategoryHandler):
         """
         Returns restaurant-specific attributes for the context.
         """
+        BankParticipant = apps.get_model('participant', 'BankParticipant')
         return {
             'special_1': 'Customer Category',
             'special_2': 'Service Type',
@@ -627,6 +647,7 @@ class BankQueueHandler(CategoryHandler):
         }
 
     def update_participant(self, participant, data):
+        Counter = apps.get_model('manager', 'Counter')
         participant.name = data.get('name', participant.name)
         participant.phone = data.get('phone', participant.phone)
         participant.participant_category = data.get('special_1', participant.participant_category)
@@ -679,6 +700,7 @@ class BankQueueHandler(CategoryHandler):
         }
 
     def add_resource_attributes(self, queue):
+        Counter = apps.get_model('manager', 'Counter')
         return {
             'resource_name': 'Counter',
             'resources': Counter.objects.filter(queue=queue),
@@ -687,6 +709,7 @@ class BankQueueHandler(CategoryHandler):
         }
 
     def add_resource(self, data):
+        Counter = apps.get_model('manager', 'Counter')
         name = data.get('name')
         service_type = data.get('special')
         status = data.get('status')
@@ -696,6 +719,8 @@ class BankQueueHandler(CategoryHandler):
         queue.save()
 
     def edit_resource(self, resource, data):
+        Counter = apps.get_model('manager', 'Counter')
+        BankParticipant = apps.get_model('participant', 'BankParticipant')
         counter = get_object_or_404(Counter, id=resource.id)
         counter.name = data.get('name', counter.name)
         counter.service_type = data.get('special', counter.service_type)
