@@ -138,7 +138,12 @@
     let socket;
 
     function connectWebSocket() {
-        socket = new WebSocket(`ws://${window.location.host}/ws/status/${participantCode}/`);
+            // Use "wss://" if the current page is served over HTTPS, otherwise use "ws://"
+        const protocol = window.location.protocol === "https:" ? "wss://" : "ws://";
+        const websocketUrl = `${protocol}${window.location.host}/ws/status/${participantCode}/`;
+
+        // Initialize the WebSocket connection
+        const socket = new WebSocket(websocketUrl);
 
         socket.onopen = function () {
             console.log("WebSocket connection established!");
