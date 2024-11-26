@@ -59,7 +59,7 @@ jobs:
           python manage.py migrate
 
       - name: Run tests and collect coverage
-        run: | 
+        run: |
           coverage run manage.py test
 
       - name: Generate coverage report

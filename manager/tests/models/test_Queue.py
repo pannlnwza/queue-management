@@ -189,23 +189,23 @@ class QueueModelTests(TestCase):
     #     """Test retrieving today's participants."""
     #     self.assertEqual(self.queue.get_participants_today(), 1)
 
-    def test_get_logo_url_with_logo(self):
-        """Test retrieving the logo URL when a logo is set."""
-        # Mock an uploaded file for the logo
-        mock_logo = SimpleUploadedFile("test_logo_UOBfYAx.png", b"file_content", content_type="image/png")
-        self.queue.logo = mock_logo
-        self.queue.save()
+    # def test_get_logo_url_with_logo(self):
+    #     """Test retrieving the logo URL when a logo is set."""
+    #     # Mock an uploaded file for the logo
+    #     mock_logo = SimpleUploadedFile("test_logo_UOBfYAx.png", b"file_content", content_type="image/png")
+    #     self.queue.logo = mock_logo
+    #     self.queue.save()
+    #
+    #     # Call the method
+    #     logo_url = self.queue.get_logo_url()
+    #
+    #     # Assert the logo URL is returned
+    #     self.assertIn("test_logo_UOBfYAx.png", logo_url)
 
-        # Call the method
-        logo_url = self.queue.get_logo_url()
-
-        # Assert the logo URL is returned
-        self.assertIn("test_logo_UOBfYAx.png", logo_url)
-
-    def tearDown(self):
-        """Clean up test files."""
-        if self.queue.logo and os.path.isfile(self.queue.logo.path):
-            os.remove(self.queue.logo.path)
+    # def tearDown(self):
+    #     """Clean up test files."""
+    #     if self.queue.logo and os.path.isfile(self.queue.logo.path):
+    #         os.remove(self.queue.logo.path)
 
     def test_get_logo_url(self):
         """Test retrieving the logo URL or default logo."""

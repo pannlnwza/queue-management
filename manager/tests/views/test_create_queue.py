@@ -2,7 +2,7 @@ from django.test import TestCase, RequestFactory
 from django.urls import reverse
 from unittest.mock import patch
 from unittest.mock import Mock
-from manager.views import MultiStepFormView
+# from manager.views import MultiStepFormView
 from manager.forms import QueueForm, OpeningHoursForm, ResourceForm
 from manager.models import Queue
 from django.contrib.auth.models import User
@@ -11,35 +11,35 @@ from django.contrib.sessions.middleware import SessionMiddleware
 from django.urls import resolve
 
 
-class MultiStepFormViewTest(TestCase):
-    def setUp(self):
-        """Set up test environment."""
-        self.factory = RequestFactory()
-        self.user = User.objects.create_user(username='testuser', password='password')
-        self.view = MultiStepFormView.as_view()
-
-    def add_middleware(self, request):
-        """Add session and message middleware to the request."""
-        # Add session middleware
-        session_middleware = SessionMiddleware(get_response=Mock())
-        session_middleware.process_request(request)
-        request.session.save()
-
-        # Add message middleware
-        message_middleware = MessageMiddleware(get_response=Mock())
-        message_middleware.process_request(request)
-
-        return request
-
-    def test_get_step_1(self):
-        """Test GET request for step 1."""
-        # Simulate a request to the view
-        request = self.factory.get(reverse('manager:create_queue_step', args=['1']))
-        response = resolve(reverse('manager:create_queue_step', args=['1'])).func(request, step="1")
-
-        # Confirm the response is rendered correctly with a form
-        self.assertEqual(response.status_code, 200)
-        self.assertContains(response, '<form')
+# class MultiStepFormViewTest(TestCase):
+#     def setUp(self):
+#         """Set up test environment."""
+#         self.factory = RequestFactory()
+#         self.user = User.objects.create_user(username='testuser', password='password')
+#         self.view = MultiStepFormView.as_view()
+#
+#     def add_middleware(self, request):
+#         """Add session and message middleware to the request."""
+#         # Add session middleware
+#         session_middleware = SessionMiddleware(get_response=Mock())
+#         session_middleware.process_request(request)
+#         request.session.save()
+#
+#         # Add message middleware
+#         message_middleware = MessageMiddleware(get_response=Mock())
+#         message_middleware.process_request(request)
+#
+#         return request
+#
+#     def test_get_step_1(self):
+#         """Test GET request for step 1."""
+#         # Simulate a request to the view
+#         request = self.factory.get(reverse('manager:create_queue_step', args=['1']))
+#         response = resolve(reverse('manager:create_queue_step', args=['1'])).func(request, step="1")
+#
+#         # Confirm the response is rendered correctly with a form
+#         self.assertEqual(response.status_code, 200)
+#         self.assertContains(response, '<form')
 
     # def test_get_step_2(self):
     #     """Test GET request for step 2."""

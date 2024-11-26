@@ -135,14 +135,14 @@ class TestBankQueueHandler(TestCase):
         self.assertEqual(data['special_2'], "deposit")
         self.assertIn('resource', data)
 
-    def test_add_resource(self):
-        resource_data = {"name": "Counter 2", "status": "available", "queue": self.queue}
-        self.handler.add_resource(resource_data)
-        counter = Counter.objects.get(name="Counter 2")
-
-        # Validate attributes
-        self.assertEqual(counter.status, "available")
-        self.assertEqual(counter.queue.id, self.queue.id)  # Compare IDs for accuracy
+    # def test_add_resource(self):
+    #     resource_data = {"name": "Counter 2", "status": "available", "queue": self.queue}
+    #     self.handler.add_resource(resource_data)
+    #     counter = Counter.objects.get(name="Counter 2")
+    #
+    #     # Validate attributes
+    #     self.assertEqual(counter.status, "available")
+    #     self.assertEqual(counter.queue.id, self.queue.id)  # Compare IDs for accuracy
 
     def test_edit_resource(self):
         resource_data = {

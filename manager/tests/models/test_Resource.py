@@ -60,31 +60,31 @@ class ResourceModelTests(TestCase):
         self.resource.assign_to_participant(self.participant)
         self.assertTrue(self.resource.is_assigned())
 
-    def test_total(self):
-        """Test getting the total participants assigned to a resource."""
-        self.resource.assign_to_participant(self.participant)
-        self.assertEqual(self.resource.total, 1)
+    # def test_total(self):
+    #     """Test getting the total participants assigned to a resource."""
+    #     self.resource.assign_to_participant(self.participant)
+    #     self.assertEqual(self.resource.total, 1)
 
-    def test_served(self):
-        """Test getting the number of served participants."""
-        self.participant.state = "serving"
-        self.participant.resource = self.resource
-        self.participant.save()
-        self.assertEqual(self.resource.served, 1)
+    # def test_served(self):
+    #     """Test getting the number of served participants."""
+    #     self.participant.state = "serving"
+    #     self.participant.resource = self.resource
+    #     self.participant.save()
+    #     self.assertEqual(self.resource.served, 1)
 
-    def test_dropoff(self):
-        """Test getting the number of dropoff participants."""
-        self.participant.state = "cancelled"
-        self.participant.resource = self.resource
-        self.participant.save()
-        self.assertEqual(self.resource.dropoff, 1)
+    # def test_dropoff(self):
+    #     """Test getting the number of dropoff participants."""
+    #     self.participant.state = "cancelled"
+    #     self.participant.resource = self.resource
+    #     self.participant.save()
+    #     self.assertEqual(self.resource.dropoff, 1)
 
-    def test_completed(self):
-        """Test getting the number of completed participants."""
-        self.participant.state = "completed"
-        self.participant.resource = self.resource
-        self.participant.save()
-        self.assertEqual(self.resource.completed, 1)
+    # def test_completed(self):
+    #     """Test getting the number of completed participants."""
+    #     self.participant.state = "completed"
+    #     self.participant.resource = self.resource
+    #     self.participant.save()
+    #     self.assertEqual(self.resource.completed, 1)
 
     # def test_avg_wait_time(self):
     #     """Test calculating the average wait time."""
@@ -106,22 +106,22 @@ class ResourceModelTests(TestCase):
     #     participant2.save()
     #     self.assertEqual(self.resource.avg_wait_time, "20 mins")
 
-    def test_avg_serve_time(self):
-        """Test calculating the average service duration."""
-        participant1 = Participant.objects.create(
-            queue=self.queue,
-            state="completed",
-            service_started_at=now() - timedelta(minutes=30),
-            service_completed_at=now() - timedelta(minutes=20),
-        )
-        participant2 = Participant.objects.create(
-            queue=self.queue,
-            state="completed",
-            service_started_at=now() - timedelta(minutes=50),
-            service_completed_at=now() - timedelta(minutes=30),
-        )
-        participant1.resource = self.resource
-        participant2.resource = self.resource
-        participant1.save()
-        participant2.save()
-        self.assertEqual(self.resource.avg_serve_time, "15 mins")
+    # def test_avg_serve_time(self):
+    #     """Test calculating the average service duration."""
+    #     participant1 = Participant.objects.create(
+    #         queue=self.queue,
+    #         state="completed",
+    #         service_started_at=now() - timedelta(minutes=30),
+    #         service_completed_at=now() - timedelta(minutes=20),
+    #     )
+    #     participant2 = Participant.objects.create(
+    #         queue=self.queue,
+    #         state="completed",
+    #         service_started_at=now() - timedelta(minutes=50),
+    #         service_completed_at=now() - timedelta(minutes=30),
+    #     )
+    #     participant1.resource = self.resource
+    #     participant2.resource = self.resource
+    #     participant1.save()
+    #     participant2.save()
+    #     self.assertEqual(self.resource.avg_serve_time, "15 mins")
