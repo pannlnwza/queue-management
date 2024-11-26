@@ -873,6 +873,8 @@ class EditProfileView(LoginRequiredMixin, generic.UpdateView):
             profile.google_picture = None
 
         profile.save()
+
+        messages.success(self.request, 'Profile updated successfully.')
         return super().form_valid(form)
 
     def get_context_data(self, **kwargs):
