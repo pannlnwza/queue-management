@@ -6,6 +6,10 @@ from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from .models import Participant, Notification
 from manager.utils.category_handler import CategoryHandlerFactory
+import logging
+
+logger = logging.getLogger('queue')
+
 
 class QueueStatusConsumer(AsyncWebsocketConsumer):
     async def connect(self):
@@ -21,7 +25,7 @@ class QueueStatusConsumer(AsyncWebsocketConsumer):
 
         # Accept the WebSocket connection
         await self.accept()
-        print(f"WebSocket connected: {self.participant_code}")
+        # logger.info(f"WebSocket connected: {self.participant_code}")
 
         # Start sending data
         self.last_data = None
@@ -34,7 +38,7 @@ class QueueStatusConsumer(AsyncWebsocketConsumer):
             self.queue_group_name,
             self.channel_name
         )
-        print(f"WebSocket disconnected: {self.participant_code}")
+        # logger.info(f"WebSocket disconnected: {self.participant_code}")
 
         # Stop the loop for sending updates
         self.keep_streaming = False
@@ -45,7 +49,6 @@ class QueueStatusConsumer(AsyncWebsocketConsumer):
         """Continuously fetch and send participant updates."""
         while self.keep_streaming:
             try:
-                print("Fetching participant and queue details...")
 
                 # Fetch participant and queue details
                 participant, queue, handler = await self.fetch_participant_and_queue()
@@ -66,14 +69,14 @@ class QueueStatusConsumer(AsyncWebsocketConsumer):
                 # Send the data only if it has changed
                 if self.last_data != participant_data:
                     self.last_data = participant_data
-                    print(f"Sending data to WebSocket: {participant_data}")
+                    # logger.debug(f"Sending data to WebSocket: {participant_data}")
                     await self.send(json.dumps(participant_data))
 
                 # Wait for the next update
                 await asyncio.sleep(5)
 
             except Exception as e:
-                print(f"Error in send_participant_updates: {e}")
+                logger.error(f"Error in send_participant_updates: {e}")
                 break
 
     @sync_to_async
