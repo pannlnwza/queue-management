@@ -140,7 +140,6 @@ def notify_participant(request, participant_id):
                 participant.announcement_audio = audio_filename
                 audio_url = f"{settings.MEDIA_URL}announcements/{audio_filename}"
             except Exception as e:
-                logger = logging.getLogger(__name__)
                 logger.error(f"Failed to generate TTS announcement for participant {participant.id}: {str(e)}")
 
     participant.save()
@@ -163,7 +162,6 @@ def notify_participant(request, participant_id):
                 context=email_context,
             )
         except Exception as e:
-            logger = logging.getLogger(__name__)
             logger.error(f"Failed to send email to participant {participant.email}: {str(e)}")
             email_error = f"Failed to send email to participant {participant.email}: {str(e)}"
 
@@ -891,18 +889,6 @@ class EditProfileView(LoginRequiredMixin, generic.UpdateView):
         return context
 
 
-@require_http_methods(["POST"])
-@login_required
-def notify_participant(request, participant_id):
-    participant = get_object_or_404(Participant, id=participant_id)
-    queue = participant.queue
-    message = request.POST.get('message', '')
-    Notification.objects.create(queue=queue, participant=participant, message=message)
-    participant.is_notified = True
-    participant.save()
-    return JsonResponse({'status': 'success', 'message': 'Notification sent successfully!'})
-
-
 @login_required
 @require_http_methods(["DELETE"])
 def delete_participant(request, participant_id):
@@ -1234,72 +1220,6 @@ def login_view(request):
             messages.error(request, 'Invalid username or password.')
 
     return render(request, 'account/login.html')
-
-
-class EditProfileView(LoginRequiredMixin, generic.UpdateView):
-    model = UserProfile
-    template_name = 'manager/edit_profile.html'
-    context_object_name = 'profile'
-    form_class = EditProfileForm
-
-    def get_success_url(self):
-        queue_id = self.kwargs.get('queue_id')
-        return reverse_lazy('manager:edit_profile',
-                            kwargs={'queue_id': queue_id})
-
-    def get_object(self, queryset=None):
-        profile, created = UserProfile.objects.get_or_create(
-            user=self.request.user)
-        return profile
-
-    def form_valid(self, form):
-        """Handle both User and UserProfile updates"""
-        user = self.request.user
-        user.username = form.cleaned_data['username']
-        user.email = form.cleaned_data['email']
-        user.first_name = form.cleaned_data.get('first_name',
-                                                user.first_name) or ''
-        user.last_name = form.cleaned_data.get('last_name',
-                                               user.last_name) or ''
-        user.save()
-
-        profile = form.save(commit=False)
-        profile.user = user
-        profile.phone = form.cleaned_data.get('phone', profile.phone)
-
-        # Handle image removal and upload
-        if form.cleaned_data.get('remove_image') == 'true':
-            profile.image = 'profile_images/profile.jpg'
-            profile.google_picture = None
-        elif form.files.get('image'):
-            profile.image = form.files['image']
-            profile.google_picture = None
-
-        profile.save()
-        messages.success(self.request, 'Profile updated successfully.')
-        return super().form_valid(form)
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        queue_id = self.kwargs.get('queue_id')
-        queue = get_object_or_404(Queue, id=queue_id)
-        handler = CategoryHandlerFactory.get_handler(queue.category)
-        queue = handler.get_queue_object(queue_id)
-        context['queue'] = queue
-        context['queue_id'] = queue_id
-        context['user'] = self.request.user
-        profile = self.get_object()
-        context['profile_image_url'] = profile.get_profile_image()
-        return context
-
-
-def get_client_ip(request):
-    """Retrieve the client's IP address from the request."""
-    return (
-        x_forwarded_for.split(',')[0]
-        if (x_forwarded_for := request.META.get('HTTP_X_FORWARDED_FOR'))
-        else request.META.get('REMOTE_ADDR')
-    )
 
 
 @csrf_exempt

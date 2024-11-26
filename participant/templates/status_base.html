@@ -6,7 +6,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token }}">
-    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.14/dist/full.min.css" rel="stylesheet" type="text/css" />
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.14/dist/full.min.css" rel="stylesheet" type="text/css"/>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="icon" href="{% static 'favicon.ico' %}" type="image/x-icon">
     {% block title %}<title>Queue Management</title>{% endblock %}
@@ -32,8 +32,43 @@
     </div>
 </div>
 
-    {% block content %}
-    {% endblock %}
+{% block content %}
+{% endblock %}
+{% if messages %}
+    {% for message in messages %}
+        <div id="toast-container" class="toast toast-end toast-bottom z-50">
+        <div class="alert alert-success shadow-lg text-white">
+            <div class="inline-flex">
+                <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6 mr-2" fill="none"
+                     viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                <span>{{ message }}</span>
+            </div>
+        </div>
+    {% endfor %}
+{% endif %}
+</div>
+
+<style>
+    #toast-container {
+        position: fixed;
+        bottom: 1rem;
+        right: 1rem;
+        z-index: 9999;
+    }
+</style>
 
 </html>
+
+<script>
+    setTimeout(function () {
+        const toast = document.querySelector('#toast-container');
+        if (toast) {
+            toast.remove();
+        }
+    }, 5000);
+
+</script>
 {% django_browser_reload_script %}
