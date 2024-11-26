@@ -22,8 +22,8 @@ class Queue(models.Model):
         ('full', 'Full'),
     ]
     CATEGORY_CHOICES = [
-        ('restaurant', 'Restaurant'),
         ('general', 'General'),
+        ('restaurant', 'Restaurant'),
         ('hospital', 'Hospital'),
         ('bank', 'Bank'),
     ]
@@ -588,7 +588,15 @@ class Doctor(Resource):
 
 class Counter(Resource):
     """Represent a counter in the bank."""
-    pass
+    SERVICE_TYPE_CHOICES = [
+        ('account_services', 'Account Services'),
+        ('loan_services', 'Loan Services'),
+        ('investment_services', 'Investment Services'),
+        ('customer_support', 'Customer Support'),
+    ]
+    service_type = models.CharField(max_length=100,
+                                 choices=SERVICE_TYPE_CHOICES,
+                                 default='account_service')
 
 
 class Table(Resource):
@@ -598,7 +606,6 @@ class Table(Resource):
 
 class RestaurantQueue(Queue):
     """Represents a queue specifically for restaurant."""
-    has_outdoor = models.BooleanField(default=False)
     resources = models.ManyToManyField(Table)
     resource_name = 'Tables'
 

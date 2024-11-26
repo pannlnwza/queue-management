@@ -1,0 +1,563 @@
+{% extends 'base.html' %}
+{% block content %}
+    <div class="container mx-auto px-4">
+        <!-- Step Indicator -->
+        <div class="mb-5 flex justify-center">
+            <ul class="steps steps-horizontal w-full max-w-2xl" id="stepIndicator">
+                {% for step_number in total_steps_list %}
+                    <li id="step-{{ step_number }}" class="step {% if step == step_number %}step-primary{% endif %}">
+                        Step {{ step_number }}
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+
+        <!-- Form Container -->
+        <div class="card bg-base-100 border-2 border-base-200 max-w-4xl mx-auto">
+            <div class="card-body">
+                <form method="post" id="multiStepForm" enctype="multipart/form-data"
+                      action="{% url 'manager:create_queue' %}" novalidate>
+                    {% csrf_token %}
+
+                    <div class="step-form-content" id="stepFormContent">
+                        <div id="step1" class="step-section {% if step != 1 %}hidden{% endif %}">
+                            <h2 class="text-2xl font-bold">Queue Details</h2>
+                            <p class="text-base-content/70 mt-2">Fill in the basic details of your queue.</p>
+                            <div class="form-control w-full">
+                                <label class="label">
+                                    <span class="label-text text-base font-medium">Name*</span>
+                                </label>
+                                <input type="text" name="name"
+                                       class="input input-bordered w-full focus:input-primary"
+                                       required>
+                            </div>
+
+                            <div class="form-control w-full mb-2">
+                                <label class="label">
+                                    <span class="label-text text-base font-medium">Description*</span>
+                                </label>
+                                <textarea name="description"
+                                          class="textarea textarea-bordered h-24 focus:textarea-primary"
+                                          required></textarea>
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <!-- Category Field -->
+                                <div class="form-control w-full">
+                                    <label class="label">
+                                        <span class="label-text text-base font-medium">Select Category*</span>
+                                    </label>
+                                    <select name="category" id="category"
+                                            class="select select-bordered w-full focus:select-primary"
+                                            required>
+                                        <option></option>
+                                        {% for value, label in categories %}
+                                            <option value="{{ value }}">{{ label }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+
+                                <!-- Logo Upload Field -->
+                                <div class="form-control w-full">
+                                    <div class="form-control w-full">
+                                        <label class="label">
+                                            <span class="label-text text-base font-medium">Insert Your Logo</span>
+                                            <span class="label-text-alt text-base-content/60">(Optional)</span>
+                                        </label>
+                                        <input type="file" name="logo" id="logo"
+                                               class="file-input file-input-bordered w-full" accept="image/*"/>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Step 2: Hours & Location -->
+                        <div id="step2" class="step-section {% if step != 2 %}hidden{% endif %}">
+                            <h2 class="text-2xl font-bold">Hours & Location</h2>
+                            <form method="post" id="queueForm" class="">
+                                {% csrf_token %}
+                                <div class="flex flex-col sm:flex-row justify-start gap-4">
+                                    <div class="form-control">
+                                        <label class="label">
+                                            <span class="label-text font-medium">Opening Time</span>
+                                        </label>
+                                        <input type="time" id="open_time" name="open_time"
+                                               value="{{ queue.open_time|time:'H:i' }}"
+                                               class="input input-bordered" required/>
+                                    </div>
+                                    <div class="form-control">
+                                        <label class="label">
+                                            <span class="label-text font-medium">Closing Time</span>
+                                        </label>
+                                        <input type="time" id="close_time" name="close_time"
+                                               value="{{ queue.open_time|time:'H:i' }}"
+                                               class="input input-bordered" required/>
+                                    </div>
+                                </div>
+                                <!-- Location Section -->
+                                <h3 class="text-lg font-semibold mb-2 mt-3">Location Details</h3>
+
+                                <!-- Search Box -->
+                                <div class="form-control mb-4">
+                                    <label class="label">
+                                        <span class="label-text font-medium">Search Location</span>
+                                    </label>
+                                    <div class="input-group">
+                                        <input type="text"
+                                               id="searchInput"
+                                               class="input input-bordered flex-1"
+                                               placeholder="Enter location to search">
+                                        <button type="button" id="useLocationButton"
+                                                class="items-center p-2 bg-transparent border-2 border-blue-500 rounded-full hover:bg-blue-100 inline-flex ml-2">
+                                            <img src="https://cdn-icons-png.flaticon.com/512/684/684908.png"
+                                                 alt="Use My Location"
+                                                 class="w-5 h-5 mr-2 cursor-pointer"/>
+                                            <span class="text-blue-500 font-medium">Your location</span>
+                                        </button>
+                                    </div>
+
+                                    <!-- Coordinates Input -->
+                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                                        <div class="form-control">
+                                            <label class="label">
+                                                <span class="label-text font-medium">Latitude</span>
+                                            </label>
+                                            <input type="number"
+                                                   id="latitudeInput"
+                                                   class="input input-bordered w-full"
+                                                   placeholder="Latitude"
+                                                   step="any" required>
+                                        </div>
+                                        <div class="form-control">
+                                            <label class="label">
+                                                <span class="label-text font-medium">Longitude</span>
+                                            </label>
+                                            <input type="number"
+                                                   id="longitudeInput"
+                                                   class="input input-bordered w-full"
+                                                   placeholder="Longitude"
+                                                   step="any" required>
+                                        </div>
+                                    </div>
+
+                                    <!-- Map -->
+                                    <div class="rounded-box overflow-hidden border border-base-300">
+                                        <div id="map" class="w-full" style="height: 400px;"></div>
+                                    </div>
+                                </div>
+
+                                <!-- Hidden Inputs -->
+                                <input type="hidden" name="latitude" id="id_latitude" required>
+                                <input type="hidden" name="longitude" id="id_longitude" required>
+                            </form>
+                        </div>
+
+                        <!-- Step 3: Add Resource -->
+                        <div id="step3" class="step-section {% if step != 3 %}hidden{% endif %}">
+                            <div id="resource-section" class="form-content">
+                                <h2 id="resource-label" class="text-2xl font-bold"></h2>
+                                <p id="resource-message" class="text-base-content/70 mt-2 hidden">You're all set to
+                                    proceed!</p>
+
+                                <div id="resource-fields">
+                                    <label id="resource-name-label" for="resource_name" class="block mt-4"></label>
+                                    <input type="text" id="resource_name" name="resource_name"
+                                           class="input input-bordered w-full">
+
+                                    <label id="dynamic-label" for="resource_detail" class="block mt-4"></label>
+                                    <input type="number" id="resource_detail" name="resource_detail"
+                                           class="input input-bordered w-full hidden">
+
+                                    <select id="resource_dropdown" name="resource_detail"
+                                            class="select select-bordered w-full hidden"></select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Navigation Buttons -->
+                    <div class="flex justify-between items-center pt-4">
+                        <button type="button" id="previousBtn" class="btn btn-outline gap-2" onclick="changeStep(-1)">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20"
+                                 fill="currentColor">
+                                <path fill-rule="evenodd"
+                                      d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z"
+                                      clip-rule="evenodd"/>
+                            </svg>
+                            Previous
+                        </button>
+                        <button type="button" id="nextBtn" class="btn btn-primary gap-2" onclick="changeStep(1)">
+                            {% if step < total_steps %}
+                                Next
+                            {% else %}
+                                Submit
+                            {% endif %}
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor"
+                                 class="size-4">
+                                <path fill-rule="evenodd"
+                                      d="M6.22 4.22a.75.75 0 0 1 1.06 0l3.25 3.25a.75.75 0 0 1 0 1.06l-3.25 3.25a.75.75 0 0 1-1.06-1.06L8.94 8 6.22 5.28a.75.75 0 0 1 0-1.06Z"
+                                      clip-rule="evenodd"/>
+                            </svg>
+
+
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ol/ol.css"/>
+    <script src="https://cdn.jsdelivr.net/npm/ol/dist/ol.js"></script>
+
+    <script>
+        let currentStep = {{ step }}; // Set the current step from Django context
+        const totalSteps = {{ total_steps }};
+        const stepFormContent = document.getElementById('stepFormContent');
+
+        // Function to show the correct step and update step indicator
+        function showStep(step) {
+            // Hide all other content
+            const stepSections = document.querySelectorAll('.step-section');
+            stepSections.forEach(section => section.classList.add('hidden'));
+
+            // Show the selected step
+            document.getElementById('step' + step).classList.remove('hidden');
+
+            // Update the step indicators
+            const stepIndicators = document.querySelectorAll('.step');
+            stepIndicators.forEach((indicator, index) => {
+                if (index + 1 === step) {
+                    indicator.classList.add('step-primary');
+                } else {
+                    indicator.classList.remove('step-primary');
+                }
+            });
+        }
+
+        function validateStepsUpToCurrent() {
+            let isValid = true;
+
+            // Loop through all steps up to the current step
+            for (let step = 1; step <= currentStep; step++) {
+                const stepElement = document.getElementById('step' + step);
+                const inputs = stepElement.querySelectorAll('input, select, textarea');
+
+                // Validate each input in the step
+                inputs.forEach((input) => {
+                    if (!input.checkValidity()) {
+                        isValid = false;
+                        input.reportValidity(); // Show validation message
+                    }
+                });
+
+                // If any step is invalid, stop further validation
+                if (!isValid) break;
+            }
+
+            return isValid;
+        }
+
+        document.getElementById('nextBtn').onclick = () => {
+            if (validateStepsUpToCurrent()) {
+                changeStep(1); // Move to the next step
+            }
+        };
+
+        function updateStepIndicator() {
+            const stepIndicators = document.querySelectorAll('#stepIndicator .step');
+
+            stepIndicators.forEach((indicator, index) => {
+                // Highlight completed and current steps
+                if (index < currentStep) {
+                    indicator.classList.add('step-primary'); // Completed steps
+                } else {
+                    indicator.classList.remove('step-primary'); // Upcoming steps
+                }
+            });
+        }
+
+        // Call this function inside `changeStep` after updating `currentStep`
+        function changeStep(stepChange) {
+            const form = document.getElementById('multiStepForm');
+            const stepSections = document.querySelectorAll('.step-section');
+
+            // Update the current step
+            currentStep += stepChange;
+
+            // Ensure currentStep is within bounds
+            if (currentStep < 1) currentStep = 1;
+            if (currentStep > stepSections.length) currentStep = stepSections.length;
+
+            // Hide all steps and show only the current step
+            stepSections.forEach((section, index) => {
+                section.classList.toggle('hidden', index + 1 !== currentStep);
+            });
+
+            // Update navigation buttons
+            const nextBtn = document.getElementById('nextBtn');
+            const previousBtn = document.getElementById('previousBtn');
+            previousBtn.disabled = currentStep === 1;
+
+            if (currentStep === stepSections.length) {
+                // Last step: Set Next button to submit form
+                nextBtn.textContent = "Submit";
+                nextBtn.onclick = () => {
+                    if (validateStepsUpToCurrent()) {
+                        form.requestSubmit();
+                    }
+                };
+            } else {
+                // Not the last step: Set Next button to move to the next step
+                nextBtn.textContent = "Next";
+                nextBtn.onclick = () => {
+                    if (validateStepsUpToCurrent()) {
+                        changeStep(1); // Proceed to the next step
+                    }
+                };
+            }
+
+            // Update step indicators
+            updateStepIndicator();
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const categorySelect = document.getElementById('category');
+            const resourceLabel = document.getElementById('resource-label');
+            const resourceMessage = document.getElementById('resource-message');
+            const resourceFields = document.getElementById('resource-fields');
+            const resourceNameLabel = document.getElementById('resource-name-label');
+            const dynamicLabel = document.getElementById('dynamic-label');
+            const resourceName = document.getElementById('resource_name');
+            const resourceDetailInput = document.getElementById('resource_detail');
+            const resourceDropdown = document.getElementById('resource_dropdown');
+
+            const resourceMapping = {
+                restaurant: {
+                    label: 'Table',
+                    showMessage: false,
+                    useDropdown: false,
+                    detailLabel: 'Table Capacity',
+                    detailPlaceholder: 'Enter number of seats',
+                },
+                bank: {
+                    label: 'Counter',
+                    showMessage: false,
+                    useDropdown: true, // Use dropdown for counters
+                    detailLabel: 'Select Service Type',
+                },
+                hospital: {
+                    label: 'Doctor',
+                    showMessage: false,
+                    useDropdown: true, // Use dropdown for doctors
+                    detailLabel: 'Select Doctor Specialty',
+                },
+                default: {
+                    label: 'Resource',
+                    showMessage: true,
+                    useDropdown: false,
+                    detailLabel: '',
+                },
+            };
+
+            const dynamicOptions = {
+                bank: JSON.parse('{{ service_type|escapejs }}'),
+                hospital: JSON.parse('{{ specialty|escapejs }}'),
+            };
+
+            categorySelect.addEventListener('change', () => {
+                const selectedCategory = categorySelect.value;
+                const mapping = resourceMapping[selectedCategory] || resourceMapping.default;
+
+                // Update resource label
+                resourceLabel.textContent = mapping.showMessage
+                    ? ''
+                    : `Add ${mapping.label} (Optional)`;
+
+                // Show or hide "You're all set" message
+                resourceMessage.classList.toggle('hidden', !mapping.showMessage);
+                resourceFields.classList.toggle('hidden', mapping.showMessage);
+
+                if (!mapping.showMessage) {
+                    // Update resource name label and input
+                    resourceNameLabel.textContent = `${mapping.label} Name`;
+                    resourceName.placeholder = `Enter ${mapping.label.toLowerCase()} name`;
+                    resourceName.classList.remove('hidden');
+
+                    if (mapping.useDropdown) {
+                        resourceDropdown.innerHTML = ''; // Clear existing options
+
+                        // Access the service type options from the dynamicOptions
+                        const options = dynamicOptions[selectedCategory] || [];
+
+                        // Dynamically create option elements
+                        options.forEach(option => {
+                            const opt = document.createElement('option');
+                            opt.value = option.value;
+                            opt.textContent = option.label; // Visible text
+                            resourceDropdown.appendChild(opt);
+                        });
+
+                        resourceDropdown.classList.remove('hidden'); // Show the dropdown
+                        resourceDetailInput.classList.add('hidden'); // Hide the input field
+                    } else {
+                        // Use detail input for restaurant or other cases
+                        resourceDetailInput.placeholder = mapping.detailPlaceholder;
+                        resourceDetailInput.classList.remove('hidden');
+                        resourceDropdown.classList.add('hidden');
+                    }
+
+                    dynamicLabel.textContent = mapping.detailLabel;
+                }
+            });
+        });
+
+
+        const map = new ol.Map({
+            target: 'map',
+            layers: [
+                new ol.layer.Tile({
+                    source: new ol.source.OSM()
+                })
+            ],
+            view: new ol.View({
+                center: ol.proj.fromLonLat([100.5018, 13.7563]),
+                zoom: 13
+            })
+        });
+
+        const markerStyle = new ol.style.Style({
+            image: new ol.style.Icon({
+                anchor: [0.5, 1],
+                src: 'https://cdn-icons-png.flaticon.com/512/684/684908.png',
+                scale: 0.08
+            })
+        });
+
+        const markerSource = new ol.source.Vector();
+        const markerLayer = new ol.layer.Vector({
+            source: markerSource,
+            style: markerStyle
+        });
+        map.addLayer(markerLayer);
+
+        let markerFeature = new ol.Feature({
+            geometry: new ol.geom.Point(ol.proj.fromLonLat([100.5018, 13.7563]))
+        });
+        markerSource.addFeature(markerFeature);
+
+        function updateInputs(lon, lat) {
+            document.getElementById('id_latitude').value = lat?.toFixed(6) || '';
+            document.getElementById('id_longitude').value = lon?.toFixed(6) || '';
+            document.getElementById('latitudeInput').value = lat?.toFixed(6) || '';
+            document.getElementById('longitudeInput').value = lon?.toFixed(6) || '';
+        }
+
+        const modifyInteraction = new ol.interaction.Modify({
+            source: markerSource,
+            hitDetection: markerLayer,
+        });
+        map.addInteraction(modifyInteraction);
+
+        modifyInteraction.on('modifyend', function (event) {
+            if (event.features.getLength() > 0) {
+                const feature = event.features.item(0);
+                const coordinates = ol.proj.toLonLat(feature.getGeometry().getCoordinates());
+                updateInputs(coordinates[0], coordinates[1]);
+            }
+        });
+
+        map.on('singleclick', function (event) {
+            const coordinates = ol.proj.toLonLat(event.coordinate);
+            const [lon, lat] = coordinates;
+
+            markerSource.clear();
+            const newMarkerFeature = new ol.Feature({
+                geometry: new ol.geom.Point(event.coordinate)
+            });
+            markerSource.addFeature(newMarkerFeature);
+
+            updateInputs(lon, lat);
+        });
+
+        document.getElementById('useLocationButton').addEventListener('click', function () {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(function (position) {
+                    const lat = position.coords.latitude;
+                    const lon = position.coords.longitude;
+
+                    console.log(`User location: Lat = ${lat}, Lon = ${lon}`);
+
+                    const coordinates = ol.proj.fromLonLat([lon, lat]);
+                    map.getView().setCenter(coordinates);
+                    map.getView().setZoom(13);
+
+                    markerSource.clear();
+                    const newMarkerFeature = new ol.Feature({
+                        geometry: new ol.geom.Point(coordinates)
+                    });
+                    markerSource.addFeature(newMarkerFeature);
+                    updateInputs(lon, lat);
+                }, function () {
+                    alert("Error: The Geolocation service failed.");
+                });
+            } else {
+                alert("Error: Your browser does not support geolocation.");
+            }
+        });
+
+        document.getElementById('searchButton').addEventListener('click', searchLocation);
+        document.getElementById('searchInput').addEventListener('keydown', function (event) {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                searchLocation();
+            }
+        });
+
+        function searchLocation() {
+            var query = document.getElementById('searchInput').value.trim();
+
+            if (!query) {
+                alert("Please enter a location to search.");
+                return;
+            }
+
+            fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.length > 0) {
+                        var lat = parseFloat(data[0].lat);
+                        var lon = parseFloat(data[0].lon);
+                        const coordinates = ol.proj.fromLonLat([lon, lat]);
+                        map.getView().setCenter(coordinates);
+                        map.getView().setZoom(13);
+                        markerSource.clear();
+                        let newMarkerFeature = new ol.Feature({
+                            geometry: new ol.geom.Point(coordinates)
+                        });
+                        markerSource.addFeature(newMarkerFeature);
+                        updateInputs(lon, lat);
+                    } else {
+                        alert("Location not found. Please try again.");
+                    }
+                })
+                .catch(error => {
+                    console.error("Error searching location:", error);
+                    alert("Unable to search location. Please try again later.");
+                });
+        }
+
+        document.getElementById('queueForm').addEventListener('submit', function (event) {
+            const latitude = document.getElementById('id_latitude').value;
+            const longitude = document.getElementById('id_longitude').value;
+
+            if (!latitude || !longitude) {
+                event.preventDefault();
+                alert('Please select a location on the map before proceeding.');
+            }
+        });
+
+
+    </script>
+
+{% endblock %}
