@@ -63,25 +63,25 @@
         <div class="justify-between inline-flex mb-4">
             <div class="form-control">
                 <div class="relative w-full mr-2">
-                        <input type="text"
-                               id="searchInput"
-                               class="input input-bordered w-full pr-12"
-                               placeholder="Search" oninput="resourceSearch()">
-                        <button type="button"
-                                id="searchButton"
-                                class="absolute right-2 top-1/2 -translate-y-1/2 p-2 h-auto min-h-0">
-                            <svg xmlns="http://www.w3.org/2000/svg"
-                                 class="h-5 w-5"
-                                 fill="none"
-                                 viewBox="0 0 24 24"
-                                 stroke="currentColor">
-                                <path stroke-linecap="round"
-                                      stroke-linejoin="round"
-                                      stroke-width="2"
-                                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-                            </svg>
-                        </button>
-                    </div>
+                    <input type="text"
+                           id="searchInput"
+                           class="input input-bordered w-full pr-12"
+                           placeholder="Search" oninput="resourceSearch()">
+                    <button type="button"
+                            id="searchButton"
+                            class="absolute right-2 top-1/2 -translate-y-1/2 p-2 h-auto min-h-0">
+                        <svg xmlns="http://www.w3.org/2000/svg"
+                             class="h-5 w-5"
+                             fill="none"
+                             viewBox="0 0 24 24"
+                             stroke="currentColor">
+                            <path stroke-linecap="round"
+                                  stroke-linejoin="round"
+                                  stroke-width="2"
+                                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                        </svg>
+                    </button>
+                </div>
             </div>
         </div>
 
@@ -90,10 +90,8 @@
                 <thead>
                 <tr>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-                    {% if queue.category == 'restaurant' or queue.category == 'hospital' %}
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            {{ special_column }}</th>
-                    {% endif %}
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        {{ special_column }}</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Assigned
                         Count
                     </th>
@@ -119,6 +117,9 @@
                         {% elif queue.category == 'hospital' %}
                             <td class="px-6 py-4 whitespace-nowrap">
                                 {{ resource.get_specialty_display }}</td>
+                        {% elif queue.category == 'bank' %}
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                {{ resource.get_service_type_display }}</td>
                         {% endif %}
                         <td class="px-6 py-4 whitespace-nowrap">{{ resource.count }}</td>
                         <td class="px-6 py-4 whitespace-nowrap">{{ resource.assigned_to }}</td>
@@ -221,10 +222,18 @@
                         {% if queue.category == 'restaurant' %}
                             <div class="form-control w-full">
                                 <label class="label"><span class="label-text">{{ special_column }}</span></label>
-                                <input type="number" id="edit_special" name="special" class="input input-bordered w-full"
+                                <input type="number" id="edit_special" name="special"
+                                       class="input input-bordered w-full"
                                        required/>
                             </div>
                         {% elif queue.category == 'hospital' %}
+                            <label class="label"><span class="label-text">{{ special_column }}</span></label>
+                            <select id="edit_special" name="special" class="select select-bordered w-full" required>
+                                {% for value, label in special_choice %}
+                                    <option value="{{ value }}">{{ label }}</option>
+                                {% endfor %}
+                            </select>
+                        {% else %}
                             <label class="label"><span class="label-text">{{ special_column }}</span></label>
                             <select id="edit_special" name="special" class="select select-bordered w-full" required>
                                 {% for value, label in special_choice %}
@@ -285,9 +294,10 @@
                         {% if queue.category == 'restaurant' %}
                             <div class="form-control w-full">
                                 <label class="label"><span class="label-text">{{ special_column }}</span></label>
-                                <input type="number" id="add_special" name="special" class="input input-bordered w-full"/>
+                                <input type="number" id="add_special" name="special"
+                                       class="input input-bordered w-full"/>
                             </div>
-                        {% elif queue.category == 'hospital' %}
+                        {% else %}
                             <label class="label"><span class="label-text">{{ special_column }}</span></label>
                             <select id="add_special" name="special" class="select select-bordered w-full">
                                 <option></option>
