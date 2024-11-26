@@ -614,19 +614,6 @@ class BankQueueHandler(CategoryHandler):
         BankQueue = apps.get_model('manager', 'BankQueue')
         return get_object_or_404(BankQueue, id=queue_id)
 
-    def assign_to_resource(self, participant, resource_id=None):
-        Counter = apps.get_model('manager', 'Counter')
-        if resource_id:
-            resource = get_object_or_404(Counter, id=resource_id)
-        else:
-            resource = Counter.objects.filter(status='available').first()
-
-        if not resource:
-            raise ValueError('No resource available.')
-        resource.assign_to_participant(participant)
-        participant.resource = resource
-        participant.resource_assigned = resource.name
-        participant.save()
 
     def complete_service(self, participant):
         if participant.state == 'serving':
@@ -662,6 +649,7 @@ class BankQueueHandler(CategoryHandler):
         }
 
     def update_participant(self, participant, data):
+        Counter = apps.get_model('manager', 'Counter')
         participant.name = data.get('name', participant.name)
         participant.phone = data.get('phone', participant.phone)
         participant.participant_category = data.get('special_1', participant.participant_category)
