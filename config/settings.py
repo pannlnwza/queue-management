@@ -39,8 +39,8 @@ INSTALLED_APPS = [
     'daphne',
     'channels',
     'whitenoise.runserver_nostatic',
-    'manager.apps.ManagerConfig',
-    'participant.apps.ParticipantConfig',
+    'manager',
+    'participant',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -56,8 +56,6 @@ INSTALLED_APPS = [
     'theme',
     'django_browser_reload',
 ]
-
-ASGI_APPLICATION = 'config.asgi.application'
 
 CHANNEL_LAYERS = {
     'default': {
@@ -107,7 +105,7 @@ TEMPLATES = [
 
 
 WSGI_APPLICATION = 'config.wsgi.application'
-
+ASGI_APPLICATION = "config.asgi.application"
 
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases

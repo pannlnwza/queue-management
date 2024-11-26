@@ -1,7 +1,4 @@
 import math
-import random
-import string
-
 from manager.utils.code_generator import generate_unique_code
 from django.dispatch import receiver
 from django.conf import settings
