@@ -212,6 +212,12 @@
                 right: 1rem;
                 z-index: 9999;
             }
+
+            @media (min-width: 1024px) {
+                .drawer-side {
+                    overflow: visible !important;
+                }
+            }
         </style>
 
     </div>
@@ -219,13 +225,6 @@
 </div>
 </body>
 
-<style>
-    @media (min-width: 1024px) {
-        .drawer-side {
-            overflow: visible !important;
-        }
-    }
-</style>
 
 <script>
     function copyToClipboard() {
@@ -245,7 +244,6 @@
     }, 5000);
 
 </script>
-
 
 
 </html>
