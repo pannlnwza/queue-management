@@ -700,6 +700,7 @@ class BankQueueHandler(CategoryHandler):
         }
 
     def add_resource_attributes(self, queue):
+        Counter = apps.get_model('manager', 'Counter')
         return {
             'resource_name': 'Counter',
             'resources': Counter.objects.filter(queue=queue),
