@@ -1244,6 +1244,13 @@ def set_location(request):
     return JsonResponse(
         {'status': 'failed', 'error': 'Only POST method allowed'}, status=400)
 
+def get_client_ip(request):
+    """Retrieve the client's IP address from the request."""
+    return (
+        x_forwarded_for.split(',')[0]
+        if (x_forwarded_for := request.META.get('HTTP_X_FORWARDED_FOR'))
+        else request.META.get('REMOTE_ADDR'))
+
 
 @receiver(user_logged_in)
 def user_login(request, user, **kwargs):
