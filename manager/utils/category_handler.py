@@ -592,8 +592,16 @@ class BankQueueHandler(CategoryHandler):
             created_by='staff'
         )
 
+    def get_participant_set(self, queue_id):
+        BankParticipant = apps.get_model('participant', 'BankParticipant')
+        return BankParticipant.objects.filter(queue_id=queue_id)
+
+    def get_queue_object(self, queue_id):
+        BankQueue = apps.get_model('manager', 'BankQueue')
+        return get_object_or_404(BankQueue, id=queue_id)
+
     def assign_to_resource(self, participant, resource_id=None):
-        Counter = apps.get_model('manager', 'Counter')  # Lazy load
+        Counter = apps.get_model('manager', 'Counter')
         if resource_id:
             resource = get_object_or_404(Counter, id=resource_id)
         else:
@@ -604,16 +612,6 @@ class BankQueueHandler(CategoryHandler):
         participant.resource = resource
         participant.resource_assigned = resource.name
         participant.save()
-
-
-    def get_participant_set(self, queue_id):
-        BankParticipant = apps.get_model('participant', 'BankParticipant')
-        return BankParticipant.objects.filter(queue_id=queue_id)
-
-    def get_queue_object(self, queue_id):
-        BankQueue = apps.get_model('manager', 'BankQueue')
-        return get_object_or_404(BankQueue, id=queue_id)
-
 
     def complete_service(self, participant):
         if participant.state == 'serving':
