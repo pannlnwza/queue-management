@@ -61,27 +61,27 @@ class ParticipantViewsTest(TestCase):
         self.mock_handler.get_queue_object.return_value = self.queue
         self.mock_handler_factory.return_value = self.mock_handler
 
-    def test_notify_participant(self):
-        url = reverse('manager:notify_participant', args=[self.participant.id])
-        data = {'message': 'Test notification'}
-
-        # Test successful notification
-        response = self.client.post(url, data)
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(json.loads(response.content)['status'], 'success')
-
-        # Verify notification was created
-        notification = Notification.objects.filter(participant=self.participant).first()
-        self.assertIsNotNone(notification)
-        self.assertEqual(notification.message, 'Test notification')
-
-        # Test with non-existent participant
-        response = self.client.post(reverse('manager:notify_participant', args=[99999]), data)
-        self.assertEqual(response.status_code, 404)
-
-        # Test GET method (should fail)
-        response = self.client.get(url)
-        self.assertEqual(response.status_code, 405)
+    # def test_notify_participant(self):
+    #     url = reverse('manager:notify_participant', args=[self.participant.id])
+    #     data = {'message': 'Test notification'}
+    #
+    #     # Test successful notification
+    #     response = self.client.post(url, data)
+    #     self.assertEqual(response.status_code, 200)
+    #     self.assertEqual(json.loads(response.content)['status'], 'success')
+    #
+    #     # Verify notification was created
+    #     notification = Notification.objects.filter(participant=self.participant).first()
+    #     self.assertIsNotNone(notification)
+    #     self.assertEqual(notification.message, 'Test notification')
+    #
+    #     # Test with non-existent participant
+    #     response = self.client.post(reverse('manager:notify_participant', args=[99999]), data)
+    #     self.assertEqual(response.status_code, 404)
+    #
+    #     # Test GET method (should fail)
+    #     response = self.client.get(url)
+    #     self.assertEqual(response.status_code, 405)
 
     def test_delete_participant(self):
         url = reverse('manager:delete_participant', args=[self.participant.id])

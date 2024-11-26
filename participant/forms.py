@@ -14,7 +14,7 @@ class KioskForm(forms.Form):
     )
     phone = forms.CharField(
         widget=forms.TextInput(
-            attrs={'class': 'input input-bordered w-full', 'placeholder': 'ex. 086-652-xxxx'}),
+            attrs={'class': 'input input-bordered w-full', 'placeholder': 'ex. 086-652-xxxx', "pattern":"^\+?\d{9,10}$"}),
         max_length=15,
         required=False,
     )

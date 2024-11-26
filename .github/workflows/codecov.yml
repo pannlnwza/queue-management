@@ -59,9 +59,8 @@ jobs:
           python manage.py migrate
 
       - name: Run tests and collect coverage
-        run: | 
-          coverage run manage.py test participant
-          coverage run manage.py test manager
+        run: |
+          coverage run manage.py test
 
       - name: Generate coverage report
         run: coverage xml
@@ -73,3 +72,5 @@ jobs:
           files: ./coverage.xml
           flags: unittests
           name: codecov-coverage
+          fail_ci_if_error: true
+          verbose: true

@@ -6,16 +6,6 @@
         <div class="card-body">
             <h1 class="text-2xl font-bold mb-6">Edit Profile</h1>
 
-            {% if messages %}
-                <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-6" role="alert">
-                    <ul>
-                        {% for message in messages %}
-                            <li>{{ message }}</li>
-                        {% endfor %}
-                    </ul>
-                </div>
-            {% endif %}
-
             <form method="POST" class="space-y-6" enctype="multipart/form-data" id="profileForm">
                 {% csrf_token %}
 
@@ -108,7 +98,9 @@
                                    name="phone"
                                    placeholder="Ex. 098 765 4321"
                                    value="{{ profile.phone|default:"" }}"
+                                   pattern="^\+?\d{9,10}$"
                                    class="input input-bordered w-full">
+
                         </div>
                     </div>
                 </section>

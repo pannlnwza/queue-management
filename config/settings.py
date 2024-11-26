@@ -110,6 +110,7 @@ ASGI_APPLICATION = "config.asgi.application"
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
+
 TEST = config('TEST', default=False, cast=bool)
 
 if TEST or 'test' in sys.argv:
@@ -138,7 +139,7 @@ else:
 #         "PORT": config("DATABASE_PORT", default=os.environ.get("DATABASE_PORT", "5432")),
 #     }
 # }
-#
+
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
