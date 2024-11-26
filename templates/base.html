@@ -85,35 +85,41 @@
 
 {% block content %} {% endblock %}
 
-<script>
-    const themeToggle = document.querySelector('.theme-controller');
-    const logoLight = document.querySelector('.logo-light');
-    const logoDark = document.querySelector('.logo-dark');
+{% if messages %}
+    {% for message in messages %}
+        <div id="toast-container" class="toast toast-end toast-bottom z-50">
+        <div class="alert alert-success shadow-lg text-white">
+            <div class="inline-flex">
+                <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6 mr-2" fill="none"
+                     viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                <span>{{ message }}</span>
+            </div>
+        </div>
+    {% endfor %}
+{% endif %}
+</div>
 
-    function setTheme(theme) {
-        document.documentElement.setAttribute('data-theme', theme);
-        localStorage.setItem('theme', theme);
-        themeToggle.checked = theme === 'dark';
-
-        if (theme === 'dark') {
-            logoLight.classList.add('hidden');
-            logoDark.classList.remove('hidden');
-        } else {
-            logoLight.classList.remove('hidden');
-            logoDark.classList.add('hidden');
-        }
+<style>
+    #toast-container {
+        position: fixed;
+        bottom: 1rem;
+        right: 1rem;
+        z-index: 9999;
     }
-
-    document.addEventListener('DOMContentLoaded', () => {
-        const savedTheme = localStorage.getItem('theme') || 'light';
-        setTheme(savedTheme);
-    });
-
-    themeToggle.addEventListener('change', (e) => {
-        const newTheme = e.target.checked ? 'dark' : 'light';
-        setTheme(newTheme);
-    });
-</script>
+</style>
 
 </body>
 </html>
+
+<script>
+    setTimeout(function () {
+        const toast = document.querySelector('#toast-container');
+        if (toast) {
+            toast.remove();
+        }
+    }, 5000);
+
+</script>

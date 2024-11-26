@@ -50,7 +50,7 @@ class CategoryHandler(ABC):
         pass
 
     @abstractmethod
-    def assign_to_resource(self, participant):
+    def assign_to_resource(self, participant, resource_id=None):
         pass
 
     @abstractmethod
@@ -120,7 +120,7 @@ class GeneralQueueHandler(CategoryHandler):
     def get_queue_object(self, queue_id):
         return get_object_or_404(Queue, id=queue_id)
 
-    def assign_to_resource(self, participant):
+    def assign_to_resource(self, participant, resource_id=None):
         pass
 
     def complete_service(self, participant):
@@ -162,7 +162,7 @@ class GeneralQueueHandler(CategoryHandler):
     def get_special_column(self):
         pass
 
-    def add_resource_attributes(self, queue):
+    def add_resource_attributes(self, queue, resource_id=None):
         pass
 
     def add_resource(self, queue):
@@ -318,8 +318,7 @@ class RestaurantQueueHandler(CategoryHandler):
         status = data.get('status')
         queue = data.get('queue')
         table = Table.objects.create(name=name, capacity=capacity, status=status, queue=queue)
-        # queue.resources.add(table)
-        queue.resource_set.add(table)
+        queue.resources.add(table)
         queue.save()
 
     def edit_resource(self, resource, data):
@@ -522,7 +521,7 @@ class HospitalQueueHandler(CategoryHandler):
         status = data.get('status')
         queue = data.get('queue')
         doctor = Doctor.objects.create(name=name, specialty=medical_field, status=status, queue=queue)
-        queue.resource_set.add(doctor)
+        queue.resources.add(doctor)
         queue.save()
 
     def edit_resource(self, resource, data):
@@ -587,8 +586,7 @@ class BankQueueHandler(CategoryHandler):
         if resource_id:
             resource = get_object_or_404(Counter, id=resource_id)
         else:
-            resource = Counter.objects.filter(status='available').first()
-
+            resource = Counter.objects.filter(service_type=participant.service_type, status='available').first()
         if not resource:
             raise ValueError('No resource available.')
         resource.assign_to_participant(participant)
@@ -683,19 +681,24 @@ class BankQueueHandler(CategoryHandler):
     def add_resource_attributes(self, queue):
         return {
             'resource_name': 'Counter',
+            'resources': Counter.objects.filter(queue=queue),
+            'special_column': 'Service',
+            'special_choice': Counter.SERVICE_TYPE_CHOICES,
         }
 
     def add_resource(self, data):
         name = data.get('name')
+        service_type = data.get('special')
         status = data.get('status')
         queue = data.get('queue')
-        counter = Counter.objects.create(name=name, status=status, queue=queue)
-        queue.resource_set.add(counter)
+        counter = Counter.objects.create(name=name, service_type=service_type, status=status, queue=queue)
+        queue.resources.add(counter)
         queue.save()
 
     def edit_resource(self, resource, data):
         counter = get_object_or_404(Counter, id=resource.id)
         counter.name = data.get('name', counter.name)
+        counter.service_type = data.get('special', counter.service_type)
         counter.status = data.get('status', counter.status)
         assigned_to = data.get('assigned_to', counter.assigned_to)
 
