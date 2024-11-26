@@ -39,3 +39,5 @@ tornado==6.4.1
 tzdata==2024.2
 urllib3==2.2.3
 whitenoise==6.8.2
+channels
+daphne

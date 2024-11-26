@@ -111,13 +111,11 @@
         </div>
     </div>
 
-
 <script>
-    const eventSource = new EventSource('/status/{{ participant.code }}/sse');
+    const participantCode = "{{ participant.code }}";  // Pass the participant code dynamically from the backend
 
     // Elements
     const notificationButton = document.getElementById('notificationButton');
-    const modal = document.getElementById('my_modal_5');
     const modalMessage = document.getElementById('modalMessage');
 
     // Notification sound
@@ -128,7 +126,6 @@
     document.addEventListener('click', () => {
         if (!soundEnabled) {
             const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-
             audioContext.resume().then(() => {
                 soundEnabled = true;
                 console.log('Sound enabled.');
@@ -138,94 +135,120 @@
         }
     });
 
-    eventSource.onmessage = function (event) {
-        try {
-            const data = JSON.parse(event.data);
-            console.log("Received data:", data);
+    let socket;
 
-            // Update participant information
-            document.getElementById('participantName').innerText = data.name || 'N/A';
-            document.getElementById('position').innerText = data.position || 'N/A';
-            document.getElementById('participantPhone').innerText = data.phone || 'N/A';
-            document.getElementById('participantEmail').innerText = data.email || 'N/A';
-            document.getElementById('EstimatedWaitTime').innerText = data.estimated_wait_time || 'N/A';
-            document.getElementById('special_1').innerText = data.special_1 || 'N/A';
-            document.getElementById('special_2').innerText = data.special_2 || 'N/A';
-            document.getElementById('waitTime').innerText = data.waited || 'N/A';
+    function connectWebSocket() {
+        socket = new WebSocket(`ws://${window.location.host}/ws/status/${participantCode}/`);
 
-            document.getElementById('first-in-queue-message').style.display = 'none';
-            document.getElementById('ETA-message').style.display = 'none';
+        socket.onopen = function () {
+            console.log("WebSocket connection established!");
+        };
 
-            // Reset modal content
-            modalMessage.innerHTML = "";
+        socket.onmessage = function (event) {
+            try {
+                const data = JSON.parse(event.data);
+                console.log("Received data:", data);
 
-            if (data.notification_set && data.notification_set.length > 0) {
-                let hasUnread = false;
+                // Update participant information
+                document.getElementById('participantName').innerText = data.name || 'N/A';
+                document.getElementById('position').innerText = data.position || 'N/A';
+                document.getElementById('participantPhone').innerText = data.phone || 'N/A';
+                document.getElementById('participantEmail').innerText = data.email || 'N/A';
+                document.getElementById('EstimatedWaitTime').innerText = data.estimated_wait_time || 'N/A';
+                document.getElementById('special_1').innerText = data.special_1 || 'N/A';
+                document.getElementById('special_2').innerText = data.special_2 || 'N/A';
+                document.getElementById('waitTime').innerText = data.waited || 'N/A';
 
-                // Populate notifications
-                data.notification_set.forEach((notification, index) => {
-                    const isRead = notification.is_read;
-                    const playedSound = notification.played_sound;
+                document.getElementById('first-in-queue-message').style.display = 'none';
+                document.getElementById('ETA-message').style.display = 'none';
 
-                    if (!isRead) {
-                        hasUnread = true;
+                // Reset modal content
+                modalMessage.innerHTML = "";
 
-                        // Play sound if not already played
-                        if (!playedSound && soundEnabled) {
-                            notificationSound.play().then(() => {
-                                console.log('Notification sound played.');
-                            }).catch(error => {
-                                console.error('Error playing sound:', error);
-                            });
-                        }
-                    }
+                if (data.notification_set && data.notification_set.length > 0) {
+                    let hasUnread = false;
 
-                    const accordion = document.createElement('div');
-                    accordion.classList.add('collapse', 'collapse-plus', 'bg-base-200');
-                    accordion.innerHTML = `
-                        <input type="radio" name="notification-accordion" id="notification-${index}" ${
-                        index === 0 ? 'checked' : ''
-                    } />
-                        <label class="collapse-title text-lg font-medium" for="notification-${index}">
-                            ${notification.message.substring(0, 30)}...
-                        </label>
-                        <div class="collapse-content space-y-2">
-                            <p>${notification.message}</p>
-                            <p class="text-sm text-gray-500">${notification.created_at}</p>
-                            ${
-                                !isRead
-                                    ? `<button class="btn btn-primary btn-sm" onclick="markAsRead(${notification.id})">
-                                        Mark as Read
-                                    </button>`
-                                    : `<span class="text-green-500 text-sm">Read</span>`
+                    // Populate notifications
+                    data.notification_set.forEach((notification, index) => {
+                        const isRead = notification.is_read;
+                        const playedSound = notification.played_sound;
+
+                        if (!isRead) {
+                            hasUnread = true;
+
+                            // Play sound if not already played
+                            if (!playedSound && soundEnabled) {
+                                notificationSound.play().then(() => {
+                                    console.log('Notification sound played.');
+                                }).catch(error => {
+                                    console.error('Error playing sound:', error);
+                                });
                             }
-                        </div>
-                    `;
-                    modalMessage.appendChild(accordion);
-                });
+                        }
 
-                // Highlight notification button if there are unread notifications
-                if (hasUnread) {
-                    notificationButton.classList.add('animate-pulse', 'bg-red-500', 'text-white');
+                        const accordion = document.createElement('div');
+                        accordion.classList.add('collapse', 'collapse-plus', 'bg-base-200');
+                        accordion.innerHTML = `
+                            <input type="radio" name="notification-accordion" id="notification-${index}" ${
+                            index === 0 ? 'checked' : ''
+                        } />
+                            <label class="collapse-title text-lg font-medium" for="notification-${index}">
+                                ${notification.message.substring(0, 30)}...
+                            </label>
+                            <div class="collapse-content space-y-2">
+                                <p>${notification.message}</p>
+                                <p class="text-sm text-gray-500">${notification.created_at}</p>
+                                ${
+                                    !isRead
+                                        ? `<button class="btn btn-primary btn-sm" onclick="markAsRead(${notification.id})">
+                                            Mark as Read
+                                        </button>`
+                                        : `<span class="text-green-500 text-sm">Read</span>`
+                                }
+                            </div>
+                        `;
+                        modalMessage.appendChild(accordion);
+                    });
+
+                    // Highlight notification button if there are unread notifications
+                    if (hasUnread) {
+                        notificationButton.classList.add('animate-pulse', 'bg-red-500', 'text-white');
+                    } else {
+                        notificationButton.classList.remove('animate-pulse', 'bg-red-500', 'text-white');
+                    }
                 } else {
+                    modalMessage.innerHTML = "<p>No new notifications</p>";
                     notificationButton.classList.remove('animate-pulse', 'bg-red-500', 'text-white');
                 }
-            } else {
-                modalMessage.innerHTML = "<p>No new notifications</p>";
-                notificationButton.classList.remove('animate-pulse', 'bg-red-500', 'text-white');
+
+                if (data.served) {
+                    document.getElementById('served-message').style.display = 'block';
+                    document.getElementById('leave-button').style.display = 'none';
+                } else if (data.position === 1 && data.served === null) {
+                    document.getElementById('first-in-queue-message').style.display = 'block';
+                } else {
+                    document.getElementById('ETA-message').style.display = 'block';
+                }
+            } catch (error) {
+                console.error("Error parsing WebSocket data:", error);
             }
-            if (data.served) {
-                document.getElementById('served-message').style.display = 'block';
-                document.getElementById('leave-button').style.display = 'none';
-            } else if (data.position === 1  && data.served === null) {
-                document.getElementById('first-in-queue-message').style.display = 'block';
-            } else {
-                document.getElementById('ETA-message').style.display = 'block';
-            }
-        } catch (error) {
-            console.error("Error parsing SSE data:", error);
-        }
-    };
+        };
+
+        socket.onclose = function () {
+            console.log("WebSocket connection closed. Reconnecting...");
+            setTimeout(reconnectWebSocket, 5000);
+        };
+
+        socket.onerror = function (error) {
+            console.error("WebSocket error:", error);
+            socket.close(); // Close to trigger reconnect logic
+        };
+    }
+
+    function reconnectWebSocket() {
+        console.log("Reconnecting WebSocket...");
+        connectWebSocket();
+    }
 
     function markAsRead(notificationId) {
         fetch(`/mark-as-read/${notificationId}/`, {
@@ -244,7 +267,6 @@
         .then(data => {
             if (data.status === "success") {
                 console.log('Notification marked as read');
-                // Update the UI to show the notification is marked as read
                 const notificationElement = document.querySelector(`#notification-${notificationId}`);
                 if (notificationElement) {
                     const readButton = notificationElement.querySelector('.btn');
@@ -252,7 +274,6 @@
                         readButton.outerHTML = `<span class="text-green-500 text-sm">Marked as Read</span>`;
                     }
                 }
-
             } else {
                 console.error(data.message);
             }
@@ -262,12 +283,13 @@
         });
     }
 
-    eventSource.onerror = function(error) {
-        console.error("Error in SSE connection:", error);
-    };
-
     function confirmLeaveQueue() {
         return confirm("Are you sure you want to leave the queue? This action cannot be undone.");
     }
+
+    // Initialize WebSocket connection
+    connectWebSocket();
 </script>
+
+
 {% endblock %}
