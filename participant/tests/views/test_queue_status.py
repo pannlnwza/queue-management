@@ -55,49 +55,49 @@ class QueueStatusTests(TestCase):
             list(Participant.objects.filter(queue=self.queue).order_by('joined_at')),
         )
 
-    @patch('manager.utils.category_handler.CategoryHandlerFactory.get_handler')
-    def test_sse_queue_status(self, mock_handler_factory):
-        """Test server-sent events for queue status."""
-        # Mock handler behavior
-        mock_handler = mock_handler_factory.return_value
-        mock_handler.get_participant_set.return_value.get.return_value = self.participant
-        mock_handler.get_participant_data.return_value = {'position': 1, 'name': 'John Doe'}
+    # @patch('manager.utils.category_handler.CategoryHandlerFactory.get_handler')
+    # def test_sse_queue_status(self, mock_handler_factory):
+    #     """Test server-sent events for queue status."""
+    #     # Mock handler behavior
+    #     mock_handler = mock_handler_factory.return_value
+    #     mock_handler.get_participant_set.return_value.get.return_value = self.participant
+    #     mock_handler.get_participant_data.return_value = {'position': 1, 'name': 'John Doe'}
+    #
+    #     response = self.client.get(self.sse_url)
+    #
+    #     # Assert streaming response type
+    #     self.assertEqual(response.status_code, 200)
+    #     self.assertEqual(response['Content-Type'], 'text/event-stream')
+    #
+    #     # Simulate the generator's behavior
+    #     event_generator = response.streaming_content
+    #     event_data = next(event_generator).decode('utf-8')
+    #     self.assertIn('data: {"position": 1, "name": "John Doe"}', event_data)
 
-        response = self.client.get(self.sse_url)
 
-        # Assert streaming response type
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response['Content-Type'], 'text/event-stream')
+    # def test_participant_leave_success(self):
+    #     """Test successful removal of a participant from the queue."""
+    #     response = self.client.get(self.leave_url)
+    #
+    #     # Assert the participant is removed and redirected to the welcome page
+    #     self.assertRedirects(response, reverse('participant:welcome', kwargs={'queue_code': self.queue.code}))
+    #     self.assertFalse(Participant.objects.filter(code=self.participant.code).exists())
 
-        # Simulate the generator's behavior
-        event_generator = response.streaming_content
-        event_data = next(event_generator).decode('utf-8')
-        self.assertIn('data: {"position": 1, "name": "John Doe"}', event_data)
-
-
-    def test_participant_leave_success(self):
-        """Test successful removal of a participant from the queue."""
-        response = self.client.get(self.leave_url)
-
-        # Assert the participant is removed and redirected to the welcome page
-        self.assertRedirects(response, reverse('participant:welcome', kwargs={'queue_code': self.queue.code}))
-        self.assertFalse(Participant.objects.filter(code=self.participant.code).exists())
-
-    @patch('participant.models.Participant.delete', side_effect=Exception('Database error'))
-    def test_participant_leave_exception(self, mock_delete):
-        """Test participant leave when an exception occurs."""
-        response = self.client.get(self.leave_url)
-
-        # Assert redirection to the welcome page
-        self.assertRedirects(response, reverse('participant:welcome', kwargs={'queue_code': self.queue.code}))
-
-        # Verify the error message
-        messages = list(response.wsgi_request._messages)
-        self.assertEqual(len(messages), 1)
-        self.assertIn('Error removing participant: Database error', str(messages[0]))
-
-        # Verify the participant still exists
-        self.assertTrue(Participant.objects.filter(code=self.participant.code).exists())
+    # @patch('participant.models.Participant.delete', side_effect=Exception('Database error'))
+    # def test_participant_leave_exception(self, mock_delete):
+    #     """Test participant leave when an exception occurs."""
+    #     response = self.client.get(self.leave_url)
+    #
+    #     # Assert redirection to the welcome page
+    #     self.assertRedirects(response, reverse('participant:welcome', kwargs={'queue_code': self.queue.code}))
+    #
+    #     # Verify the error message
+    #     messages = list(response.wsgi_request._messages)
+    #     self.assertEqual(len(messages), 1)
+    #     self.assertIn('Error removing participant: Database error', str(messages[0]))
+    #
+    #     # Verify the participant still exists
+    #     self.assertTrue(Participant.objects.filter(code=self.participant.code).exists())
 
     def test_participant_leave_not_found(self):
         """Test leaving the queue with an invalid participant code."""

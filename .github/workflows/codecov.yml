@@ -60,8 +60,7 @@ jobs:
 
       - name: Run tests and collect coverage
         run: | 
-          coverage run manage.py test participant
-          coverage run manage.py test manager
+          coverage run manage.py test
 
       - name: Generate coverage report
         run: coverage xml
