@@ -149,7 +149,7 @@
                                                    step="any" required>
                                         </div>
 
-                                        <!-- Longitude Input with Search Button outside -->
+                                        <!-- Longitude Input with Search Button -->
                                         <div class="form-control">
                                             <label class="label">
                                                 <span class="label-text font-medium">Longitude</span>
@@ -160,9 +160,24 @@
                                                        class="input input-bordered w-full"
                                                        placeholder="Longitude"
                                                        step="any" required>
+                                                <button type="button"
+                                                        id="searchByLatLonBtn"
+                                                        class="ml-2 p-2 bg-transparent border-2 border-blue-500 rounded-full hover:bg-blue-100 inline-flex items-center">
+                                                    <svg xmlns="http://www.w3.org/2000/svg"
+                                                         class="h-5 w-5 text-blue-500"
+                                                         fill="none"
+                                                         viewBox="0 0 24 24"
+                                                         stroke="currentColor">
+                                                        <path stroke-linecap="round"
+                                                              stroke-linejoin="round"
+                                                              stroke-width="2"
+                                                              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                                    </svg>
+                                                </button>
                                             </div>
                                         </div>
                                     </div>
+
 
                                     <!-- Map -->
                                     <div class="rounded-box overflow-hidden border border-base-300">
@@ -571,16 +586,47 @@
                 });
         }
 
-        document.getElementById('queueForm').addEventListener('submit', function (event) {
-            const latitude = document.getElementById('id_latitude').value;
-            const longitude = document.getElementById('id_longitude').value;
+    document.getElementById('searchByLatLonBtn').addEventListener('click', searchLocationByLatLon);
 
-            if (!latitude || !longitude) {
-                event.preventDefault();
-                alert('Please select a location on the map before proceeding.');
-            }
-        });
 
+    function searchLocationByLatLon() {
+    // Step 1: Get the input latitude and longitude values
+    const lat = parseFloat(document.getElementById('latitudeInput').value);
+    const lon = parseFloat(document.getElementById('longitudeInput').value);
+
+    // Step 2: Check if the latitude and longitude are valid
+    if (isNaN(lat) || isNaN(lon)) {
+        alert("Please enter valid latitude and longitude values.");
+        return;
+    }
+
+    // Step 3: Correct the order of coordinates (Lon, Lat) for OpenLayers
+    const coordinates = ol.proj.fromLonLat([lon, lat]);
+
+    // Step 4: Set the map center to the input coordinates
+    map.getView().setCenter(coordinates);
+    map.getView().setZoom(13); // Adjust the zoom level
+
+    markerSource.clear();
+
+    let newMarkerFeature = new ol.Feature({
+        geometry: new ol.geom.Point(coordinates)
+    });
+    markerSource.addFeature(newMarkerFeature);
+
+    document.getElementById('id_latitude').value = lat.toFixed(6);
+    document.getElementById('id_longitude').value = lon.toFixed(6);
+    }
+
+    document.getElementById('queueForm').addEventListener('submit', function (event) {
+        const latitude = document.getElementById('id_latitude').value;
+        const longitude = document.getElementById('id_longitude').value;
+
+        if (!latitude || !longitude) {
+            event.preventDefault();
+            alert('Please select a location on the map before proceeding.');
+        }
+    });
     </script>
 
 {% endblock %}
