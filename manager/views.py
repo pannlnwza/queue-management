@@ -39,8 +39,6 @@ from participant.models import Participant, Notification
 
 logger = logging.getLogger('queue')
 
-
-
 class CreateQueueView(generic.TemplateView):
     template_name = 'manager/create_queue.html'
 
@@ -74,8 +72,10 @@ def create_queue(request):
         'category': category,
         'name': data.get('name'),
         'description': data.get('description'),
-        'open_time': data.get('open_time'),
-        'close_time': data.get('close_time'),
+        'open_time': data.get("open_time").strftime("%H:%M:%S") if data.get(
+                    "open_time") else None,
+        'close_time': data.get("open_time").strftime("%H:%M:%S") if data.get(
+                    "open_time") else None,
         'latitude': data.get('latitude'),
         'longitude': data.get('longitude'),
         'created_by': request.user,

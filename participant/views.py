@@ -33,6 +33,7 @@ import asyncio
 import json
 import threading
 
+
 class HomePageView(generic.TemplateView):
     template_name = 'participant/get_started.html'
 
@@ -205,7 +206,6 @@ class QRcodeView(generic.DetailView):
         self.send_email_with_qr(participant, qr_code_base64, check_queue_url)
 
         return context
-
 
     def send_email_with_qr(self, participant, qr_code_base64, check_queue_url):
         """
