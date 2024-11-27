@@ -190,6 +190,13 @@ SOCIALACCOUNT_PROVIDERS = {
     }
 }
 
+# DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='webmaster@example.com')
+AWS_ACCESS_KEY_ID = config('AWS_ACCESS_KEY_ID', default=None)
+AWS_SECRET_ACCESS_KEY = config('AWS_SECRET_ACCESS_KEY', default=None)
+BUCKET = config('BUCKET', default='mybucket')
+REGION = config('REGION', default='myregion')
+
+
 SITE_ID = 1
 
 
