@@ -253,17 +253,10 @@
         let currentStep = {{ step }}; // Set the current step from Django context
         const totalSteps = {{ total_steps }};
         const stepFormContent = document.getElementById('stepFormContent');
-
-        // Function to show the correct step and update step indicator
         function showStep(step) {
-            // Hide all other content
             const stepSections = document.querySelectorAll('.step-section');
             stepSections.forEach(section => section.classList.add('hidden'));
-
-            // Show the selected step
             document.getElementById('step' + step).classList.remove('hidden');
-
-            // Update the step indicators
             const stepIndicators = document.querySelectorAll('.step');
             stepIndicators.forEach((indicator, index) => {
                 if (index + 1 === step) {
@@ -276,21 +269,16 @@
 
         function validateStepsUpToCurrent() {
             let isValid = true;
-
-            // Loop through all steps up to the current step
             for (let step = 1; step <= currentStep; step++) {
                 const stepElement = document.getElementById('step' + step);
                 const inputs = stepElement.querySelectorAll('input, select, textarea');
-
-                // Validate each input in the step
                 inputs.forEach((input) => {
                     if (!input.checkValidity()) {
                         isValid = false;
-                        input.reportValidity(); // Show validation message
+                        input.reportValidity();
                     }
                 });
 
-                // If any step is invalid, stop further validation
                 if (!isValid) break;
             }
 
@@ -299,7 +287,7 @@
 
         document.getElementById('nextBtn').onclick = () => {
             if (validateStepsUpToCurrent()) {
-                changeStep(1); // Move to the next step
+                changeStep(1);
             }
         };
 
@@ -307,39 +295,31 @@
             const stepIndicators = document.querySelectorAll('#stepIndicator .step');
 
             stepIndicators.forEach((indicator, index) => {
-                // Highlight completed and current steps
                 if (index < currentStep) {
-                    indicator.classList.add('step-primary'); // Completed steps
+                    indicator.classList.add('step-primary');
                 } else {
-                    indicator.classList.remove('step-primary'); // Upcoming steps
+                    indicator.classList.remove('step-primary');
                 }
             });
         }
 
-        // Call this function inside `changeStep` after updating `currentStep`
         function changeStep(stepChange) {
             const form = document.getElementById('multiStepForm');
             const stepSections = document.querySelectorAll('.step-section');
-
-            // Update the current step
             currentStep += stepChange;
 
-            // Ensure currentStep is within bounds
             if (currentStep < 1) currentStep = 1;
             if (currentStep > stepSections.length) currentStep = stepSections.length;
 
-            // Hide all steps and show only the current step
             stepSections.forEach((section, index) => {
                 section.classList.toggle('hidden', index + 1 !== currentStep);
             });
 
-            // Update navigation buttons
             const nextBtn = document.getElementById('nextBtn');
             const previousBtn = document.getElementById('previousBtn');
             previousBtn.disabled = currentStep === 1;
 
             if (currentStep === stepSections.length) {
-                // Last step: Set Next button to submit form
                 nextBtn.textContent = "Submit";
                 nextBtn.onclick = () => {
                     if (validateStepsUpToCurrent()) {
@@ -347,16 +327,14 @@
                     }
                 };
             } else {
-                // Not the last step: Set Next button to move to the next step
                 nextBtn.textContent = "Next";
                 nextBtn.onclick = () => {
                     if (validateStepsUpToCurrent()) {
-                        changeStep(1); // Proceed to the next step
+                        changeStep(1);
                     }
                 };
             }
 
-            // Update step indicators
             updateStepIndicator();
         }
 
@@ -382,13 +360,13 @@
                 bank: {
                     label: 'Counter',
                     showMessage: false,
-                    useDropdown: true, // Use dropdown for counters
+                    useDropdown: true,
                     detailLabel: 'Select Service Type',
                 },
                 hospital: {
                     label: 'Doctor',
                     showMessage: false,
-                    useDropdown: true, // Use dropdown for doctors
+                    useDropdown: true,
                     detailLabel: 'Select Doctor Specialty',
                 },
                 default: {
@@ -407,29 +385,22 @@
             categorySelect.addEventListener('change', () => {
                 const selectedCategory = categorySelect.value;
                 const mapping = resourceMapping[selectedCategory] || resourceMapping.default;
-
-                // Update resource label
                 resourceLabel.textContent = mapping.showMessage
                     ? ''
                     : `Add ${mapping.label} (Optional)`;
 
-                // Show or hide "You're all set" message
                 resourceMessage.classList.toggle('hidden', !mapping.showMessage);
                 resourceFields.classList.toggle('hidden', mapping.showMessage);
 
                 if (!mapping.showMessage) {
-                    // Update resource name label and input
                     resourceNameLabel.textContent = `${mapping.label} Name`;
                     resourceName.placeholder = `Enter ${mapping.label.toLowerCase()} name`;
                     resourceName.classList.remove('hidden');
 
                     if (mapping.useDropdown) {
-                        resourceDropdown.innerHTML = ''; // Clear existing options
-
-                        // Access the service type options from the dynamicOptions
+                        resourceDropdown.innerHTML = '';
                         const options = dynamicOptions[selectedCategory] || [];
 
-                        // Dynamically create option elements
                         options.forEach(option => {
                             const opt = document.createElement('option');
                             opt.value = option.value;
@@ -437,10 +408,9 @@
                             resourceDropdown.appendChild(opt);
                         });
 
-                        resourceDropdown.classList.remove('hidden'); // Show the dropdown
-                        resourceDetailInput.classList.add('hidden'); // Hide the input field
+                        resourceDropdown.classList.remove('hidden');
+                        resourceDetailInput.classList.add('hidden');
                     } else {
-                        // Use detail input for restaurant or other cases
                         resourceDetailInput.placeholder = mapping.detailPlaceholder;
                         resourceDetailInput.classList.remove('hidden');
                         resourceDropdown.classList.add('hidden');
@@ -590,25 +560,16 @@
 
 
     function searchLocationByLatLon() {
-    // Step 1: Get the input latitude and longitude values
     const lat = parseFloat(document.getElementById('latitudeInput').value);
     const lon = parseFloat(document.getElementById('longitudeInput').value);
-
-    // Step 2: Check if the latitude and longitude are valid
     if (isNaN(lat) || isNaN(lon)) {
         alert("Please enter valid latitude and longitude values.");
         return;
     }
-
-    // Step 3: Correct the order of coordinates (Lon, Lat) for OpenLayers
     const coordinates = ol.proj.fromLonLat([lon, lat]);
-
-    // Step 4: Set the map center to the input coordinates
     map.getView().setCenter(coordinates);
-    map.getView().setZoom(13); // Adjust the zoom level
-
+    map.getView().setZoom(13);
     markerSource.clear();
-
     let newMarkerFeature = new ol.Feature({
         geometry: new ol.geom.Point(coordinates)
     });
@@ -621,7 +582,6 @@
     document.getElementById('queueForm').addEventListener('submit', function (event) {
         const latitude = document.getElementById('id_latitude').value;
         const longitude = document.getElementById('id_longitude').value;
-
         if (!latitude || !longitude) {
             event.preventDefault();
             alert('Please select a location on the map before proceeding.');
