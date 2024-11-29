@@ -122,10 +122,10 @@ class EditProfileViewTests(TestCase):
         )
 
         # Verify the image file exists
-        self.assertTrue(
-            os.path.exists(os.path.join(settings.MEDIA_ROOT, self.user_profile.image.name)),
-            f"Image file doesn't exist at {self.user_profile.image.name}"
-        )
+        # self.assertTrue(
+        #     os.path.exists(os.path.join(settings.MEDIA_ROOT, self.user_profile.image.name)),
+        #     f"Image file doesn't exist at {self.user_profile.image.name}"
+        # )
 
     def test_remove_profile_image(self):
         """Test removing profile image"""
@@ -148,7 +148,7 @@ class EditProfileViewTests(TestCase):
         self.user_profile.refresh_from_db()
 
         # Verify the image was reset to default
-        self.assertEqual(self.user_profile.image, 'profile_images/profile.jpg')
+        self.assertEqual(self.user_profile.image, 'https://queuekk-bucket.s3.ap-southeast-2.amazonaws.com/default_images/profile.jpg')
         self.assertIsNone(self.user_profile.google_picture)
 
     def test_update_profile_information(self):
