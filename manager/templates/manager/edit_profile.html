@@ -115,7 +115,7 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            const defaultImage = '{% static "participant/images/profile.jpg" %}';
+            const defaultImage = "{{ default_image_url }}";
             const imageLabel = document.getElementById('imageLabel');
             const buttonContainer = document.getElementById('buttonContainer');
             const fileInput = document.getElementById('image');
@@ -181,6 +181,7 @@
                 currentImageUrlInput.value = defaultImage;
                 updateUI();
             }
+
 
             fileInput.addEventListener('change', handleImageUpload);
 
