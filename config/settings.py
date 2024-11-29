@@ -190,6 +190,12 @@ SOCIALACCOUNT_PROVIDERS = {
     }
 }
 
+AWS_ACCESS_KEY_ID = config('AWS_ACCESS_KEY_ID', default=None)
+AWS_SECRET_ACCESS_KEY = config('AWS_SECRET_ACCESS_KEY', default=None)
+AWS_STORAGE_BUCKET = config('AWS_STORAGE_BUCKET_NAME', default='mybucket')
+AWS_STORAGE_REGION = config('AWS_S3_REGION_NAME', default='myregion')
+
+
 SITE_ID = 1
 
 

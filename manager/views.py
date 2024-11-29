@@ -27,13 +27,12 @@ from manager.models import Resource
 from manager.forms import QueueForm, CustomUserCreationForm, EditProfileForm, OpeningHoursForm, ResourceForm
 from manager.models import Queue, UserProfile
 from manager.utils.category_handler import CategoryHandlerFactory
-
+from manager.utils.aws_s3_storage import upload_to_s3, get_s3_base_url
 from django.views.decorators.csrf import csrf_exempt
 from manager.utils.send_email import send_html_email
 from django.core.files.storage import FileSystemStorage
 from django.conf import settings
 import traceback
-import os
 
 from participant.models import Participant, Notification
 
@@ -836,7 +835,6 @@ class ResourceSettings(LoginRequiredMixin, generic.TemplateView):
             context.update(category_context)
         return context
 
-
 class EditProfileView(LoginRequiredMixin, generic.UpdateView):
     model = UserProfile
     template_name = 'manager/edit_profile.html'
@@ -866,16 +864,23 @@ class EditProfileView(LoginRequiredMixin, generic.UpdateView):
 
         # Handle image removal and upload
         if form.cleaned_data.get('remove_image') == 'true':
-            profile.image = 'profile_images/profile.jpg'
+            profile.image = f"{get_s3_base_url()}default_images/profile.jpg"
             profile.google_picture = None
         elif form.files.get('image'):
-            profile.image = form.files['image']
-            profile.google_picture = None
+            try:
+                uploaded_file = form.files['image']
+                folder = 'profile_images'
+                profile.image = upload_to_s3(uploaded_file, folder)
+                profile.google_picture = None
+            except Exception as e:
+                messages.error(self.request, f"Failed to upload image: {e}")
+                return self.form_invalid(form)
 
         profile.save()
 
         messages.success(self.request, 'Profile updated successfully.')
         return super().form_valid(form)
+
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -888,6 +893,7 @@ class EditProfileView(LoginRequiredMixin, generic.UpdateView):
         context['user'] = self.request.user
         profile = self.get_object()
         context['profile_image_url'] = profile.get_profile_image()
+        context['default_image_url'] = f"{get_s3_base_url()}default_images/profile.jpg"
         return context
 
 

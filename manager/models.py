@@ -9,6 +9,7 @@ from django.templatetags.static import static
 from django.apps import apps
 from django.db.models.signals import post_save
 from manager.utils.helpers import format_duration
+from manager.utils.aws_s3_storage import get_s3_base_url
 from django.utils import timezone
 from math import radians, sin, cos, sqrt, atan2
 import base64
@@ -628,7 +629,7 @@ class HospitalQueue(Queue):
 class UserProfile(models.Model):
     """Represents a user profile in the system."""
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-    image = models.ImageField(upload_to='profile_images/', blank=True, null=True)
+    image = models.ImageField(upload_to='profile_images/', blank=True, null=True, max_length=255)
     google_picture = models.URLField(blank=True, null=True)
     phone = models.CharField(max_length=10, blank=True, null=True)
     email = models.EmailField(blank=True, null=True)
@@ -637,13 +638,14 @@ class UserProfile(models.Model):
 
     def get_profile_image(self):
         """Returns the appropriate profile image URL."""
-        if self.image and self.image.name != 'profile_images/profile.jpg':
-            return self.image.url
+        default_image_url = f"{get_s3_base_url()}default_images/profile.jpg"
+        if self.image:
+            return self.image
         elif self.user.socialaccount_set.exists():
             social_account = self.user.socialaccount_set.first()
             if hasattr(social_account, 'get_avatar_url') and social_account.get_avatar_url():
                 return social_account.get_avatar_url()
-        return static('participant/images/profile.jpg')
+        return default_image_url
 
 
 @receiver(post_save, sender=User)
