@@ -27,6 +27,7 @@ from django.template.loader import render_to_string
 from django.conf import settings
 from django.views.decorators.http import require_POST
 from django.utils import timezone
+from django.views.decorators.csrf import csrf_exempt
 from django.http import StreamingHttpResponse
 from asgiref.sync import sync_to_async
 import asyncio
@@ -51,14 +52,16 @@ class HomePageView(generic.TemplateView):
             try:
                 user_lat = float(user_lat)
                 user_lon = float(user_lon)
-                context['nearby_queues'] = Queue.get_nearby_queues(user_lat, user_lon)
-                context['num_nearby_queues'] = len(Queue.get_nearby_queues(user_lat, user_lon))
+                context['nearby_queues'] = Queue.get_nearby_queues(user_lat,
+                                                                   user_lon)
+                context['num_nearby_queues'] = len(
+                    Queue.get_nearby_queues(user_lat, user_lon))
             except ValueError:
                 context['error'] = "Invalid latitude or longitude provided."
         else:
-            context['error'] = "Location not provided. Please enable location services."
+            context[
+                'error'] = "Location not provided. Please enable location services."
         return context
-
 
 
 @require_POST
@@ -123,7 +126,8 @@ class BrowseQueueView(generic.ListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['total_queues'] = Queue.objects.all().count()
-        active_sessions = Session.objects.filter(expire_date__gte=timezone.now())
+        active_sessions = Session.objects.filter(
+            expire_date__gte=timezone.now())
         user_ids = [
             session.get_decoded().get('_auth_user_id')
             for session in active_sessions
@@ -131,6 +135,7 @@ class BrowseQueueView(generic.ListView):
         context['active_users'] = User.objects.filter(id__in=user_ids).count()
 
         return context
+
 
 def welcome(request, queue_code):
     queue = get_object_or_404(Queue, code=queue_code)
@@ -164,7 +169,8 @@ class KioskView(generic.FormView):
         )
         participant.created_by = 'guest'
         participant.save()
-        return redirect('participant:qrcode', participant_code=participant.code)
+        return redirect('participant:qrcode',
+                        participant_code=participant.code)
 
     def form_invalid(self, form):
         print(form.errors)
@@ -194,7 +200,8 @@ class QRcodeView(generic.DetailView):
 
         # Generate the QR code URL
         check_queue_url = self.request.build_absolute_uri(
-            reverse('participant:queue_status', kwargs={'participant_code': participant.code})
+            reverse('participant:queue_status',
+                    kwargs={'participant_code': participant.code})
         )
 
         # Generate and save QR code
@@ -257,12 +264,12 @@ class QueueStatusView(generic.TemplateView):
 
 
 import threading
-from queue import Queue as ThreadSafeQueue  # Renamed to ThreadSafeQueue for clarity
+from queue import \
+    Queue as ThreadSafeQueue  # Renamed to ThreadSafeQueue for clarity
 from asgiref.sync import sync_to_async
 from django.http import StreamingHttpResponse
 import json
 import asyncio
-
 
 
 def sse_queue_status(request, participant_code):
@@ -289,13 +296,15 @@ def sse_queue_status(request, participant_code):
                 participant, queue, handler = await fetch_participant_and_queue()
 
                 # Fetch participant data
-                participant_data = await sync_to_async(handler.get_participant_data)(participant)
+                participant_data = await sync_to_async(
+                    handler.get_participant_data)(participant)
 
                 # Fetch notifications
                 notifications = await fetch_notifications(participant)
 
                 # Mark notifications as played
-                notification_ids = [notif['id'] for notif in notifications if not notif['played_sound']]
+                notification_ids = [notif['id'] for notif in notifications if
+                                    not notif['played_sound']]
                 if notification_ids:
                     await mark_notifications_played(notification_ids)
 
@@ -315,10 +324,12 @@ def sse_queue_status(request, participant_code):
     @sync_to_async
     def fetch_participant_and_queue():
         """Fetch participant and queue details synchronously."""
-        participant_instance = get_object_or_404(Participant, code=participant_code)
+        participant_instance = get_object_or_404(Participant,
+                                                 code=participant_code)
         queue = participant_instance.queue
         handler = CategoryHandlerFactory.get_handler(queue.category)
-        participant = handler.get_participant_set(queue_id=queue.id).get(code=participant_code)
+        participant = handler.get_participant_set(queue_id=queue.id).get(
+            code=participant_code)
         return participant, queue, handler
 
     @sync_to_async
@@ -328,7 +339,8 @@ def sse_queue_status(request, participant_code):
         return [
             {
                 'message': notif.message,
-                'created_at': timezone.localtime(notif.created_at).strftime("%Y-%m-%d %H:%M:%S"),
+                'created_at': timezone.localtime(notif.created_at).strftime(
+                    "%Y-%m-%d %H:%M:%S"),
                 'is_read': notif.is_read,
                 'played_sound': notif.played_sound,
                 'id': notif.id,
@@ -339,17 +351,21 @@ def sse_queue_status(request, participant_code):
     @sync_to_async
     def mark_notifications_played(notification_ids):
         """Mark notifications as played."""
-        Notification.objects.filter(id__in=notification_ids).update(played_sound=True)
+        Notification.objects.filter(id__in=notification_ids).update(
+            played_sound=True)
 
     # Set up a thread-safe queue to bridge async and sync contexts
     event_queue = ThreadSafeQueue()
 
     # Start the async event producer in a separate thread
-    producer_thread = threading.Thread(target=lambda: asyncio.run(async_event_producer()))
+    producer_thread = threading.Thread(
+        target=lambda: asyncio.run(async_event_producer()))
     producer_thread.start()
 
     # Return the StreamingHttpResponse that consumes the sync iterator
-    return StreamingHttpResponse(event_stream(), content_type="text/event-stream")
+    return StreamingHttpResponse(event_stream(),
+                                 content_type="text/event-stream")
+
 
 def participant_leave(request, participant_code):
     """Participant choose to leave the queue."""
@@ -374,14 +390,60 @@ def participant_leave(request, participant_code):
             f"Failed to delete participant {participant_code} from queue: {queue.name} code: {queue.code} ")
     return redirect('participant:welcome', queue_code=queue.code)
 
+
+@csrf_exempt
 def set_location(request):
     if request.method == 'POST':
-        data = json.loads(request.body)
-        lat = data.get('lat')
-        lon = data.get('lon')
-        if lat and lon:
-            request.session['user_lat'] = lat
-            request.session['user_lon'] = lon
-            print(f"Saved to session: Lat = {lat}, Lon = {lon}")
-            return JsonResponse({'status': 'success'})
-    return JsonResponse({'status': 'failed'}, status=400)
+        try:
+            # Try to parse JSON data from the request
+            data = json.loads(request.body)
+            lat = data.get('lat')
+            lon = data.get('lon')
+
+            # Check if latitude and longitude are provided and valid
+            if lat and lon:
+                # Store latitude and longitude in the session
+                request.session['user_lat'] = lat
+                request.session['user_lon'] = lon
+                print(f"Saved to session: Lat = {lat}, Lon = {lon}")
+
+                # Reset any previous location status
+                request.session['location_status'] = 'allowed'
+
+                return JsonResponse({'status': 'success'})
+
+            # If latitude or longitude is missing or invalid
+            else:
+                # Set location status to 'blocked'
+                request.session['location_status'] = 'blocked'
+                return JsonResponse(
+                    {'status': 'failed', 'error': 'Invalid location data'},
+                    status=400
+                )
+
+        except json.JSONDecodeError:
+            # Handle JSON decoding errors
+            return JsonResponse(
+                {'status': 'failed', 'error': 'Invalid JSON format'},
+                status=400
+            )
+    else:
+        # Handle methods other than POST
+        return JsonResponse(
+            {'status': 'failed', 'error': 'Only POST method allowed'},
+            status=400
+        )
+
+
+@csrf_exempt
+def set_location_status(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            status = data.get('status')
+            if status == 'blocked':
+                request.session['location_status'] = 'blocked'
+            return JsonResponse({'success': True})
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)})
+    return JsonResponse({'success': False, 'error': 'Invalid request method'})
