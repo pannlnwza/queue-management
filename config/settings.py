@@ -111,34 +111,34 @@ ASGI_APPLICATION = "config.asgi.application"
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
 
-TEST = config('TEST', default=False, cast=bool)
-
-if TEST or 'test' in sys.argv:
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'db.sqlite3',
-        }
-    }
-else:
-    DATABASES = {
-        'default': dj_database_url.config(
-            default=config('DATABASE_URL', default='postgres://user:password@localhost:5432/mydatabase'),
-            conn_max_age=300
-        )
-    }
-
-
-# DATABASES = {
-#     "default": {
-#         "ENGINE": "django.db.backends.postgresql",
-#         "NAME": config("DATABASE_NAME", default=os.environ.get("DATABASE_NAME", "default_db_name")),
-#         "USER": config("DATABASE_USERNAME", default=os.environ.get("DATABASE_USERNAME", "default_user")),
-#         "PASSWORD": config("DATABASE_PASSWORD", default=os.environ.get("DATABASE_PASSWORD", "default_password")),
-#         "HOST": config("DATABASE_HOST", default=os.environ.get("DATABASE_HOST", "localhost")),
-#         "PORT": config("DATABASE_PORT", default=os.environ.get("DATABASE_PORT", "5432")),
+# TEST = config('TEST', default=False, cast=bool)
+#
+# if TEST or 'test' in sys.argv:
+#     DATABASES = {
+#         'default': {
+#             'ENGINE': 'django.db.backends.sqlite3',
+#             'NAME': BASE_DIR / 'db.sqlite3',
+#         }
 #     }
-# }
+# else:
+#     DATABASES = {
+#         'default': dj_database_url.config(
+#             default=config('DATABASE_URL', default='postgres://user:password@localhost:5432/mydatabase'),
+#             conn_max_age=300
+#         )
+#     }
+
+
+DATABASES = {
+    "default": {
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": config("DATABASE_NAME", default=os.environ.get("DATABASE_NAME", "default_db_name")),
+        "USER": config("DATABASE_USERNAME", default=os.environ.get("DATABASE_USERNAME", "default_user")),
+        "PASSWORD": config("DATABASE_PASSWORD", default=os.environ.get("DATABASE_PASSWORD", "default_password")),
+        "HOST": config("DATABASE_HOST", default=os.environ.get("DATABASE_HOST", "localhost")),
+        "PORT": config("DATABASE_PORT", default=os.environ.get("DATABASE_PORT", "5432")),
+    }
+}
 
 
 # Password validation
@@ -190,11 +190,10 @@ SOCIALACCOUNT_PROVIDERS = {
     }
 }
 
-# DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='webmaster@example.com')
 AWS_ACCESS_KEY_ID = config('AWS_ACCESS_KEY_ID', default=None)
 AWS_SECRET_ACCESS_KEY = config('AWS_SECRET_ACCESS_KEY', default=None)
-BUCKET = config('BUCKET', default='mybucket')
-REGION = config('REGION', default='myregion')
+AWS_STORAGE_BUCKET = config('AWS_STORAGE_BUCKET_NAME', default='mybucket')
+AWS_STORAGE_REGION = config('AWS_S3_REGION_NAME', default='myregion')
 
 
 SITE_ID = 1
