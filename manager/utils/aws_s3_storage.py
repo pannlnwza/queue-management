@@ -1,4 +1,5 @@
 import boto3
+import mimetypes
 import os
 from django.conf import settings
 import uuid
@@ -15,11 +16,11 @@ def upload_to_s3(file, folder):
     Returns:
         str: The public URL of the uploaded file.
     """
-    print(f"this is file name: {file.name}")
     file_extension = os.path.splitext(file.name)[-1]
     unique_file_name = f"{uuid.uuid4().hex}{file_extension}"
     file_key = f"{folder}/{unique_file_name}"
-    print(f"this is unique file name: {unique_file_name}")
+
+    content_type = mimetypes.guess_type(file.name)[0] or 'application/octet-stream'
 
     s3_client = boto3.client(
         's3',
@@ -30,7 +31,13 @@ def upload_to_s3(file, folder):
     bucket_name = settings.AWS_STORAGE_BUCKET
 
     try:
-        s3_client.upload_fileobj(file, bucket_name, file_key, ExtraArgs={'ACL': 'public-read'})
+        s3_client.upload_fileobj(file,
+                                 bucket_name,
+                                 file_key,
+                                 ExtraArgs={'ACL': 'public-read',
+                                            'ContentType': content_type
+                                            }
+                                 )
         file_url = f"https://{bucket_name}.s3.{settings.AWS_STORAGE_REGION}.amazonaws.com/{file_key}"
         return file_url
     except Exception as e:
