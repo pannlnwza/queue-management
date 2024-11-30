@@ -4,6 +4,7 @@ from io import BytesIO
 import base64
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.core.files.base import ContentFile
 from django.http import JsonResponse
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import JsonResponse, HttpResponse
@@ -16,6 +17,7 @@ from participant.models import Participant, Notification
 from manager.views import logger
 from .forms import KioskForm
 from manager.utils.category_handler import CategoryHandlerFactory
+from manager.utils.aws_s3_storage import get_s3_base_url, upload_to_s3
 from django.http import StreamingHttpResponse
 import json
 from manager.utils.send_email import generate_qr_code
@@ -132,7 +134,14 @@ class BrowseQueueView(generic.ListView):
             session.get_decoded().get('_auth_user_id')
             for session in active_sessions
         ]
+
         context['active_users'] = User.objects.filter(id__in=user_ids).count()
+        context['restaurant'] = get_s3_base_url("default_images/restaurant.jpg")
+        context['general'] = get_s3_base_url("default_images/general.jpg")
+        context['hospital'] = get_s3_base_url("default_images/hospital.jpg")
+        context['bank'] = get_s3_base_url("default_images/bank.jpg")
+        context['service_center'] = get_s3_base_url("default_images/service_center.jpg")
+
 
         return context
 
@@ -204,16 +213,21 @@ class QRcodeView(generic.DetailView):
                     kwargs={'participant_code': participant.code})
         )
 
-        # Generate and save QR code
         qr_code_binary = generate_qr_code(check_queue_url)
-        qr_code_base64 = base64.b64encode(qr_code_binary).decode()
-        context['qr_image'] = qr_code_base64
+        file = ContentFile(qr_code_binary)
+        file.name = f"{participant.code}.png"
 
-        self.send_email_with_qr(participant, qr_code_base64, check_queue_url)
+        qr_code_s3_url = upload_to_s3(file, folder="qrcode")
+        participant.qrcode_url = qr_code_s3_url
+        participant.save()
+
+        context['qr_image_url'] = qr_code_s3_url
+
+        self.send_email_with_qr(participant, qr_code_s3_url, check_queue_url)
 
         return context
 
-    def send_email_with_qr(self, participant, qr_code_base64, check_queue_url):
+    def send_email_with_qr(self, participant, qr_code_s3_url, check_queue_url):
         """
         Sends an email to the participant with the QR code embedded.
         """
@@ -225,7 +239,7 @@ class QRcodeView(generic.DetailView):
             'participant/qrcode_for_mail.html',
             {
                 'participant': participant,
-                'qr_code_image_url': f"data:image/png;base64,{qr_code_base64}",
+                'qr_code_image_url': qr_code_s3_url,
                 'status_link': check_queue_url,
             }
         )
@@ -260,6 +274,7 @@ class QueueStatusView(generic.TemplateView):
         participants_in_queue = queue.participant_set.all().order_by(
             'joined_at')
         context['participants_in_queue'] = participants_in_queue
+        context['participant_sound'] = get_s3_base_url("announcements/notification.mp3")
         return context
 
 

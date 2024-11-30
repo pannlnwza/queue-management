@@ -42,6 +42,7 @@ class Participant(models.Model):
     status_qr_code = models.ImageField(upload_to='qrcodes/', null=True, blank=True)
     number = models.CharField(max_length=4, editable=False)
     announcement_audio = models.TextField(null=True)
+    qrcode_url = models.CharField(max_length=500, blank=True, null=True)
 
     class Meta:
         unique_together = ('number', 'queue')

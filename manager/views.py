@@ -2,12 +2,14 @@ import json
 import logging
 import os
 from datetime import timedelta, datetime
+from io import BytesIO
 
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, user_logged_in, \
     user_logged_out, user_login_failed
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.core.files.base import ContentFile
 from django.http import JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse_lazy, reverse
@@ -83,10 +85,13 @@ def create_queue(request):
     if 'logo' in request.FILES:
         try:
             logo_file = request.FILES['logo']
-            queue_data['logo'] = logo_file.read()
+            folder = 'queue_logos'
+            logo_url = upload_to_s3(logo_file, folder)
+            queue_data['logo'] = logo_url
         except Exception as e:
             messages.error(request, f"Error processing the logo file: {e}")
             return redirect('manager:your-queue')
+
 
     handler = CategoryHandlerFactory.get_handler(category)
     try:
@@ -128,16 +133,30 @@ def notify_participant(request, participant_id):
         participant_notification_count = Notification.objects.filter(participant=participant).count()
         if participant_notification_count == 1:  # Generate TTS only for the first notification
             try:
+                # tts = gTTS(text=f"Attention Participant {participant.number}, your turn is now.", lang="en")
+                #
+                # audio_filename = f"announcement_{participant.id}.mp3"
+                # audio_file = ContentFile(b"")
+                # tts.write_to_fp(audio_file)
+                # audio_file.name = audio_filename
+                # audio_url = upload_to_s3(audio_file, folder="announcements")
+                # participant.announcement_audio = audio_filename
+                # Generate the TTS audio content
                 tts = gTTS(text=f"Attention Participant {participant.number}, your turn is now.", lang="en")
-                audio_dir = os.path.join(settings.MEDIA_ROOT, "announcements")
-                os.makedirs(audio_dir, exist_ok=True)
-                audio_filename = f"announcement_{participant.id}.mp3"
-                audio_path = os.path.join(audio_dir, audio_filename)
-                tts.save(audio_path)
+                audio_buffer = BytesIO()
+                tts.write_to_fp(audio_buffer)
+                audio_buffer.seek(0)
 
-                # Save the file path to the participant
-                participant.announcement_audio = audio_filename
-                audio_url = f"{settings.MEDIA_URL}announcements/{audio_filename}"
+                # Create a ContentFile from the buffer
+                audio_filename = f"announcement_{participant.id}.mp3"
+                audio_file = ContentFile(audio_buffer.read(), name=audio_filename)
+
+                # Upload to S3
+                audio_url = upload_to_s3(audio_file, folder="announcements")
+
+                # Save the S3 URL to the participant
+                participant.announcement_audio = audio_url
+
             except Exception as e:
                 logger.error(f"Failed to generate TTS announcement for participant {participant.id}: {str(e)}")
 
@@ -864,7 +883,7 @@ class EditProfileView(LoginRequiredMixin, generic.UpdateView):
 
         # Handle image removal and upload
         if form.cleaned_data.get('remove_image') == 'true':
-            profile.image = f"{get_s3_base_url()}default_images/profile.jpg"
+            profile.image = get_s3_base_url("default_images/profile.jpg")
             profile.google_picture = None
         elif form.files.get('image'):
             try:
@@ -893,7 +912,7 @@ class EditProfileView(LoginRequiredMixin, generic.UpdateView):
         context['user'] = self.request.user
         profile = self.get_object()
         context['profile_image_url'] = profile.get_profile_image()
-        context['default_image_url'] = f"{get_s3_base_url()}default_images/profile.jpg"
+        context['default_image_url'] = get_s3_base_url("default_images/profile.jpg")
         return context
 
 
@@ -1129,13 +1148,26 @@ def edit_queue(request, queue_id):
         close_time = request.POST.get('close_time')
         tts_enabled = request.POST.get('tts')
 
+        # if 'logo' in request.FILES:
+        #     try:
+        #         logo_file = request.FILES['logo']
+        #         queue.logo = logo_file.read()
+        #     except Exception as e:
+        #         messages.error(request, f"Error processing the logo file: {e}")
+        #         return redirect('manager:your-queue')
+
         if 'logo' in request.FILES:
             try:
                 logo_file = request.FILES['logo']
-                queue.logo = logo_file.read()
+                # Upload the file to S3 and store the URL
+                folder = 'queue_logos'
+                logo_url = upload_to_s3(logo_file, folder)
+                queue.logo = logo_url
             except Exception as e:
+                logger.error(f"Error uploading logo to S3: {e}")
                 messages.error(request, f"Error processing the logo file: {e}")
-                return redirect('manager:your-queue')
+                return redirect('manager:queue_settings', queue_id=queue_id)
+
 
         queue.name = name
         queue.description = description

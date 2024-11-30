@@ -1,11 +1,11 @@
-{% load static tailwind_tags %}
+{% load tailwind_tags %}
 <!DOCTYPE html>
 <html lang="en" data-theme="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token }}">
-    <link rel="icon" href="{% static 'favicon.ico' %}" type="image/x-icon">
+    <link rel="icon" href="{{ 'https://queuekk-bucket.s3.ap-southeast-2.amazonaws.com/default_images/favicon.ico' }}" type="image/x-icon">
     {% block title %}<title>Queue Management</title>{% endblock %}
     <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.14/dist/full.min.css" rel="stylesheet" type="text/css"/>
     <script src="https://cdn.tailwindcss.com"></script>
@@ -23,10 +23,10 @@
             </div>
         </div>
         <a href="{% url 'participant:home' %}" class="logo-container">
-            <img src="{% static 'images/logo-full.ico' %}"
+            <img src="{{ 'https://queuekk-bucket.s3.ap-southeast-2.amazonaws.com/default_images/logo-full.ico' }}"
                  alt="Queue Management Logo"
                  class="w-[200px] logo-light">
-            <img src="{% static 'images/logo-full-white.ico' %}"
+            <img src="{{ 'https://queuekk-bucket.s3.ap-southeast-2.amazonaws.com/default_images/logo-full-white.ico' }}"
                  alt="Queue Management Logo"
                  class="w-[200px] logo-dark hidden">
         </a>
