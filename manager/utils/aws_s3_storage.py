@@ -44,8 +44,8 @@ def upload_to_s3(file, folder):
         raise Exception(f"Failed to upload file to STORAGE: {e}")
 
 
-def get_s3_base_url():
+def get_s3_base_url(file_name: str):
     """
     Returns the base STORAGE URL for the configured bucket and region.
     """
-    return f"https://{settings.AWS_STORAGE_BUCKET}.s3.{settings.AWS_STORAGE_REGION}.amazonaws.com/"
+    return f"https://{settings.AWS_STORAGE_BUCKET}.s3.{settings.AWS_STORAGE_REGION}.amazonaws.com/{file_name}"
