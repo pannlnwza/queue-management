@@ -40,12 +40,8 @@ class HomePageView(generic.TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        categories = ['restaurant', 'general', 'hospital', 'bank']
-        for category in categories:
-            category_featured_queues = Queue.get_top_featured_queues(
-                category=category)
-            context[
-                f'{category}_featured_queues'] = category_featured_queues
+        featured_queues = Queue.get_top_featured_queues()
+        context['featured_queues'] = featured_queues
         user_lat = self.request.session.get('user_lat', None)
         user_lon = self.request.session.get('user_lon', None)
         if user_lat and user_lon:
@@ -395,45 +391,33 @@ def participant_leave(request, participant_code):
 def set_location(request):
     if request.method == 'POST':
         try:
-            # Try to parse JSON data from the request
             data = json.loads(request.body)
             lat = data.get('lat')
             lon = data.get('lon')
-
-            # Check if latitude and longitude are provided and valid
             if lat and lon:
-                # Store latitude and longitude in the session
+                # Save location to session
                 request.session['user_lat'] = lat
                 request.session['user_lon'] = lon
                 print(f"Saved to session: Lat = {lat}, Lon = {lon}")
-
-                # Reset any previous location status
                 request.session['location_status'] = 'allowed'
-
                 return JsonResponse({'status': 'success'})
-
-            # If latitude or longitude is missing or invalid
             else:
-                # Set location status to 'blocked'
+                # Handle invalid location data
                 request.session['location_status'] = 'blocked'
                 return JsonResponse(
                     {'status': 'failed', 'error': 'Invalid location data'},
                     status=400
                 )
-
         except json.JSONDecodeError:
-            # Handle JSON decoding errors
             return JsonResponse(
                 {'status': 'failed', 'error': 'Invalid JSON format'},
                 status=400
             )
     else:
-        # Handle methods other than POST
         return JsonResponse(
             {'status': 'failed', 'error': 'Only POST method allowed'},
             status=400
         )
-
 
 @csrf_exempt
 def set_location_status(request):
@@ -442,7 +426,13 @@ def set_location_status(request):
             data = json.loads(request.body)
             status = data.get('status')
             if status == 'blocked':
+                # Remove location data from session and set status to blocked
+                request.session.pop('user_lat', None)
+                request.session.pop('user_lon', None)
                 request.session['location_status'] = 'blocked'
+            elif status == 'allowed':
+                # If re-allowed, set status but location must be set separately
+                request.session['location_status'] = 'allowed'
             return JsonResponse({'success': True})
         except Exception as e:
             return JsonResponse({'success': False, 'error': str(e)})
