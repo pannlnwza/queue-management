@@ -261,86 +261,80 @@
 
 
     <script>
-    if (!sessionStorage.getItem('userLat') || !sessionStorage.getItem('userLon')) {
-    if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(
-            function (position) {
-                const lat = position.coords.latitude;
-                const lon = position.coords.longitude;
+    function updateLocation() {
+        if (sessionStorage.getItem('userLat') && sessionStorage.getItem('userLon')) {
+            console.log('Location already set in session.');
+            return;
+        }
 
-                sessionStorage.setItem('userLat', lat);
-                sessionStorage.setItem('userLon', lon);
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                function (position) {
+                    const lat = position.coords.latitude;
+                    const lon = position.coords.longitude;
 
-                fetch("{% url 'participant:set_location' %}", {
-                    method: 'POST',
-                    body: JSON.stringify({ lat: lat, lon: lon }),
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRFToken': '{{ csrf_token }}'
-                    }
-                }).then(response => {
-                    if (response.ok) {
-                        console.log('Location saved in session');
-                        window.location.reload();
-                    }
-                });
-            },
-            function (error) {
-                if (error.code === error.PERMISSION_DENIED) {
-                    console.warn('Location access blocked by the user.');
-                    fetch("{% url 'participant:set_location_status' %}", {
+                    sessionStorage.setItem('userLat', lat);
+                    sessionStorage.setItem('userLon', lon);
+
+                    fetch("{% url 'participant:set_location' %}", {
                         method: 'POST',
-                        body: JSON.stringify({ status: 'blocked' }),
+                        body: JSON.stringify({ lat: lat, lon: lon }),
                         headers: {
                             'Content-Type': 'application/json',
                             'X-CSRFToken': '{{ csrf_token }}'
                         }
-                    }).then(() => {
-                        sessionStorage.removeItem('userLat');
-                        sessionStorage.removeItem('userLon');
-                        console.log('Location status set to blocked.');
+                    }).then(response => {
+                        if (response.ok) {
+                            console.log('Location saved in session.');
+                            if (!sessionStorage.getItem('locationInitialized')) {
+                                sessionStorage.setItem('locationInitialized', 'true');
+                                window.location.reload(); // Reload only once
+                            }
+                        }
                     });
-                } else {
-                    console.error('Error retrieving location:', error);
+                },
+                function (error) {
+                    if (error.code === error.PERMISSION_DENIED) {
+                        // User has blocked location access
+                        console.warn('Location access blocked by the user.');
+                        handleBlockedLocation();
+                    } else {
+                        console.error('Error retrieving location:', error);
+                    }
                 }
-            }
-        );
-    } else {
-        console.error("Geolocation is not supported by your browser.");
-    }
-} else {
-    navigator.geolocation.getCurrentPosition(
-        function (position) {
-            const lat = position.coords.latitude;
-            const lon = position.coords.longitude;
-
-            if (
-                sessionStorage.getItem('userLat') != lat ||
-                sessionStorage.getItem('userLon') != lon
-            ) {
-                sessionStorage.setItem('userLat', lat);
-                sessionStorage.setItem('userLon', lon);
-
-                fetch("{% url 'participant:set_location' %}", {
-                    method: 'POST',
-                    body: JSON.stringify({ lat: lat, lon: lon }),
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRFToken': '{{ csrf_token }}'
-                    }
-                }).then(response => {
-                    if (response.ok) {
-                        console.log('Updated location saved in session');
-                        window.location.reload();
-                    }
-                });
-            }
-        },
-        function (error) {
-            console.error('Error rechecking location:', error);
+            );
+        } else {
+            console.error("Geolocation is not supported by your browser.");
         }
-    );
-}
+    }
+
+    function handleBlockedLocation() {
+        if (sessionStorage.getItem('locationStatus') === 'blocked') {
+            console.log('Location already marked as blocked.');
+            return;
+        }
+
+        sessionStorage.removeItem('userLat');
+        sessionStorage.removeItem('userLon');
+        sessionStorage.setItem('locationStatus', 'blocked');
+
+        fetch("{% url 'participant:set_location_status' %}", {
+            method: 'POST',
+            body: JSON.stringify({ status: 'blocked' }),
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            }
+        }).then(() => {
+            console.log('Location status set to blocked.');
+            if (!sessionStorage.getItem('locationInitialized')) {
+                sessionStorage.setItem('locationInitialized', 'true');
+                window.location.reload();
+            }
+        });
+    }
+
+    updateLocation();
 
 </script>
 
