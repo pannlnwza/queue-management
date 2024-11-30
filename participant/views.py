@@ -45,7 +45,7 @@ class HomePageView(generic.TemplateView):
         location_status = self.request.session.get('location_status', None)
         if location_status == 'blocked':
             context['num_nearby_queues'] = 0
-            context['error'] = "Location not provided. Enable location services, and refresh the page to view nearby queues."
+            context['error'] = "Location not provided. Enable location services, and refresh the page 2 times to view nearby queues."
         else:
             user_lat = self.request.session.get('user_lat', None)
             user_lon = self.request.session.get('user_lon', None)
@@ -56,12 +56,14 @@ class HomePageView(generic.TemplateView):
                     nearby_queues = Queue.get_nearby_queues(user_lat, user_lon)
                     context['nearby_queues'] = nearby_queues
                     context['num_nearby_queues'] = len(nearby_queues) if nearby_queues else 0
+                    self.request.session.pop('locationUpdated', None)
                 except ValueError:
                     context['error'] = "Invalid latitude or longitude provided."
             else:
                 context['num_nearby_queues'] = 0
-                context['error'] = "Location not provided. Enable location services, and refresh the page to view nearby queues."
+                context['error'] = "Location not provided. Enable location services, and refresh the page 2 times to view nearby queues."
         return context
+
 
 @require_POST
 def mark_notification_as_read(request, notification_id):
