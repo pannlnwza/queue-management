@@ -221,7 +221,7 @@ class QRcodeView(generic.DetailView):
 
         return context
 
-    def send_email_with_qr(self, participant, qr_code_base64, check_queue_url):
+    def send_email_with_qr(self, participant, qr_code_s3_url, check_queue_url):
         """
         Sends an email to the participant with the QR code embedded.
         """
@@ -233,7 +233,7 @@ class QRcodeView(generic.DetailView):
             'participant/qrcode_for_mail.html',
             {
                 'participant': participant,
-                'qr_code_image_url': f"data:image/png;base64,{qr_code_base64}",
+                'qr_code_image_url': qr_code_s3_url,
                 'status_link': check_queue_url,
             }
         )
