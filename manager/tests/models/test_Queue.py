@@ -55,7 +55,7 @@ class QueueModelTests(TestCase):
             latitude=40.7138,
             longitude=-74.0050,
         )
-        top_queues = Queue.get_top_featured_queues(category="restaurant")
+        top_queues = Queue.get_top_featured_queues()
         self.assertEqual(len(top_queues), 1)
         self.assertIn(self.queue, top_queues)
 
@@ -277,13 +277,23 @@ class QueueModelTests(TestCase):
     def test_get_number_created_by_staff(self):
         """Test counting the number of participants created by staff."""
         # Create participants with 'staff' as the creator
-        Participant.objects.create(queue=self.queue, state="waiting", created_by="staff")
-        Participant.objects.create(queue=self.queue, state="waiting", created_by="staff")
-        Participant.objects.create(queue=self.queue, state="waiting", created_by="guest")  # Not staff
+        participant_1 = Participant.objects.create(queue=self.queue,
+                                                   state="waiting",
+                                                   created_by="staff",
+                                                   number="A001")
+        participant_2 = Participant.objects.create(queue=self.queue,
+                                                   state="waiting",
+                                                   created_by="staff",
+                                                   number="A002")
+        participant_3 = Participant.objects.create(queue=self.queue,
+                                                   state="waiting",
+                                                   created_by="guest",
+                                                   number="A003")  # Not staff
 
         # Check the count of participants created by staff
         staff_count = self.queue.get_number_created_by_staff()
-        self.assertEqual(staff_count, 2)  # Only 2 participants created by staff
+        self.assertEqual(staff_count,
+                         2)  # Only 2 participants created by staff
 
     def test_get_number_unhandled(self):
         """Test calculating the number of unhandled participants."""
@@ -475,13 +485,13 @@ class QueueModelEdgeCasesTests(TestCase):
 
     def test_get_top_featured_queues_no_participants(self):
         """Ensure queues with no participants are not included."""
-        top_queues = Queue.get_top_featured_queues(category="restaurant")
+        top_queues = Queue.get_top_featured_queues()
         self.assertEqual(len(top_queues), 0)
 
     def test_get_top_featured_queues_zero_capacity(self):
         """Ensure queues with zero capacity handle properly."""
         self.queue.resource_set.create(capacity=0)
-        top_queues = Queue.get_top_featured_queues(category="restaurant")
+        top_queues = Queue.get_top_featured_queues()
         self.assertEqual(len(top_queues), 0)
 
     def test_get_top_featured_queues_with_ratio(self):
@@ -491,7 +501,7 @@ class QueueModelEdgeCasesTests(TestCase):
         Participant.objects.create(queue=self.queue, state="waiting", created_by="guest")
         Participant.objects.create(queue=self.queue, state="waiting", created_by="guest")
 
-        top_queues = Queue.get_top_featured_queues(category="restaurant")
+        top_queues = Queue.get_top_featured_queues()
 
         self.assertIn(self.queue, top_queues)
 
