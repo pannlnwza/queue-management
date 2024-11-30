@@ -42,7 +42,7 @@ class Queue(models.Model):
     status = models.CharField(max_length=10, choices=STATUS_CHOICES,
                               default='normal')
     category = models.CharField(max_length=20, choices=CATEGORY_CHOICES)
-    logo = models.BinaryField(blank=True, null=True)
+    logo = models.CharField(max_length=500, blank=True, null=True)
     completed_participants_count = models.PositiveIntegerField(default=0)
     code = models.CharField(max_length=12, unique=True, editable=False)
     latitude = models.FloatField()
@@ -178,9 +178,7 @@ class Queue(models.Model):
     def get_logo_url(self):
         """Get a logo URL for the queue, or return a default logo based on category."""
         if self.logo:
-            # Convert binary data to base64 and create a data URL
-            logo_base64 = base64.b64encode(self.logo).decode('utf-8')
-            return f"data:image/jpeg;base64,{logo_base64}"
+            return self.logo
 
         # Fallback to default logos based on the queue category
         default_logos = {

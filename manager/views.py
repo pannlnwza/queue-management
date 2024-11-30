@@ -83,10 +83,13 @@ def create_queue(request):
     if 'logo' in request.FILES:
         try:
             logo_file = request.FILES['logo']
-            queue_data['logo'] = logo_file.read()
+            folder = 'queue_logos'
+            logo_url = upload_to_s3(logo_file, folder)
+            queue_data['logo'] = logo_url
         except Exception as e:
             messages.error(request, f"Error processing the logo file: {e}")
             return redirect('manager:your-queue')
+
 
     handler = CategoryHandlerFactory.get_handler(category)
     try:
@@ -1129,13 +1132,26 @@ def edit_queue(request, queue_id):
         close_time = request.POST.get('close_time')
         tts_enabled = request.POST.get('tts')
 
+        # if 'logo' in request.FILES:
+        #     try:
+        #         logo_file = request.FILES['logo']
+        #         queue.logo = logo_file.read()
+        #     except Exception as e:
+        #         messages.error(request, f"Error processing the logo file: {e}")
+        #         return redirect('manager:your-queue')
+
         if 'logo' in request.FILES:
             try:
                 logo_file = request.FILES['logo']
-                queue.logo = logo_file.read()
+                # Upload the file to S3 and store the URL
+                folder = 'queue_logos'
+                logo_url = upload_to_s3(logo_file, folder)
+                queue.logo = logo_url
             except Exception as e:
+                logger.error(f"Error uploading logo to S3: {e}")
                 messages.error(request, f"Error processing the logo file: {e}")
-                return redirect('manager:your-queue')
+                return redirect('manager:queue_settings', queue_id=queue_id)
+
 
         queue.name = name
         queue.description = description
