@@ -2,12 +2,14 @@ import json
 import logging
 import os
 from datetime import timedelta, datetime
+from io import BytesIO
 
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, user_logged_in, \
     user_logged_out, user_login_failed
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.core.files.base import ContentFile
 from django.http import JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse_lazy, reverse
@@ -131,16 +133,30 @@ def notify_participant(request, participant_id):
         participant_notification_count = Notification.objects.filter(participant=participant).count()
         if participant_notification_count == 1:  # Generate TTS only for the first notification
             try:
+                # tts = gTTS(text=f"Attention Participant {participant.number}, your turn is now.", lang="en")
+                #
+                # audio_filename = f"announcement_{participant.id}.mp3"
+                # audio_file = ContentFile(b"")
+                # tts.write_to_fp(audio_file)
+                # audio_file.name = audio_filename
+                # audio_url = upload_to_s3(audio_file, folder="announcements")
+                # participant.announcement_audio = audio_filename
+                # Generate the TTS audio content
                 tts = gTTS(text=f"Attention Participant {participant.number}, your turn is now.", lang="en")
-                audio_dir = os.path.join(settings.MEDIA_ROOT, "announcements")
-                os.makedirs(audio_dir, exist_ok=True)
-                audio_filename = f"announcement_{participant.id}.mp3"
-                audio_path = os.path.join(audio_dir, audio_filename)
-                tts.save(audio_path)
+                audio_buffer = BytesIO()
+                tts.write_to_fp(audio_buffer)
+                audio_buffer.seek(0)
 
-                # Save the file path to the participant
-                participant.announcement_audio = audio_filename
-                audio_url = f"{settings.MEDIA_URL}announcements/{audio_filename}"
+                # Create a ContentFile from the buffer
+                audio_filename = f"announcement_{participant.id}.mp3"
+                audio_file = ContentFile(audio_buffer.read(), name=audio_filename)
+
+                # Upload to S3
+                audio_url = upload_to_s3(audio_file, folder="announcements")
+
+                # Save the S3 URL to the participant
+                participant.announcement_audio = audio_url
+
             except Exception as e:
                 logger.error(f"Failed to generate TTS announcement for participant {participant.id}: {str(e)}")
 
