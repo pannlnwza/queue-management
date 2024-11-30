@@ -295,6 +295,10 @@
                             'Content-Type': 'application/json',
                             'X-CSRFToken': '{{ csrf_token }}'
                         }
+                    }).then(() => {
+                        sessionStorage.removeItem('userLat');
+                        sessionStorage.removeItem('userLon');
+                        console.log('Location status set to blocked.');
                     });
                 } else {
                     console.error('Error retrieving location:', error);
@@ -304,7 +308,40 @@
     } else {
         console.error("Geolocation is not supported by your browser.");
     }
-    }
+} else {
+    navigator.geolocation.getCurrentPosition(
+        function (position) {
+            const lat = position.coords.latitude;
+            const lon = position.coords.longitude;
+
+            if (
+                sessionStorage.getItem('userLat') != lat ||
+                sessionStorage.getItem('userLon') != lon
+            ) {
+                sessionStorage.setItem('userLat', lat);
+                sessionStorage.setItem('userLon', lon);
+
+                fetch("{% url 'participant:set_location' %}", {
+                    method: 'POST',
+                    body: JSON.stringify({ lat: lat, lon: lon }),
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    }
+                }).then(response => {
+                    if (response.ok) {
+                        console.log('Updated location saved in session');
+                        window.location.reload();
+                    }
+                });
+            }
+        },
+        function (error) {
+            console.error('Error rechecking location:', error);
+        }
+    );
+}
+
 </script>
 
 
