@@ -12,6 +12,8 @@ from django.urls import reverse
 from django.contrib.sessions.models import Session
 from django.contrib.auth.models import User
 from django.views import generic
+
+from manager.utils.queue_handler import QueueHandlerFactory
 from participant.models import Participant, Notification
 from manager.views import logger
 from .forms import KioskForm
@@ -32,6 +34,8 @@ from asgiref.sync import sync_to_async
 import asyncio
 import json
 import threading
+from queue import Queue as ThreadSafeQueue
+
 
 
 class HomePageView(generic.TemplateView):
@@ -165,11 +169,44 @@ class KioskView(generic.FormView):
         )
         participant.created_by = 'guest'
         participant.save()
+        self.send_email_with_qr(participant)
         return redirect('participant:qrcode', participant_code=participant.code)
 
     def form_invalid(self, form):
         print(form.errors)
         return super().form_invalid(form)
+
+    def send_email_with_qr(self, participant):
+        """
+        Sends an email to the participant with the QR code embedded.
+        """
+        if not participant.email:
+            return
+
+        check_queue_url = self.request.build_absolute_uri(
+            reverse('participant:queue_status', kwargs={'participant_code': participant.code})
+        )
+
+        qr_code_binary = generate_qr_code(check_queue_url)
+        qr_code_base64 = base64.b64encode(qr_code_binary).decode()
+
+        html_message = render_to_string(
+            'participant/qrcode_for_mail.html',
+            {
+                'participant': participant,
+                'qr_code_image_url': f"data:image/png;base64,{qr_code_base64}",
+                'status_link': check_queue_url,
+            }
+        )
+
+        email = EmailMessage(
+            subject=f"Your Queue Ticket for {participant.queue.name}",
+            body=html_message,
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            to=[participant.email],
+        )
+        email.content_subtype = "html"  # Send as HTML email
+        email.send()
 
 
 class QRcodeView(generic.DetailView):
@@ -193,46 +230,16 @@ class QRcodeView(generic.DetailView):
         context['participant'] = participant
         context['queue'] = participant.queue
 
-        # Generate the QR code URL
         check_queue_url = self.request.build_absolute_uri(
             reverse('participant:queue_status', kwargs={'participant_code': participant.code})
         )
 
-        # Generate and save QR code
         qr_code_binary = generate_qr_code(check_queue_url)
         qr_code_base64 = base64.b64encode(qr_code_binary).decode()
         context['qr_image'] = qr_code_base64
 
-        self.send_email_with_qr(participant, qr_code_base64, check_queue_url)
-
         return context
 
-    def send_email_with_qr(self, participant, qr_code_base64, check_queue_url):
-        """
-        Sends an email to the participant with the QR code embedded.
-        """
-        if not participant.email:
-            return  # Skip if the participant doesn't have an email
-
-        # Render the email template
-        html_message = render_to_string(
-            'participant/qrcode_for_mail.html',
-            {
-                'participant': participant,
-                'qr_code_image_url': f"data:image/png;base64,{qr_code_base64}",
-                'status_link': check_queue_url,
-            }
-        )
-
-        # Create and send the email
-        email = EmailMessage(
-            subject=f"Your Queue Ticket for {participant.queue.name}",
-            body=html_message,
-            from_email=settings.DEFAULT_FROM_EMAIL,
-            to=[participant.email],
-        )
-        email.content_subtype = "html"  # Send as HTML email
-        email.send()
 
 
 class QueueStatusView(generic.TemplateView):
@@ -256,14 +263,30 @@ class QueueStatusView(generic.TemplateView):
         context['participants_in_queue'] = participants_in_queue
         return context
 
+class QueueStatusPrint(generic.TemplateView):
+    template_name = 'participant/status_print.html'
 
-import threading
-from queue import Queue as ThreadSafeQueue  # Renamed to ThreadSafeQueue for clarity
-from asgiref.sync import sync_to_async
-from django.http import StreamingHttpResponse
-import json
-import asyncio
+    def get_context_data(self, **kwargs):
+        """Add the queue and participants context to template."""
+        context = super().get_context_data(**kwargs)
+        participant_code = kwargs['participant_code']
+        participant = get_object_or_404(Participant, code=participant_code)
+        handler = CategoryHandlerFactory.get_handler(participant.queue.category)
+        queue = handler.get_queue_object(participant.queue.id)
+        participant = handler.get_participant_set(queue.id).filter(code=participant_code).first()
+        check_queue_url = self.request.build_absolute_uri(
+            reverse('participant:queue_status', kwargs={'participant_code': participant.code})
+        )
 
+        qr_code_binary = generate_qr_code(check_queue_url)
+        qr_code_base64 = base64.b64encode(qr_code_binary).decode()
+        context['qr_image'] = qr_code_base64
+        context['queue'] = queue
+        context['participant'] = participant
+        participants_in_queue = queue.participant_set.all().order_by(
+            'joined_at')
+        context['participants_in_queue'] = participants_in_queue
+        return context
 
 
 def sse_queue_status(request, participant_code):
