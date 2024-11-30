@@ -19,7 +19,7 @@
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
       <a href="{% url 'participant:restaurant_queues' %}" class="card bg-base-100 shadow-xl hover:shadow-xl transition-all duration-300 hover:scale-105 active:translate-y-4 focus:outline-none focus:border-none !border-none">
         <figure class="px-6 pt-6">
-          <img src="{% static 'participant/images/restaurant.jpg' %}" alt="Restaurant" class="rounded-xl h-49 w-full object-cover" />
+          <img src="{{ restaurant}}" alt="Restaurant" class="rounded-xl h-49 w-full object-cover" />
         </figure>
         <div class="card-body">
           <h2 class="card-title text-gray-800 text-[1.375rem]">Restaurant Queues</h2>
@@ -29,7 +29,7 @@
 
       <a href="{% url 'participant:general_queues' %}" class="card bg-base-100 shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 active:transform active:translate-y-4 active:border-0 focus:outline-none focus:border-none !border-none">
         <figure class="px-6 pt-6">
-          <img src="{% static 'participant/images/general.jpg' %}" alt="General" class="rounded-xl h-49 w-full object-cover" />
+          <img src="{{ general }}" alt="General" class="rounded-xl h-49 w-full object-cover" />
         </figure>
         <div class="card-body">
           <h2 class="card-title text-gray-800 text-[1.375rem]">General Queues</h2>
@@ -39,7 +39,7 @@
 
       <a href="{% url 'participant:hospital_queues' %}" class="card bg-base-100 shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 active:transform active:translate-y-4 active:border-0 focus:outline-none focus:border-none !border-none">
         <figure class="px-6 pt-6">
-          <img src="{% static 'participant/images/hospital.jpg' %}" alt="Hospital" class="rounded-xl h-49 w-full object-cover" />
+          <img src="{{ hospital }}" alt="Hospital" class="rounded-xl h-49 w-full object-cover" />
         </figure>
         <div class="card-body">
           <h2 class="card-title text-gray-800 text-[1.375rem]">Hospital Queues</h2>
@@ -49,7 +49,7 @@
 
       <a href="{% url 'participant:bank_queues' %}" class="card bg-base-100 shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 active:transform active:translate-y-4 active:border-0 focus:outline-none focus:border-none !border-none">
         <figure class="px-6 pt-6">
-          <img src="{% static 'participant/images/bank.jpg' %}" alt="Bank" class="rounded-xl h-49 w-full object-cover" />
+          <img src="{{  bank }}" alt="Bank" class="rounded-xl h-49 w-full object-cover" />
         </figure>
         <div class="card-body">
           <h2 class="card-title text-gray-800 text-[1.375rem]">Bank Queues</h2>

@@ -1,7 +1,7 @@
 from django.urls import path, include
 from participant.views import mark_notification_as_read, RestaurantQueueView, GeneralQueueView, HospitalQueueView, \
     BankQueueView, ServiceCenterQueueView, BrowseQueueView, welcome, HomePageView, KioskView, QRcodeView, \
-    QueueStatusView, sse_queue_status, participant_leave, set_location, QueueStatusPrint
+    QueueStatusView, sse_queue_status, participant_leave, set_location, QueueStatusPrint, set_location_status
 from participant.utils.data_stream import data_stream
 
 app_name = 'participant'
@@ -23,4 +23,6 @@ urlpatterns = [
     path('mark-as-read/<int:notification_id>/', mark_notification_as_read, name='mark_notification_as_read'),
     path('set-location/', set_location, name='set_location'),
     path('status_for_printing/<str:participant_code>/', QueueStatusPrint.as_view(), name='status_print'),
+    path('set-location/', set_location, name='set_location'),
+    path('set-location-status/', set_location_status, name='set_location_status'),
 ]

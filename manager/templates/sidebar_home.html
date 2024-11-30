@@ -8,7 +8,7 @@
     {% block extra_head %}{% endblock %}
     <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.14/dist/full.min.css" rel="stylesheet" type="text/css"/>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="icon" href="{% static 'favicon.ico' %}" type="image/x-icon">
+    <link rel="icon" href="{{ 'https://queuekk-bucket.s3.ap-southeast-2.amazonaws.com/default_images/favicon.ico' }}" type="image/x-icon">
 </head>
 <body class="min-h-screen bg-base-100">
 <div class="drawer lg:drawer-open">
@@ -18,7 +18,7 @@
         <label for="my-drawer-2" class="drawer-overlay"></label>
         <div class="menu p-4 min-h-full bg-base-100 text-base-content flex flex-col items-center">
             <a href="{% url 'participant:home' %}">
-                <img src="{% static 'images/logo.ico' %}" alt="Queue Management Logo" class="p-2 w-[50px] h-auto">
+                <img src="{{ 'https://queuekk-bucket.s3.ap-southeast-2.amazonaws.com/default_images/logo.ico' }}" alt="Queue Management Logo" class="p-2 w-[50px] h-auto">
             </a>
 
         </div>
