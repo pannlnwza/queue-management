@@ -56,7 +56,6 @@ class HomePageView(generic.TemplateView):
                     nearby_queues = Queue.get_nearby_queues(user_lat, user_lon)
                     context['nearby_queues'] = nearby_queues
                     context['num_nearby_queues'] = len(nearby_queues) if nearby_queues else 0
-                    self.request.session.pop('locationUpdated', None)
                 except ValueError:
                     context['error'] = "Invalid latitude or longitude provided."
             else:
@@ -429,7 +428,6 @@ def set_location_status(request):
             data = json.loads(request.body)
             status = data.get('status')
             if status == 'blocked':
-                # Remove location data and mark status as blocked
                 request.session.pop('user_lat', None)
                 request.session.pop('user_lon', None)
                 request.session['location_status'] = 'blocked'
