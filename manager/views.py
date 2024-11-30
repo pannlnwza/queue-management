@@ -864,7 +864,7 @@ class EditProfileView(LoginRequiredMixin, generic.UpdateView):
 
         # Handle image removal and upload
         if form.cleaned_data.get('remove_image') == 'true':
-            profile.image = f"{get_s3_base_url()}default_images/profile.jpg"
+            profile.image = get_s3_base_url("default_images/profile.jpg")
             profile.google_picture = None
         elif form.files.get('image'):
             try:
@@ -893,7 +893,7 @@ class EditProfileView(LoginRequiredMixin, generic.UpdateView):
         context['user'] = self.request.user
         profile = self.get_object()
         context['profile_image_url'] = profile.get_profile_image()
-        context['default_image_url'] = f"{get_s3_base_url()}default_images/profile.jpg"
+        context['default_image_url'] = get_s3_base_url("default_images/profile.jpg")
         return context
 
 
