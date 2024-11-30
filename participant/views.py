@@ -42,22 +42,26 @@ class HomePageView(generic.TemplateView):
         context = super().get_context_data(**kwargs)
         featured_queues = Queue.get_top_featured_queues()
         context['featured_queues'] = featured_queues
-        user_lat = self.request.session.get('user_lat', None)
-        user_lon = self.request.session.get('user_lon', None)
-        if user_lat and user_lon:
-            try:
-                user_lat = float(user_lat)
-                user_lon = float(user_lon)
-                context['nearby_queues'] = Queue.get_nearby_queues(user_lat,
-                                                                   user_lon)
-                context['num_nearby_queues'] = len(Queue.get_nearby_queues(user_lat, user_lon)) if Queue.get_nearby_queues(user_lat, user_lon) else 0
-            except ValueError:
-                context['error'] = "Invalid latitude or longitude provided."
-        else:
+        location_status = self.request.session.get('location_status', None)
+        if location_status == 'blocked':
             context['num_nearby_queues'] = 0
-            context['error'] = "Location not provided. Please enable location services and refresh the page to show nearby queues."
+            context['error'] = "Location not provided. Enable location services, and refresh the page to view nearby queues."
+        else:
+            user_lat = self.request.session.get('user_lat', None)
+            user_lon = self.request.session.get('user_lon', None)
+            if user_lat and user_lon:
+                try:
+                    user_lat = float(user_lat)
+                    user_lon = float(user_lon)
+                    nearby_queues = Queue.get_nearby_queues(user_lat, user_lon)
+                    context['nearby_queues'] = nearby_queues
+                    context['num_nearby_queues'] = len(nearby_queues) if nearby_queues else 0
+                except ValueError:
+                    context['error'] = "Invalid latitude or longitude provided."
+            else:
+                context['num_nearby_queues'] = 0
+                context['error'] = "Location not provided. Enable location services, and refresh the page to view nearby queues."
         return context
-
 
 @require_POST
 def mark_notification_as_read(request, notification_id):
@@ -423,14 +427,14 @@ def set_location_status(request):
             data = json.loads(request.body)
             status = data.get('status')
             if status == 'blocked':
-                # Remove location data from session and set status to blocked
+                # Remove location data and mark status as blocked
                 request.session.pop('user_lat', None)
                 request.session.pop('user_lon', None)
                 request.session['location_status'] = 'blocked'
             elif status == 'allowed':
-                # If re-allowed, set status but location must be set separately
                 request.session['location_status'] = 'allowed'
             return JsonResponse({'success': True})
         except Exception as e:
             return JsonResponse({'success': False, 'error': str(e)})
     return JsonResponse({'success': False, 'error': 'Invalid request method'})
+
