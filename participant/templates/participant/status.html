@@ -119,7 +119,7 @@
     const modalMessage = document.getElementById('modalMessage');
 
     // Notification sound
-    const notificationSound = new Audio("{% static 'participant/sounds/notification.mp3' %}");
+    const notificationSound = new Audio("{{ participant_sound }}");
     let soundEnabled = false;
 
     // Enable sound on user interaction without playing it
