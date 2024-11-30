@@ -1,0 +1,83 @@
+<head>
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.14/dist/full.min.css" rel="stylesheet" type="text/css"/>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<div class="p-4">
+    <div class="max-w-md mx-auto bg-white rounded-xl shadow-lg overflow-hidden relative border-2">
+        <!-- Header Section -->
+        <div class="p-6 text-center">
+            <h1 class="text-gray-600 mb-4 font-bold">{{ queue.name }}</h1>
+            <div class="flex justify-center mb-4">
+                <p class="text-blue-600 text-4xl font-bold">{{ participant.number }}</p>
+            </div>
+
+            <div id="ETA-message">
+                <p class="text-gray-600 font-bold">Your current position is {{ participant.position }}</p>
+            </div>
+            <div>
+                <p class="text-gray-600 font-bold m-4">Estimated wait time: {{ participant.calculate_estimated_wait_time }} minutes</p>
+            </div>
+        </div>
+        <div class="bg-white rounded-xl p-4 shadow-inner mx-auto">
+            <img src="data:image/png;base64,{{ qr_image }}"
+                 alt="QR Code"
+                 class="w-full max-w-[200px] mx-auto">
+        </div>
+
+        <div>
+        <hr class="border-t border-gray-300 w-full" />
+        </div>
+        <!-- Customer Info Section -->
+            <div class="px-6 py-4 border-t border-base-100">
+                <div class="space-y-4">
+                    <div>
+                        <label class="text-sm text-gray-500">Name</label>
+                        <p class="font-medium" id="participantName">{{ participant.name }}</p>
+                    </div>
+                    <div>
+                        <label class="text-sm text-gray-500">Phone Number</label>
+                        <p class="font-medium" id='participantPhone'>{{ participant.phone|default:"-" }}</p>
+                    </div>
+                    <div>
+                        <label class="text-sm text-gray-500">Email</label>
+                        <p class="font-medium" id="participantEmail">{{ participant.email|default:"-" }}</p>
+                    </div>
+
+                    {# Special attributes for different category of queues #}
+                    {% if queue.category == 'restaurant' %}
+                        <div>
+                            <label class="text-sm text-gray-500">Party Size</label>
+                            <p class="font-medium" id="special_1">{{ participant.party_size }}</p>
+                        </div>
+                        <div>
+                            <label class="text-sm text-gray-500">Service</label>
+                            <p class="font-medium" id="special_2">{{ participant.get_service_type_display }}</p>
+                        </div>
+                    {% elif queue.category == 'hospital' %}
+                        <div>
+                            <label class="text-sm text-gray-500">Medical Field</label>
+                            <p class="font-medium" id="special_1">{{ participant.medical_field }}</p>
+                        </div>
+                        <div>
+                            <label class="text-sm text-gray-500">Priority</label>
+                            <p class="font-medium" id="special_2">{{ participant.priority }}</p>
+                        </div>
+                    {% elif queue.category == 'bank' %}
+                        <div>
+                            <label class="text-sm text-gray-500">Participant Type</label>
+                            <p class="font-medium" id="special_1">{{ participant.participant_category }}</p>
+                        </div>
+                        <div>
+                            <label class="text-sm text-gray-500">Service type</label>
+                            <p class="font-medium" id="special_2">{{ participant.service_type }}</p>
+                        </div>
+                     {% else %}
+                        <p class="font-medium" id="special_1" style="display: none;"></p>
+                        <p class="font-medium" id="special_2" style="display: none;"></p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+

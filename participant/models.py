@@ -126,6 +126,12 @@ class Participant(models.Model):
         """
         return f"{settings.SITE_DOMAIN}status/{self.code}"
 
+    def get_status_print_link(self):
+        """
+        Returns the full URL to the welcome page for this queue.
+        """
+        return f"{settings.SITE_DOMAIN}status_for_printing/{self.code}"
+
     def __str__(self) -> str:
         """Return a string representation of the participant."""
         return f"{self.name} - {self.state}"
