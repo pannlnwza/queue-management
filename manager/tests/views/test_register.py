@@ -81,7 +81,7 @@ class TestUserRegistration(TestCase):
         user = User.objects.get(username=self.user_data['username'])
         self.assertTrue(UserProfile.objects.filter(user=user).exists())
 
-    @patch('manager.views.authenticate')
+    @patch('manager.views.auth_views.authenticate')
     def test_signup_authentication_failure(self, mock_authenticate):
         """Test error handling when authentication after signup fails"""
         # Make authenticate return None to simulate authentication failure
@@ -93,10 +93,10 @@ class TestUserRegistration(TestCase):
         # Check that the error message is present
         messages = list(get_messages(response.wsgi_request))
         error_message = 'Error during signup process. Please try again.'
-        # self.assertTrue(
-        #     any(message.message == error_message for message in messages),
-        #     f"Expected message '{error_message}' not found in messages: {[m.message for m in messages]}"
-        # )
+        self.assertTrue(
+            any(message.message == error_message for message in messages),
+            f"Expected message '{error_message}' not found in messages: {[m.message for m in messages]}"
+        )
 
         # Verify the user was created but not authenticated
         self.assertEqual(User.objects.filter(username=self.user_data['username']).count(), 1)
