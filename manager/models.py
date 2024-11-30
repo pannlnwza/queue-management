@@ -184,13 +184,13 @@ class Queue(models.Model):
 
         # Fallback to default logos based on the queue category
         default_logos = {
-            'restaurant': static('participant/images/restaurant_default_logo.png'),
-            'bank': static('participant/images/bank_default_logo.jpg'),
-            'general': static('participant/images/general_default_logo.png'),
-            'hospital': static('participant/images/hospital_default_logo.jpg'),
-            'service center': static('participant/images/service_center_default_logo.png'),
+            'restaurant': get_s3_base_url('default_images/restaurant_default_logo.png'),
+            'bank': get_s3_base_url('default_images/bank_default_logo.jpg'),
+            'general': get_s3_base_url('default_images/general_default_logo.png'),
+            'hospital': get_s3_base_url('default_images/hospital_default_logo.jpg'),
+            'service center': get_s3_base_url('default_images/service_center_default_logo.png'),
         }
-        return default_logos.get(self.category, static('participant/images/general_default_logo.png'))
+        return default_logos.get(self.category, get_s3_base_url("default_images/general_default_logo.png"))
 
     def edit(self, name: str = None, description: str = None,
              is_closed: bool = None, status: str = None) -> None:
@@ -638,7 +638,7 @@ class UserProfile(models.Model):
 
     def get_profile_image(self):
         """Returns the appropriate profile image URL."""
-        default_image_url = f"{get_s3_base_url()}default_images/profile.jpg"
+        default_image_url = get_s3_base_url('default_images/profile.jpg')
         if self.image:
             return self.image
         elif self.user.socialaccount_set.exists():
