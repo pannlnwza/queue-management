@@ -57,10 +57,10 @@ class Queue(models.Model):
         super().save(*args, **kwargs)
 
     @staticmethod
-    def get_top_featured_queues(category=None):
+    def get_top_featured_queues():
         """Get the top 3 featured queues based on their Queue Length / Max Capacity * 100."""
         queue_ratios = []
-        for queue in Queue.objects.filter(category=category):
+        for queue in Queue.objects.all():
             num_participants = queue.get_number_waiting_now()
             if num_participants == 0:
                 continue
