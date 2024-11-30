@@ -50,13 +50,12 @@ class HomePageView(generic.TemplateView):
                 user_lon = float(user_lon)
                 context['nearby_queues'] = Queue.get_nearby_queues(user_lat,
                                                                    user_lon)
-                context['num_nearby_queues'] = len(
-                    Queue.get_nearby_queues(user_lat, user_lon))
+                context['num_nearby_queues'] = len(Queue.get_nearby_queues(user_lat, user_lon)) if Queue.get_nearby_queues(user_lat, user_lon) else 0
             except ValueError:
                 context['error'] = "Invalid latitude or longitude provided."
         else:
-            context[
-                'error'] = "Location not provided. Please enable location services."
+            context['num_nearby_queues'] = 0
+            context['error'] = "Location not provided. Please enable location services and refresh the page to show nearby queues."
         return context
 
 
@@ -395,14 +394,12 @@ def set_location(request):
             lat = data.get('lat')
             lon = data.get('lon')
             if lat and lon:
-                # Save location to session
                 request.session['user_lat'] = lat
                 request.session['user_lon'] = lon
                 print(f"Saved to session: Lat = {lat}, Lon = {lon}")
                 request.session['location_status'] = 'allowed'
                 return JsonResponse({'status': 'success'})
             else:
-                # Handle invalid location data
                 request.session['location_status'] = 'blocked'
                 return JsonResponse(
                     {'status': 'failed', 'error': 'Invalid location data'},
