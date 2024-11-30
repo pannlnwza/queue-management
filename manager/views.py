@@ -73,9 +73,9 @@ def create_queue(request):
         'category': category,
         'name': data.get('name'),
         'description': data.get('description'),
-        'open_time': data.get("open_time").strftime("%H:%M:%S") if data.get(
+        'open_time': data.get("open_time") if data.get(
                     "open_time") else None,
-        'close_time': data.get("open_time").strftime("%H:%M:%S") if data.get(
+        'close_time': data.get("open_time") if data.get(
                     "open_time") else None,
         'latitude': data.get('latitude'),
         'longitude': data.get('longitude'),
