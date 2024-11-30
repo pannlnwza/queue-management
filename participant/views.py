@@ -16,6 +16,7 @@ from participant.models import Participant, Notification
 from manager.views import logger
 from .forms import KioskForm
 from manager.utils.category_handler import CategoryHandlerFactory
+from manager.utils.aws_s3_storage import get_s3_base_url
 from django.http import StreamingHttpResponse
 import json
 from manager.utils.send_email import generate_qr_code
@@ -129,7 +130,14 @@ class BrowseQueueView(generic.ListView):
             session.get_decoded().get('_auth_user_id')
             for session in active_sessions
         ]
+
         context['active_users'] = User.objects.filter(id__in=user_ids).count()
+        context['restaurant'] = get_s3_base_url("default_images/restaurant.jpg")
+        context['general'] = get_s3_base_url("default_images/general.jpg")
+        context['hospital'] = get_s3_base_url("default_images/hospital.jpg")
+        context['bank'] = get_s3_base_url("default_images/bank.jpg")
+        context['service_center'] = get_s3_base_url("default_images/service_center.jpg")
+
 
         return context
 
