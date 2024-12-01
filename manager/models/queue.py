@@ -1,6 +1,8 @@
 from django.db import models
 from django.utils import timezone
 from django.contrib.auth.models import User
+from django.utils.timezone import localtime
+
 from manager.utils.code_generator import generate_unique_code
 from manager.utils.aws_s3_storage import get_s3_base_url
 from manager.utils.helpers import format_duration
@@ -50,6 +52,17 @@ class Queue(models.Model):
         if not self.pk:
             self.code = generate_unique_code(Queue)
         super().save(*args, **kwargs)
+
+    def is_queue_closed(self):
+        """Detect if the queue is closed based on the `is_closed` flag or current time."""
+        if self.is_closed:
+            return True
+
+        current_time = localtime().time()
+        if self.open_time and self.close_time:
+            if not (self.open_time <= current_time <= self.close_time):
+                return True
+        return False
 
     @staticmethod
     def get_top_featured_queues():
