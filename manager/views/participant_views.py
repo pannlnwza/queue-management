@@ -3,7 +3,6 @@ import logging
 import os
 from datetime import timedelta
 from io import BytesIO
-
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -114,7 +113,7 @@ class ParticipantListView(LoginRequiredMixin, generic.TemplateView):
         participant_set = handler.get_participant_set(queue_id)
 
         if start_date:
-            participant_set = participant_set.filter(joined_at__gte=start_date)
+            participant_set = participant_set.filter(updated_at__gte=start_date)
 
         if state_filter_option != 'any_state':
             participant_set = participant_set.filter(state=state_filter_option)
@@ -151,14 +150,13 @@ class ParticipantListView(LoginRequiredMixin, generic.TemplateView):
 
     def get_start_date(self, time_filter_option):
         """Returns the start date based on the time filter option."""
-        now = timezone.now()
+        now = timezone.localtime()
         if time_filter_option == 'today':
             return now.replace(hour=0, minute=0, second=0, microsecond=0)
         elif time_filter_option == 'this_week':
-            return now - timedelta(
-                days=now.weekday())  # monday of the current week
+            return now - timedelta(days=now.weekday())
         elif time_filter_option == 'this_month':
-            return now.replace(day=1)
+            return now.replace(day=1, hour=0)
         elif time_filter_option == 'this_year':
             return now.replace(month=1, day=1)
         return None
@@ -210,16 +208,26 @@ def add_participant(request, queue_id):
         'queue': queue,
         'special_1': special_1,
         'special_2': special_2,
+        'resource': request.POST.get('resource')
     }
-    handler.create_participant(data)
-    queue.record_line_length()
-    messages.success(request, "Participant has been added.")
-    return redirect('manager:participant_list', queue_id)
+
+    try:
+        handler.create_participant(data)
+        queue.record_line_length()
+        messages.success(request, "Participant has been added.")
+        logger.info("Participant added successfully to queue %s", queue_id)
+        return redirect('manager:participant_list', queue_id)
+    except ValueError as e:
+        logger.error("Error adding participant to queue %s: %s", queue_id, e)
+        messages.error(request, f"Error adding participant: {e}")
+        return redirect('manager:participant_list', queue_id)
 
 
 @require_http_methods(["POST"])
 def edit_participant(request, participant_id):
+    logger.info("Editing participant %s", participant_id)
     participant = get_object_or_404(Participant, id=participant_id)
+
     if request.method == "POST":
         data = {
             'name': request.POST.get('name'),
@@ -232,12 +240,19 @@ def edit_participant(request, participant_id):
             'party_size': request.POST.get('party_size'),
             'state': request.POST.get('state')
         }
-        handler = CategoryHandlerFactory.get_handler(
-            participant.queue.category)
-        participant = handler.get_participant_set(participant.queue.id).get(
-            id=participant_id)
-        handler.update_participant(participant, data)
-        return redirect('manager:participant_list', participant.queue.id)
+
+        handler = CategoryHandlerFactory.get_handler(participant.queue.category)
+
+        try:
+            participant = handler.get_participant_set(participant.queue.id).get(id=participant_id)
+            handler.update_participant(participant, data)
+            messages.success(request, "Participant updated successfully.")
+            logger.info("Participant %s updated successfully", participant_id)
+            return redirect('manager:participant_list', participant.queue.id)
+        except ValueError as e:
+            logger.error("Error updating participant %s: %s", participant_id, e)
+            messages.error(request, f"Error updating participant: {e}")
+            return redirect('manager:participant_list', participant.queue.id)
 
 
 @login_required
@@ -251,8 +266,7 @@ def delete_participant(request, participant_id):
         return JsonResponse({'error': 'Unauthorized.'}, status=403)
 
     queue = participant.queue
-    participant.state = 'removed'
-    participant.save()
+    participant.delete()
     logger.info(f"Participant {participant_id} is deleted.")
 
     waiting_participants = Participant.objects.filter(queue=queue,

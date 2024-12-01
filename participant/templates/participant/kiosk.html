@@ -1,31 +1,116 @@
 {% extends 'status_base.html' %}
-{% load i18n %}
+{% load static %}
 
-{% block content %}
-<div class="max-w-md mx-auto p-4">
-    <div class="card bg-base-100 shadow-xl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token }}">
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.14/dist/full.min.css" rel="stylesheet" type="text/css"/>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="icon" href="{% static 'favicon.ico' %}" type="image/x-icon">
+    {% block title %}<title>Join Queue</title>{% endblock %}
+
+</head>
+{% block content%}
+<div class="min-h-screen bg-base-100 flex items-center justify-center p-8">
+    <div class="card w-[1000px] bg-base-100 border-2 border-base-200">
+        <a href="{% url 'participant:welcome' queue.code %}" class="absolute top-4 left-4">
+            <button class="btn btn-square btn-outline">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                     stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                </svg>
+            </button>
+        </a>
         <div class="card-body">
-            <h2 class="card-title text-2xl mb-4">Kiosk for {{ queue.name }}</h2>
+            <h1 class="text-5xl font-bold text-center mb-8">Join the Queue</h1>
 
-            <form method="post" class="space-y-4">
+            <div class="text-center mb-8">
+                <h2 class="text-3xl mb-2">{{ queue.name }}</h2>
+                <p class="text-xl text-opacity-60 font-light">Please provide your details to join the queue</p>
+            </div>
+
+            <form method="post" class="grid grid-cols-3 gap-6">
                 {% csrf_token %}
-                {{ form.as_p }}
-                <div class="card-actions justify-center mt-6">
-                {% if queue.is_queue_closed %}
-                    <button class="btn btn-disabled bg-gray-400 text-gray-800">Queue is Closed</button>
-                {% elif queue.is_there_enough_time.0 == False and queue.is_there_enough_time.1 < 10 %}
-                    <button class="btn btn-disabled bg-gray-400 text-gray-800">Insufficient Time Remaining</button>
-                {% elif queue.is_there_enough_time.0 == False %}
-                    <a href="{% url "participant:kiosk" queue.code %}"
-                    onclick="return confirm('The estimated waiting time exceeds the remaining time until the queue closes. ' +
-                     'You may not be serviced in time. Do you still want to join?')">
-                        <button class="btn btn-warning bg-yellow-500 text-white">Proceed with Limited Time</button>
-                    </a>
-                {% else %}
-                    <a href="{% url "participant:kiosk" queue.code %}">
-                        <button class="btn btn-primary">Join Queue</button>
-                    </a>
+
+
+
+
+                <div class="form-control col-span-2">
+                    <label class="label">
+                        <span class="label-text text-xl">Name</span>
+                    </label>
+                    {{ form.name }}
+                </div>
+
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text text-xl">Phone Number (Optional)</span>
+                    </label>
+                    {{ form.phone }}
+                </div>
+
+                <div class="form-control col-span-2">
+                    <label class="label">
+                        <span class="label-text text-xl">Email (Optional)</span>
+                    </label>
+                    {{ form.email }}
+                </div>
+
+                {% if form.special_1 %}
+                    <div class="form-control col-span-3">
+                        <label class="label">
+                            <span class="label-text text-xl">{{ form.special_1.label }}</span>
+                        </label>
+                        {{ form.special_1 }}
+                    </div>
                 {% endif %}
+
+                {% if form.special_2 %}
+                    <div class="form-control col-span-3">
+                        <label class="label">
+                            <span class="label-text text-xl">{{ form.special_2.label }}</span>
+                        </label>
+                        {{ form.special_2 }}
+                    </div>
+                {% endif %}
+
+                {% if form.note %}
+                    <div class="form-control col-span-3">
+                        <label class="label">
+                            <span class="label-text text-xl">Additional Notes (Optional)</span>
+                        </label>
+                        {{ form.note }}
+                    </div>
+                {% endif %}
+
+                <div class="col-span-3 pt-6">
+                    {% if queue.is_queue_closed %}
+                        <button class="btn bg-gray-300 text-black btn-lg w-full text-xl hover:text-white">Queue is Closed. Return to Homepage.
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 ml-2" fill="none" viewBox="0 0 24 24"
+                             stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M17 8l4 4m0 0l-4 4m4-4H3"/>
+                        </svg>
+                        </button>
+                    {% elif queue.is_there_enough_time.0 == False and queue.is_there_enough_time.1 < 10 %}
+                        <button class="btn btn-disabled bg-gray-400 text-gray-800">Insufficient Time Remaining</button>
+                    {% elif queue.is_there_enough_time.0 == False %}
+                        <a href="{% url "participant:kiosk" queue.code %}"
+                        onclick="return confirm('The estimated waiting time exceeds the remaining time until the queue closes. ' +
+                         'You may not be serviced in time. Do you still want to join?')">
+                            <button class="btn btn-warning bg-yellow-500 text-white">Proceed with Limited Time</button>
+                        </a>
+                    {% else %}
+                    <button type="submit" class="btn btn-primary btn-lg w-full text-xl">
+                        Get in Line
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 ml-2" fill="none" viewBox="0 0 24 24"
+                             stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M17 8l4 4m0 0l-4 4m4-4H3"/>
+                        </svg>
+                    </button>
+                    {% endif %}
                 </div>
             </form>
         </div>

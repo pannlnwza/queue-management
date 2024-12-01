@@ -45,6 +45,7 @@ class KioskView(generic.FormView):
             # Process the form and create the participant
             form_data = form.cleaned_data.copy()
             form_data['queue'] = self.queue
+            form_data['resource'] = None
             participant = self.handler.create_participant(
                 form_data,
             )
@@ -97,9 +98,10 @@ class QRcodeView(generic.DetailView):
         participant.save()
 
         context['qr_image_url'] = qr_code_s3_url
-
-        self.send_email_with_qr(participant, qr_code_s3_url, check_queue_url)
-
+        if not participant.qrcode_email_sent:
+            self.send_email_with_qr(participant, qr_code_s3_url, check_queue_url)
+            participant.qrcode_email_sent = True
+            participant.save()
         return context
 
     def send_email_with_qr(self, participant, qr_code_s3_url, check_queue_url):

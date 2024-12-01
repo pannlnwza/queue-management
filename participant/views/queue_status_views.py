@@ -1,8 +1,12 @@
 import asyncio
+import base64
 import json
 import threading
 from queue import Queue as ThreadSafeQueue
 from django.shortcuts import get_object_or_404
+from django.urls import reverse
+
+from manager.utils.send_email import generate_qr_code
 from participant.models import Participant, Notification
 from manager.utils.category_handler import CategoryHandlerFactory
 from manager.utils.aws_s3_storage import get_s3_base_url
@@ -34,6 +38,33 @@ class QueueStatusView(generic.TemplateView):
         context['participant_sound'] = get_s3_base_url(
             "announcements/notification.mp3")
         return context
+
+class QueueStatusPrint(generic.TemplateView):
+    template_name = 'participant/status_print.html'
+
+    def get_context_data(self, **kwargs):
+        """Add the queue and participants context to template."""
+        context = super().get_context_data(**kwargs)
+        participant_code = kwargs['participant_code']
+        participant = get_object_or_404(Participant, code=participant_code)
+        handler = CategoryHandlerFactory.get_handler(participant.queue.category)
+        queue = handler.get_queue_object(participant.queue.id)
+        participant = handler.get_participant_set(queue.id).filter(code=participant_code).first()
+        check_queue_url = self.request.build_absolute_uri(
+            reverse('participant:queue_status', kwargs={'participant_code': participant.code})
+        )
+
+        qr_code_binary = generate_qr_code(check_queue_url)
+        qr_code_base64 = base64.b64encode(qr_code_binary).decode()
+        context['qr_image'] = qr_code_base64
+        context['queue'] = queue
+        context['participant'] = participant
+        participants_in_queue = queue.participant_set.all().order_by(
+            'joined_at')
+        context['participants_in_queue'] = participants_in_queue
+        return context
+
+
 
 
 def sse_queue_status(request, participant_code):
