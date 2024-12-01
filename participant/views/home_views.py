@@ -16,7 +16,7 @@ class HomePageView(generic.TemplateView):
         if location_status == 'blocked':
             context['num_nearby_queues'] = 0
             context[
-                'error'] = "Location not provided. Enable location services, and refresh the page 2 times to view nearby queues."
+                'error'] = "Location not provided. Enable location services, and refresh the page to view nearby queues."
         else:
             user_lat = self.request.session.get('user_lat', None)
             user_lon = self.request.session.get('user_lon', None)
