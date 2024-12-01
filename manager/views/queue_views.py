@@ -11,7 +11,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.decorators.http import require_http_methods
 from manager.utils.category_handler import CategoryHandlerFactory
 from manager.models import Resource
-from participant.models import BankParticipant, HospitalParticipant
+from participant.models import BankParticipant, HospitalParticipant, Participant
 from manager.utils.aws_s3_storage import upload_to_s3
 
 logger = logging.getLogger('queue')
@@ -151,9 +151,10 @@ class QueueDisplay(generic.TemplateView):
         queue_id = self.kwargs.get('queue_id')
         queue = get_object_or_404(Queue, id=queue_id)
         context['queue'] = queue
-        context['participants'] = queue.participant_set.all().order_by('position')[1:10]
-        context['next_in_line'] = queue.participant_set.order_by('position').first()
-        context['recent_served'] = queue.participant_set.filter(state='serving').order_by('service_started_at').first
+        context['participants'] = queue.participant_set.all().filter(state='waiting').order_by('position')[1:10]
+        calling_participant = queue.participant_set.filter(is_notified=True).order_by('-notification__created_at').first()
+        context['calling'] = calling_participant
+        context['next_in_line'] = queue.participant_set.exclude(id=calling_participant.id if calling_participant else None).order_by('position').first()
         return context
 
 
