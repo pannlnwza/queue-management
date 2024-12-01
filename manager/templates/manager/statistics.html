@@ -133,14 +133,14 @@
             </div>
         </div>
 
-
+        {% if queue.category != 'general' %}
         <div class="grid gap-6">
 
             <div class="card bg-base-200">
                 <div class="card-body">
                     <h2 class="card-title mb-4">{{ queue.resource_name }}</h2>
                     <div class="overflow-x-auto">
-                        <table class="table">
+                        <table class="table min-w-full divide-y divide-gray-50 overflow-visible">
                             <thead>
                                 <tr>
                                     <th>RESOURCE</th>
@@ -152,7 +152,7 @@
                                     <th>AVG SERVE TIME</th>
                                 </tr>
                             </thead>
-                            <tbody>
+                            <tbody class="divide-y divide-gray-200">
                                 {% if queue.resource_set.all %}
                                     {% for resource in resource_totals %}
                                     <tr>
@@ -179,6 +179,7 @@
         </div>
     </div>
 </div>
+    {% endif %}
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {

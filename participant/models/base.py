@@ -41,6 +41,7 @@ class Participant(models.Model):
     is_notified = models.BooleanField(default=False)
     created_by = models.CharField(max_length=10, choices=CREATE_BY,
                                   default='guest')
+    updated_at = models.DateTimeField(blank=True, null=True)
     status_qr_code = models.ImageField(upload_to='qrcodes/', null=True,
                                        blank=True)
     number = models.CharField(max_length=4, editable=False)
@@ -60,6 +61,7 @@ class Participant(models.Model):
             Participant.objects.aggregate(models.Max('position'))[
                 'position__max'] or 0
             self.position = last_position + 1
+        self.updated_at = timezone.localtime()
         super().save(*args, **kwargs)
 
     def update_position(self, new_position: int) -> None:
@@ -134,6 +136,12 @@ class Participant(models.Model):
         Returns the full URL to the welcome page for this queue.
         """
         return f"{settings.SITE_DOMAIN}status/{self.code}"
+
+    def get_status_print_link(self):
+        """
+        Returns the full URL to the welcome page for this queue.
+        """
+        return f"{settings.SITE_DOMAIN}status_for_printing/{self.code}"
 
     def __str__(self) -> str:
         """Return a string representation of the participant."""

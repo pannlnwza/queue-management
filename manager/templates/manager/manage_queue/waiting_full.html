@@ -9,7 +9,7 @@
                       clip-rule="evenodd"/>
             </svg>
         </a>
-        <h1 class="text-2xl font-bold antialiased font-sans">Waiting</h1>
+        <h1 class="text-2xl font-bold antialiased font-sans">Back</h1>
 
     </div>
     <div class="flex justify-center min-w-screen p-10">
@@ -54,7 +54,7 @@
                                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                                 Name
                                             </th>
-                                            {% if queue.category == 'restaurant' and queue.category == 'bank' %}
+                                            {% if queue.category == 'restaurant' or queue.category == 'bank' %}
                                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                                     {{ special_2 }}
                                                 </th>
@@ -77,7 +77,7 @@
                                                     class="hover:bg-gray-100 cursor-pointer"
                                                     onclick="showParticipantDetails(
                                                             '{{ participant.id }}',
-                                                            '{{ participant.position }}',
+                                                            '{{ participant.number }}',
                                                             '{{ participant.name }}',
                                                             '{{ participant.get_wait_time }}',
                                                             '{{ participant.get_service_type_display|default:"" }}',
@@ -85,7 +85,7 @@
                                                             '{{ queue.category }}'
                                                             )"
                                             >
-                                                <td class="px-6 py-4 whitespace-nowrap">{{ participant.position }}</td>
+                                                <td class="px-6 py-4 whitespace-nowrap">{{ participant.number }}</td>
                                                 <td class="px-6 py-4 whitespace-nowrap font-semibold">
                                                     <div class="flex">
                                                         {{ participant.name }}
@@ -155,7 +155,7 @@
                                                 onclick="showServingDetails(
                                                         '{{ participant.id }}',
                                                         '{{ participant.name }}',
-                                                        '{{ participant.position }}',
+                                                        '{{ participant.number }}',
                                                         '{{ participant.get_service_duration }}',
                                                         '{{ participant.get_service_type_display|default:"" }}',
                                                         '{{ participant.get_medical_field_display|default:"" }}',
