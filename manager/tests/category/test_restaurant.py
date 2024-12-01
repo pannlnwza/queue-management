@@ -52,6 +52,7 @@ class TestRestaurantQueueHandler(TestCase):
             "queue": self.queue,
             "special_1": 4,
             "special_2": "dine_in",
+            "resource": self.table,
         }
         participant = self.handler.create_participant(self.participant_data)
         self.assertEqual(participant.name, "John Doe")

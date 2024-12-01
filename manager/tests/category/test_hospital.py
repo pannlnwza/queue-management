@@ -56,6 +56,7 @@ class TestHospitalQueueHandler(TestCase):
             "queue": self.queue,
             "special_1": "cardiology",
             "special_2": "high",
+            "resource": self.doctor
         }
         participant = self.handler.create_participant(self.participant_data)
         self.assertEqual(participant.name, "Jane Doe")
