@@ -143,7 +143,7 @@
                             {% endif %}
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap">{{ participant.get_state_display }}</td>
-                        <td class="px-6 py-4 whitespace-nowrap">{{ participant.joined_at }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">{{ participant.updated_at|date:"d M. Y H:i" }}</td>
                         <td class="px-6 py-4 whitespace-nowrap">
                             <div class="dropdown">
                                 <div tabindex="0" role="button" class="btn btn-square btn-sm btn-ghost">
