@@ -17,97 +17,49 @@
                 <h1 class="mb-10 text-6xl font-bold mx-auto nowrap font-mono">Queue Management</h1>
                 <div class="flex gap-4 justify-center">
                     <a class="btn btn-primary no-animation" href="{% url 'manager:your-queue' %}">Business Owner</a>
-                    <a class="btn btn-outline btn-neutral no-animation" href="{% url 'participant:queues' %}">Browse Queue</a>
+                    <a class="btn btn-outline btn-neutral no-animation" href="{% url 'participant:queues' %}">Browse
+                        Queue</a>
                 </div>
             </div>
         </div>
     </div>
     <div class="divider mt-20"></div>
 
-    <div class="container mx-auto px-4 py-4 ">
-        <section class="mb-12 px-4 max-w-7xl mx-auto relative">
-                {% if num_nearby_queues == 1 %}
-                    <h1 class="mb-6 text-2xl font-bold text-gray-800">Nearby Queues (1 queue)</h1>
-                {% else %}
-                    <h1 class="mb-6 text-2xl font-bold text-gray-800">Nearby Queues ({{ num_nearby_queues }} queues)</h1>
-                {% endif %}
-                <div class="relative flex items-center">
-                    <div id="queue-container" class="flex gap-8 overflow-x-auto no-scrollbar scroll-smooth">
-                        {% if nearby_queues %}
-                            {% for queue in nearby_queues %}
-                                <div class="flex-shrink-0 group bg-white rounded-xl border border-gray-300 shadow-md hover:shadow-2xl transition-all duration-300 overflow-hidden w-65 h-65">
-                                    <div class="p-6">
-                                        <div class="p-2 flex items-center justify-center">
-                                            <img class="w-28 h-28 object-contain" src="{{ queue.get_logo_url }}" alt="{{ queue.name }}">
+    <div class="container mx-auto px-4 py-3">
+        <section class="px-4 mb-5 max-w-7xl mx-auto relative">
+            {% if num_nearby_queues == 1 %}
+                <h1 class="mb-6 text-2xl font-bold text-gray-800">Nearby Queues (1 queue)</h1>
+            {% else %}
+                <h1 class="mb-6 text-2xl font-bold text-gray-800">Nearby Queues ({{ num_nearby_queues }} queues)</h1>
+            {% endif %}
+            <div class="relative flex items-center">
+                <div id="queue-container" class="flex gap-8 overflow-x-auto no-scrollbar scroll-smooth">
+                    {% if nearby_queues %}
+                        {% for queue in nearby_queues %}
+                            <div class="flex-shrink-0 group bg-white rounded-xl border border-gray-300 shadow-md hover:shadow-2xl transition-all duration-300 overflow-hidden w-65 h-65">
+                                <div class="p-6">
+                                    <div class="p-2 flex items-center justify-center">
+                                        <img class="w-28 h-28 object-contain" src="{{ queue.get_logo_url }}"
+                                             alt="{{ queue.name }}">
+                                    </div>
+                                    <div class="space-y-3">
+                                        <div class="text-center">
+                                            <h2 class="text-xl font-bold text-gray-800">{{ queue.name }}</h2>
+                                            <p class="text-sm text-indigo-600 font-medium">
+                                                ({{ queue.category.capitalize }})</p>
                                         </div>
-                                        <div class="space-y-3">
-                                            <div class="text-center">
-                                                <h2 class="text-xl font-bold text-gray-800">{{ queue.name }}</h2>
-                                                <p class="text-sm text-indigo-600 font-medium">({{ queue.category.capitalize }})</p>
-                                            </div>
 
-                                            <div class="relative">
-                                                <p class="text-sm text-gray-700 text-center">{{ queue.formatted_distance }} from your current location.</p>
-                                            </div>
+                                        <div class="relative">
+                                            <p class="text-sm text-gray-700 text-center">{{ queue.formatted_distance }}
+                                                from your current location.</p>
                                         </div>
                                     </div>
+                                </div>
 
-                                    <div class="px-5 pb-6 flex justify-center">
-                                        <a href="https://www.google.com/maps?q={{ queue.latitude }},{{ queue.longitude }}" target="_blank"
-                                           class="w-full btn btn-primary btn-md rounded-full shadow-md transition-all hover:shadow-lg mb-5">
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
-                                                <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"/>
-                                            </svg>
-                                            View on Google Maps
-                                        </a>
-                                    </div>
-                                </div>
-                            {% endfor %}
-                        {% else %}
-                            {% if error %}
-                            <div class="bg-red-50 rounded-xl px-6 py-8 inline-block">
-                                <p class="text-red-500 text-lg">{{ error }}</p>
-                            </div>
-                            {% else %}
-                            <div class="col-span-full text-center py-12">
-                                <div class="bg-gray-50 rounded-xl p-8">
-                                    <p class="text-gray-500 text-lg">No nearby queues available.</p>
-                                </div>
-                            </div>
-                            {% endif %}
-                        {% endif %}
-                    </div>
-                </div>
-        </section>
-    </div>
-
-    <div class="w-full bg-base-content py-12">
-        <section class="px-4 max-w-7xl mx-auto relative">
-            <h2 class="pt-4 mb-6 text-2xl font-bold text-white">Top 3 Featured Queues Now</h2>
-            {% if featured_queues %}
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    {% for queue in featured_queues %}
-                        <div class="card transform transition-all duration-300 hover:scale-105 hover:shadow-2xl bg-white rounded-xl overflow-hidden">
-                            <div class="relative">
-                                <div class="flex justify-center">
-                                    <img
-                                            src="{{ queue.get_logo_url }}"
-                                            alt="Queue Image"
-                                            class="w-auto h-32 object-cover filter brightness-90"
-                                    />
-                                </div>
-                            </div>
-                            <div class="card-body p-6 space-y-4">
-                                <div class="inline-flex items-center space-x-2">
-                                    <h3 class="text-xl font-bold truncate">{{ queue.name }}</h3>
-                                    <p class="text-sm text-indigo-600 font-medium">({{ queue.category.capitalize }})</p>
-                                </div>
-                                <p class="text-gray-600 text-sm line-clamp-3">{{ queue.description }}</p>
-                                <div class="card-actions mt-4">
-                                    <a
-                                            href="https://www.google.com/maps?q={{ queue.latitude }},{{ queue.longitude }}"
-                                            target="_blank"
-                                            class="w-full btn btn-primary btn-md rounded-full shadow-md transition-all hover:shadow-lg">
+                                <div class="px-5 pb-6 flex justify-center">
+                                    <a href="https://www.google.com/maps?q={{ queue.latitude }},{{ queue.longitude }}"
+                                       target="_blank"
+                                       class="w-full btn btn-primary btn-md rounded-full shadow-md transition-all hover:shadow-lg mb-5">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20"
                                              fill="currentColor">
                                             <path fill-rule="evenodd"
@@ -118,72 +70,131 @@
                                     </a>
                                 </div>
                             </div>
-                        </div>
-                    {% endfor %}
+                        {% endfor %}
+                    {% else %}
+                        {% if error %}
+                            <div class="bg-red-50 rounded-xl px-6 py-8 inline-block">
+                                <p class="text-red-500 text-lg">{{ error }}</p>
+                            </div>
+                        {% else %}
+                            <div class="col-span-full text-center py-12">
+                                <div class="bg-gray-50 rounded-xl p-8">
+                                    <p class="text-gray-500 text-lg">No nearby queues available.</p>
+                                </div>
+                            </div>
+                        {% endif %}
+                    {% endif %}
                 </div>
-            {% else %}
-                <p class="text-center text-lg text-white pt-4">No featured queues available at the moment.</p>
-            {% endif %}
+            </div>
         </section>
     </div>
 
-<script>
-    function updateLocation() {
-        if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(
-                function (position) {
-                    const lat = position.coords.latitude;
-                    const lon = position.coords.longitude;
+    <div class="w-full bg-base-content py-12">
+        <section class="px-4 max-w-7xl mx-auto relative">
+            <h1 class="mb-6 text-2xl font-bold text-white">Popular Queues</h1>
+            <div class="relative flex items-center">
+                <div id="queue-container" class="flex gap-8 overflow-x-auto no-scrollbar scroll-smooth">
+                    {% for queue in featured_queues %}
+                        <div class="flex-shrink-0 group bg-white rounded-xl border border-gray-300 shadow-md hover:shadow-2xl transition-all duration-300 overflow-hidden w-65 h-65">
+                            <div class="p-6">
+                                <div class="p-2 flex items-center justify-center">
+                                    <img class="w-28 h-28 object-contain" src="{{ queue.get_logo_url }}"
+                                         alt="{{ queue.name }}">
+                                </div>
+                                <div class="space-y-3">
+                                    <div class="text-center">
+                                        <h2 class="text-xl font-bold text-gray-800">{{ queue.name }}</h2>
+                                        <p class="text-sm text-indigo-600 font-medium">
+                                            ({{ queue.category.capitalize }})</p>
+                                    </div>
 
-                    sessionStorage.setItem('userLat', lat);
-                    sessionStorage.setItem('userLon', lon);
+                                    <div class="relative">
+                                        <p class="text-sm text-black text-center">{{ queue.participant_set.count }} currently in line</p>
+                                    </div>
 
-                    fetch("{% url 'participant:set_location' %}", {
-                        method: 'POST',
-                        body: JSON.stringify({ lat: lat, lon: lon }),
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRFToken': '{{ csrf_token }}'
-                        }
-                    }).then(response => {
-                        if (response.ok) {
-                            console.log('Location saved.');
-                            sessionStorage.setItem('locationStatus', 'allowed');
-                            if (!sessionStorage.getItem('locationInitialized')) {
-                                sessionStorage.setItem('locationInitialized', 'true');
+                                    <div class="relative">
+                                        <p class="text-sm text-gray-700 text-center">{{ queue.formatted_distance }} from
+                                            your current location.</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="px-5 pb-6 flex justify-center">
+                                <a href="https://www.google.com/maps?q={{ queue.latitude }},{{ queue.longitude }}"
+                                   target="_blank"
+                                   class="w-full btn btn-primary btn-md rounded-full shadow-md transition-all hover:shadow-lg mb-5">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20"
+                                         fill="currentColor">
+                                        <path fill-rule="evenodd"
+                                              d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z"
+                                              clip-rule="evenodd"/>
+                                    </svg>
+                                    View on Google Maps
+                                </a>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+    <script>
+        function updateLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    function (position) {
+                        const lat = position.coords.latitude;
+                        const lon = position.coords.longitude;
+
+                        sessionStorage.setItem('userLat', lat);
+                        sessionStorage.setItem('userLon', lon);
+
+                        fetch("{% url 'participant:set_location' %}", {
+                            method: 'POST',
+                            body: JSON.stringify({lat: lat, lon: lon}),
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRFToken': '{{ csrf_token }}'
                             }
+                        }).then(response => {
+                            if (response.ok) {
+                                console.log('Location saved.');
+                                sessionStorage.setItem('locationStatus', 'allowed');
+                                if (!sessionStorage.getItem('locationInitialized')) {
+                                    sessionStorage.setItem('locationInitialized', 'true');
+                                }
+                            }
+                        });
+                    },
+                    function (error) {
+                        if (error.code === error.PERMISSION_DENIED) {
+                            console.warn('User blocked location access.');
+                            handleBlockedLocation();
+                        } else {
+                            console.error('Error retrieving location:', error);
                         }
-                    });
-                },
-                function (error) {
-                    if (error.code === error.PERMISSION_DENIED) {
-                        console.warn('User blocked location access.');
-                        handleBlockedLocation();
-                    } else {
-                        console.error('Error retrieving location:', error);
                     }
-                }
-            );
-        } else {
-            console.error("Geolocation is not supported by this browser.");
-        }
-    }
-
-    function handleBlockedLocation() {
-        sessionStorage.setItem('locationStatus', 'blocked');
-        fetch("{% url 'participant:set_location_status' %}", {
-            method: 'POST',
-            body: JSON.stringify({ status: 'blocked' }),
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': '{{ csrf_token }}'
+                );
+            } else {
+                console.error("Geolocation is not supported by this browser.");
             }
-        }).then(() => {
-            console.log('Location status set to blocked.');
-        });
-    }
-    updateLocation();
-</script>
+        }
+
+        function handleBlockedLocation() {
+            sessionStorage.setItem('locationStatus', 'blocked');
+            fetch("{% url 'participant:set_location_status' %}", {
+                method: 'POST',
+                body: JSON.stringify({status: 'blocked'}),
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                }
+            }).then(() => {
+                console.log('Location status set to blocked.');
+            });
+        }
+
+        updateLocation();
+    </script>
 
 
 

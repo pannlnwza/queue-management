@@ -53,7 +53,7 @@ class Queue(models.Model):
 
     @staticmethod
     def get_top_featured_queues():
-        """Get the top 3 featured queues based on their Queue Length / Max Capacity * 100."""
+        """Get the top 10 featured queues based on their Queue Length / Max Capacity * 100."""
         queue_ratios = []
         for queue in Queue.objects.all():
             num_participants = queue.get_number_waiting_now()
@@ -67,8 +67,8 @@ class Queue(models.Model):
                 ratio = (num_participants / max_capacity) * 100
             queue_ratios.append((queue, ratio))
         queue_ratios.sort(key=lambda x: x[1], reverse=True)
-        top_3_queues = [queue for queue, ratio in queue_ratios[:3]]
-        return top_3_queues
+        top_10_queues = [queue for queue, ratio in queue_ratios[:10]]
+        return top_10_queues
 
     @staticmethod
     def get_nearby_queues(user_lat, user_lon, radius_km=2):
