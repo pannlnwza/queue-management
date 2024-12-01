@@ -52,7 +52,7 @@ class TestBankQueueHandler(TestCase):
             "queue": self.queue,
             "special_1": "regular",
             "special_2": "deposit",
-            "resource": self.counter,
+            "resource": self.counter.id,
         }
         participant = self.handler.create_participant(self.participant_data)
         self.assertEqual(participant.name, "John Doe")

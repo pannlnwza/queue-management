@@ -202,6 +202,7 @@ class RestaurantQueueHandler(CategoryHandler):
         )
         if participant_info['resource']:
             self.assign_to_resource(participant, participant_info['resource'])
+        return participant
 
     def assign_to_resource(self, participant, resource_id=None):
         Table = apps.get_model('manager', 'Table')  # Lazy load
@@ -384,12 +385,12 @@ class HospitalQueueHandler(CategoryHandler):
             queue=participant_info['queue'],
             medical_field=participant_info['special_1'],
             priority=participant_info['special_2'],
-            resource=participant_info['resource'],
             position=queue_length + 1,
             created_by='staff'
         )
         if participant_info['resource']:
             self.assign_to_resource(participant, participant_info['resource'])
+        return participant
 
     def get_participant_set(self, queue_id):
         """
@@ -597,12 +598,12 @@ class BankQueueHandler(CategoryHandler):
             queue=participant_info['queue'],
             participant_category=participant_info['special_1'],
             service_type=participant_info['special_2'],
-            resource=participant_info['resource'],
             position=queue_length + 1,
             created_by='staff'
         )
         if participant_info['resource']:
             self.assign_to_resource(participant, participant_info['resource'])
+        return participant
 
     def get_participant_set(self, queue_id):
         BankParticipant = apps.get_model('participant', 'BankParticipant')
