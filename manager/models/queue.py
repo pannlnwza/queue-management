@@ -2,7 +2,7 @@ from django.db import models
 from django.utils import timezone
 from django.contrib.auth.models import User
 from django.utils.timezone import localtime
-
+from datetime import datetime
 from manager.utils.code_generator import generate_unique_code
 from manager.utils.aws_s3_storage import get_s3_base_url
 from manager.utils.helpers import format_duration
@@ -10,6 +10,7 @@ from django.core.exceptions import ValidationError
 from django.conf import settings
 import math
 from math import radians, sin, cos, sqrt, atan2
+
 
 
 class Queue(models.Model):
@@ -62,6 +63,26 @@ class Queue(models.Model):
             if not (self.open_time <= current_time <= self.close_time):
                 return True
         return False
+
+    from django.utils.timezone import localtime, make_aware
+    from datetime import datetime
+
+    def is_there_enough_time(self):
+        """
+        Check if there is enough time for a person to join the queue based on
+        the average waiting time and the time left until the queue closes.
+        """
+        if self.is_closed:
+            return False
+
+        current_datetime = localtime()
+        if not self.close_time:
+            return True
+        close_datetime_naive = datetime.combine(current_datetime.date(), self.close_time)
+        close_datetime = timezone.make_aware(close_datetime_naive, current_datetime.tzinfo)
+        time_left = (close_datetime - current_datetime).total_seconds() / 60
+        average_wait_time = self.estimated_wait_time_per_turn * (self.get_number_waiting_now() + 1)
+        return [time_left >= average_wait_time]
 
     @staticmethod
     def get_top_featured_queues():
