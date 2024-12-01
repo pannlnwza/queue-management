@@ -2,9 +2,7 @@
 {% load static %}
 
 {% block content %}
-    <div class="card bg-base-100 shadow-xl border-2 border-gray-300 rounded-lg">
-        <div class="card-body">
-            <h1 class="text-2xl font-bold mb-6">Edit Profile</h1>
+            <h1 class="text-2xl font-bold antialiased font-sans mt-2">Edit Profile</h1>
 
             <form method="POST" class="space-y-6" enctype="multipart/form-data" id="profileForm">
                 {% csrf_token %}
@@ -110,8 +108,7 @@
                     <a href="{% url 'manager:manage_waitlist' queue_id %}" class="btn w-48">Back</a>
                 </div>
             </form>
-        </div>
-    </div>
+
 
     <script>
         document.addEventListener('DOMContentLoaded', function () {
