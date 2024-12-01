@@ -55,35 +55,45 @@ class Queue(models.Model):
         super().save(*args, **kwargs)
 
     def is_queue_closed(self):
-        """Detect if the queue is closed based on the `is_closed` flag or current time."""
+        """
+        Determine if the queue is closed based on the `is_closed` flag or current time.
+        Handles overnight opening and closing times (e.g., 11 PM to 4 AM).
+        """
         if self.is_closed:
             return True
-        current_time = localtime().time()
-        if self.open_time and self.close_time:
-            if not (self.open_time <= current_time <= self.close_time):
-                return True
-        return False
 
-    from django.utils.timezone import localtime, make_aware
-    from datetime import datetime
+        current_time = localtime().time()
+
+        if self.open_time and self.close_time:
+            if self.open_time <= self.close_time:
+                if not (self.open_time <= current_time <= self.close_time):
+                    return True
+            else:
+                if not (current_time >= self.open_time or current_time <= self.close_time):
+                    return True
+
+        return False
 
     def is_there_enough_time(self):
         """
         Check if there is enough time for a person to join the queue based on
         the average waiting time and the time left until the queue closes.
+        Handles overnight opening and closing times.
         """
         if self.is_closed:
             return False, 0
 
         current_datetime = localtime()
+
+        # If no close time is defined, assume infinite time left
         if not self.close_time:
-            return True, float('inf')  # If no close time is defined, assume infinite time left
-
+            return True, float('inf')
         close_datetime_naive = datetime.combine(current_datetime.date(), self.close_time)
+        if self.close_time < self.open_time:
+            close_datetime_naive += timezone.timedelta(days=1)
         close_datetime = timezone.make_aware(close_datetime_naive, current_datetime.tzinfo)
-        time_left = (close_datetime - current_datetime).total_seconds() / 60  # Time left in minutes
+        time_left = (close_datetime - current_datetime).total_seconds() / 60
         average_wait_time = self.estimated_wait_time_per_turn * (self.get_number_waiting_now() + 1)
-
         return time_left >= average_wait_time, time_left
 
     @staticmethod
