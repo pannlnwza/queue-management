@@ -1,18 +1,13 @@
-import math
-from manager.utils.code_generator import generate_unique_code
-from django.dispatch import receiver
-from django.conf import settings
-from django.contrib.auth.models import User
-from django.core.exceptions import ValidationError
 from django.db import models
-from django.templatetags.static import static
-from django.apps import apps
-from django.db.models.signals import post_save
-from manager.utils.helpers import format_duration
-from manager.utils.aws_s3_storage import get_s3_base_url
 from django.utils import timezone
+from django.contrib.auth.models import User
+from manager.utils.code_generator import generate_unique_code
+from manager.utils.aws_s3_storage import get_s3_base_url
+from manager.utils.helpers import format_duration
+from django.core.exceptions import ValidationError
+from django.conf import settings
+import math
 from math import radians, sin, cos, sqrt, atan2
-import base64
 
 
 class Queue(models.Model):
@@ -136,7 +131,8 @@ class Queue(models.Model):
     def calculate_average_service_duration(self, serve_time: int):
         """Update the average serve duration based on recent serve time."""
         if self.completed_participants_count > 0:
-            total_serve_time = (self.average_service_duration * self.completed_participants_count) + serve_time
+            total_serve_time = (
+                                       self.average_service_duration * self.completed_participants_count) + serve_time
             self.completed_participants_count += 1
             self.average_service_duration = math.ceil(
                 total_serve_time / self.completed_participants_count)
@@ -145,30 +141,21 @@ class Queue(models.Model):
             self.completed_participants_count += 1
         self.save()
 
-    def get_average_service_duration(self):
-        """Calculate the average service duration for participants in minutes."""
-        service_durations = [
-            p.get_service_duration() for p in
-            self.participant_set.filter(state='completed')
-            if p.get_service_duration() is not None
-        ]
-        average_service_time = math.ceil(sum(service_durations) / len(
-            service_durations)) if service_durations else 0
-        return format_duration(average_service_time)
-
     def get_participants(self) -> models.QuerySet:
         """Return a queryset of all participants in this queue. Ordered by joined_at"""
         return self.participant_set.all().order_by('joined_at')
 
     def update_participants_positions(self):
-        participants = self.participant_set.filter(state='waiting').order_by('joined_at')
+        participants = self.participant_set.filter(state='waiting').order_by(
+            'joined_at')
         for index, participant in enumerate(participants, start=1):
             participant.position = index
             participant.save(update_fields=["position"])
 
     def get_number_of_participants(self) -> int:
         """Return the count of all participants in this queue, excluding cancelled and removed participants."""
-        return self.participant_set.exclude(state__in=['cancelled', 'removed']).count()
+        return self.participant_set.exclude(
+            state__in=['cancelled', 'removed']).count()
 
     def get_participants_today(self) -> int:
         """Get the total number of participants added to the queue today."""
@@ -182,20 +169,26 @@ class Queue(models.Model):
 
         # Fallback to default logos based on the queue category
         default_logos = {
-            'restaurant': get_s3_base_url('default_images/restaurant_default_logo.png'),
+            'restaurant': get_s3_base_url(
+                'default_images/restaurant_default_logo.png'),
             'bank': get_s3_base_url('default_images/bank_default_logo.jpg'),
-            'general': get_s3_base_url('default_images/general_default_logo.png'),
-            'hospital': get_s3_base_url('default_images/hospital_default_logo.jpg'),
-            'service center': get_s3_base_url('default_images/service_center_default_logo.png'),
+            'general': get_s3_base_url(
+                'default_images/general_default_logo.png'),
+            'hospital': get_s3_base_url(
+                'default_images/hospital_default_logo.jpg'),
+            'service center': get_s3_base_url(
+                'default_images/service_center_default_logo.png'),
         }
-        return default_logos.get(self.category, get_s3_base_url("default_images/general_default_logo.png"))
+        return default_logos.get(self.category, get_s3_base_url(
+            "default_images/general_default_logo.png"))
 
     def edit(self, name: str = None, description: str = None,
              is_closed: bool = None, status: str = None) -> None:
         """Edit the queue's name, description, or closed status."""
         if name is not None:  # Adjusted to ensure empty string validation is included
             if not (1 <= len(name) <= 255):
-                raise ValueError("The name must be between 1 and 255 characters.")
+                raise ValueError(
+                    "The name must be between 1 and 255 characters.")
             self.name = name
         if description is not None:
             self.description = description
@@ -223,7 +216,7 @@ class Queue(models.Model):
 
     def get_number_of_participants_by_date(self, start_date, end_date):
         """Return the number of participants within a given date range."""
-        queryset= self.participant_set.all()
+        queryset = self.participant_set.all()
         if start_date and end_date:
             queryset = self.participant_set.filter(
                 joined_at__range=(start_date, end_date))
@@ -285,7 +278,7 @@ class Queue(models.Model):
     def get_guest_percentage(self, start_date=None, end_date=None):
         """Return percentage of participants joined by link, optionally within a date range."""
         num_participants = self.get_number_of_participants_by_date(start_date,
-                                                           end_date)
+                                                                   end_date)
         guest_count = self.get_number_created_by_guest(start_date, end_date)
         return round((guest_count / num_participants) * 100,
                      2) if num_participants else 0
@@ -293,7 +286,7 @@ class Queue(models.Model):
     def get_staff_percentage(self, start_date=None, end_date=None):
         """Return percentage of participants joined by staff, optionally within a date range."""
         num_participants = self.get_number_of_participants_by_date(start_date,
-                                                           end_date)
+                                                                   end_date)
         staff_count = self.get_number_created_by_staff(start_date, end_date)
         return round((staff_count / num_participants) * 100,
                      2) if num_participants else 0
@@ -301,7 +294,7 @@ class Queue(models.Model):
     def get_served_percentage(self, start_date=None, end_date=None):
         """Return percentage of participants served, optionally within a date range."""
         num_participants = self.get_number_of_participants_by_date(start_date,
-                                                           end_date)
+                                                                   end_date)
         served_count = self.get_number_served(start_date, end_date)
         return round((served_count / num_participants) * 100,
                      2) if num_participants else 0
@@ -309,7 +302,7 @@ class Queue(models.Model):
     def get_dropoff_percentage(self, start_date=None, end_date=None):
         """Return percentage of dropout participants, optionally within a date range."""
         num_participants = self.get_number_of_participants_by_date(start_date,
-                                                           end_date)
+                                                                   end_date)
         dropoff_count = self.get_number_dropoff(start_date, end_date)
         return round((dropoff_count / num_participants) * 100,
                      2) if num_participants else 0
@@ -317,7 +310,7 @@ class Queue(models.Model):
     def get_unhandled_percentage(self, start_date=None, end_date=None):
         """Return percentage of unhandled participants, optionally within a date range."""
         num_participants = self.get_number_of_participants_by_date(start_date,
-                                                           end_date)
+                                                                   end_date)
         unhandled_count = self.get_number_unhandled(start_date, end_date)
         return round((unhandled_count / num_participants) * 100,
                      2) if num_participants else 0
@@ -432,234 +425,3 @@ class QueueLineLength(models.Model):
 
     def __str__(self):
         return f"{self.queue.name} at {self.timestamp}: {self.line_length} participants waiting"
-
-
-class Resource(models.Model):
-    RESOURCE_STATUS = [
-        ('available', 'Available'),
-        ('busy', 'Busy'),
-        ('unavailable', 'Unavailable'),
-    ]
-
-    name = models.CharField(max_length=50)
-    capacity = models.PositiveIntegerField(default=1)
-    status = models.CharField(choices=RESOURCE_STATUS, max_length=15,
-                              default='available')
-    queue = models.ForeignKey(Queue, on_delete=models.CASCADE, blank=True,
-                              null=True)
-    assigned_to = models.ForeignKey('participant.Participant',
-                                    on_delete=models.SET_NULL, null=True,
-                                    blank=True,
-                                    related_name='resource_assignment')
-
-    count = models.PositiveIntegerField(default=0)
-
-    class Meta:
-        unique_together = ('name', 'queue')
-
-    def assign_to_participant(self, participant, capacity=1) -> None:
-        """
-        Assigns this resource to the given participant if it is available
-        and the capacity matches the participant's needs.
-        """
-        if self.status != 'available':
-            raise ValueError("This resource is not available.")
-        if int(self.capacity) < int(capacity):
-            raise ValueError("This resource cannot accommodate the party size.")
-
-        self.status = 'busy'
-        self.count += 1
-        self.assigned_to = participant
-        self.save()
-        participant.resource = self
-        participant.save()
-
-    def free(self) -> None:
-        """
-        Frees the resource, making it available for new assignments.
-        """
-        if self.assigned_to:
-            participant = self.assigned_to
-            participant.resource = None
-            participant.save()
-
-        self.status = 'available'
-        self.assigned_to = None
-        self.save()
-
-    def is_assigned(self) -> bool:
-        """
-        Checks if this resource is currently assigned to a participant.
-        """
-        return self.assigned_to is not None
-
-    def total(self, start_date=None, end_date=None):
-        """Return the total number of participants assigned to this resource within a date range."""
-        Participant = apps.get_model('participant', 'Participant')
-        queryset = Participant.objects.filter(resource_assigned=self.name)
-        if start_date and end_date:
-            queryset = queryset.filter(joined_at__range=(start_date, end_date))
-        return queryset.count()
-
-    def served(self, start_date=None, end_date=None):
-        """Return the number of participants who are currently being served or have completed service at this resource within a date range."""
-        Participant = apps.get_model('participant', 'Participant')
-        queryset = Participant.objects.filter(resource_assigned=self.name,
-                                              state__in=['serving',
-                                                         'completed'])
-        if start_date and end_date:
-            queryset = queryset.filter(joined_at__range=(start_date, end_date))
-        return queryset.count()
-
-    def dropoff(self, start_date=None, end_date=None):
-        """Return the number of participants who have been removed or cancelled from this resource within a date range."""
-        Participant = apps.get_model('participant', 'Participant')
-        queryset = Participant.objects.filter(resource_assigned=self.name,
-                                              state__in=['removed',
-                                                         'cancelled'])
-        if start_date and end_date:
-            queryset = queryset.filter(joined_at__range=(start_date, end_date))
-        return queryset.count()
-
-    def completed(self, start_date=None, end_date=None):
-        """Return the number of participants who have completed service at this resource within a date range."""
-        Participant = apps.get_model('participant', 'Participant')
-        queryset = Participant.objects.filter(resource_assigned=self.name, state='completed')
-        if start_date and end_date:
-            queryset = queryset.filter(joined_at__range=(start_date, end_date))
-        return queryset.count()
-
-    def avg_wait_time(self, start_date=None, end_date=None):
-        """Calculate the average wait time for participants in the 'serving' or 'completed' states at this resource within a date range."""
-        Participant = apps.get_model('participant', 'Participant')
-        queryset = Participant.objects.filter(resource_assigned=self.name,
-                                              state__in=['serving',
-                                                         'completed'])
-        if start_date and end_date:
-            queryset = queryset.filter(joined_at__range=(start_date, end_date))
-
-        wait_times = [p.get_wait_time() for p in queryset if
-                      p.get_wait_time() is not None]
-        average_wait_time = math.ceil(
-            sum(wait_times) / len(wait_times)) if wait_times else 0
-        return format_duration(average_wait_time)
-
-    def avg_serve_time(self, start_date=None, end_date=None):
-        """Calculate the average service duration for participants in the 'completed' state at this resource within a date range."""
-        Participant = apps.get_model('participant', 'Participant')
-        queryset = Participant.objects.filter(resource_assigned=self.name, state='completed')
-        if start_date and end_date:
-            queryset = queryset.filter(joined_at__range=(start_date, end_date))
-
-        serve_times = [p.get_service_duration() for p in queryset if
-                       p.get_service_duration() is not None]
-        average_serve_time = math.ceil(
-            sum(serve_times) / len(serve_times)) if serve_times else 0
-        return format_duration(average_serve_time)
-
-    def __str__(self):
-        """Return a string representation of the table."""
-        return f"{self.name} (Status: {self.status}, Capacity: {self.capacity})"
-
-
-class Doctor(Resource):
-    """Represents a doctor in the hospital queue system."""
-    MEDICAL_SPECIALTY_CHOICES = [
-        ('cardiology', 'Cardiology'),
-        ('neurology', 'Neurology'),
-        ('orthopedics', 'Orthopedics'),
-        ('dermatology', 'Dermatology'),
-        ('pediatrics', 'Pediatrics'),
-        ('general', 'General Medicine'),
-        ('emergency', 'Emergency'),
-        ('psychiatry', 'Psychiatry'),
-        ('surgery', 'Surgery'),
-        ('oncology', 'Oncology'),
-    ]
-
-    specialty = models.CharField(max_length=100,
-                                 choices=MEDICAL_SPECIALTY_CHOICES,
-                                 default='general')
-
-    def __str__(self):
-        return f"Doctor {self.name} - Specialty: {self.get_specialty_display()}"
-
-
-class Counter(Resource):
-    """Represent a counter in the bank."""
-    SERVICE_TYPE_CHOICES = [
-        ('account_services', 'Account Services'),
-        ('loan_services', 'Loan Services'),
-        ('investment_services', 'Investment Services'),
-        ('customer_support', 'Customer Support'),
-    ]
-    service_type = models.CharField(max_length=100,
-                                 choices=SERVICE_TYPE_CHOICES,
-                                 default='account_service')
-
-
-class Table(Resource):
-    """Represent a table in the restaurant."""
-    pass
-
-
-class RestaurantQueue(Queue):
-    """Represents a queue specifically for restaurant."""
-    resources = models.ManyToManyField(Table)
-    resource_name = 'Tables'
-
-
-class BankQueue(Queue):
-    """Represents a queue specifically for bank services."""
-    resources = models.ManyToManyField(Counter)
-    resource_name = 'Counters'
-
-    def __str__(self):
-        return f"Bank Queue: {self.name}"
-
-
-class HospitalQueue(Queue):
-    """Represents a queue specifically for hospital services."""
-    resources = models.ManyToManyField(Doctor)
-    resource_name = 'Doctors'
-
-
-class UserProfile(models.Model):
-    """Represents a user profile in the system."""
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
-    image = models.ImageField(upload_to='profile_images/', blank=True, null=True, max_length=255)
-    google_picture = models.URLField(blank=True, null=True)
-    phone = models.CharField(max_length=10, blank=True, null=True)
-    email = models.EmailField(blank=True, null=True)
-    first_name = models.CharField(max_length=30, blank=True, null=True)
-    last_name = models.CharField(max_length=30, blank=True, null=True)
-
-    def get_profile_image(self):
-        """Returns the appropriate profile image URL."""
-        default_image_url = get_s3_base_url('default_images/profile.jpg')
-        if self.image:
-            return self.image
-        elif self.user.socialaccount_set.exists():
-            social_account = self.user.socialaccount_set.first()
-            if hasattr(social_account, 'get_avatar_url') and social_account.get_avatar_url():
-                return social_account.get_avatar_url()
-        return default_image_url
-
-
-@receiver(post_save, sender=User)
-def create_user_profile(sender, instance, created, **kwargs):
-    """
-    Automatically create a UserProfile when a new User is created.
-    """
-    if created:
-        UserProfile.objects.create(user=instance)
-
-@receiver(post_save, sender=User)
-def save_user_profile(sender, instance, **kwargs):
-    """
-    Automatically save the UserProfile when the User is saved.
-    """
-    try:
-        instance.userprofile.save()
-    except UserProfile.DoesNotExist:
-        UserProfile.objects.create(user=instance)

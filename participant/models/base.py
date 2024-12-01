@@ -1,5 +1,6 @@
-from manager.utils.code_generator import generate_unique_code, generate_unique_number
 from django.db import models
+from manager.utils.code_generator import generate_unique_code, \
+    generate_unique_number
 from django.utils import timezone
 from manager.models import Resource
 from datetime import timedelta
@@ -38,8 +39,10 @@ class Participant(models.Model):
                                  blank=True, null=True)
     resource_assigned = models.CharField(max_length=20, null=True, blank=True)
     is_notified = models.BooleanField(default=False)
-    created_by = models.CharField(max_length=10, choices=CREATE_BY, default='guest')
-    status_qr_code = models.ImageField(upload_to='qrcodes/', null=True, blank=True)
+    created_by = models.CharField(max_length=10, choices=CREATE_BY,
+                                  default='guest')
+    status_qr_code = models.ImageField(upload_to='qrcodes/', null=True,
+                                       blank=True)
     number = models.CharField(max_length=4, editable=False)
     announcement_audio = models.TextField(null=True)
     qrcode_url = models.CharField(max_length=500, blank=True, null=True)
@@ -47,14 +50,15 @@ class Participant(models.Model):
     class Meta:
         unique_together = ('number', 'queue')
 
-
     def save(self, *args, **kwargs):
         """Assign unique code and number upon creation."""
         if not self.pk:  # Only set these fields for new instances
             self.code = generate_unique_code(Participant)
             self.number = generate_unique_number(self.queue)
         if not self.position:  # Only set position if it's not already set
-            last_position = Participant.objects.aggregate(models.Max('position'))['position__max'] or 0
+            last_position = \
+            Participant.objects.aggregate(models.Max('position'))[
+                'position__max'] or 0
             self.position = last_position + 1
         super().save(*args, **kwargs)
 
@@ -83,15 +87,18 @@ class Participant(models.Model):
             return int(
                 (timezone.localtime() - self.joined_at).total_seconds() / 60)
         elif self.service_started_at:
-            return int((self.service_started_at - self.joined_at).total_seconds() / 60)
+            return int((
+                                   self.service_started_at - self.joined_at).total_seconds() / 60)
 
     def get_service_duration(self):
         """Calculate the duration of service for the participant."""
         if self.state == 'serving' and self.service_started_at:
-            return int((timezone.localtime() - self.service_started_at).total_seconds() / 60)
+            return int((
+                                   timezone.localtime() - self.service_started_at).total_seconds() / 60)
         elif self.state == 'completed':
             if self.service_started_at and self.service_completed_at:
-                return int((self.service_completed_at - self.service_started_at).total_seconds() / 60)
+                return int((
+                                       self.service_completed_at - self.service_started_at).total_seconds() / 60)
         return 0
 
     def assign_to_resource(self, required_capacity=None):
@@ -102,7 +109,8 @@ class Participant(models.Model):
 
         # Get the resource, filtering by capacity if provided
         if required_capacity is not None:
-            resource = queue.get_available_resource(required_capacity=required_capacity)
+            resource = queue.get_available_resource(
+                required_capacity=required_capacity)
         else:
             resource = queue.get_available_resource()
 
@@ -130,84 +138,3 @@ class Participant(models.Model):
     def __str__(self) -> str:
         """Return a string representation of the participant."""
         return f"{self.name} - {self.state}"
-
-
-class RestaurantParticipant(Participant):
-    """Represents a participant in a restaurant queue with table assignment capabilities."""
-    SERVICE_TYPE_CHOICE = [
-        ('dine_in', 'Dine-in'),
-        ('takeout', 'Takeout'),
-        ('delivery', 'Delivery'),
-    ]
-    party_size = models.PositiveIntegerField(default=1)
-    service_type = models.CharField(max_length=20,
-                                    choices=SERVICE_TYPE_CHOICE,
-                                    default='dine_in')
-
-
-class BankParticipant(Participant):
-    """Represents a participant in a bank queue with specific service complexity and service type needs."""
-
-    SERVICE_TYPE_CHOICES = [
-        ('account_services', 'Account Services'),
-        ('loan_services', 'Loan Services'),
-        ('investment_services', 'Investment Services'),
-        ('customer_support', 'Customer Support'),
-    ]
-
-    PARTICIPANT_CATEGORY_CHOICES = [
-        ('individual', 'Individual'),
-        ('business', 'Business'),
-        ('corporate', 'Corporate'),
-        ('government', 'Government'),
-    ]
-
-    service_type = models.CharField(
-        max_length=20,
-        choices=SERVICE_TYPE_CHOICES,
-        default='account_services',
-    )
-    participant_category = models.CharField(max_length=20, choices=PARTICIPANT_CATEGORY_CHOICES, default='individual')
-
-
-
-class HospitalParticipant(Participant):
-    """Represents a participant in a hospital queue."""
-    MEDICAL_FIELD_CHOICES = [
-        ('cardiology', 'Cardiology'),
-        ('neurology', 'Neurology'),
-        ('orthopedics', 'Orthopedics'),
-        ('dermatology', 'Dermatology'),
-        ('pediatrics', 'Pediatrics'),
-        ('general', 'General Medicine'),
-        ('emergency', 'Emergency'),
-        ('psychiatry', 'Psychiatry'),
-        ('surgery', 'Surgery'),
-        ('oncology', 'Oncology'),
-    ]
-
-    PRIORITY_CHOICES = [
-        ('urgent', 'Urgent'),
-        ('normal', 'Normal'),
-        ('low', 'Low'),
-    ]
-    medical_field = models.CharField(max_length=50,
-                                     choices=MEDICAL_FIELD_CHOICES,
-                                     default='general')
-    priority = models.CharField(max_length=10, choices=PRIORITY_CHOICES,
-                                default='normal')
-
-    def __str__(self):
-        return f"Hospital Participant: {self.name}"
-
-
-class Notification(models.Model):
-    queue = models.ForeignKey('manager.Queue', on_delete=models.CASCADE)
-    participant = models.ForeignKey(Participant, on_delete=models.CASCADE)
-    message = models.TextField()
-    created_at = models.DateTimeField(auto_now_add=True)
-    is_read = models.BooleanField(default=False)
-    played_sound = models.BooleanField(default=False)
-
-    def __str__(self):
-        return f"Notification for {self.participant}: {self.message}"

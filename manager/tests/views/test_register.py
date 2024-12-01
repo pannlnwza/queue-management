@@ -81,7 +81,7 @@ class TestUserRegistration(TestCase):
         user = User.objects.get(username=self.user_data['username'])
         self.assertTrue(UserProfile.objects.filter(user=user).exists())
 
-    @patch('manager.views.authenticate')
+    @patch('manager.views.auth_views.authenticate')
     def test_signup_authentication_failure(self, mock_authenticate):
         """Test error handling when authentication after signup fails"""
         # Make authenticate return None to simulate authentication failure
