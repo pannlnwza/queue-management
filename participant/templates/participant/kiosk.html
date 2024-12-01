@@ -10,7 +10,23 @@
             <form method="post" class="space-y-4">
                 {% csrf_token %}
                 {{ form.as_p }}
-                <button type="submit" class="btn btn-primary w-full mt-4">Submit</button>
+                <div class="card-actions justify-center mt-6">
+                {% if queue.is_queue_closed %}
+                    <button class="btn btn-disabled bg-gray-400 text-gray-800">Queue is Closed</button>
+                {% elif queue.is_there_enough_time.0 == False and queue.is_there_enough_time.1 < 10 %}
+                    <button class="btn btn-disabled bg-gray-400 text-gray-800">Insufficient Time Remaining</button>
+                {% elif queue.is_there_enough_time.0 == False %}
+                    <a href="{% url "participant:kiosk" queue.code %}"
+                    onclick="return confirm('The estimated waiting time exceeds the remaining time until the queue closes. ' +
+                     'You may not be serviced in time. Do you still want to join?')">
+                        <button class="btn btn-warning bg-yellow-500 text-white">Proceed with Limited Time</button>
+                    </a>
+                {% else %}
+                    <a href="{% url "participant:kiosk" queue.code %}">
+                        <button class="btn btn-primary">Join Queue</button>
+                    </a>
+                {% endif %}
+                </div>
             </form>
         </div>
     </div>
