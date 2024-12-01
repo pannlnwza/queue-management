@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Queue Display - TV Mode</title>
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.7.2/dist/full.min.css" rel="stylesheet" type="text/css" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+    </style>
+</head>
+<body class="bg-base-200">
+    <div class="w-full min-w-screen min-h-screen p-12">
+        <div class="card bg-white border-2 border-base-200">
+            <div class="card-body p-12">
+                <h1 class="text-6xl font-bold text-center mb-12 text-gray-800">{{ queue.name }}</h1>
+
+                <div class="grid grid-cols-2 gap-12 mb-16">
+                    <div class="card bg-primary text-primary-content">
+                        <div class="card-body text-center">
+                            <h2 class="text-4xl font-semibold mb-4">Now Serving</h2>
+                            <div class="text-9xl font-bold text-yellow-200">{{ recent_served.number}}</div>
+                        </div>
+                    </div>
+
+                    <div class="card bg-secondary text-secondary-content">
+                        <div class="card-body text-center">
+                            <h2 class="text-4xl font-semibold mb-4">Next in Line</h2>
+                            <div class="text-8xl font-bold">{{ next_in_line.number }}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="table table-xl table-zebra">
+                        <thead>
+                            <tr class="text-2xl">
+                                <th>Queue Number</th>
+                                <th>Waited</th>
+                                <th>Estimated Wait</th>
+                            </tr>
+                        </thead>
+                        <tbody class="text-xl">
+                            {% for participant in participants %}
+                                <tr>
+                                    <td>{{ participant.number }}</td>
+                                    <td>{{ participant.get_wait_time }} min</td>
+                                    <td>~{{ participant.calculate_estimated_wait_time }} min</td>
+                                </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
