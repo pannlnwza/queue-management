@@ -57,7 +57,6 @@ class Queue(models.Model):
         """Detect if the queue is closed based on the `is_closed` flag or current time."""
         if self.is_closed:
             return True
-
         current_time = localtime().time()
         if self.open_time and self.close_time:
             if not (self.open_time <= current_time <= self.close_time):

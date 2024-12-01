@@ -1,6 +1,7 @@
 from django.db import models
 from participant.models import Participant
 
+
 class HospitalParticipant(Participant):
     """Represents a participant in a hospital queue."""
     MEDICAL_FIELD_CHOICES = [

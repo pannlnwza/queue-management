@@ -253,7 +253,8 @@ def edit_queue(request, queue_id):
         queue.description = description
         queue.latitude = latitude
         queue.longitude = longitude
-        queue.is_closed = False if status == 'on' else True
+        queue.is_closed = status == 'on'
+
         queue.tts_notifications_enabled = True if tts_enabled == 'on' else False
 
         try:
@@ -267,7 +268,6 @@ def edit_queue(request, queue_id):
             logger.error(f"Error parsing time: {e}")
             messages.error(request, 'Invalid time format. Please use HH:MM.')
             return redirect('manager:queue_settings', queue_id=queue_id)
-        queue.is_closed = False if status == 'on' else True
         queue.save()
         messages.success(request, 'Queue settings updated successfully.')
         return redirect('manager:queue_settings', queue_id=queue_id)
