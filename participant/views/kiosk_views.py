@@ -12,6 +12,7 @@ from django.shortcuts import render
 from django.core.mail import EmailMessage
 from django.template.loader import render_to_string
 from django.conf import settings
+from django.contrib import messages
 
 
 class KioskView(generic.FormView):
@@ -34,15 +35,26 @@ class KioskView(generic.FormView):
         return context
 
     def form_valid(self, form):
-        form_data = form.cleaned_data.copy()
-        form_data['queue'] = self.queue
-        participant = self.handler.create_participant(
-            form_data,
-        )
-        participant.created_by = 'guest'
-        participant.save()
-        return redirect('participant:qrcode',
-                        participant_code=participant.code)
+        try:
+            # Check if the queue is closed
+            if self.queue.is_queue_closed():
+                # Add a message to inform the user
+                messages.error(self.request, "This queue is currently closed. Please try again later.")
+                return redirect('participant:home')  # Redirect to the home page or another page
+
+            # Process the form and create the participant
+            form_data = form.cleaned_data.copy()
+            form_data['queue'] = self.queue
+            participant = self.handler.create_participant(
+                form_data,
+            )
+            participant.created_by = 'guest'
+            participant.save()
+            return redirect('participant:qrcode',
+                            participant_code=participant.code)
+        except Exception as e:
+            messages.error(self.request, f"An error occurred: {str(e)}")
+            return redirect('participant:welcome', queue_code=self.queue.code)
 
     def form_invalid(self, form):
         print(form.errors)
