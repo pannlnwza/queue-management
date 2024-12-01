@@ -2,18 +2,63 @@
 
 {% block content %}
 <div class="flex justify-center mt-20">
-  <div class="card transform transition-all bg-base-100 rounded-xl overflow-hidden border-2">
-    <div class="card-body">
-      <h2 class="card-title text-2xl">{{ queue.name }}</h2>
-      <!-- Updated image with styling for size -->
-      <img src="{{ queue.get_logo_url }}" alt="{{ queue.name }} logo" class="w-32 h-32 mx-auto">
-       <p class="text-neutral text-sm">{{ queue.description }}</p>
-      <p class="text-neutral text-xl">There are currently {{ queue.get_number_waiting_now }} participant(s) in the queue.</p>
-      <div class="card-actions justify-end">
-        <a href="{% url "participant:kiosk" queue.code %}">
-          <button class="btn btn-primary">Join the queue.</button>
-        </a>
-      </div>
+  <div class="card transform transition-all bg-base-100 rounded-xl overflow-hidden border-2 shadow-lg max-w-md">
+    <!-- Header with queue status -->
+    <div class="card-header bg-gradient-to-r
+                {% if queue.is_queue_closed %}from-red-500 to-red-600{% elif not queue.is_there_enough_time.0%}from-yellow-500 to-yellow-600{% else %}from-green-500 to-green-600{% endif %}
+                text-white text-center py-3">
+      <h2 class="card-title text-3xl font-bold justify-center">
+        {{ queue.name }}
+      </h2>
+      <p class="text-sm mt-1">
+        {% if queue.is_queue_closed %}
+          <span class="badge badge-error">Closed</span>
+        {% elif not queue.is_there_enough_time.0 %}
+          <span class="badge badge-warning">Limited Time</span>
+        {% else %}
+          <span class="badge badge-success">Open</span>
+        {% endif %}
+      </p>
+    </div>
+
+    <!-- Body with queue details -->
+    <div class="card-body px-6 py-4 text-center">
+      <!-- Queue Logo -->
+      <img src="{{ queue.get_logo_url }}" alt="{{ queue.name }} logo" class="w-32 h-32 mx-auto rounded-full object-cover border-2 border-gray-300 shadow-sm">
+
+      <!-- Queue Description -->
+      <p class="text-neutral text-sm my-4">{{ queue.description }}</p>
+
+      <!-- Time Left Warning -->
+      {% if not queue.is_queue_closed and not queue.is_there_enough_time.0 %}
+        <p class="text-warning font-semibold">
+          Time is limited! Estimated waiting time may exceed the time left until the queue closes.
+        </p>
+      {% endif %}
+
+      <!-- Number of Participants -->
+      <p class="text-neutral text-lg font-medium">
+        Currently <span class="font-bold text-primary">{{ queue.get_number_waiting_now }}</span> participant(s) in the queue.
+      </p>
+
+      <!-- Call to Action -->
+      <div class="card-actions justify-center mt-6">
+        {% if queue.is_queue_closed %}
+            <button class="btn btn-disabled bg-gray-400 text-gray-800">Queue is Closed</button>
+        {% elif queue.is_there_enough_time.0 == False and queue.is_there_enough_time.1 < 10 %}
+            <button class="btn btn-disabled bg-gray-400 text-gray-800">Insufficient Time Remaining</button>
+        {% elif queue.is_there_enough_time.0 == False %}
+            <a href="{% url "participant:kiosk" queue.code %}"
+            onclick="return confirm('The estimated waiting time exceeds the remaining time until the queue closes. ' +
+             'You may not be serviced in time. Do you still want to join?')">
+                <button class="btn btn-warning bg-yellow-500 text-white">Proceed with Limited Time</button>
+            </a>
+        {% else %}
+            <a href="{% url "participant:kiosk" queue.code %}">
+                <button class="btn btn-primary">Join Queue</button>
+            </a>
+        {% endif %}
+    </div>
     </div>
   </div>
 </div>

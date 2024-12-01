@@ -73,16 +73,18 @@ class Queue(models.Model):
         the average waiting time and the time left until the queue closes.
         """
         if self.is_closed:
-            return False
+            return False, 0
 
         current_datetime = localtime()
         if not self.close_time:
-            return True
+            return True, float('inf')  # If no close time is defined, assume infinite time left
+
         close_datetime_naive = datetime.combine(current_datetime.date(), self.close_time)
         close_datetime = timezone.make_aware(close_datetime_naive, current_datetime.tzinfo)
-        time_left = (close_datetime - current_datetime).total_seconds() / 60
+        time_left = (close_datetime - current_datetime).total_seconds() / 60  # Time left in minutes
         average_wait_time = self.estimated_wait_time_per_turn * (self.get_number_waiting_now() + 1)
-        return [time_left >= average_wait_time]
+
+        return time_left >= average_wait_time, time_left
 
     @staticmethod
     def get_top_featured_queues():
