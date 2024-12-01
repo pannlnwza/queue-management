@@ -1,6 +1,8 @@
 from abc import ABC, abstractmethod
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
+
+from manager.models import Table
 from manager.utils.helpers import extract_data_variables
 from django.apps import apps
 
@@ -187,7 +189,7 @@ class RestaurantQueueHandler(CategoryHandler):
         RestaurantParticipant = apps.get_model('participant', 'RestaurantParticipant')  # Lazy load
         participant_info = extract_data_variables(data)
         queue_length = participant_info['queue'].participant_set.filter(state='waiting').count()
-        return RestaurantParticipant.objects.create(
+        participant = RestaurantParticipant.objects.create(
             name=participant_info['name'],
             email=participant_info['email'],
             phone=participant_info['phone'],
@@ -198,6 +200,8 @@ class RestaurantQueueHandler(CategoryHandler):
             position=queue_length + 1,
             created_by='staff'
         )
+        if participant_info['resource']:
+            self.assign_to_resource(participant, participant_info['resource'])
 
     def assign_to_resource(self, participant, resource_id=None):
         Table = apps.get_model('manager', 'Table')  # Lazy load
@@ -270,10 +274,13 @@ class RestaurantQueueHandler(CategoryHandler):
             self.complete_service(participant)
         else:
             table_id = data.get('resource')
+            print(table_id)
             if table_id:
                 table = get_object_or_404(Table, id=table_id)
+                print(table)
                 table.assign_to_participant(participant=participant)
                 participant.resource = table
+                print(participant.resource)
                 participant.service_started_at = timezone.localtime()
                 participant.save()
 
@@ -369,7 +376,7 @@ class HospitalQueueHandler(CategoryHandler):
         HospitalParticipant = apps.get_model('participant', 'HospitalParticipant')  # Lazy load
         participant_info = extract_data_variables(data)
         queue_length = participant_info['queue'].participant_set.filter(state='waiting').count()
-        return HospitalParticipant.objects.create(
+        participant = HospitalParticipant.objects.create(
             name=participant_info['name'],
             email=participant_info['email'],
             phone=participant_info['phone'],
@@ -377,9 +384,12 @@ class HospitalQueueHandler(CategoryHandler):
             queue=participant_info['queue'],
             medical_field=participant_info['special_1'],
             priority=participant_info['special_2'],
+            resource=participant_info['resource'],
             position=queue_length + 1,
             created_by='staff'
         )
+        if participant_info['resource']:
+            self.assign_to_resource(participant, participant_info['resource'])
 
     def get_participant_set(self, queue_id):
         """
@@ -579,7 +589,7 @@ class BankQueueHandler(CategoryHandler):
         BankParticipant = apps.get_model('participant', 'BankParticipant')  # Lazy load
         participant_info = extract_data_variables(data)
         queue_length = participant_info['queue'].participant_set.count()
-        return BankParticipant.objects.create(
+        participant = BankParticipant.objects.create(
             name=participant_info['name'],
             email=participant_info['email'],
             phone=participant_info['phone'],
@@ -587,9 +597,12 @@ class BankQueueHandler(CategoryHandler):
             queue=participant_info['queue'],
             participant_category=participant_info['special_1'],
             service_type=participant_info['special_2'],
+            resource=participant_info['resource'],
             position=queue_length + 1,
             created_by='staff'
         )
+        if participant_info['resource']:
+            self.assign_to_resource(participant, participant_info['resource'])
 
     def get_participant_set(self, queue_id):
         BankParticipant = apps.get_model('participant', 'BankParticipant')
