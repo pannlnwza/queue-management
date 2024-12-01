@@ -289,6 +289,7 @@ def serve_participant(request, participant_id):
         participant.queue.update_estimated_wait_time_per_turn(
             participant.get_wait_time())
         participant.start_service()
+        participant.queue.update_participants_positions()
         participant.save()
         logger.info(
             f"Participant {participant_id} started service in queue {participant.queue.id}.")

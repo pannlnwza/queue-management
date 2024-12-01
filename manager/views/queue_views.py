@@ -254,7 +254,6 @@ def edit_queue(request, queue_id):
         queue.latitude = latitude
         queue.longitude = longitude
         queue.is_closed = status == 'on'
-
         queue.tts_notifications_enabled = True if tts_enabled == 'on' else False
 
         try:
