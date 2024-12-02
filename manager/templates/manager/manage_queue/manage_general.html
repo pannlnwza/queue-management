@@ -108,6 +108,9 @@
                                 Position
                             </th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Number
+                            </th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 Notes
                             </th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -137,6 +140,7 @@
                                     {% endif %}
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">{{ participant.position }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap">{{ participant.number }}</td>
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     {% if participant.note %}
                                         <button class="btn btn-sm no-animation"
@@ -583,6 +587,7 @@
                 ${notifiedBadge}
             </td>
             <td class="px-6 py-4 whitespace-nowrap">${participant.position || '-'}</td>
+            <td class="px-6 py-4 whitespace-nowrap">${participant.number || '-'}</td>
             <td class="px-6 py-4 whitespace-nowrap">${createNotesModal(participant)}</td>
             <td class="px-6 py-4 whitespace-nowrap">${participant.waited || '0'} min</td>
             <td class="px-6 py-4 whitespace-nowrap">

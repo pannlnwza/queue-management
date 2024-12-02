@@ -10,113 +10,82 @@
     {% block title %}<title>Queue Management</title>{% endblock %}
 </head>
 {% block content %}
-    <div class="flex justify-center mt-20">
-      <div class="card transform transition-all rounded-xl overflow-hidden shadow-lg w-[1000px] bg-base-100 border-2 border-base-300">
-        <!-- Header with queue status -->
-        <div class="card-header bg-gradient-to-r
+    <div class="min-h-screen bg-base-100 flex items-center justify-center p-8">
+        <div class="card transform transition-all rounded-xl overflow-hidden w-[1000px] bg-base-100 border-2 border-base-300">
+            <!-- Header with queue status -->
+            <div class="card-header bg-gradient-to-r
                     {% if queue.is_queue_closed %}from-red-600 to-red-700{% elif not queue.is_there_enough_time.0 %}from-yellow-600 to-yellow-700{% else %}from-green-600 to-green-700{% endif %}
                     text-white text-center py-3">
-          <h2 class="card-title text-4xl font-bold justify-center">
-            {{ queue.name }}
-          </h2>
-          <p class="text-2xl mt-1">
-            {% if queue.is_queue_closed %}
-              <span class="badge badge-error">Closed</span>
-            {% elif not queue.is_there_enough_time.0 %}
-              <span class="badge badge-warning">Limited Time</span>
-            {% else %}
-              <span class="badge badge-success">Open</span>
-            {% endif %}
-          </p>
-        </div>
-
-        <!-- Body with queue details -->
-        <div class="card-body px-6 py-4 text-center">
-          <!-- Queue Logo -->
-          <img src="{{ queue.get_logo_url }}" alt="{{ queue.name }} logo" class="w-32 h-32 mx-auto rounded-full object-cover border-2 border-gray-300 shadow-sm">
-
-          <!-- Queue Description -->
-          <div><h6 class="text-2xl mb-8">{{ queue.description }}</h6></div>
-
-            <div class="justify-center">
-                <div class="stats shadow mb-8">
-                    <div class="stat">
-                      <div class="stat-title">Open Hours</div>
-                      <div class="stat-value"><span class="font-bold text-primary">
-                        {{ queue.open_time|time:"H:i" }} - {{ queue.close_time|time:"H:i" }}
-                      </span></div>
-                    </div>
-                    <div class="stat">
-                      <div class="stat-title">Currently Waiting</div>
-                      <div class="stat-value"><span class="font-bold text-primary">
-                          {{ queue.get_number_waiting_now }}
-                      </span></div>
-                      <div class="stat-desc">People in Queue</div>
-                    </div>
-                  </div>
+                <h2 class="card-title text-7xl font-bold justify-center">
+                    {{ queue.name }}
+                </h2>
+                <p class="text-2xl mt-1">
+                    {% if queue.is_queue_closed %}
+                        <span class="badge badge-error">Closed</span>
+                    {% elif not queue.is_there_enough_time.0 %}
+                        <span class="badge badge-warning">Limited Time</span>
+                    {% else %}
+                        <span class="badge badge-success">Open</span>
+                    {% endif %}
+                </p>
             </div>
 
-          <!-- Time Left Warning -->
-          {% if not queue.is_queue_closed and not queue.is_there_enough_time.0 %}
-            <p class="text-warning font-semibold">
-              Time is limited! Estimated waiting time may exceed the time left until the queue closes.
-            </p>
-          {% endif %}
+            <!-- Body with queue details -->
+            <div class="card-body px-6 py-4 text-center">
+                <!-- Queue Logo -->
+                <img src="{{ queue.get_logo_url }}" alt="{{ queue.name }} logo" class="w-64 h-64 object-contain mb-8 self-center mt-3">
 
-          <!-- Call to Action -->
-          <div class="card-actions justify-center mt-6">
-            {% if queue.is_queue_closed %}
-                <button class="btn bg-gray-400 disabled:text-red-600 text-xl w-2/3 border-error" disabled>Queue is Closed</button>
-            {% elif queue.is_there_enough_time.0 == False %}
-                <a href="{% url "participant:kiosk" queue.code %}"
-                onclick="return confirm('The estimated waiting time exceeds the remaining time until the queue closes. ' +
+                <!-- Queue Description -->
+                <p class="text-2xl mb-8">{{ queue.description }}</p>
+
+                <div class="justify-center">
+                    <div class="stats shadow mb-8">
+                        <div class="stat">
+                            <div class="stat-title">Open Hours</div>
+                            <div class="stat-value"><span class="font-bold">
+                        {{ queue.open_time|time:"H:i" }} - {{ queue.close_time|time:"H:i" }}
+                      </span></div>
+                        </div>
+                        <div class="stat">
+                            <div class="stat-title">Currently Waiting</div>
+                            <div class="stat-value"><span class="font-bold">
+                          {{ queue.get_number_waiting_now }}
+                      </span></div>
+                            <div class="stat-desc">People in Queue</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Time Left Warning -->
+                {% if not queue.is_queue_closed and not queue.is_there_enough_time.0 %}
+                    <p class="text-warning font-semibold">
+                        Time is limited! Estimated waiting time may exceed the time left until the queue closes.
+                    </p>
+                {% endif %}
+
+                <!-- Call to Action -->
+                <div class="card-actions justify-center mt-6">
+                    {% if queue.is_queue_closed %}
+                        <button class="btn bg-gray-400 disabled:text-red-600 text-xl w-2/3 border-error btn-lg" disabled>Queue
+                            is Closed
+                        </button>
+                    {% elif queue.is_there_enough_time.0 == False %}
+                        <a href="{% url "participant:kiosk" queue.code %}"
+                           onclick="return confirm('The estimated waiting time exceeds the remaining time until the queue closes. ' +
                  'You may not be serviced in time. Do you still want to join?')" class="w-full max-w-md">
-                    <button class="btn btn-warning bg-yellow-500 text-xl w-2/3">Proceed with Limited Time</button>
-                </a>
-            {% elif queue.is_there_enough_time.0 == False and queue.is_there_enough_time.1 < 10 %}
-                <button class="btn btn-disabled bg-gray-400 text-xl w-full">Insufficient Time Remaining</button>
+                            <button class="btn btn-warning bg-yellow-500 text-xl w-2/3">Proceed with Limited Time
+                            </button>
+                        </a>
+                    {% elif queue.is_there_enough_time.0 == False and queue.is_there_enough_time.1 < 10 %}
+                        <button class="btn btn-disabled bg-gray-400 text-xl w-full btn-lg">Insufficient Time Remaining</button>
 
-            {% else %}
-                <a href="{% url "participant:kiosk" queue.code %}" class="w-2/3">
-                    <button class="btn btn-primary text-xl w-2/3">Join Queue</button>
-                </a>
-            {% endif %}
+                    {% else %}
+                        <a href="{% url "participant:kiosk" queue.code %}" class="w-2/3">
+                            <button class="btn btn-primary text-xl w-2/3 mb-5 btn-lg">Join the Queue</button>
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
         </div>
-      </div>
     </div>
-    </div>
-
-
-{#<div class="min-h-screen bg-base-100 flex items-center justify-center p-8">#}
-{#  <div class="card w-[800px] bg-base-100 border-2 border-base-200">#}
-{#    <div class="card-body flex flex-col items-center text-center">#}
-{#      <h2 class="text-4xl font-light mb-1">Welcome to</h2>#}
-{#      <h1 class="text-7xl font-bold mb-8">{{ queue.name }}</h1>#}
-{##}
-{#      <img src="{{ queue.get_logo_url }}" alt="{{ queue.name }} logo" class="w-64 h-64 object-contain mb-8">#}
-{##}
-{#      <p class="text-2xl mb-8">{{ queue.description }}</p>#}
-{##}
-{#      <div class="stats shadow mb-8">#}
-{#        <div class="stat">#}
-{#          <div class="stat-title">Open Hours</div>#}
-{#          <div class="stat-value">#}
-{#            {{ queue.open_time|time:"H:i" }} - {{ queue.close_time|time:"H:i" }}#}
-{#          </div>#}
-{#        </div>#}
-{#        <div class="stat">#}
-{#          <div class="stat-title">Currently Waiting</div>#}
-{#          <div class="stat-value">{{ queue.get_number_waiting_now }}</div>#}
-{#          <div class="stat-desc">People in Queue</div>#}
-{#        </div>#}
-{#      </div>#}
-{##}
-{#      <a href="{% url 'participant:kiosk' queue.code %}" class="w-full max-w-md">#}
-{#        <button class="btn btn-primary btn-lg w-full text-2xl">#}
-{#          Join the Queue#}
-{#        </button>#}
-{#      </a>#}
-{#    </div>#}
-{#  </div>#}
-{#</div>#}
 {% endblock %}

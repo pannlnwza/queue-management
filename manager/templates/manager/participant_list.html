@@ -180,15 +180,23 @@
                                         </a>
                                     </li>
                                     <li>
-                                        <a id="participantDetail" href="{% url 'participant:qrcode' participant.code %}">
-                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="size-4">
-                                              <path d="M4.75 4.25a.5.5 0 1 0 0 1 .5.5 0 0 0 0-1Z" />
-                                              <path fill-rule="evenodd" d="M2 3.5A1.5 1.5 0 0 1 3.5 2H6a1.5 1.5 0 0 1 1.5 1.5V6A1.5 1.5 0 0 1 6 7.5H3.5A1.5 1.5 0 0 1 2 6V3.5Zm1.5 0H6V6H3.5V3.5Z" clip-rule="evenodd" />
-                                              <path d="M4.25 11.25a.5.5 0 1 1 1 0 .5.5 0 0 1-1 0Z" />
-                                              <path fill-rule="evenodd" d="M2 10a1.5 1.5 0 0 1 1.5-1.5H6A1.5 1.5 0 0 1 7.5 10v2.5A1.5 1.5 0 0 1 6 14H3.5A1.5 1.5 0 0 1 2 12.5V10Zm1.5 2.5V10H6v2.5H3.5Z" clip-rule="evenodd" />
-                                              <path d="M11.25 4.25a.5.5 0 1 0 0 1 .5.5 0 0 0 0-1Z" />
-                                              <path fill-rule="evenodd" d="M10 2a1.5 1.5 0 0 0-1.5 1.5V6A1.5 1.5 0 0 0 10 7.5h2.5A1.5 1.5 0 0 0 14 6V3.5A1.5 1.5 0 0 0 12.5 2H10Zm2.5 1.5H10V6h2.5V3.5Z" clip-rule="evenodd" />
-                                              <path d="M8.5 9.417a.917.917 0 1 1 1.833 0 .917.917 0 0 1-1.833 0ZM8.5 13.083a.917.917 0 1 1 1.833 0 .917.917 0 0 1-1.833 0ZM13.083 8.5a.917.917 0 1 0 0 1.833.917.917 0 0 0 0-1.833ZM12.166 13.084a.917.917 0 1 1 1.833 0 .917.917 0 0 1-1.833 0ZM11.25 10.333a.917.917 0 1 0 0 1.833.917.917 0 0 0 0-1.833Z" />
+                                        <a id="participantDetail"
+                                           href="{% url 'participant:qrcode' participant.code %}">
+                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"
+                                                 fill="currentColor" class="size-4">
+                                                <path d="M4.75 4.25a.5.5 0 1 0 0 1 .5.5 0 0 0 0-1Z"/>
+                                                <path fill-rule="evenodd"
+                                                      d="M2 3.5A1.5 1.5 0 0 1 3.5 2H6a1.5 1.5 0 0 1 1.5 1.5V6A1.5 1.5 0 0 1 6 7.5H3.5A1.5 1.5 0 0 1 2 6V3.5Zm1.5 0H6V6H3.5V3.5Z"
+                                                      clip-rule="evenodd"/>
+                                                <path d="M4.25 11.25a.5.5 0 1 1 1 0 .5.5 0 0 1-1 0Z"/>
+                                                <path fill-rule="evenodd"
+                                                      d="M2 10a1.5 1.5 0 0 1 1.5-1.5H6A1.5 1.5 0 0 1 7.5 10v2.5A1.5 1.5 0 0 1 6 14H3.5A1.5 1.5 0 0 1 2 12.5V10Zm1.5 2.5V10H6v2.5H3.5Z"
+                                                      clip-rule="evenodd"/>
+                                                <path d="M11.25 4.25a.5.5 0 1 0 0 1 .5.5 0 0 0 0-1Z"/>
+                                                <path fill-rule="evenodd"
+                                                      d="M10 2a1.5 1.5 0 0 0-1.5 1.5V6A1.5 1.5 0 0 0 10 7.5h2.5A1.5 1.5 0 0 0 14 6V3.5A1.5 1.5 0 0 0 12.5 2H10Zm2.5 1.5H10V6h2.5V3.5Z"
+                                                      clip-rule="evenodd"/>
+                                                <path d="M8.5 9.417a.917.917 0 1 1 1.833 0 .917.917 0 0 1-1.833 0ZM8.5 13.083a.917.917 0 1 1 1.833 0 .917.917 0 0 1-1.833 0ZM13.083 8.5a.917.917 0 1 0 0 1.833.917.917 0 0 0 0-1.833ZM12.166 13.084a.917.917 0 1 1 1.833 0 .917.917 0 0 1-1.833 0ZM11.25 10.333a.917.917 0 1 0 0 1.833.917.917 0 0 0 0-1.833Z"/>
                                             </svg>
                                             QRCode
                                         </a>
@@ -273,121 +281,130 @@
         <input id="editDrawer" type="checkbox" class="drawer-toggle"/>
         <div class="drawer-side w-full w-100">
             <label for="editDrawer" class="drawer-overlay"></label>
-            <div class="bg-base-100 min-h-full w-80">
-                <div class="p-4 space-y-4">
-                    <div class="drawer-header flex justify-between items-center">
-                        <h2 class="text-lg font-bold">Edit Participant</h2>
-                        <label for="editDrawer" class="btn btn-sm btn-circle">✕</label>
+            {% if queue.category == 'restaurant' %}
+                <div class="bg-base-100 min-h-full w-100">
+            {% else %}
+                <div class="bg-base-100 min-h-full w-80">
+            {% endif %}
+            <div class="p-4 space-y-4">
+                <div class="drawer-header flex justify-between items-center">
+                    <h2 class="text-lg font-bold">Edit Participant</h2>
+                    <label for="editDrawer" class="btn btn-sm btn-circle">✕</label>
+                </div>
+                <hr class="border-base-300"/>
+
+                <form id="editForm" method="POST">
+                    {% csrf_token %}
+                    <input type="hidden" id="participant_id" name="participant_id">
+
+                    <div class="form-control w-full">
+                        <label class="label"><span class="label-text">Name*</span></label>
+                        <input type="text" id="edit_name" name="name" class="input input-bordered w-full" required/>
                     </div>
-                    <hr class="border-base-300"/>
 
-                    <form id="editForm" method="POST">
-                        {% csrf_token %}
-                        <input type="hidden" id="participant_id" name="participant_id">
+                    <div class="form-control w-full">
+                        <label class="label"><span class="label-text">Phone</span></label>
+                        <input type="tel" id="edit_phone" name="phone" pattern="^\+?\d{9,10}$"
+                               placeholder="Ex. 081 234 5678"
+                               class="input input-bordered w-full"/>
+                    </div>
 
-                        <div class="form-control w-full">
-                            <label class="label"><span class="label-text">Name*</span></label>
-                            <input type="text" id="edit_name" name="name" class="input input-bordered w-full" required/>
-                        </div>
+                    <div class="form-control w-full">
+                        <label class="label"><span class="label-text">Email</span></label>
+                        <input type="email" id="edit_email" name="email" class="input input-bordered w-full"/>
+                    </div>
 
-                        <div class="form-control w-full">
-                            <label class="label"><span class="label-text">Phone</span></label>
-                            <input type="tel" id="edit_phone" name="phone" pattern="^\+?\d{9,10}$" placeholder="Ex. 081 234 5678"
-                                   class="input input-bordered w-full"/>
-                        </div>
+                    <div class="form-control w-full">
+                        <label class="label"><span class="label-text">Note</span></label>
+                        <textarea id="edit_notes" name="notes" class="textarea textarea-bordered w-full"></textarea>
+                    </div>
 
-                        <div class="form-control w-full">
-                            <label class="label"><span class="label-text">Email</span></label>
-                            <input type="email" id="edit_email" name="email" class="input input-bordered w-full"/>
-                        </div>
+                    <div class="form-control w-full">
+                        <label class="label">
+                            <span class="label-text">State</span>
+                        </label>
+                        <select id="edit_state" name="state" class="select select-bordered w-full">
+                            {% for value, label in participant_state %}
+                                <option value="{{ value }}">{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
 
-                        <div class="form-control w-full">
-                            <label class="label"><span class="label-text">Note</span></label>
-                            <textarea id="edit_notes" name="notes" class="textarea textarea-bordered w-full"></textarea>
-                        </div>
+                    <div id="conditionalFields">
+                        {% if resources %}
+                            <div class="form-control w-full">
+                                <label class="label">
+                                    <span class="label-text">{{ resource_name }}</span>
+                                </label>
+                                <select id="edit_resource" name="resource" class="select select-bordered w-full">
+                                    <option></option>
+                                    {% for value in resources %}
+                                        <option value="{{ value.id }}">{{ value.name }}
+                                            ({{ value.get_status_display }})
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        {% endif %}
 
-                        <div class="form-control w-full">
-                            <label class="label">
-                                <span class="label-text">State</span>
-                            </label>
-                            <select id="edit_state" name="state" class="select select-bordered w-full">
-                                {% for value, label in participant_state %}
-                                    <option value="{{ value }}">{{ label }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-
-                        <div id="conditionalFields">
-                            {% if resources %}
-                                <div class="form-control w-full">
-                                    <label class="label">
-                                        <span class="label-text">{{ resource_name }}</span>
-                                    </label>
-                                    <select id="edit_resource" name="resource" class="select select-bordered w-full">
-                                        <option></option>
-                                        {% for value in resources %}
-                                            <option value="{{ value.id }}">{{ value.name }}
-                                                ({{ value.get_status_display }})
-                                            </option>
+                        {% if special_1 %}
+                            {% if queue.category == 'restaurant' %}
+                                <div class="form-control">
+                                    <label class="label"><span class="label-text">{{ special_1 }}</span></label>
+                                    <div class="space-x-2">
+                                        {% for size in '1234567'|make_list %}
+                                            <label class="radio join-item">
+                                                <input id="edit_special_1" type="radio" name="special_1"
+                                                       value="{{ size }}" class="radio"/>
+                                                <span>{{ size }}</span>
+                                            </label>
                                         {% endfor %}
-                                    </select>
+                                    </div>
                                 </div>
-                            {% endif %}
+                            {% else %}
 
-                            {% if special_1 %}
-                                {% if queue.category == 'restaurant' %}
-                                    <div class="form-control">
-                                        <label class="label"><span class="label-text">{{ special_1 }}</span></label>
-                                        <div class="space-x-2">
-                                            {% for size in '1234567'|make_list %}
-                                                <label class="radio join-item">
-                                                    <input id="edit_special_1" type="radio" name="special_1"
-                                                           value="{{ size }}" class="radio"/>
-                                                    <span>{{ size }}</span>
-                                                </label>
-                                            {% endfor %}
-                                        </div>
-                                    </div>
-                                {% else %}
-
-                                    <div class="form-control w-full">
-                                        <label class="label"><span class="label-text">{{ special_1 }}</span></label>
-                                        <select id="edit_special_1" name="special_1"
-                                                class="select select-bordered w-full">
-                                            {% for value, label in special_1_choices %}
-                                                <option value="{{ value }}">{{ label }}</option>
-                                            {% endfor %}
-                                        </select>
-                                    </div>
-                                {% endif %}
-                            {% endif %}
-
-                            {% if special_2 %}
                                 <div class="form-control w-full">
-                                    <label class="label">
-                                        <span class="label-text">{{ special_2 }}</span>
-                                    </label>
-                                    <select id="edit_special_2" name="special_2" class="select select-bordered w-full">
-                                        {% for value, label in special_2_choices %}
+                                    <label class="label"><span class="label-text">{{ special_1 }}</span></label>
+                                    <select id="edit_special_1" name="special_1"
+                                            class="select select-bordered w-full">
+                                        {% for value, label in special_1_choices %}
                                             <option value="{{ value }}">{{ label }}</option>
                                         {% endfor %}
                                     </select>
                                 </div>
                             {% endif %}
-                        </div>
+                        {% endif %}
 
-                        <button type="submit" class="btn btn-primary mt-4">Save</button>
-                    </form>
-                </div>
+                        {% if special_2 %}
+                            <div class="form-control w-full">
+                                <label class="label">
+                                    <span class="label-text">{{ special_2 }}</span>
+                                </label>
+                                <select id="edit_special_2" name="special_2" class="select select-bordered w-full">
+                                    {% for value, label in special_2_choices %}
+                                        <option value="{{ value }}">{{ label }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <button type="submit" class="btn btn-primary mt-4">Save</button>
+                </form>
+            </div>
+            </div>
             </div>
         </div>
-    </div>
 
-    <div class="drawer drawer-end drawer-overlay z-100">
-        <input id="addDrawer" type="checkbox" class="drawer-toggle"/>
-        <div class="drawer-side w-full w-100">
-            <label for="addDrawer" class="drawer-overlay"></label>
-            <div class="bg-base-100 min-h-full w-80">
+        <div class="drawer drawer-end drawer-overlay z-100">
+            <input id="addDrawer" type="checkbox" class="drawer-toggle"/>
+            <div class="drawer-side w-full w-100">
+                <label for="addDrawer" class="drawer-overlay"></label>
+                {% if queue.category == 'restaurant' %}
+                    <div class="bg-base-100 min-h-full w-100">
+                {% else %}
+                    <div class="bg-base-100 min-h-full w-80">
+                {% endif %}
                 <div class="p-4 space-y-4">
                     <div class="drawer-header flex justify-between items-center">
                         <h2 class="text-lg font-bold">Add Participant</h2>
@@ -432,8 +449,8 @@
 
                             {% if special_1 %}
                                 {% if queue.category == 'restaurant' %}
-                                    <div class="form-control">
-                                        <label class="label"><span class="label-text">{{ special_1 }}</span></label>
+                                    <div class="form-control border-1">
+                                        <label class="label"><span class="label-text border-1">{{ special_1 }}</span></label>
                                         <div class="space-x-2">
                                             {% for size in '1234567'|make_list %}
                                                 <label class="radio join-item">
@@ -475,124 +492,124 @@
                         <button type="submit" id="submit-add" class="btn btn-primary mt-4">Add</button>
                     </form>
                 </div>
-            </div>
-        </div>
+                </div>
+                </div>
 
 
-        <script>
-            let deleteParticipantId = null;
+                <script>
+                    let deleteParticipantId = null;
 
-            function deleteParticipant(id) {
-                fetch(`/manager/delete_participant/${id}/`, {
-                    method: 'DELETE',
-                    headers: {
-                        'X-CSRFToken': '{{ csrf_token }}'
+                    function deleteParticipant(id) {
+                        fetch(`/manager/delete_participant/${id}/`, {
+                            method: 'DELETE',
+                            headers: {
+                                'X-CSRFToken': '{{ csrf_token }}'
+                            }
+                        })
+                            .then(response => {
+                                if (response.ok) {
+                                    console.log("Participant deleted successfully!");
+                                    location.reload();
+                                } else {
+                                    console.error("Failed to delete participant.");
+                                }
+                            })
+                            .catch(error => {
+                                console.error("Error:", error);
+                            });
                     }
-                })
-                    .then(response => {
-                        if (response.ok) {
-                            console.log("Participant deleted successfully!");
-                            location.reload();
-                        } else {
-                            console.error("Failed to delete participant.");
+
+                    function openDeleteModal(participantId) {
+                        deleteParticipantId = participantId;
+                        document.getElementById('deleteModal').checked = true;
+                    }
+
+                    document.getElementById('confirmDeleteButton').addEventListener('click', () => {
+                        if (deleteParticipantId) {
+                            deleteParticipant(deleteParticipantId);
+                            document.getElementById('deleteModal').checked = false;
                         }
-                    })
-                    .catch(error => {
-                        console.error("Error:", error);
                     });
-            }
 
-            function openDeleteModal(participantId) {
-                deleteParticipantId = participantId;
-                document.getElementById('deleteModal').checked = true;
-            }
+                    function openAddDrawer(queueId) {
+                        const form = document.getElementById('addForm');
+                        form.action = `/manager/add_participant/${queueId}/`;
 
-            document.getElementById('confirmDeleteButton').addEventListener('click', () => {
-                if (deleteParticipantId) {
-                    deleteParticipant(deleteParticipantId);
-                    document.getElementById('deleteModal').checked = false;
-                }
-            });
-
-            function openAddDrawer(queueId) {
-                const form = document.getElementById('addForm');
-                form.action = `/manager/add_participant/${queueId}/`;
-
-                document.getElementById('addDrawer').checked = true;
-            }
-
-            function openEditDrawer(participant, category) {
-                document.getElementById('participant_id').value = participant.id;
-                document.getElementById('edit_name').value = participant.name || '';
-                document.getElementById('edit_phone').value = participant.phone || '';
-                document.getElementById('edit_email').value = participant.email || '';
-                document.getElementById('edit_notes').value = participant.notes || '';
-                const stateElement = document.getElementById('edit_state');
-                if (stateElement) stateElement.value = participant.state || '';
-
-                const conditionalFields = document.getElementById('conditionalFields');
-                if (participant.state === 'completed') {
-                    conditionalFields.classList.add('hidden');
-                } else {
-                    conditionalFields.classList.remove('hidden');
-                }
-
-                if (category !== 'general') {
-                    const resourceElement = document.getElementById('edit_resource');
-                    if (resourceElement) {
-                        resourceElement.value = participant.resource || '';
+                        document.getElementById('addDrawer').checked = true;
                     }
-                }
 
-                if (category === 'restaurant') {
-                    const partySizeRadios = document.getElementsByName('special_1');
-                    partySizeRadios.forEach(radio => {
-                        radio.checked = (radio.value === (participant.party_size || '').toString());
-                    });
-                    const special2Element = document.getElementById('edit_special_2');
-                    if (special2Element) special2Element.value = participant.service_type || '';
-                } else if (category === 'hospital') {
-                    const special1Element = document.getElementById('edit_special_1');
-                    if (special1Element) {
-                        special1Element.value = participant.medical_field || '';
+                    function openEditDrawer(participant, category) {
+                        document.getElementById('participant_id').value = participant.id;
+                        document.getElementById('edit_name').value = participant.name || '';
+                        document.getElementById('edit_phone').value = participant.phone || '';
+                        document.getElementById('edit_email').value = participant.email || '';
+                        document.getElementById('edit_notes').value = participant.notes || '';
+                        const stateElement = document.getElementById('edit_state');
+                        if (stateElement) stateElement.value = participant.state || '';
+
+                        const conditionalFields = document.getElementById('conditionalFields');
+                        if (participant.state === 'completed') {
+                            conditionalFields.classList.add('hidden');
+                        } else {
+                            conditionalFields.classList.remove('hidden');
+                        }
+
+                        if (category !== 'general') {
+                            const resourceElement = document.getElementById('edit_resource');
+                            if (resourceElement) {
+                                resourceElement.value = participant.resource || '';
+                            }
+                        }
+
+                        if (category === 'restaurant') {
+                            const partySizeRadios = document.getElementsByName('special_1');
+                            partySizeRadios.forEach(radio => {
+                                radio.checked = (radio.value === (participant.party_size || '').toString());
+                            });
+                            const special2Element = document.getElementById('edit_special_2');
+                            if (special2Element) special2Element.value = participant.service_type || '';
+                        } else if (category === 'hospital') {
+                            const special1Element = document.getElementById('edit_special_1');
+                            if (special1Element) {
+                                special1Element.value = participant.medical_field || '';
+                            }
+                            const special2Element = document.getElementById('edit_special_2');
+                            if (special2Element) {
+                                special2Element.value = participant.priority || '';
+                            }
+                        } else if (category === 'bank') {
+                            const special1Element = document.getElementById('edit_special_1');
+                            if (special1Element) {
+                                special1Element.value = participant.participant_category || '';
+                            }
+                            const special2Element = document.getElementById('edit_special_2');
+                            if (special2Element) {
+                                special2Element.value = participant.service_type || '';
+                            }
+                        }
+
+                        const form = document.getElementById('editForm');
+                        form.action = `/manager/edit_participant/${participant.id}/`;
+
+                        document.getElementById('editDrawer').checked = true;
                     }
-                    const special2Element = document.getElementById('edit_special_2');
-                    if (special2Element) {
-                        special2Element.value = participant.priority || '';
+
+                    function participantSearch() {
+                        const searchValue = document.getElementById('searchInput').value.toLowerCase();
+
+                        const rows = document.querySelectorAll('#participantTable tbody tr');
+
+                        rows.forEach(row => {
+                            const name = row.querySelector('td:nth-child(2)').textContent.toLowerCase();
+
+                            if (name.includes(searchValue)) {
+                                row.style.display = '';
+                            } else {
+                                row.style.display = 'none';
+                            }
+                        });
                     }
-                } else if (category === 'bank') {
-                    const special1Element = document.getElementById('edit_special_1');
-                    if (special1Element) {
-                        special1Element.value = participant.participant_category || '';
-                    }
-                    const special2Element = document.getElementById('edit_special_2');
-                    if (special2Element) {
-                        special2Element.value = participant.service_type || '';
-                    }
-                }
-
-                const form = document.getElementById('editForm');
-                form.action = `/manager/edit_participant/${participant.id}/`;
-
-                document.getElementById('editDrawer').checked = true;
-            }
-
-            function participantSearch() {
-                const searchValue = document.getElementById('searchInput').value.toLowerCase();
-
-                const rows = document.querySelectorAll('#participantTable tbody tr');
-
-                rows.forEach(row => {
-                    const name = row.querySelector('td:nth-child(2)').textContent.toLowerCase();
-
-                    if (name.includes(searchValue)) {
-                        row.style.display = '';
-                    } else {
-                        row.style.display = 'none';
-                    }
-                });
-            }
-        </script>
+                </script>
 
 
 {% endblock %}
