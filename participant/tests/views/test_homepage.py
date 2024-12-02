@@ -46,7 +46,7 @@ class TestHomePageView(TestCase):
 
         # Verify context
         self.assertIn('error', response.context_data)
-        self.assertEqual(response.context_data['error'], "Location not provided. Enable location services, and refresh the page 2 times to view nearby queues.")
+        self.assertEqual(response.context_data['error'], "Location not provided. Enable location services, and refresh the page to view nearby queues.")
 
     def test_get_context_data_invalid_location(self):
         # Create a request with invalid latitude/longitude
