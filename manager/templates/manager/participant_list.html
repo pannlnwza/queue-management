@@ -34,6 +34,7 @@
             <h1 class="text-2xl font-bold antialiased font-sans">Participants</h1>
             <div class="ml-auto">
                 <a class="btn btn-primary"
+                   id="add-participant"
                    onclick="openAddDrawer({{ queue.id }})">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="size-4">
                         <path d="M8.5 4.5a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0ZM10 13c.552 0 1.01-.452.9-.994a5.002 5.002 0 0 0-9.802 0c-.109.542.35.994.902.994h8ZM12.5 3.5a.75.75 0 0 1 .75.75v1h1a.75.75 0 0 1 0 1.5h-1v1a.75.75 0 0 1-1.5 0v-1h-1a.75.75 0 0 1 0-1.5h1v-1a.75.75 0 0 1 .75-.75Z"/>
@@ -398,18 +399,18 @@
                         {% csrf_token %}
                         <div class="form-control w-full">
                             <label class="label"><span class="label-text">Name*</span></label>
-                            <input type="text" id="edit_name" name="name" class="input input-bordered w-full" required/>
+                            <input type="text" id="add_name" name="name" class="input input-bordered w-full" required/>
                         </div>
 
                         <div class="form-control w-full">
                             <label class="label"><span class="label-text">Phone</span></label>
-                            <input type="tel" id="edit_phone" name="phone" placeholder="Ex. 081 234 5678"
+                            <input type="tel" id="add_phone" name="phone" placeholder="Ex. 081 234 5678"
                                    class="input input-bordered w-full"/>
                         </div>
 
                         <div class="form-control w-full">
                             <label class="label"><span class="label-text">Note</span></label>
-                            <textarea id="edit_notes" name="notes" class="textarea textarea-bordered w-full"></textarea>
+                            <textarea id="add_notes" name="notes" class="textarea textarea-bordered w-full"></textarea>
                         </div>
 
                         <div id="conditionalFields">
@@ -418,7 +419,7 @@
                                     <label class="label">
                                         <span class="label-text">{{ resource_name }}</span>
                                     </label>
-                                    <select id="edit_resource" name="resource" class="select select-bordered w-full">
+                                    <select id="add_resource" name="resource" class="select select-bordered w-full">
                                         <option></option>
                                         {% for value in resources %}
                                             <option value="{{ value.id }}">{{ value.name }}
@@ -436,7 +437,7 @@
                                         <div class="space-x-2">
                                             {% for size in '1234567'|make_list %}
                                                 <label class="radio join-item">
-                                                    <input id="edit_special_1" type="radio" name="special_1"
+                                                    <input id="add_special_1" type="radio" name="special_1"
                                                            value="{{ size }}" class="radio" required/>
                                                     <span>{{ size }}</span>
                                                 </label>
@@ -447,7 +448,7 @@
 
                                     <div class="form-control w-full">
                                         <label class="label"><span class="label-text">{{ special_1 }}</span></label>
-                                        <select id="edit_special_1" name="special_1"
+                                        <select id="add_special_1" name="special_1"
                                                 class="select select-bordered w-full">
                                             {% for value, label in special_1_choices %}
                                                 <option value="{{ value }}">{{ label }}</option>
@@ -462,7 +463,7 @@
                                     <label class="label">
                                         <span class="label-text">{{ special_2 }}</span>
                                     </label>
-                                    <select id="edit_special_2" name="special_2" class="select select-bordered w-full">
+                                    <select id="add_special_2" name="special_2" class="select select-bordered w-full">
                                         {% for value, label in special_2_choices %}
                                             <option value="{{ value }}">{{ label }}</option>
                                         {% endfor %}
@@ -471,7 +472,7 @@
                             {% endif %}
                         </div>
 
-                        <button type="submit" class="btn btn-primary mt-4">Add</button>
+                        <button type="submit" id="submit-add" class="btn btn-primary mt-4">Add</button>
                     </form>
                 </div>
             </div>

@@ -90,7 +90,7 @@
                                         <img src="{{ queue.get_logo_url }}" alt="{{ queue.name }} logo"/>
                                     </div>
                                 </div>
-                                <span class="font-semibold">{{ queue.name }}</span>
+                                <span id="{{ queue.name.lower }}" class="font-semibold">{{ queue.name }}</span>
                             </div>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap">{{ queue.get_category_display }}</td>
