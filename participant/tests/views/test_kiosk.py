@@ -1,8 +1,6 @@
 from django.test import TestCase, Client
 from django.urls import reverse
 from manager.models import Queue
-from participant.models import Participant
-from unittest.mock import patch
 from datetime import time
 from django.contrib.auth.models import User
 

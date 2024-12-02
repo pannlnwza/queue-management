@@ -1,5 +1,5 @@
 from django.test import TestCase
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 from manager.models import HospitalQueue, Doctor
 from manager.utils.category_handler import HospitalQueueHandler
 from participant.models import HospitalParticipant

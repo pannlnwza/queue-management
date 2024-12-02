@@ -2,7 +2,6 @@ from django.test import TestCase
 from manager.models import Resource, Queue
 from participant.models import Participant
 from django.utils.timezone import now
-from datetime import timedelta
 
 class ResourceModelTests(TestCase):
 

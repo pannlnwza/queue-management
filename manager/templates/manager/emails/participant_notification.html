@@ -35,6 +35,18 @@
             color: #0056b3;
             font-weight: bold;
         }
+        .qr-container {
+            text-align: center;
+            margin: 25px 0;
+            background-color: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+        }
+        .qr-container img {
+            max-width: 200px;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
     </style>
 </head>
 <body>
@@ -42,6 +54,12 @@
         <div class="header">
             <h1>Queue Notification</h1>
         </div>
+
+        <div class="qr-container">
+            <p>Scan QR Code for Quick Access:</p>
+            <img src="{{ qr_code_image_url }}" alt="Queue QR Code">
+        </div>
+
         <div class="content">
             <p>Dear {{ participant.name }},</p>
             <p class="highlight">{{ message }}</p>

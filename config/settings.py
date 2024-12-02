@@ -9,11 +9,9 @@ https://docs.djangoproject.com/en/5.1/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.1/ref/settings/
 """
-import sys
 from pathlib import Path
 
-import dj_database_url
-from decouple import config, Csv
+from decouple import config
 from shutil import which
 import os
 
@@ -111,34 +109,34 @@ ASGI_APPLICATION = "config.asgi.application"
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
 #
-TEST = config('TEST', default=False, cast=bool)
-
-if TEST or 'test' in sys.argv:
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'db.sqlite3',
-        }
-    }
-else:
-    DATABASES = {
-        'default': dj_database_url.config(
-            default=config('DATABASE_URL', default='postgres://user:password@localhost:5432/mydatabase'),
-            conn_max_age=300
-        )
-    }
-
-
-# DATABASES = {
-#     "default": {
-#         "ENGINE": "django.db.backends.postgresql",
-#         "NAME": config("DATABASE_NAME", default=os.environ.get("DATABASE_NAME", "default_db_name")),
-#         "USER": config("DATABASE_USERNAME", default=os.environ.get("DATABASE_USERNAME", "default_user")),
-#         "PASSWORD": config("DATABASE_PASSWORD", default=os.environ.get("DATABASE_PASSWORD", "default_password")),
-#         "HOST": config("DATABASE_HOST", default=os.environ.get("DATABASE_HOST", "localhost")),
-#         "PORT": config("DATABASE_PORT", default=os.environ.get("DATABASE_PORT", "5432")),
+# TEST = config('TEST', default=False, cast=bool)
+#
+# if TEST or 'test' in sys.argv:
+#     DATABASES = {
+#         'default': {
+#             'ENGINE': 'django.db.backends.sqlite3',
+#             'NAME': BASE_DIR / 'db.sqlite3',
+#         }
 #     }
-# }
+# else:
+#     DATABASES = {
+#         'default': dj_database_url.config(
+#             default=config('DATABASE_URL', default='postgres://user:password@localhost:5432/mydatabase'),
+#             conn_max_age=300
+#         )
+#     }
+
+
+DATABASES = {
+    "default": {
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": config("DATABASE_NAME", default=os.environ.get("DATABASE_NAME", "default_db_name")),
+        "USER": config("DATABASE_USERNAME", default=os.environ.get("DATABASE_USERNAME", "default_user")),
+        "PASSWORD": config("DATABASE_PASSWORD", default=os.environ.get("DATABASE_PASSWORD", "default_password")),
+        "HOST": config("DATABASE_HOST", default=os.environ.get("DATABASE_HOST", "localhost")),
+        "PORT": config("DATABASE_PORT", default=os.environ.get("DATABASE_PORT", "5432")),
+    }
+}
 
 
 # Password validation
