@@ -6,7 +6,7 @@ from selenium.webdriver.support import expected_conditions as EC
 driver = webdriver.Firefox()
 
 try:
-    driver.get("http://127.0.0.1:8000/")
+    driver.get("https://queue-management-1hca.onrender.com/")
     WebDriverWait(driver, 15).until(
         EC.presence_of_element_located((By.ID, "login-button")))
     login_button = driver.find_element(By.ID, "login-button")
