@@ -2,6 +2,18 @@
 {% load static %}
 {% block content %}
 <div class="p-4">
+    <div id="sound-alert" class="fixed bottom-4 left-1/2 transform -translate-x-1/2 bg-blue-600 text-white px-6 py-3 rounded-lg shadow-lg flex items-center space-x-4 animate-bounce z-50">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5v14l7-7-7-7z" />
+            </svg>
+            <p class="text-sm font-medium">
+                Tap anywhere on the page to enable notification sounds.
+            </p>
+            <button id="dismiss-sound-alert" class="text-white font-bold text-lg hover:opacity-80">
+                ✕
+            </button>
+        </div>
+
     <div class="max-w-md mx-auto bg-white rounded-xl shadow-lg overflow-hidden relative border-2">
         <div class="flex justify-end">
             <!-- Notification Button -->
@@ -144,6 +156,21 @@
 
         // Initialize the WebSocket connection
         const socket = new WebSocket(websocketUrl);
+        document.addEventListener('DOMContentLoaded', () => {
+            const soundAlert = document.getElementById('sound-alert');
+            const dismissButton = document.getElementById('dismiss-sound-alert');
+
+            dismissButton.addEventListener('click', () => {
+                soundAlert.style.display = 'none';
+            });
+
+            document.addEventListener('click', () => {
+                if (soundAlert.style.display !== 'none') {
+                    soundAlert.style.display = 'none';
+                    console.log('Sound enabled by user interaction.');
+                }
+            });
+        });
 
         socket.onopen = function () {
             console.log("WebSocket connection established!");
@@ -254,7 +281,6 @@
         console.log("Reconnecting WebSocket...");
         connectWebSocket();
     }
-
     function markAsRead(notificationId) {
         fetch(`/mark-as-read/${notificationId}/`, {
             method: 'POST',
