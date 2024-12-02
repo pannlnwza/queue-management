@@ -27,4 +27,4 @@ def participant_leave(request, participant_code):
         messages.error(request, f"Error removing participant: {e}")
         logger.error(
             f"Failed to delete participant {participant_code} from queue: {queue.name} code: {queue.code} ")
-    return redirect('participant:welcome', queue_code=queue.code)
+    return redirect('participant:home')
