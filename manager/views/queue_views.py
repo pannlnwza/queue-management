@@ -11,7 +11,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.decorators.http import require_http_methods
 from manager.utils.category_handler import CategoryHandlerFactory
 from manager.models import Resource
-from participant.models import BankParticipant, HospitalParticipant
+from participant.models import BankParticipant, HospitalParticipant, Participant
 from manager.utils.aws_s3_storage import upload_to_s3
 
 logger = logging.getLogger('queue')
@@ -140,6 +140,36 @@ class CreateQueueView(generic.TemplateView):
             [{'value': code, 'label': label} for code, label in
              HospitalParticipant.MEDICAL_FIELD_CHOICES]
         )
+        return context
+
+
+class QueueDisplay(generic.TemplateView):
+    template_name = 'manager/queue_display.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        queue_id = self.kwargs.get('queue_id')
+        queue = get_object_or_404(Queue, id=queue_id)
+        context['queue'] = queue
+
+        calling = Participant.objects.filter(queue_id=queue_id, is_notified=True).order_by(
+            '-notification__created_at').first()
+        calling_number = calling.number if calling else None
+
+        next_in_line = Participant.objects.filter(queue_id=queue_id, state='waiting').exclude(
+            is_notified=True).order_by(
+            'position').first()
+        next_in_line_number = next_in_line.number if next_in_line else "-"
+        participants = (
+            Participant.objects.filter(queue_id=queue_id, state='waiting')
+            .exclude(pk=calling.pk if calling else None)
+            .order_by('joined_at')
+        )
+
+
+        context['participants'] = participants
+        context['calling'] = calling_number
+        context['next_in_line'] = next_in_line_number
         return context
 
 

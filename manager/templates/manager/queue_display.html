@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Queue Display - TV Mode</title>
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.14/dist/full.min.css" rel="stylesheet" type="text/css" />
+    <script src="https://cdn.tailwindcss.com"></script>
+        <link rel="icon" href="{{ 'https://queuekk-bucket.s3.ap-southeast-2.amazonaws.com/default_images/favicon.ico' }}" type="image/x-icon">
+
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+    </style>
+</head>
+<body class="bg-base-200">
+<div class="w-full min-w-screen min-h-screen p-4">
+
+    <div class="card bg-white border-2 border-base-200">
+    <div class="p-4">
+        <a href="{% url 'manager:manage_waitlist' queue_id %}" class="btn btn-sm btn-square btn-ghost no-animation">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="size-5">
+                <path fill-rule="evenodd"
+                      d="M11.78 5.22a.75.75 0 0 1 0 1.06L8.06 10l3.72 3.72a.75.75 0 1 1-1.06 1.06l-4.25-4.25a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 0Z"
+                      clip-rule="evenodd"/>
+            </svg>
+        </a>
+    </div>
+        <div class="card-body p-8">
+            <h1 class="text-6xl font-bold text-center mb-12 text-gray-800">{{ queue.name }}</h1>
+
+            <div class="grid grid-cols-2 gap-12 mb-16">
+                <div class="card bg-primary text-base-100">
+                    <div class="card-body text-center">
+                        <h2 class="text-4xl font-semibold mb-4">It's your turn!</h2>
+                        <div id="calling" class="text-9xl font-bold text-yellow-200">{{ calling.number }}</div>
+                    </div>
+                </div>
+
+                <div class="card bg-base-100 border-2 border-base-300 text-info-content">
+                    <div class="card-body text-center">
+                        <h2 class="text-4xl font-semibold mb-4">Next in Line</h2>
+                        <div id="next-in-line" class="text-8xl font-bold">{{ next_in_line.number }}</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="table table-xl table-zebra">
+                    <thead>
+                    <tr class="text-2xl">
+                        <th>Queue Number</th>
+                        <th>Waited</th>
+                        <th>Estimated Wait</th>
+                    </tr>
+                    </thead>
+                    <tbody id="participants-table" class="text-xl">
+                    {% for participant in participants %}
+                        <tr>
+                            <td>{{ participant.number }}</td>
+                            <td>{{ participant.get_wait_time }} min</td>
+                            <td>{{ participant.calculate_estimated_wait_time }} min</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>
+
+
+<script>
+function connectWebSocket() {
+        // Determine the protocol (ws or wss based on HTTPS)
+        const protocol = window.location.protocol === "https:" ? "wss://" : "ws://";
+        const websocketUrl = `${protocol}${window.location.host}/ws/queue/display/{{ queue.id }}/`;
+
+        // Initialize the WebSocket connection
+        const socket = new WebSocket(websocketUrl);
+
+        // Handle incoming messages
+        socket.onmessage = function (event) {
+            const data = JSON.parse(event.data);
+
+            // Update the queue display
+            updateQueueDisplay(data);
+        };
+
+        socket.onerror = function (error) {
+            console.error("WebSocket error:", error);
+        };
+
+        socket.onclose = function (event) {
+            console.warn("WebSocket closed.");
+        };
+    }
+
+    // Update the display with the latest queue data
+    function updateQueueDisplay(data) {
+        // Update participants table
+        const participantsTableBody = document.getElementById('participants-table');
+        participantsTableBody.innerHTML = ''; // Clear existing rows
+
+        data.participants.forEach(participant => {
+            participantsTableBody.innerHTML += `
+                <tr>
+                    <td class="flex items-center space-x-2">
+                        ${participant.number}
+                        ${participant.is_notified ? `
+                            <span class="icon-bell text-yellow-500 ml-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-6">
+                                  <path d="M5.85 3.5a.75.75 0 0 0-1.117-1 9.719 9.719 0 0 0-2.348 4.876.75.75 0 0 0 1.479.248A8.219 8.219 0 0 1 5.85 3.5ZM19.267 2.5a.75.75 0 1 0-1.118 1 8.22 8.22 0 0 1 1.987 4.124.75.75 0 0 0 1.48-.248A9.72 9.72 0 0 0 19.266 2.5Z" />
+                                  <path fill-rule="evenodd" d="M12 2.25A6.75 6.75 0 0 0 5.25 9v.75a8.217 8.217 0 0 1-2.119 5.52.75.75 0 0 0 .298 1.206c1.544.57 3.16.99 4.831 1.243a3.75 3.75 0 1 0 7.48 0 24.583 24.583 0 0 0 4.83-1.244.75.75 0 0 0 .298-1.205 8.217 8.217 0 0 1-2.118-5.52V9A6.75 6.75 0 0 0 12 2.25ZM9.75 18c0-.034 0-.067.002-.1a25.05 25.05 0 0 0 4.496 0l.002.1a2.25 2.25 0 1 1-4.5 0Z" clip-rule="evenodd" />
+                                </svg>
+                            </span>`
+                        : ''}
+                    </td>
+                    <td>${participant.wait_time} min</td>
+                    <td>${participant.estimated_wait_time} min</td>
+                </tr>`;
+        });
+
+        // Update the "calling" participant
+        const callingElement = document.getElementById('calling');
+        callingElement.innerText = data.calling || 'N/A';
+
+        // Update the "next in line" participant
+        const nextInLineElement = document.getElementById('next-in-line');
+        nextInLineElement.innerText = data.next_in_line || 'N/A';
+    }
+
+    // Connect WebSocket on page load
+    document.addEventListener('DOMContentLoaded', connectWebSocket);
+</script>

@@ -122,7 +122,7 @@
                                 {{ resource.get_service_type_display }}</td>
                         {% endif %}
                         <td class="px-6 py-4 whitespace-nowrap">{{ resource.count }}</td>
-                        <td class="px-6 py-4 whitespace-nowrap">{{ resource.assigned_to }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">{{ resource.assigned_to|default:"-" }}</td>
                         <td class="px-6 py-4 whitespace-nowrap">
                             {% if resource.get_status_display == 'Available' %}
                                 <span class="badge badge-success text-base-100">{{ resource.get_status_display }}</span>
