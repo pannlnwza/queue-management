@@ -185,8 +185,9 @@ SOCIALACCOUNT_PROVIDERS = {
             'email'
         ],
         'AUTH_PARAMS': {
-            'access_type': 'online'
-        }
+            'access_type': 'online',
+        },
+        'REDIRECT_URI': config('GOOGLE_REDIRECT_URI', default='http://127.0.0.1:8000/accounts/google/login/callback/'),
     }
 }
 
