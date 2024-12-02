@@ -10,7 +10,7 @@ from django.core.files.base import ContentFile
 from django.http import JsonResponse
 from django.shortcuts import redirect, get_object_or_404
 from django.utils import timezone
-from django.views import generic, View
+from django.views import generic
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from gtts.tts import gTTS
 

@@ -13,7 +13,7 @@ import sys
 from pathlib import Path
 
 import dj_database_url
-from decouple import config, Csv
+from decouple import config
 from shutil import which
 import os
 
@@ -110,7 +110,7 @@ ASGI_APPLICATION = "config.asgi.application"
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
-#
+
 TEST = config('TEST', default=False, cast=bool)
 
 if TEST or 'test' in sys.argv:
@@ -128,7 +128,7 @@ else:
         )
     }
 
-
+#
 # DATABASES = {
 #     "default": {
 #         "ENGINE": "django.db.backends.postgresql",

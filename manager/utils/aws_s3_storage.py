@@ -1,8 +1,6 @@
 import boto3
 import mimetypes
-import os
 from django.conf import settings
-import uuid
 
 
 def upload_to_s3(file, folder):

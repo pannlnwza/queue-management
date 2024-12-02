@@ -5,7 +5,6 @@ from manager.models import Queue
 from participant.models import Participant
 from datetime import time
 import json
-from unittest.mock import patch
 
 
 class QueueStatusTests(TestCase):

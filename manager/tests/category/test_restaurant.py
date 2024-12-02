@@ -1,7 +1,7 @@
 from django.test import TestCase
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 from django.contrib.auth.models import User
-from manager.models import RestaurantQueue, Table, Queue
+from manager.models import RestaurantQueue, Table
 from participant.models import RestaurantParticipant
 from manager.utils.category_handler import RestaurantQueueHandler
 from django.utils import timezone

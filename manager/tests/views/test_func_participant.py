@@ -1,13 +1,11 @@
 from django.test import TestCase, Client
 from django.urls import reverse
 from django.contrib.auth.models import User
-from django.core.exceptions import ObjectDoesNotExist
 import json
 from datetime import time
 from unittest.mock import patch, MagicMock
 from manager.models import Queue
 from participant.models import Participant, Notification
-from manager.utils.category_handler import CategoryHandlerFactory
 
 
 class ParticipantViewsTest(TestCase):
