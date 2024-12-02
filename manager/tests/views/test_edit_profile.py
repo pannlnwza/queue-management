@@ -7,7 +7,6 @@ from django.conf import settings
 from manager.models import Queue, UserProfile
 import tempfile
 import shutil
-import os
 from PIL import Image
 import io
 

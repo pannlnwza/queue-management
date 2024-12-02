@@ -1,6 +1,6 @@
 from django.test import TestCase, RequestFactory, Client
 from django.urls import reverse
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 from participant.views import HomePageView
 from manager.models import Queue
 from django.contrib.auth.models import User

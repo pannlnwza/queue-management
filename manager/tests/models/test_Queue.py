@@ -1,7 +1,5 @@
-import os
 from datetime import timedelta
 from django.test import TestCase
-from django.core.files.uploadedfile import SimpleUploadedFile
 from django.contrib.auth.models import User
 from datetime import time
 from django.utils import timezone

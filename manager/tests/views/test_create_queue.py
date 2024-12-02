@@ -1,14 +1,4 @@
-from django.test import TestCase, RequestFactory
-from django.urls import reverse
-from unittest.mock import patch
-from unittest.mock import Mock
 # from manager.views import MultiStepFormView
-from manager.forms import QueueForm, OpeningHoursForm, ResourceForm
-from manager.models import Queue
-from django.contrib.auth.models import User
-from django.contrib.messages.middleware import MessageMiddleware
-from django.contrib.sessions.middleware import SessionMiddleware
-from django.urls import resolve
 
 
 # class MultiStepFormViewTest(TestCase):

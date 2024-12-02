@@ -1,5 +1,4 @@
 from django.test import TestCase, Client
-from django.core.files.uploadedfile import SimpleUploadedFile
 from django.contrib.auth.models import User
 from django.urls import reverse
 from manager.models import Queue

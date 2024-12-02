@@ -4,7 +4,6 @@ import os
 from datetime import timedelta
 from io import BytesIO
 
-from dateutil.rrule import weekday
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -12,7 +11,7 @@ from django.core.files.base import ContentFile
 from django.http import JsonResponse
 from django.shortcuts import redirect, get_object_or_404
 from django.utils import timezone
-from django.views import generic, View
+from django.views import generic
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from gtts.tts import gTTS
 

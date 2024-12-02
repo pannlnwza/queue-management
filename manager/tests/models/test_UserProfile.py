@@ -3,8 +3,6 @@ from unittest.mock import patch
 
 from django.test import TestCase
 from django.contrib.auth.models import User
-from django.core.files.uploadedfile import SimpleUploadedFile
-from django.templatetags.static import static
 from allauth.socialaccount.models import SocialAccount
 from manager.models import UserProfile
 
