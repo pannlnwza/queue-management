@@ -47,6 +47,7 @@ class Participant(models.Model):
     number = models.CharField(max_length=4, editable=False)
     announcement_audio = models.TextField(null=True)
     qrcode_url = models.CharField(max_length=500, blank=True, null=True)
+    qrcode_email_sent = models.BooleanField(default=False)
 
     class Meta:
         unique_together = ('number', 'queue')

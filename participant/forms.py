@@ -25,8 +25,17 @@ class KioskForm(forms.Form):
             if queue.category == 'restaurant':
                 self.fields['special_1'] = forms.IntegerField(
                     widget=forms.NumberInput(
-                        attrs={'class': "input input-bordered w-full", 'placeholder': 'How many people?'}),
-                        label='Party Size',
+                        attrs={
+                            'class': "input input-bordered w-full",
+                            'placeholder': 'How many people?',
+                        }
+                    ),
+                    label='Party Size',
+                    min_value=1,  # Ensures only positive integers are allowed
+                    error_messages={
+                        'min_value': 'Please enter a positive number.',
+                        'invalid': 'Enter a valid number.',
+                    }
                 )
                 self.fields['special_2'] = forms.ChoiceField(
                     choices=RestaurantParticipant.SERVICE_TYPE_CHOICE,

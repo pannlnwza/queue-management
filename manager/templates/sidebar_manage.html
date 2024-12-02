@@ -189,21 +189,19 @@
         {% endblock %}
 
         {% if messages %}
-            {% for message in messages %}
-                <div id="toast-container" class="toast toast-end toast-bottom z-50">
-                <div class="alert alert-success shadow-lg text-white">
-                    <div class="inline-flex">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6 mr-2" fill="none"
-                             viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                        </svg>
+            <div id="toast-container" class="toast toast-end toast-bottom z-50">
+                {% for message in messages %}
+                    <div class="alert shadow-lg
+                                {% if message.level_tag == 'error' %}alert-error
+                                {% elif message.level_tag == 'success' %}alert-success
+                                {% elif message.level_tag == 'warning' %}alert-warning
+                                {% elif message.level_tag == 'info' %}alert-info
+                                {% endif %}">
                         <span>{{ message }}</span>
                     </div>
-                </div>
-            {% endfor %}
+                {% endfor %}
+            </div>
         {% endif %}
-        </div>
 
         <style>
             #toast-container {

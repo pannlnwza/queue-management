@@ -1,4 +1,6 @@
+{% extends 'status_base.html' %}
 {% load static %}
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,8 +9,9 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="icon" href="{% static 'favicon.ico' %}" type="image/x-icon">
     {% block title %}<title>Join Queue</title>{% endblock %}
-</head>
 
+</head>
+{% block content%}
 <div class="min-h-screen bg-base-100 flex items-center justify-center p-8">
     <div class="card w-[1000px] bg-base-100 border-2 border-base-200">
         <a href="{% url 'participant:welcome' queue.code %}" class="absolute top-4 left-4">
@@ -29,6 +32,9 @@
 
             <form method="post" class="grid grid-cols-3 gap-6">
                 {% csrf_token %}
+
+
+
 
                 <div class="form-control col-span-2">
                     <label class="label">
@@ -77,18 +83,47 @@
                         {{ form.note }}
                     </div>
                 {% endif %}
-
                 <div class="col-span-3 pt-6">
-                    <button type="submit" class="btn btn-primary btn-lg w-full text-xl">
-                        Get in Line
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 ml-2" fill="none" viewBox="0 0 24 24"
-                             stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                  d="M17 8l4 4m0 0l-4 4m4-4H3"/>
-                        </svg>
-                    </button>
+                    <div class="card-actions justify-center mt-6 pt-6 flex flex-col items-center w-full space-y-4">
+                                {% if queue.is_queue_closed %}
+                                    <button class="btn bg-gray-300 text-black btn-lg w-full text-xl hover:text-white justify-center" disabled>
+                                        Queue is Closed.
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 ml-2" fill="none" viewBox="0 0 24 24"
+                                             stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                  d="M17 8l4 4m0 0l-4 4m4-4H3"/>
+                                        </svg>
+                                    </button>
+                                </a>
+                                {% elif queue.is_there_enough_time.0 == False and queue.is_there_enough_time.1 < 10 %}
+                                    <button class="btn btn-disabled bg-gray-400 text-gray-800 w-full max-w-md text-xl" disabled>
+                                        Insufficient Time Remaining
+                                    </button>
+                                {% elif queue.is_there_enough_time.0 == False %}
+                                    <a href="{% url "participant:kiosk" queue.code %}"
+                                       onclick="return confirm('The estimated waiting time exceeds the remaining time until the queue closes. ' +
+                                                                'You may not be serviced in time. Do you still want to join?')"
+                                       class="w-full max-w-md">
+                                        <button class="btn btn-warning bg-yellow-500 text-xl w-full">
+                                            Proceed with Limited Time
+                                        </button>
+                                    </a>
+                                {% else %}
+                                    <button type="submit" class="btn btn-primary btn-lg w-full max-w-md text-xl">
+                                        Get in Line
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 ml-2" fill="none" viewBox="0 0 24 24"
+                                             stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                  d="M17 8l4 4m0 0l-4 4m4-4H3"/>
+                                        </svg>
+                                    </button>
+                                {% endif %}
+                    </div>
                 </div>
+
+
             </form>
         </div>
     </div>
 </div>
+{% endblock %}
