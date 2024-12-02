@@ -128,7 +128,7 @@ else:
         )
     }
 
-#
+
 # DATABASES = {
 #     "default": {
 #         "ENGINE": "django.db.backends.postgresql",
@@ -275,5 +275,5 @@ LOGGING = {
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media/')
 SITE_DOMAIN = config('SITE_DOMAIN', default='http://127.0.0.1:8000/')
-
+ACCOUNT_DEFAULT_HTTP_PROTOCOL='https'
 CORS_ALLOW_ALL_ORIGINS = True
