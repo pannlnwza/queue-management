@@ -71,11 +71,11 @@
                                                     <h3 class="text-xl font-bold">{{ queue.name }}</h3>
                                                     <div class="flex items-center gap-2">
                                                         <div class="badge badge-lg text-white whitespace-nowrap
-                                                            {% if queue.is_closed %} bg-error text-error-content
-                                                            {% elif not queue.is_closed %} bg-success text-success-content
+                                                            {% if queue.is_queue_closed %} bg-error text-error-content
+                                                            {% elif not queue.is_queue_closed %} bg-success text-success-content
                                                             {% endif %}">
-                                                            {% if queue.is_closed %}Closed
-                                                            {% elif not queue.is_closed %}Open
+                                                            {% if queue.is_queue_closed %}Closed
+                                                            {% elif not queue.is_queue_closed %}Open
                                                             {% endif %}
                                                         </div>
                                                     </div>
