@@ -155,7 +155,8 @@ class GeneralQueueHandler(CategoryHandler):
             'waited': participant.get_wait_time(),
             'is_notified': participant.is_notified,
             'notified_at': timezone.localtime(participant.notification_set.all().first().created_at).strftime('%d %b. %Y %H:%M') if participant.notification_set.all() else None,
-            'estimated_wait_time': participant.calculate_estimated_wait_time()
+            'estimated_wait_time': participant.calculate_estimated_wait_time(),
+            'served':timezone.localtime(participant.service_started_at).strftime('%d %b. %Y %H:%M') if participant.service_started_at else None,
 
         }
 
