@@ -104,10 +104,10 @@
                                             <p class="text-sm font-medium flex items-center flex-wrap gap-2">
                                                 <span>Currently in queue:</span>
                                                 <span class="badge badge-neutral">
-                                                    {% if queue.get_number_of_participants == 1 %}
+                                                    {% if queue.get_number_waiting_now == 1 %}
                                                         1 person
                                                     {% else %}
-                                                        {{ queue.get_number_of_participants }} people
+                                                        {{ queue.get_number_waiting_now }} people
                                                     {% endif %}
                                                 </span>
                                             </p>
