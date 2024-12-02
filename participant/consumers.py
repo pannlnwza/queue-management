@@ -2,7 +2,7 @@ import json
 import asyncio
 from asgiref.sync import sync_to_async
 from channels.generic.websocket import AsyncWebsocketConsumer
-from django.apps import apps  # Import for lazy model loading
+from django.apps import apps
 from django.utils import timezone
 import logging
 

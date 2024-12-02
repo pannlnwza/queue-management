@@ -1,14 +1,12 @@
 import asyncio
 import json
 import logging
-
 from asgiref.sync import sync_to_async
 from channels.generic.websocket import AsyncWebsocketConsumer
 from django.apps import apps
 
-from participant.models import Participant
-
 logger = logging.getLogger('queue')
+
 
 class QueueDisplayConsumer(AsyncWebsocketConsumer):
     async def connect(self):
