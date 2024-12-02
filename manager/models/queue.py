@@ -2,7 +2,7 @@ from django.db import models
 from django.utils import timezone
 from django.contrib.auth.models import User
 from django.utils.timezone import localtime
-from datetime import datetime
+from datetime import datetime, timedelta
 from manager.utils.code_generator import generate_unique_code
 from manager.utils.aws_s3_storage import get_s3_base_url
 from manager.utils.helpers import format_duration
@@ -82,15 +82,15 @@ class Queue(models.Model):
         """
         if self.is_closed:
             return False, 0
-
         current_datetime = localtime()
-
-        # If no close time is defined, assume infinite time left
         if not self.close_time:
             return True, float('inf')
         close_datetime_naive = datetime.combine(current_datetime.date(), self.close_time)
         if self.close_time < self.open_time:
-            close_datetime_naive += timezone.timedelta(days=1)
+            if current_datetime.time() < self.open_time:  # Still before opening time, adjust to yesterday
+                close_datetime_naive -= timedelta(days=1)
+            else:  # Already past opening time, adjust to next day's close time
+                close_datetime_naive += timedelta(days=1)
         close_datetime = timezone.make_aware(close_datetime_naive, current_datetime.tzinfo)
         time_left = (close_datetime - current_datetime).total_seconds() / 60
         average_wait_time = self.estimated_wait_time_per_turn * (self.get_number_waiting_now() + 1)
