@@ -34,7 +34,7 @@ class HomePageView(generic.TemplateView):
             else:
                 context['num_nearby_queues'] = 0
                 context[
-                    'error'] = "Location not provided. Enable location services, and refresh the page 2 times to view nearby queues."
+                    'error'] = "Location not provided. Enable location services, and refresh the page to view nearby queues."
         return context
 
 

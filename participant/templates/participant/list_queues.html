@@ -3,50 +3,63 @@
 
 {% block content %}
 
-<div class="container mx-auto p-4">
+    <div class="container mx-auto p-4">
 
-    <div class="mb-6">
-        <button onclick="history.back()" class="btn btn-ghost gap-2 hover:bg-base-200 text-lg">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M19 12H5M12 19l-7-7 7-7"/>
-            </svg>
-            <span class="text-lg font-medium">Back</span>
-        </button>
-    </div>
+        <div class="mb-6">
+            <button onclick="history.back()" class="btn btn-ghost gap-2 hover:bg-base-200 text-lg">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 24 24" fill="none"
+                     stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M19 12H5M12 19l-7-7 7-7"/>
+                </svg>
+                <span class="text-lg font-medium">Back</span>
+            </button>
+        </div>
 
-    <div class="card bg-base-100 shadow-xl">
-        <div class="card-body">
-            <h2 class="card-title text-2xl font-bold mb-6">{{ queue_type }} Queues</h2>
-            <div class="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4 sm:gap-6">
+        <div class="card bg-base-100 border-2 border-base-200">
+            <div class="card-body">
+                <h2 class="card-title text-2xl font-bold mb-6">{{ queue_type }} Queues</h2>
+                <div class="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4 sm:gap-6">
 
-                <div class="form-control w-full sm:w-4/5 mb-4 sm:mb-0">
-                    <div class="input-group">
-                        <input
-                            type="text"
-                            id="searchInput"
-                            placeholder="Search queues..."
-                            class="input input-bordered w-full"
-                        >
+                    <div class="flex items-center w-full max-w-4xl space-x-4">
+                        <div class="relative w-full sm:w-2/3">
+                            <input type="text"
+                                   id="searchInput"
+                                   class="input input-bordered w-full pr-12"
+                                   placeholder="Search queues"
+                                   oninput="queueSearch()">
+                            <button type="button"
+                                    id="searchButton"
+                                    class="absolute right-2 top-1/2 -translate-y-1/2 p-2 h-auto min-h-0">
+                                <svg xmlns="http://www.w3.org/2000/svg"
+                                     class="h-5 w-5"
+                                     fill="none"
+                                     viewBox="0 0 24 24"
+                                     stroke="currentColor">
+                                    <path stroke-linecap="round"
+                                          stroke-linejoin="round"
+                                          stroke-width="2"
+                                          d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                                </svg>
+                            </button>
+                        </div>
+
+                        <!-- Status Filter -->
+                        <div class="form-control w-full sm:w-1/3">
+                            <select id="statusFilter" class="select select-bordered w-full">
+                                <option value="">Any</option>
+                                <option value="open">Open</option>
+                                <option value="closed">Closed</option>
+                            </select>
+                        </div>
                     </div>
                 </div>
 
-                <div class="form-control w-full sm:w-1/6">
-                    <select id="statusFilter" class="select select-bordered w-full">
-                        <option value="">All</option>
-                        <option value="full">Full</option>
-                        <option value="busy">Busy</option>
-                        <option value="normal">Normal</option>
-                    </select>
-                </div>
-            </div>
-
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4" id="queueList">
-                {% if queues %}
-                    {% for queue in queues %}
-                        {% if not queue.is_closed %}
-                            <div class="queue-item card bg-base-200 shadow-sm hover:shadow-md transition-shadow"
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4" id="queueList">
+                    {% if queues %}
+                        {% for queue in queues %}
+                            <div class="queue-item card bg-base-200 border-2 border-base-300 shadow-sm hover:shadow-md transition-shadow"
                                  data-queue-name="{{ queue.name|lower }}"
-                                 data-queue-status="{{ queue.status|lower }}">
+                                 data-queue-status="{{ queue.is_closed|yesno:'closed,open' }}">
                                 <div class="card-body p-6">
                                     <div class="flex flex-col h-full">
                                         <div class="flex items-start gap-4 mb-4">
@@ -57,14 +70,13 @@
                                                 <div class="flex justify-between items-start flex-wrap gap-2">
                                                     <h3 class="text-xl font-bold">{{ queue.name }}</h3>
                                                     <div class="flex items-center gap-2">
-                                                        <span class="text-sm font-medium">
-                                                            {{ queue.status.capitalize }}
-                                                        </span>
                                                         <div class="badge badge-lg text-white whitespace-nowrap
-                                                            {% if queue.status == 'full' %} bg-error text-error-content
-                                                            {% elif queue.status == 'busy' %} bg-warning text-warning-content
-                                                            {% elif queue.status == 'normal' %} bg-success text-success-content
+                                                            {% if queue.is_closed %} bg-error text-error-content
+                                                            {% elif not queue.is_closed %} bg-success text-success-content
                                                             {% endif %}">
+                                                            {% if queue.is_closed %}Closed
+                                                            {% elif not queue.is_closed %}Open
+                                                            {% endif %}
                                                         </div>
                                                     </div>
                                                 </div>
@@ -103,80 +115,96 @@
                                     </div>
                                 </div>
                             </div>
-                        {% endif %}
-                    {% endfor %}
-                {% else %}
-                    <div id="noQueuesMessage" class="text-center py-8 text-base-content/70 col-span-2">
-                        No queues available now.
+                        {% endfor %}
+                    {% else %}
+                        <div id="noQueuesMessage" class="text-center py-8 text-base-content/70 col-span-2">
+                            No queues available now.
+                        </div>
+                    {% endif %}
+                    <div id="noResultsMessage" class="text-center py-8 text-base-content/70 col-span-2 hidden">
+                        No queues found matching your search and filter criteria.
                     </div>
-                {% endif %}
-                <div id="noResultsMessage" class="text-center py-8 text-base-content/70 col-span-2 hidden">
-                    No queues found matching your search and filter criteria.
                 </div>
             </div>
         </div>
     </div>
-</div>
 
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
-        const searchInput = document.getElementById('searchInput');
-        const queueItems = document.querySelectorAll('.queue-item');
-        const statusFilter = document.getElementById('statusFilter');
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const searchInput = document.getElementById('searchInput');
+            const queueItems = document.querySelectorAll('.queue-item');
+            const statusFilter = document.getElementById('statusFilter');
 
-        const noQueuesMessage = document.getElementById('noQueuesMessage');
-        const noResultsMessage = document.getElementById('noResultsMessage');
+            const noQueuesMessage = document.getElementById('noQueuesMessage');
+            const noResultsMessage = document.getElementById('noResultsMessage');
 
-        const hasQueues = queueItems.length > 0;
+            const hasQueues = queueItems.length > 0;
 
-        function filterQueues(searchTerm, status) {
-            let hasVisibleQueues = false;
+            function filterQueues(searchTerm, status) {
+                let hasVisibleQueues = false;
 
-            if (!hasQueues) {
-                noQueuesMessage?.classList.remove('hidden');
-                noResultsMessage.classList.add('hidden');
-                return;
+                // If no queues exist, show the no queues message
+                if (!hasQueues) {
+                    noQueuesMessage?.classList.remove('hidden');
+                    noResultsMessage.classList.add('hidden');
+                    return;
+                }
+
+                queueItems.forEach(item => {
+                    const queueName = item.dataset.queueName;
+                    const queueStatus = item.dataset.queueStatus;  // The queue status from the dataset
+                    const isClosed = queueStatus === "closed";     // true if closed, false if open
+
+                    // Case-insensitive search matching
+                    const matchesSearch = queueName.includes(searchTerm);
+
+                    // Apply status filter if not empty
+                    let matchesStatus = true;
+                    if (status) {
+                        if (status === "closed") {
+                            matchesStatus = isClosed;
+                        } else if (status === "open") {
+                            matchesStatus = !isClosed;
+                        }
+                    }
+
+                    if (matchesSearch && matchesStatus) {
+                        item.style.display = '';
+                        hasVisibleQueues = true;
+                    } else {
+                        item.style.display = 'none';
+                    }
+                });
+
+                // Show or hide "No results" message based on visibility of items
+                if (!hasVisibleQueues) {
+                    noResultsMessage.classList.remove('hidden');
+                } else {
+                    noResultsMessage.classList.add('hidden');
+                }
+
+                // Hide "No queues" message if there are visible items
+                noQueuesMessage?.classList.add('hidden');
             }
 
-            queueItems.forEach(item => {
-                const queueName = item.dataset.queueName;
-                const queueStatus = item.dataset.queueStatus;
-
-                const matchesSearch = queueName.includes(searchTerm);
-                const matchesStatus = status ? queueStatus === status : true;
-
-                if (matchesSearch && matchesStatus) {
-                    item.style.display = '';
-                    hasVisibleQueues = true;
-                } else {
-                    item.style.display = 'none';
-                }
+            // Handle search input changes
+            searchInput.addEventListener('input', function (e) {
+                const searchTerm = e.target.value.toLowerCase();
+                filterQueues(searchTerm, statusFilter.value.toLowerCase());
             });
 
-            if (!hasVisibleQueues) {
-                noResultsMessage.classList.remove('hidden');
+            // Handle status filter changes
+            statusFilter.addEventListener('change', function (e) {
+                const status = e.target.value.toLowerCase();
+                filterQueues(searchInput.value.toLowerCase(), status);
+            });
+
+            // Initial check to show/hide "No queues" message
+            if (!hasQueues) {
+                noQueuesMessage?.classList.remove('hidden');
             } else {
-                noResultsMessage.classList.add('hidden');
+                noQueuesMessage?.classList.add('hidden');
             }
-
-            noQueuesMessage?.classList.add('hidden');
-        }
-
-        searchInput.addEventListener('input', function (e) {
-            const searchTerm = e.target.value.toLowerCase();
-            filterQueues(searchTerm, statusFilter.value);
         });
-
-        statusFilter.addEventListener('change', function (e) {
-            const status = e.target.value.toLowerCase();
-            filterQueues(searchInput.value.toLowerCase(), status);
-        });
-
-        if (!hasQueues) {
-            noQueuesMessage?.classList.remove('hidden');
-        } else {
-            noQueuesMessage?.classList.add('hidden');
-        }
-    });
-</script>
+    </script>
 {% endblock %}
