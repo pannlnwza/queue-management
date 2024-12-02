@@ -4,7 +4,6 @@ from asgiref.sync import sync_to_async
 from channels.generic.websocket import AsyncWebsocketConsumer
 from django.apps import apps  # Import for lazy model loading
 from django.utils import timezone
-from manager.utils.category_handler import CategoryHandlerFactory
 import logging
 
 logger = logging.getLogger('queue')
@@ -60,6 +59,7 @@ class QueueStatusConsumer(AsyncWebsocketConsumer):
     @sync_to_async
     def fetch_participant_and_queue(self):
         Participant = apps.get_model('participant', 'Participant')  # Lazy load
+        CategoryHandlerFactory = self.get_category_handler_factory()  # Lazy load
         participant_instance = Participant.objects.get(code=self.participant_code)
         queue = participant_instance.queue
         handler = CategoryHandlerFactory.get_handler(queue.category)
@@ -85,3 +85,9 @@ class QueueStatusConsumer(AsyncWebsocketConsumer):
     def mark_notifications_played(self, notification_ids):
         Notification = apps.get_model('participant', 'Notification')  # Lazy load
         Notification.objects.filter(id__in=notification_ids).update(played_sound=True)
+
+    @staticmethod
+    def get_category_handler_factory():
+        """Lazy import for CategoryHandlerFactory."""
+        from manager.utils.category_handler import CategoryHandlerFactory
+        return CategoryHandlerFactory
