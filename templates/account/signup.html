@@ -39,7 +39,7 @@
                     <label class="label">
                         <span class="label-text">Username</span>
                     </label>
-                    <input type="text" name="username" placeholder="username"
+                    <input type="text" id="username" name="username" placeholder="username"
                            value="{{ form.username.value|default:'' }}" class="input input-bordered" required/>
                 </div>
 
@@ -48,7 +48,7 @@
                     <label class="label">
                         <span class="label-text">Email</span>
                     </label>
-                    <input type="email" name="email" placeholder="example@gmail.com"
+                    <input type="email" id="email" name="email" placeholder="example@gmail.com"
                            value="{{ form.email.value|default:'' }}" class="input input-bordered" required/>
                 </div>
 
@@ -56,18 +56,18 @@
                     <label class="label">
                         <span class="label-text">Password</span>
                     </label>
-                    <input type="password" name="password1" placeholder="password" class="input input-bordered"
+                    <input type="password" id="password1"name="password1" placeholder="password" class="input input-bordered"
                            required/>
                 </div>
                 <div class="form-control">
                     <label class="label">
                         <span class="label-text">Confirm Password</span>
                     </label>
-                    <input type="password" name="password2" placeholder="confirm password" class="input input-bordered"
+                    <input type="password" id="password2" name="password2" placeholder="confirm password" class="input input-bordered"
                            required/>
                 </div>
                 <div class="form-control mt-2">
-                    <button type="submit" class="btn btn-primary">Register</button>
+                    <button type="submit" id="register-submit" class="btn btn-primary">Register</button>
                 </div>
                 <div class="form-control items-center justify-center text-center my-2 mb-0">
                     <label class="label mb-0">
