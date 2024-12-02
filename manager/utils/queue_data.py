@@ -22,6 +22,7 @@ def get_general_queue_data(request, queue_id):
                 'name': participant.name,
                 'phone': participant.phone,
                 'position': participant.position,
+                'number': participant.number,
                 'notes': participant.note,
                 'waited': participant.get_wait_time(),
                 'is_notified': participant.is_notified
@@ -31,6 +32,7 @@ def get_general_queue_data(request, queue_id):
             {
                 'id': participant.id,
                 'name': participant.name,
+                'number': participant.number,
                 'phone': participant.phone,
                 'notes': participant.note,
                 'waited': participant.get_wait_time(),

@@ -3,8 +3,6 @@ import logging
 import os
 from datetime import timedelta
 from io import BytesIO
-
-from dateutil.rrule import weekday
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -274,6 +272,7 @@ def delete_participant(request, participant_id):
     for idx, p in enumerate(waiting_participants):
         p.position = idx + 1
         p.save()
+    messages.success(request, f"Participant {participant.name} is deleted.")
     return JsonResponse(
         {'message': 'Participant deleted and positions updated.'})
 
@@ -382,6 +381,7 @@ def mark_no_show(request, participant_id):
 
     participant.queue.update_participants_positions()
     participant.save()
+    logger.info(f"{participant.name} has been marked as No Show by {request.user}.")
     messages.success(request,
                      f"{participant.name} has been marked as No Show.")
 
@@ -454,15 +454,6 @@ def notify_participant(request, participant_id):
             participant=participant).count()
         if participant_notification_count == 1:  # Generate TTS only for the first notification
             try:
-                # tts = gTTS(text=f"Attention Participant {participant.number}, your turn is now.", lang="en")
-                #
-                # audio_filename = f"announcement_{participant.id}.mp3"
-                # audio_file = ContentFile(b"")
-                # tts.write_to_fp(audio_file)
-                # audio_file.name = audio_filename
-                # audio_url = upload_to_s3(audio_file, folder="announcements")
-                # participant.announcement_audio = audio_filename
-                # Generate the TTS audio content
                 tts = gTTS(
                     text=f"Attention Participant {participant.number}, your turn is now.",
                     lang="en")

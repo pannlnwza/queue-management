@@ -173,6 +173,7 @@ class QueueDisplay(generic.TemplateView):
         return context
 
 
+@login_required
 def create_queue(request):
     data = request.POST.dict()
     category = data.get('category')
