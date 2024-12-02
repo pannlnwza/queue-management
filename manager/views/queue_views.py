@@ -151,10 +151,25 @@ class QueueDisplay(generic.TemplateView):
         queue_id = self.kwargs.get('queue_id')
         queue = get_object_or_404(Queue, id=queue_id)
         context['queue'] = queue
-        context['participants'] = queue.participant_set.all().filter(state='waiting').order_by('position')[1:10]
-        calling_participant = queue.participant_set.filter(is_notified=True).order_by('-notification__created_at').first()
-        context['calling'] = calling_participant
-        context['next_in_line'] = queue.participant_set.exclude(id=calling_participant.id if calling_participant else None).order_by('position').first()
+
+        calling = Participant.objects.filter(queue_id=queue_id, is_notified=True).order_by(
+            '-notification__created_at').first()
+        calling_number = calling.number if calling else None
+
+        next_in_line = Participant.objects.filter(queue_id=queue_id, state='waiting').exclude(
+            is_notified=True).order_by(
+            'position').first()
+        next_in_line_number = next_in_line.number if next_in_line else "-"
+        participants = (
+            Participant.objects.filter(queue_id=queue_id, state='waiting')
+            .exclude(pk=calling.pk if calling else None)
+            .order_by('joined_at')
+        )
+
+
+        context['participants'] = participants
+        context['calling'] = calling_number
+        context['next_in_line'] = next_in_line_number
         return context
 
 

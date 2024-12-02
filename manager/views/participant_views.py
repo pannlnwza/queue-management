@@ -3,6 +3,8 @@ import logging
 import os
 from datetime import timedelta
 from io import BytesIO
+
+from dateutil.rrule import weekday
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -97,9 +99,8 @@ class ParticipantListView(LoginRequiredMixin, generic.TemplateView):
         time_filter_options_display = {
             'all_time': 'All time',
             'today': 'Today',
-            'this_week': 'This week',
-            'this_month': 'This month',
-            'this_year': 'This year',
+            'last_7': 'Last 7 days',
+            'last_30': 'Last 30 days',
         }
 
         state_filter_options_display = {
@@ -153,12 +154,10 @@ class ParticipantListView(LoginRequiredMixin, generic.TemplateView):
         now = timezone.localtime()
         if time_filter_option == 'today':
             return now.replace(hour=0, minute=0, second=0, microsecond=0)
-        elif time_filter_option == 'this_week':
-            return now - timedelta(days=now.weekday())
-        elif time_filter_option == 'this_month':
-            return now.replace(day=1, hour=0)
-        elif time_filter_option == 'this_year':
-            return now.replace(month=1, day=1)
+        elif time_filter_option == 'last_7':
+            return now - timedelta(days=7)
+        elif time_filter_option == 'last_30':
+            return now - timedelta(days=30)
         return None
 
 

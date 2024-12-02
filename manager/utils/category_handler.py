@@ -1,8 +1,6 @@
 from abc import ABC, abstractmethod
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
-
-from manager.models import Table
 from manager.utils.helpers import extract_data_variables
 from django.apps import apps
 
@@ -149,12 +147,14 @@ class GeneralQueueHandler(CategoryHandler):
         return {
             'id': participant.id,
             'name': participant.name,
+            'number': participant.number,
             'phone': participant.phone,
             'email': participant.email,
             'position': participant.position,
             'notes': participant.note,
             'waited': participant.get_wait_time(),
             'is_notified': participant.is_notified,
+            'notified_at': timezone.localtime(participant.notification_set.all().first().created_at).strftime('%d %b. %Y %H:%M') if participant.notification_set.all() else None,
             'estimated_wait_time': participant.calculate_estimated_wait_time()
 
         }
@@ -299,6 +299,7 @@ class RestaurantQueueHandler(CategoryHandler):
         return {
             'id': participant.id,
             'name': participant.name,
+            'number': participant.number,
             'phone': participant.phone,
             'email': participant.email,
             'position': participant.position,
@@ -313,6 +314,7 @@ class RestaurantQueueHandler(CategoryHandler):
             'resource': participant.resource.name if participant.resource else None,
             'resource_id': participant.resource.id if participant.resource else None,
             'is_notified': participant.is_notified,
+            'notified_at': timezone.localtime(participant.notification_set.all().first().created_at).strftime('%d %b. %Y %H:%M') if participant.notification_set.all() else None,
             'estimated_wait_time': participant.calculate_estimated_wait_time()
         }
 
@@ -510,6 +512,7 @@ class HospitalQueueHandler(CategoryHandler):
         return {
             'id': participant.id,
             'name': participant.name,
+            'number': participant.number,
             'phone': participant.phone,
             'email': participant.email,
             'position': participant.position,
@@ -526,6 +529,7 @@ class HospitalQueueHandler(CategoryHandler):
             'resource': participant.resource.name if participant.resource else None,
             'resource_id': participant.resource.id if participant.resource else None,
             'is_notified': participant.is_notified,
+            'notified_at': timezone.localtime(participant.notification_set.all().first().created_at).strftime('%d %b. %Y %H:%M') if participant.notification_set.all() else None,
             'estimated_wait_time': participant.calculate_estimated_wait_time()
         }
 
@@ -696,6 +700,7 @@ class BankQueueHandler(CategoryHandler):
         return {
             'id': participant.id,
             'name': participant.name,
+            'number': participant.number,
             'phone': participant.phone,
             'email': participant.email,
             'position': participant.position,
@@ -710,6 +715,7 @@ class BankQueueHandler(CategoryHandler):
             'resource_id': participant.resource.id if participant.resource else None,
             'resource_served': participant.resource_assigned,
             'is_notified': participant.is_notified,
+            'notified_at': timezone.localtime(participant.notification_set.all().first().created_at).strftime('%d %b. %Y %H:%M') if participant.notification_set.all() else None,
             'estimated_wait_time': participant.calculate_estimated_wait_time()
         }
 
