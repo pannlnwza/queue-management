@@ -224,7 +224,7 @@
                                 <label class="label"><span class="label-text">{{ special_column }}</span></label>
                                 <input type="number" id="edit_special" name="special"
                                        class="input input-bordered w-full"
-                                       required/>
+                                       required max="30"/>
                             </div>
                         {% elif queue.category == 'hospital' %}
                             <label class="label"><span class="label-text">{{ special_column }}</span></label>
@@ -295,7 +295,7 @@
                             <div class="form-control w-full">
                                 <label class="label"><span class="label-text">{{ special_column }}</span></label>
                                 <input type="number" id="add_special" name="special"
-                                       class="input input-bordered w-full"/>
+                                       class="input input-bordered w-full" required max="30"/>
                             </div>
                         {% else %}
                             <label class="label"><span class="label-text">{{ special_column }}</span></label>
