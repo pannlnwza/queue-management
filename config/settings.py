@@ -128,7 +128,7 @@ else:
         )
     }
 
-#
+
 # DATABASES = {
 #     "default": {
 #         "ENGINE": "django.db.backends.postgresql",
@@ -190,6 +190,8 @@ SOCIALACCOUNT_PROVIDERS = {
         'REDIRECT_URI': config('GOOGLE_REDIRECT_URI', default='http://127.0.0.1:8000/accounts/google/login/callback/'),
     }
 }
+
+ACCOUNT_DEFAULT_HTTP_PROTOCOL='https'
 
 AWS_ACCESS_KEY_ID = config('AWS_ACCESS_KEY_ID', default=None)
 AWS_SECRET_ACCESS_KEY = config('AWS_SECRET_ACCESS_KEY', default=None)
