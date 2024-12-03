@@ -67,13 +67,15 @@
                         Estimated wait time of {{ queue.is_there_enough_time.2 }} minutes. You may not get serviced in time.
                     </p>
                 {% endif %}
-
+                {{ queue.is_there_enough_time.1 }}
                 <!-- Call to Action -->
                 <div class="card-actions justify-center mt-6">
                     {% if queue.is_queue_closed %}
                         <button class="btn bg-gray-400 disabled:text-red-600 text-xl w-2/3 border-error btn-lg" disabled>Queue
                             is Closed
                         </button>
+                    {% elif queue.is_there_enough_time.1 < 10 %}
+                        <button class="btn btn-disabled bg-gray-400 text-xl w-full btn-lg">Insufficient Time Remaining</button>
                     {% elif queue.is_there_enough_time.0 == False %}
                         <a href="{% url "participant:kiosk" queue.code %}"
                            onclick="return confirm('The estimated waiting time exceeds the remaining time until the queue closes. ' +
@@ -81,9 +83,6 @@
                             <button class="btn btn-warning bg-yellow-500 text-xl w-2/3">Proceed with Limited Time
                             </button>
                         </a>
-                    {% elif queue.is_there_enough_time.0 == False and queue.is_there_enough_time.1 < 10 %}
-                        <button class="btn btn-disabled bg-gray-400 text-xl w-full btn-lg">Insufficient Time Remaining</button>
-
                     {% else %}
                         <a href="{% url "participant:kiosk" queue.code %}" class="w-2/3">
                             <button class="btn btn-primary text-xl w-2/3 mb-5 btn-lg">Join the Queue</button>
