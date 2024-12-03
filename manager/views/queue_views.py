@@ -167,7 +167,7 @@ class QueueDisplay(generic.TemplateView):
         )
 
 
-        context['participants'] = participants
+        context['participants'] = participants[:6]
         context['calling'] = calling_number
         context['next_in_line'] = next_in_line_number
         return context
