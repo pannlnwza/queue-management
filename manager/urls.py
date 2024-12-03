@@ -37,6 +37,7 @@ urlpatterns = [
     path('waiting_fullscreen/<int:queue_id>', WaitingFull.as_view(), name='waiting_full'),
     path('edit_queue/<int:queue_id>', edit_queue, name='edit_queue'),
     path('edit-profile/<int:queue_id>/', EditProfileView.as_view(), name='edit_profile'),
+    path('edit-profile/', EditProfileView.as_view(), name='edit_profile_no_queue'),
     path('add_participant/<int:queue_id>/', add_participant, name='add_participant'),
     path('create-queue-step/<str:step>/', CreateQueueView.as_view(), name='create_queue_step'),
     path('create_queue/', create_queue, name='create_queue'),
