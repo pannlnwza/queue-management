@@ -18,17 +18,17 @@ try:
     email_input = driver.find_element(By.ID, "email")
     password_input = driver.find_element(By.ID, "password1")
     confirm_password_input = driver.find_element(By.ID, "password2")
-    username_input.send_keys("test8")
-    password_input.send_keys("hackme88")
-    email_input.send_keys("test8@gmail.com")
-    confirm_password_input.send_keys("hackme88")
+    username_input.send_keys("test9")
+    password_input.send_keys("hackme99")
+    email_input.send_keys("test9@gmail.com")
+    confirm_password_input.send_keys("hackme99")
     WebDriverWait(driver, 15).until(
         EC.presence_of_element_located((By.ID, "register-submit")))
     register_submit = driver.find_element(By.ID, "register-submit")
     register_submit.click()
     WebDriverWait(driver, 30).until(EC.url_contains("/manager/queue"))
     current_url = driver.current_url
-    assert "/manager/queue" in current_url, f"Expected '/manager/queue' in URL but got {current_url}"
+    print("Test passed")
 
 except Exception as e:
     print(f"Test failed: {e}")

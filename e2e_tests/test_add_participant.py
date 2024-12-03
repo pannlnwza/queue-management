@@ -41,7 +41,7 @@ def safe_wait(driver, by, value, timeout=30):
 
 def test_create_queue_and_add_participant():
     driver = webdriver.Firefox()
-    base_url = "http://127.0.0.1:8000/"
+    base_url = "https://queue-management-1hca.onrender.com/"
     try:
         login(driver, base_url)
         time.sleep(1)

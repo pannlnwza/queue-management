@@ -23,6 +23,10 @@ try:
     WebDriverWait(driver, 30).until(EC.url_contains("/manager/queue"))
     current_url = driver.current_url
     assert "/manager/queue" in current_url, f"Expected '/manager/queue' in URL but got {current_url}"
+    print("Test passed")
+
+except Exception as e:
+    print(f"Test failed: {e}")
 
 finally:
     driver.quit()

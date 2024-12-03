@@ -69,10 +69,11 @@ def test_create_queue():
         assert "/manager/queue" in current_url, f"Expected '/manager/queue' in URL but got {current_url}"
         success_message = WebDriverWait(driver, 10).until(
             EC.presence_of_element_located((By.XPATH,
-                                            "//div[contains(text(), 'Queue created successfully')]"))
+                                            "//div[@id='toast-container']//div[contains(@class, 'alert-success')]//span"))
         )
         assert "Queue 'Test Queue' created successfully" in success_message.text, \
             f"Expected success message but got: {success_message.text}"
+        print("Test passed")
 
     except Exception as e:
         print(f"Test failed: {e}")
