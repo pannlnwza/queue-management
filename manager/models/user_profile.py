@@ -17,7 +17,14 @@ class UserProfile(models.Model):
     last_name = models.CharField(max_length=30, blank=True, null=True)
 
     def get_profile_image(self):
-        """Returns the appropriate profile image URL."""
+        """
+        Returns the profile image URL.
+
+        Checks for a user’s profile image or a linked social account avatar,
+        otherwise returns a default image.
+
+        :return: The URL of the profile image.
+        """
         default_image_url = get_s3_base_url('default_images/profile.jpg')
         if self.image:
             return self.image

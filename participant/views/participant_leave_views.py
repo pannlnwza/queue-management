@@ -7,7 +7,13 @@ from manager.views import logger
 
 
 def participant_leave(request, participant_code):
-    """Participant choose to leave the queue."""
+    """
+    Marks a participant as cancelled when they leave the queue.
+
+    :param request: The HTTP request object.
+    :param participant_code: The unique code of the participant leaving the queue.
+    :return: A redirect to the home page with a success or error message.
+    """
     try:
         participant = Participant.objects.get(code=participant_code)
     except Participant.DoesNotExist:

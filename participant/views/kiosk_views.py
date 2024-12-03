@@ -17,6 +17,7 @@ from manager.utils.send_email import generate_participant_qr_code_url, send_emai
 
 
 class KioskView(generic.FormView):
+    """View for kiosk page."""
     template_name = 'participant/kiosk.html'
     form_class = KioskForm
 
@@ -36,6 +37,17 @@ class KioskView(generic.FormView):
         return context
 
     def form_valid(self, form):
+        """
+        Handles form submission for creating a participant.
+
+        Checks if the queue is closed. If closed, redirects with an error message. If open,
+        creates a new participant and redirects to the QR code page. In case of an error,
+        redirects to the welcome page.
+
+        :param form: The validated form data for participant creation.
+        :returns: A redirect to either the QR code or welcome page.
+        :raises Exception: Catches any errors during participant creation.
+        """
         try:
             # Check if the queue is closed
             if self.queue.is_queue_closed():
@@ -73,8 +85,11 @@ class QRcodeView(generic.DetailView):
 
     def get_object(self, queryset=None):
         """
-        Override the get_object method to retrieve the participant by `participant_code`
-        instead of `pk`.
+        Override the get_object method to retrieve the participant by `participant_code`.
+
+        :param queryset: Optional queryset to filter the participants.
+        :returns: A participant object identified by the provided `participant_code`.
+        :raises: 404 if the participant with the given `participant_code` is not found.
         """
         participant_code = self.kwargs.get('participant_code')
         return get_object_or_404(Participant, code=participant_code)
@@ -91,7 +106,14 @@ class QRcodeView(generic.DetailView):
         context['qr_image_url'] = participant.qrcode_url
         return context
 
-
+      
 def welcome(request, queue_code):
+    """
+    Renders the welcome page for the given queue.
+
+    :param request: The HTTP request object.
+    :param queue_code: The code of the queue to fetch and display.
+    :return: The rendered welcome page with queue details.
+    """
     queue = get_object_or_404(Queue, code=queue_code)
     return render(request, 'participant/welcome.html', {'queue': queue})

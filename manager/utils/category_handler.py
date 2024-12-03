@@ -107,7 +107,8 @@ class GeneralQueueHandler(CategoryHandler):
             phone=participant_info['phone'],
             note=participant_info['note'],
             queue=participant_info['queue'],
-            position=queue_length + 1
+            position=queue_length + 1,
+            created_by='staff'
         )
 
     def get_participant_set(self, queue_id):

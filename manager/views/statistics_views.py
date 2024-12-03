@@ -68,7 +68,7 @@ class StatisticsView(LoginRequiredMixin, generic.TemplateView):
             start_date, end_date)
         context['cancelled_percentage'] = queue.get_cancelled_percentage(
             start_date, end_date)
-        context['removed_percentage'] = queue.get_removed_percentage(
+        context['no_show_percentage'] = queue.get_no_show_percentage(
             start_date, end_date)
         context['guest_percentage'] = queue.get_guest_percentage(start_date,
                                                                  end_date)
