@@ -1,7 +1,9 @@
 from django.db import models
 from participant.models import Participant
 
+
 class Notification(models.Model):
+    """Represents notification for customers."""
     queue = models.ForeignKey('manager.Queue', on_delete=models.CASCADE)
     participant = models.ForeignKey(Participant, on_delete=models.CASCADE)
     message = models.TextField()
