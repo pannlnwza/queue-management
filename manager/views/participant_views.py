@@ -187,6 +187,7 @@ class WaitingFull(LoginRequiredMixin, generic.TemplateView):
 @require_http_methods(["POST"])
 @login_required
 def add_participant(request, queue_id):
+    """Method to add participant by staff in participant list page."""
     name = request.POST.get('name')
     phone = request.POST.get('phone')
     email = request.POST.get('email')
@@ -222,6 +223,7 @@ def add_participant(request, queue_id):
 
 @require_http_methods(["POST"])
 def edit_participant(request, participant_id):
+    """Method to edit specific participant in participant list page."""
     logger.info("Editing participant %s", participant_id)
     participant = get_object_or_404(Participant, id=participant_id)
 
@@ -255,6 +257,7 @@ def edit_participant(request, participant_id):
 @login_required
 @require_http_methods(["DELETE"])
 def delete_participant(request, participant_id):
+    """Method to delete specific participant in participant list page."""
     participant = get_object_or_404(Participant, id=participant_id)
     logger.info(
         f"Deleting participant {participant_id} from queue {participant.queue.id}")
@@ -280,6 +283,7 @@ def delete_participant(request, participant_id):
 @login_required
 @require_http_methods(["POST"])
 def serve_participant(request, participant_id):
+    """Method to serve specific participant in queue."""
     participant = get_object_or_404(Participant, id=participant_id)
     queue_id = participant.queue.id
     handler = CategoryHandlerFactory.get_handler(participant.queue.category)
@@ -326,6 +330,7 @@ def serve_participant(request, participant_id):
 
 
 def serve_participant_no_resource(request, participant_id):
+    """Method to serve participant in queue with no resource assigned."""
     participant = get_object_or_404(Participant, id=participant_id)
     queue_id = participant.queue.id
     handler = CategoryHandlerFactory.get_handler(participant.queue.category)
@@ -368,6 +373,7 @@ def serve_participant_no_resource(request, participant_id):
 
 @login_required
 def mark_no_show(request, participant_id):
+    """Method to mark participant that no show."""
     participant = get_object_or_404(Participant, id=participant_id)
 
     if participant.state in ['serving', 'cancelled', 'completed']:
@@ -391,6 +397,7 @@ def mark_no_show(request, participant_id):
 @login_required
 @require_http_methods(["POST"])
 def complete_participant(request, participant_id):
+    """Method to complete participant after serving is completed."""
     participant = get_object_or_404(Participant, id=participant_id)
     queue = participant.queue
     handler = CategoryHandlerFactory.get_handler(queue.category)
@@ -432,6 +439,7 @@ def complete_participant(request, participant_id):
 @require_http_methods(["POST"])
 @login_required
 def notify_participant(request, participant_id):
+    """Method to notify participant by participant's id"""
     participant = get_object_or_404(Participant, id=participant_id)
     queue = participant.queue
 
@@ -515,6 +523,7 @@ def notify_participant(request, participant_id):
 
 @require_http_methods(["DELETE"])
 def delete_audio_file(request, filename):
+    """Method to delete audio notification file."""
     logger.info(f"Attempting to delete audio file: {filename}")
 
     audio_path = os.path.join(settings.MEDIA_ROOT, "announcements", filename)

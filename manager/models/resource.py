@@ -6,6 +6,7 @@ from manager.models import Queue
 
 
 class Resource(models.Model):
+    """Represents a resource with name, capacity, status, and assignment details."""
     RESOURCE_STATUS = [
         ('available', 'Available'),
         ('busy', 'Busy'),

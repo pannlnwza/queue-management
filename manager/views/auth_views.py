@@ -86,6 +86,7 @@ def login_view(request):
 
 @csrf_exempt
 def set_location(request):
+    """Set location of user to show nearby queues."""
     if request.method == 'POST':
         try:
             data = json.loads(request.body)
