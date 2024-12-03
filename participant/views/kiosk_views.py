@@ -13,6 +13,7 @@ from django.core.mail import EmailMessage
 from django.template.loader import render_to_string
 from django.conf import settings
 from django.contrib import messages
+from manager.utils.send_email import generate_participant_qr_code_url, send_email_with_qr
 
 
 class KioskView(generic.FormView):
@@ -50,6 +51,10 @@ class KioskView(generic.FormView):
                 form_data,
             )
             participant.created_by = 'guest'
+            print(participant.code)
+            participant.qrcode_url = generate_participant_qr_code_url(participant)
+            send_email_with_qr(participant, participant.qrcode_url)
+            participant.qrcode_email_sent = True
             participant.save()
             return redirect('participant:qrcode',
                             participant_code=participant.code)
