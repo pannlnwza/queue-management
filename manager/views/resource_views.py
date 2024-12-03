@@ -36,7 +36,14 @@ class ResourceSettings(LoginRequiredMixin, generic.TemplateView):
 @login_required
 @require_http_methods(["POST"])
 def add_resource(request, queue_id):
-    """Method to add new resource to queue."""
+    """
+    Add a new resource to the specified queue.
+
+    :param request: The HTTP request containing the resource data to be added.
+    :param queue_id: The ID of the queue to which the resource will be added.
+    :raises ValueError: If the resource data is invalid or incomplete.
+    :return: A redirect response to the resources page for the specified queue.
+    """
     queue = get_object_or_404(Queue, id=queue_id)
     handler = CategoryHandlerFactory.get_handler(queue.category)
     queue = handler.get_queue_object(queue_id)
@@ -55,7 +62,14 @@ def add_resource(request, queue_id):
 @login_required
 @require_http_methods(["POST"])
 def edit_resource(request, resource_id):
-    """Method to edit existing resource detail in queue."""
+    """
+    Edit the details of an existing resource in the specified queue.
+
+    :param request: The HTTP request containing the resource data to be updated.
+    :param resource_id: The ID of the resource to be edited.
+    :raises ValueError: If the resource data is invalid or incomplete.
+    :return: A redirect response to the resources page for the queue the resource belongs to.
+    """
     resource = get_object_or_404(Resource, id=resource_id)
     handler = CategoryHandlerFactory.get_handler(resource.queue.category)
     data = {
@@ -73,7 +87,14 @@ def edit_resource(request, resource_id):
 @login_required
 @require_http_methods(["DELETE"])
 def delete_resource(request, resource_id):
-    """Method to delete existing resource in queue."""
+    """
+    Delete an existing resource from the specified queue.
+
+    :param request: The HTTP request containing the resource deletion request.
+    :param resource_id: The ID of the resource to be deleted.
+    :raises Unauthorized: If the user does not have permission to delete the resource.
+    :return: A JSON response confirming the successful deletion of the resource.
+    """
     resource = get_object_or_404(Resource, id=resource_id)
     logger.info(
         f"Deleting resource {resource_id} from queue {resource.queue.id}")

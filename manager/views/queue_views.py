@@ -175,7 +175,13 @@ class QueueDisplay(generic.TemplateView):
 
 @login_required
 def create_queue(request):
-    """Method to create queue for business owner or queue creator."""
+    """
+    Create a new queue for a business owner or queue creator.
+
+    :param request: The HTTP request containing the queue data and optional logo file.
+    :raises Exception: If an error occurs during queue or resource creation.
+    :return: A redirect to the 'your-queue' page with a success or error message.
+    """
     data = request.POST.dict()
     category = data.get('category')
     resource_name = data.get('resource_name')
@@ -227,7 +233,15 @@ def create_queue(request):
 @require_http_methods(["DELETE"])
 @login_required
 def delete_queue(request, queue_id):
-    """Method to delete queue for business owner or queue creator."""
+    """
+    Delete a queue for a business owner or queue creator.
+
+    :param request: The HTTP request containing the queue ID to delete.
+    :param queue_id: The ID of the queue to be deleted.
+    :raises Queue.DoesNotExist: If the queue with the provided ID does not exist.
+    :raises Unauthorized: If the user does not have permission to delete the queue.
+    :return: A JsonResponse with a success or error message.
+    """
     try:
         queue = Queue.objects.get(pk=queue_id)
     except Queue.DoesNotExist:
@@ -248,7 +262,15 @@ def delete_queue(request, queue_id):
 @login_required
 @require_http_methods(["POST"])
 def edit_queue(request, queue_id):
-    """Method to edit queue for business owner or queue creator."""
+    """
+    Edit the settings of a queue for a business owner or queue creator.
+
+    :param request: The HTTP request containing the form data to update the queue.
+    :param queue_id: The ID of the queue to be updated.
+    :raises Queue.DoesNotExist: If the queue with the provided ID does not exist.
+    :raises ValueError: If the provided time format is invalid.
+    :return: A redirect response to the queue settings page with success or error messages.
+    """
     queue = get_object_or_404(Queue, id=queue_id)
     handler = CategoryHandlerFactory.get_handler(queue.category)
     queue = handler.get_queue_object(queue_id)
@@ -262,14 +284,6 @@ def edit_queue(request, queue_id):
         open_time = request.POST.get('open_time')
         close_time = request.POST.get('close_time')
         tts_enabled = request.POST.get('tts')
-
-        # if 'logo' in request.FILES:
-        #     try:
-        #         logo_file = request.FILES['logo']
-        #         queue.logo = logo_file.read()
-        #     except Exception as e:
-        #         messages.error(request, f"Error processing the logo file: {e}")
-        #         return redirect('manager:your-queue')
 
         if 'logo' in request.FILES:
             try:
