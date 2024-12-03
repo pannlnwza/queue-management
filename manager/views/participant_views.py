@@ -61,7 +61,7 @@ class ManageWaitlist(LoginRequiredMixin, generic.TemplateView):
         context['waiting_list'] = participant_set.filter(
             state='waiting').order_by('position')[:5]
         context['serving_list'] = participant_set.filter(
-            state='serving').order_by('-service_started_at')[:5]
+            state='serving').order_by('service_started_at')[:5]
         context['completed_list'] = participant_set.filter(
             state='completed').order_by('-service_completed_at')[:5]
         context['queue'] = queue

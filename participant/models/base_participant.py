@@ -76,7 +76,7 @@ class Participant(models.Model):
         """Calculate the estimated wait time for this participant in the queue."""
         if self.position == 1:
             return self.queue.estimated_wait_time_per_turn
-        return self.queue.estimated_wait_time_per_turn * (self.position - 1)
+        return self.queue.estimated_wait_time_per_turn * self.position
 
     def start_service(self):
         """Mark the participant as serving."""
