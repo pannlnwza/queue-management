@@ -224,7 +224,7 @@
         </div>
         <div class="pagination flex justify-end space-x-2 py-4">
             {% if page_obj.has_previous %}
-                <a href="?page={{ page_obj.paginator.page_range.start }}" class="btn btn-sm btn-ghost btn-square">
+                <a href="?time_filter={{ time_filter_option }}&state_filter={{ state_filter_option }}&page=1" class="btn btn-sm btn-ghost btn-square">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="size-4">
                         <path fill-rule="evenodd"
                               d="M3.22 7.595a.75.75 0 0 0 0 1.06l3.25 3.25a.75.75 0 0 0 1.06-1.06l-2.72-2.72 2.72-2.72a.75.75 0 0 0-1.06-1.06l-3.25 3.25Zm8.25-3.25-3.25 3.25a.75.75 0 0 0 0 1.06l3.25 3.25a.75.75 0 1 0 1.06-1.06l-2.72-2.72 2.72-2.72a.75.75 0 0 0-1.06-1.06Z"
@@ -232,7 +232,7 @@
                     </svg>
 
                 </a>
-                <a href="?page={{ page_obj.previous_page_number }}" class="btn btn-sm btn-ghost btn-square">
+                <a href="?time_filter={{ time_filter_option }}&state_filter={{ state_filter_option }}&page={{ page_obj.previous_page_number }}"" class="btn btn-sm btn-ghost btn-square">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="size-4">
                         <path fill-rule="evenodd"
                               d="M9.78 4.22a.75.75 0 0 1 0 1.06L7.06 8l2.72 2.72a.75.75 0 1 1-1.06 1.06L5.47 8.53a.75.75 0 0 1 0-1.06l3.25-3.25a.75.75 0 0 1 1.06 0Z"
@@ -245,7 +245,7 @@
             <span class="btn btn-sm btn-ghost no-animation">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
 
             {% if page_obj.has_next %}
-                <a href="?time_filter={{ time_filter_option }}&state_filter={{ state_filter_option }}?page={{ page_obj.next_page_number }}" class="btn btn-sm btn-ghost btn-square">
+                <a href="?time_filter={{ time_filter_option }}&state_filter={{ state_filter_option }}&page={{ page_obj.next_page_number }}" class="btn btn-sm btn-ghost btn-square">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="size-4">
                         <path fill-rule="evenodd"
                               d="M6.22 4.22a.75.75 0 0 1 1.06 0l3.25 3.25a.75.75 0 0 1 0 1.06l-3.25 3.25a.75.75 0 0 1-1.06-1.06L8.94 8 6.22 5.28a.75.75 0 0 1 0-1.06Z"
@@ -253,7 +253,7 @@
                     </svg>
 
                 </a>
-                <a href="?time_filter={{ time_filter_option }}&state_filter={{ state_filter_option }}?page={{ page_obj.paginator.num_pages }}" class="btn btn-sm btn-ghost btn-square">
+                <a href="?time_filter={{ time_filter_option }}&state_filter={{ state_filter_option }}&page={{ page_obj.paginator.num_pages }}" class="btn btn-sm btn-ghost btn-square">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="size-4">
                         <path fill-rule="evenodd"
                               d="M12.78 7.595a.75.75 0 0 1 0 1.06l-3.25 3.25a.75.75 0 0 1-1.06-1.06l2.72-2.72-2.72-2.72a.75.75 0 0 1 1.06-1.06l3.25 3.25Zm-8.25-3.25 3.25 3.25a.75.75 0 0 1 0 1.06l-3.25 3.25a.75.75 0 0 1-1.06-1.06l2.72-2.72-2.72-2.72a.75.75 0 0 1 1.06-1.06Z"
