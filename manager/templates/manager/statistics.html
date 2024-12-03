@@ -109,7 +109,7 @@
                 <div class="card bg-base-200">
                     <div class="card-body">
                         <h2 class="card-title">Dropoffs</h2>
-                        {% if cancelled_percentage == 0 and removed_percentage == 0 %}
+                        {% if cancelled_percentage == 0 and no_show_percentage == 0 %}
                         <p class="text-center text-gray-500 flex justify-center items-center">No data available</p>
                         {% else %}
                         <div class="h-40">
@@ -210,10 +210,10 @@
                 new Chart(dropoffsCtx, {
                     type: 'doughnut',
                     data: {
-                        labels: ['Cancelled', 'Removed'],
+                        labels: ['Cancelled', 'No show'],
                         datasets: [{
-                            data: [{{ cancelled_percentage }}, {{ removed_percentage }}],
-                            backgroundColor: ['#FFA726', '#AB47BC'],
+                            data: [{{ cancelled_percentage }}, {{ no_show_percentage }}],
+                            backgroundColor: ['#FF5861', '#FFA726'],
                             borderWidth: 0,
                         }],
                     },

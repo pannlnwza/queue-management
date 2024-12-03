@@ -313,7 +313,7 @@ class Queue(models.Model):
     def get_number_dropoff(self, start_date=None, end_date=None):
         """Return the number of dropout participants (cancelled and removed), optionally within a date range."""
         queryset = self.participant_set.filter(
-            state__in=['cancelled', 'removed'])
+            state__in=['cancelled', 'no_show'])
         if start_date and end_date:
             queryset = queryset.filter(joined_at__range=(start_date, end_date))
         return queryset.count()
@@ -368,8 +368,8 @@ class Queue(models.Model):
                                  end_date=None) -> float:
         return self._get_substate_percentage('cancelled', start_date, end_date)
 
-    def get_removed_percentage(self, start_date=None, end_date=None) -> float:
-        return self._get_substate_percentage('removed', start_date, end_date)
+    def get_no_show_percentage(self, start_date=None, end_date=None) -> float:
+        return self._get_substate_percentage('no_show', start_date, end_date)
 
     def _get_substate_percentage(self, state: str, start_date=None,
                                  end_date=None) -> float:
