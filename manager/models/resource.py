@@ -33,6 +33,10 @@ class Resource(models.Model):
         """
         Assigns this resource to the given participant if it is available
         and the capacity matches the participant's needs.
+
+        :param participant: The participant to be assigned the resource.
+        :param capacity: The required capacity (default is 1).
+        :raises ValueError: If the resource is not available or the capacity is insufficient.
         """
         if self.status != 'available':
             raise ValueError("This resource is not available.")
@@ -50,6 +54,9 @@ class Resource(models.Model):
     def free(self) -> None:
         """
         Frees the resource, making it available for new assignments.
+
+        If the resource is assigned to a participant, the participant is
+        disassociated from the resource.
         """
         if self.assigned_to:
             participant = self.assigned_to
@@ -63,11 +70,20 @@ class Resource(models.Model):
     def is_assigned(self) -> bool:
         """
         Checks if this resource is currently assigned to a participant.
+
+        Returns:
+            bool: True if the resource is assigned, False otherwise.
         """
         return self.assigned_to is not None
 
     def total(self, start_date=None, end_date=None):
-        """Return the total number of participants assigned to this resource within a date range."""
+        """
+        Return the total number of participants assigned to this resource within a date range.
+
+        :param start_date: The start date for filtering participants (optional).
+        :param end_date: The end date for filtering participants (optional).
+        :return: The total number of participants assigned to this resource within the specified date range.
+        """
         Participant = apps.get_model('participant', 'Participant')
         queryset = Participant.objects.filter(resource_assigned=self.name)
         if start_date and end_date:
@@ -75,7 +91,13 @@ class Resource(models.Model):
         return queryset.count()
 
     def served(self, start_date=None, end_date=None):
-        """Return the number of participants who are currently being served or have completed service at this resource within a date range."""
+        """
+        Return the number of participants who are currently being served or have completed service at this resource within a date range.
+
+        :param start_date: Optional start date for the date range filter.
+        :param end_date: Optional end date for the date range filter.
+        :return: The count of participants being served or completed service within the specified date range.
+        """
         Participant = apps.get_model('participant', 'Participant')
         queryset = Participant.objects.filter(resource_assigned=self.name,
                                               state__in=['serving',
@@ -85,7 +107,13 @@ class Resource(models.Model):
         return queryset.count()
 
     def dropoff(self, start_date=None, end_date=None):
-        """Return the number of participants who have been removed or cancelled from this resource within a date range."""
+        """
+        Return the number of participants who have been removed or cancelled from this resource within a date range.
+
+        :param start_date: Optional start date for the date range filter.
+        :param end_date: Optional end date for the date range filter.
+        :return: The count of participants who have been removed or cancelled within the specified date range.
+        """
         Participant = apps.get_model('participant', 'Participant')
         queryset = Participant.objects.filter(resource_assigned=self.name,
                                               state__in=['removed',
@@ -95,7 +123,13 @@ class Resource(models.Model):
         return queryset.count()
 
     def completed(self, start_date=None, end_date=None):
-        """Return the number of participants who have completed service at this resource within a date range."""
+        """
+        Return the number of participants who have completed service at this resource within a date range.
+
+        :param start_date: Optional start date for the date range filter.
+        :param end_date: Optional end date for the date range filter.
+        :return: The count of participants who have completed service within the specified date range.
+        """
         Participant = apps.get_model('participant', 'Participant')
         queryset = Participant.objects.filter(resource_assigned=self.name,
                                               state='completed')
@@ -104,7 +138,13 @@ class Resource(models.Model):
         return queryset.count()
 
     def avg_wait_time(self, start_date=None, end_date=None):
-        """Calculate the average wait time for participants in the 'serving' or 'completed' states at this resource within a date range."""
+        """
+        Calculate the average wait time for participants in the 'serving' or 'completed' states at this resource within a date range.
+
+        :param start_date: Optional start date for the date range filter.
+        :param end_date: Optional end date for the date range filter.
+        :return: The formatted average wait time for participants within the specified date range.
+        """
         Participant = apps.get_model('participant', 'Participant')
         queryset = Participant.objects.filter(resource_assigned=self.name,
                                               state__in=['serving',
@@ -119,7 +159,13 @@ class Resource(models.Model):
         return format_duration(average_wait_time)
 
     def avg_serve_time(self, start_date=None, end_date=None):
-        """Calculate the average service duration for participants in the 'completed' state at this resource within a date range."""
+        """
+        Calculate the average service duration for participants in the 'completed' state at this resource within a date range.
+
+        :param start_date: Optional start date for the date range filter.
+        :param end_date: Optional end date for the date range filter.
+        :return: The formatted average service duration for participants within the specified date range.
+        """
         Participant = apps.get_model('participant', 'Participant')
         queryset = Participant.objects.filter(resource_assigned=self.name,
                                               state='completed')
