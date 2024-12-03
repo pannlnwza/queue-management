@@ -84,11 +84,12 @@ class TestBaseQueueView(TestCase):
         view = self.view_class()
         view.request = request
 
-        # Populate object_list by calling get_queryset
+        # Set up the view and populate object_list by calling get_queryset
+        view.setup(request)
         view.object_list = view.get_queryset()
 
-        # Fetch the context
-        context = view.get_context_data()
+        # Fetch the context with necessary kwargs
+        context = view.get_context_data(**view.kwargs)
 
         # Assert the context contains the correct queue_type and queues
         self.assertEqual(context["queue_type"], "Restaurant")
