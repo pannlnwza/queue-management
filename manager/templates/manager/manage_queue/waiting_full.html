@@ -127,9 +127,12 @@
                                         id="tab2"
                                 />
                                 <div role="tabpanel" class="tab-content">
-                                    <table class="min-w-full bg-base-100 divide-y divide-gray-200">
+                                    <table class="min-w-full bg-base-100 divide-y divide-gray-200" id="participantTable">
                                         <thead>
                                         <tr>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                Number
+                                            </th>
                                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                                 Name
                                             </th>
@@ -164,6 +167,9 @@
                                                         '{{ queue.category }}'
                                                         )"
                                             >
+                                                <td class="px-6 py-4 whitespace-nowrap">
+                                                    {{ participant.number }}
+                                                </td>
                                                 <td class="px-6 py-4 whitespace-nowrap font-semibold">
                                                     {{ participant.name }}
                                                 </td>
