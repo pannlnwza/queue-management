@@ -1,4 +1,3 @@
-# forms.py
 from django import forms
 from participant.models import RestaurantParticipant, HospitalParticipant, BankParticipant
 
