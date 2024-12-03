@@ -200,6 +200,10 @@
                                 <p id="resource-message" class="text-base-content/70 mt-2 hidden">You're all set to
                                     proceed!</p>
 
+                                <p id="resource-later-label" class="text-base-content/70 mt-2 hidden">
+                                    The resource can be added later in the queue settings.
+                                </p>
+
                                 <div id="resource-fields">
                                     <label id="resource-name-label" for="resource_name" class="block mt-4"></label>
                                     <input type="text" id="resource_name" name="resource_name"
@@ -348,6 +352,7 @@
         document.addEventListener('DOMContentLoaded', () => {
             const categorySelect = document.getElementById('category');
             const resourceLabel = document.getElementById('resource-label');
+            const resourceDescription = document.getElementById('resource-later-label')
             const resourceMessage = document.getElementById('resource-message');
             const resourceFields = document.getElementById('resource-fields');
             const resourceNameLabel = document.getElementById('resource-name-label');
@@ -396,6 +401,7 @@
                     ? ''
                     : `Add ${mapping.label} (Optional)`;
 
+                resourceDescription.classList.toggle('hidden', mapping.showMessage);
                 resourceMessage.classList.toggle('hidden', !mapping.showMessage);
                 resourceFields.classList.toggle('hidden', mapping.showMessage);
 
