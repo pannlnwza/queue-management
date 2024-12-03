@@ -130,11 +130,11 @@ function connectWebSocket() {
 
         // Update the "calling" participant
         const callingElement = document.getElementById('calling');
-        callingElement.innerText = data.calling || 'N/A';
+        callingElement.innerText = data.calling || '-';
 
         // Update the "next in line" participant
         const nextInLineElement = document.getElementById('next-in-line');
-        nextInLineElement.innerText = data.next_in_line || 'N/A';
+        nextInLineElement.innerText = data.next_in_line || '-';
     }
 
     // Connect WebSocket on page load

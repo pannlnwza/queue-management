@@ -181,7 +181,7 @@
                                     </li>
                                     <li>
                                         <a id="participantDetail"
-                                           href="{% url 'participant:qrcode' participant.code %}">
+                                           onclick="openQRModal('{{ participant.qrcode_url }}')">
                                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"
                                                  fill="currentColor" class="size-4">
                                                 <path d="M4.75 4.25a.5.5 0 1 0 0 1 .5.5 0 0 0 0-1Z"/>
@@ -425,7 +425,7 @@
                                    class="input input-bordered w-full"
                                    maxlength="10"
                                    pattern="\d*"
-                                   />
+                            />
                         </div>
 
 
@@ -454,7 +454,8 @@
                             {% if special_1 %}
                                 {% if queue.category == 'restaurant' %}
                                     <div class="form-control border-1">
-                                        <label class="label"><span class="label-text border-1">{{ special_1 }}</span></label>
+                                        <label class="label"><span
+                                                class="label-text border-1">{{ special_1 }}</span></label>
                                         <div class="space-x-2">
                                             {% for size in '1234567'|make_list %}
                                                 <label class="radio join-item">
@@ -499,6 +500,15 @@
                 </div>
                 </div>
 
+                <input type="checkbox" id="QRModal" class="modal-toggle"/>
+                <div class="modal">
+                    <div class="modal-box relative">
+                        <label for="QRModal" class="btn btn-sm btn-square btn-ghost absolute right-2 top-2">✕</label>
+                        <img src="" id="modalQRCode"
+                             alt="QR Code"
+                             class="mx-auto">
+                    </div>
+                </div>
 
                 <script>
                     let deleteParticipantId = null;
@@ -612,6 +622,12 @@
                                 row.style.display = 'none';
                             }
                         });
+                    }
+
+                    function openQRModal(qrCodeUrl) {
+                        const qrCodeImg = document.getElementById('modalQRCode');
+                        qrCodeImg.src = qrCodeUrl;
+                        document.getElementById('QRModal').checked = true;
                     }
                 </script>
 

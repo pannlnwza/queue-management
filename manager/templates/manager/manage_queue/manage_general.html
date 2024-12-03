@@ -40,8 +40,10 @@
             <div class="ml-auto flex space-x-2">
                 <a href="{% url 'manager:queue_display' queue.id %}" class="btn btn-primary cursor-pointer">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="size-4">
-                      <path d="M12 5H4v4h8V5Z" />
-                      <path fill-rule="evenodd" d="M1 3a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v8a1 1 0 0 1-1 1h-4v1.5h2.25a.75.75 0 0 1 0 1.5h-8.5a.75.75 0 0 1 0-1.5H6V12H2a1 1 0 0 1-1-1V3Zm1.5 7.5v-7h11v7h-11Z" clip-rule="evenodd" />
+                        <path d="M12 5H4v4h8V5Z"/>
+                        <path fill-rule="evenodd"
+                              d="M1 3a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v8a1 1 0 0 1-1 1h-4v1.5h2.25a.75.75 0 0 1 0 1.5h-8.5a.75.75 0 0 1 0-1.5H6V12H2a1 1 0 0 1-1-1V3Zm1.5 7.5v-7h11v7h-11Z"
+                              clip-rule="evenodd"/>
                     </svg>
                     TV Display
                 </a>
@@ -364,6 +366,35 @@
         </div>
     </div>
 
+    <input type="checkbox" id="completeModal" class="modal-toggle"/>
+    <div class="modal">
+        <div class="modal-box">
+            <h3 class="font-bold text-lg">Confirm Complete Participant</h3>
+            <p class="py-4">This action cannot be undone. Are you sure you want to mark this participant as
+                Complete?</p>
+            <div class="modal-action">
+                <button class="btn btn-success text-white" id="confirmCompleteButton" onclick="confirmComplete()">Yes,
+                    Mark as Complete
+                </button>
+                <label for="completeModal" class="btn">Cancel</label>
+            </div>
+        </div>
+    </div>
+
+    <input type="checkbox" id="serveModal" class="modal-toggle"/>
+    <div class="modal">
+        <div class="modal-box">
+            <h3 class="font-bold text-lg">Confirm Serve Participant</h3>
+            <p class="py-4">This action cannot be undone. Are you sure you want to serve this participant?</p>
+            <div class="modal-action">
+                <button class="btn btn-success text-white" id="confirmCompleteButton" onclick="confirmServe()">Yes,
+                    Serve Participant
+                </button>
+                <label for="completeModal" class="btn">Cancel</label>
+            </div>
+        </div>
+    </div>
+
 
     <script>
         const queue_id = {{ queue.id }};
@@ -448,7 +479,7 @@
                     "Content-Type": "application/json",
                     "X-CSRFToken": getCSRFToken(),
                 },
-                body: JSON.stringify({ message: message }),
+                body: JSON.stringify({message: message}),
             })
                 .then((response) => {
                     if (!response.ok) {
@@ -497,8 +528,6 @@
                     alert("An unexpected error occurred.");
                 });
         }
-
-
 
 
         function filterParticipants() {
@@ -611,7 +640,7 @@
                     </div>
                     <div class="tooltip" data-tip="Serve">
                     <button class="btn btn-success btn-square btn-sm text-base-100 no-animation"
-                        onclick="serveParticipant(${participant.id})" aria-label="Serve">
+                        onclick="openServeModal(${participant.id})" aria-label="Serve">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="size-5">
                             <path fill-rule="evenodd" d="M16.704 4.153a.75.75 0 0 1 .143 1.052l-8 10.5a.75.75 0 0 1-1.127.075l-4.5-4.5a.75.75 0 0 1 1.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 0 1 1.05-.143Z" clip-rule="evenodd" />
                         </svg>
@@ -636,7 +665,7 @@
             <td class="px-6 py-4 whitespace-nowrap">${participant.served || ''}</td>
             <td class="px-6 py-4 whitespace-nowrap">
                 <button class="btn btn-success btn-square btn-sm text-base-100 no-animation"
-                        onclick="completeParticipant(${participant.id})">
+                        onclick="openCompleteModal(${participant.id})">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="size-5">
                           <path fill-rule="evenodd" d="M16.704 4.153a.75.75 0 0 1 .143 1.052l-8 10.5a.75.75 0 0 1-1.127.075l-4.5-4.5a.75.75 0 0 1 1.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 0 1 1.05-.143Z" clip-rule="evenodd" />
                         </svg>
@@ -665,6 +694,55 @@
             return row;
         }
 
+        let participantIdToMark = null;
+
+        function openNoShowModal(participantId) {
+            participantIdToMark = participantId;
+            document.getElementById('noShowModal').checked = true;
+        }
+
+        function confirmNoShow() {
+            if (participantIdToMark !== null) {
+                window.location.href = `/manager/mark_no_show/${participantIdToMark}/`;
+            }
+        }
+
+        function openCompleteModal(participantId) {
+            currentParticipantId = participantId;
+            document.getElementById('completeModal').checked = true;
+        }
+
+        function confirmComplete() {
+            if (currentParticipantId === null) {
+                alert("No participant selected.");
+                return;
+            }
+            fetch(`/manager/complete/${currentParticipantId}/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+            })
+                .then(response => {
+                    if (response.ok) {
+                        document.getElementById('completeModal').checked = false;
+                        window.location.href = window.location.pathname;
+                    } else {
+                        alert("There was an error marking the participant as complete.");
+                    }
+                })
+                .catch(error => {
+                    console.error("Error completing participant:", error);
+                    alert("There was an error. Please try again.");
+                });
+        }
+
+        function openServeModal(participantId) {
+            currentParticipantId = participantId;
+            document.getElementById('serveModal').checked = true;
+        }
+
         function serveParticipant(id) {
             fetch(`/manager/serve/${id}/`, {
                 method: 'POST',
@@ -681,36 +759,31 @@
                 .catch(error => console.error('Error serving participant:', error));
         }
 
-        function completeParticipant(id) {
-            fetch(`/manager/complete/${id}/`, {
+        function confirmServe() {
+            if (currentParticipantId === null) {
+                alert("No participant selected.");
+                return;
+            }
+            fetch(`/manager/serve/${currentParticipantId}/`, {
                 method: 'POST',
                 headers: {
-                    'X-CSRFToken': '{{ csrf_token }}',
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
                 },
-                body: JSON.stringify({id})
             })
                 .then(response => {
-                    if (!response.ok) throw new Error('Network response was not ok');
-                    fetchData();
+                    if (response.ok) {
+                        document.getElementById('serveModal').checked = false;
+                        window.location.href = window.location;
+                    } else {
+                        alert("There was an error serving the participant.");
+                    }
                 })
-                .catch(error => console.error('Error completing participant:', error));
+                .catch(error => {
+                    console.error("Error serving participant:", error);
+                    alert("There was an error. Please try again.");
+                });
         }
-
-        let participantIdToMark = null;
-
-        function openNoShowModal(participantId) {
-            participantIdToMark = participantId;
-            document.getElementById('noShowModal').checked = true;
-        }
-
-        function confirmNoShow() {
-            if (participantIdToMark !== null) {
-                window.location.href = `/manager/mark_no_show/${participantIdToMark}/`;
-            }
-        }
-
-
     </script>
 
 

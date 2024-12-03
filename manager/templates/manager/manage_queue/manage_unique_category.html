@@ -530,6 +530,21 @@
         </div>
     </div>
 
+    <input type="checkbox" id="completeModal" class="modal-toggle"/>
+    <div class="modal">
+        <div class="modal-box">
+            <h3 class="font-bold text-lg">Confirm Complete Participant</h3>
+            <p class="py-4">This action cannot be undone. Are you sure you want to mark this participant as
+                Complete?</p>
+            <div class="modal-action">
+                <button class="btn btn-success text-white" id="confirmCompleteButton" onclick="confirmComplete()">Yes,
+                    Mark as Complete
+                </button>
+                <label for="completeModal" class="btn">Cancel</label>
+            </div>
+        </div>
+    </div>
+
     <script>
         const queue_id = {{ queue.id }};
         const updateInterval = 30000;
@@ -881,7 +896,7 @@
             <td class="px-6 py-4 whitespace-nowrap">
                 <div class="tooltip" data-tip="Complete">
                 <button class="btn btn-success btn-square btn-sm text-base-100 no-animation"
-                        onclick="completeParticipant(${participant.id})">
+                        onclick="openCompleteModal(${participant.id})">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="size-5">
                           <path fill-rule="evenodd" d="M16.704 4.153a.75.75 0 0 1 .143 1.052l-8 10.5a.75.75 0 0 1-1.127.075l-4.5-4.5a.75.75 0 0 1 1.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 0 1 1.05-.143Z" clip-rule="evenodd" />
                         </svg>
@@ -911,22 +926,6 @@
             return row;
         }
 
-        function completeParticipant(id) {
-            fetch(`/manager/complete/${id}/`, {
-                method: 'POST',
-                headers: {
-                    'X-CSRFToken': '{{ csrf_token }}',
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({id})
-            })
-                .then(response => {
-                    if (!response.ok) throw new Error('Network response was not ok');
-                    fetchData();
-                })
-                .catch(error => console.error('Error completing participant:', error));
-        }
-
         let participantIdToMark = null;
 
         function openNoShowModal(participantId) {
@@ -938,6 +937,37 @@
             if (participantIdToMark !== null) {
                 window.location.href = `/manager/mark_no_show/${participantIdToMark}/`;
             }
+        }
+
+        function openCompleteModal(participantId) {
+            currentParticipantId = participantId;
+            document.getElementById('completeModal').checked = true;
+        }
+
+        function confirmComplete() {
+            if (currentParticipantId === null) {
+                alert("No participant selected.");
+                return;
+            }
+            fetch(`/manager/complete/${currentParticipantId}/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+            })
+                .then(response => {
+                    if (response.ok) {
+                        document.getElementById('completeModal').checked = false;
+                        window.location.href = window.location.pathname + '?tab=2';
+                    } else {
+                        alert("There was an error marking the participant as complete.");
+                    }
+                })
+                .catch(error => {
+                    console.error("Error completing participant:", error);
+                    alert("There was an error. Please try again.");
+                });
         }
     </script>
 
