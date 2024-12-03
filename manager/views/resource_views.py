@@ -36,6 +36,7 @@ class ResourceSettings(LoginRequiredMixin, generic.TemplateView):
 @login_required
 @require_http_methods(["POST"])
 def add_resource(request, queue_id):
+    """Method to add new resource to queue."""
     queue = get_object_or_404(Queue, id=queue_id)
     handler = CategoryHandlerFactory.get_handler(queue.category)
     queue = handler.get_queue_object(queue_id)
@@ -54,6 +55,7 @@ def add_resource(request, queue_id):
 @login_required
 @require_http_methods(["POST"])
 def edit_resource(request, resource_id):
+    """Method to edit existing resource detail in queue."""
     resource = get_object_or_404(Resource, id=resource_id)
     handler = CategoryHandlerFactory.get_handler(resource.queue.category)
     data = {
@@ -71,6 +73,7 @@ def edit_resource(request, resource_id):
 @login_required
 @require_http_methods(["DELETE"])
 def delete_resource(request, resource_id):
+    """Method to delete existing resource in queue."""
     resource = get_object_or_404(Resource, id=resource_id)
     logger.info(
         f"Deleting resource {resource_id} from queue {resource.queue.id}")

@@ -175,6 +175,7 @@ class QueueDisplay(generic.TemplateView):
 
 @login_required
 def create_queue(request):
+    """Method to create queue for business owner or queue creator."""
     data = request.POST.dict()
     category = data.get('category')
     resource_name = data.get('resource_name')
@@ -226,6 +227,7 @@ def create_queue(request):
 @require_http_methods(["DELETE"])
 @login_required
 def delete_queue(request, queue_id):
+    """Method to delete queue for business owner or queue creator."""
     try:
         queue = Queue.objects.get(pk=queue_id)
     except Queue.DoesNotExist:
@@ -246,6 +248,7 @@ def delete_queue(request, queue_id):
 @login_required
 @require_http_methods(["POST"])
 def edit_queue(request, queue_id):
+    """Method to edit queue for business owner or queue creator."""
     queue = get_object_or_404(Queue, id=queue_id)
     handler = CategoryHandlerFactory.get_handler(queue.category)
     queue = handler.get_queue_object(queue_id)
