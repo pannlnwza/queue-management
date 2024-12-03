@@ -57,9 +57,14 @@
                 </div>
 
                 <!-- Time Left Warning -->
+                {% if queue.get_average_wait_time_of_new_participant %}
+                    <p class="text-neutral font-semibold">
+                        Estimated wait time of {{ queue.get_average_wait_time_of_new_participant }} minutes.
+                    </p>
+                {% endif %}
                 {% if not queue.is_queue_closed and not queue.is_there_enough_time.0 %}
                     <p class="text-warning font-semibold">
-                        Time is limited! Estimated waiting time may exceed the time left until the queue closes.
+                        Estimated wait time of {{ queue.is_there_enough_time.2 }} minutes. You may not get serviced in time.
                     </p>
                 {% endif %}
 
