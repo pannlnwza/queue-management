@@ -187,7 +187,16 @@ class WaitingFull(LoginRequiredMixin, generic.TemplateView):
 @require_http_methods(["POST"])
 @login_required
 def add_participant(request, queue_id):
-    """Method to add participant by staff in participant list page."""
+    """
+    Add a participant to a queue by staff.
+
+    This method processes the data from the form submission, creates a new participant for the specified queue,
+    and updates the queue's line length. It also handles errors during the participant creation process.
+
+    :param request: The HTTP request object.
+    :param queue_id: The ID of the queue to which the participant is being added.
+    :return: Redirects to the participant list page with a success or error message.
+    """
     name = request.POST.get('name')
     phone = request.POST.get('phone')
     email = request.POST.get('email')
@@ -223,7 +232,15 @@ def add_participant(request, queue_id):
 
 @require_http_methods(["POST"])
 def edit_participant(request, participant_id):
-    """Method to edit specific participant in participant list page."""
+    """
+    Edit an existing participant's details.
+
+    This method processes the data from the form submission to update a participant's information in the specified queue.
+
+    :param request: The HTTP request object.
+    :param participant_id: The ID of the participant to be edited.
+    :return: Redirects to the participant list page with a success or error message.
+    """
     logger.info("Editing participant %s", participant_id)
     participant = get_object_or_404(Participant, id=participant_id)
 
@@ -257,7 +274,15 @@ def edit_participant(request, participant_id):
 @login_required
 @require_http_methods(["DELETE"])
 def delete_participant(request, participant_id):
-    """Method to delete specific participant in participant list page."""
+    """
+    Delete a participant from the queue and update the positions of remaining participants.
+
+    Ensures the user is authorized to delete the participant and updates the position of all waiting participants.
+
+    :param request: The HTTP request object.
+    :param participant_id: The ID of the participant to be deleted.
+    :return: A JSON response with a success message and updated participant positions, or an error message if unauthorized.
+    """
     participant = get_object_or_404(Participant, id=participant_id)
     logger.info(
         f"Deleting participant {participant_id} from queue {participant.queue.id}")
@@ -283,7 +308,16 @@ def delete_participant(request, participant_id):
 @login_required
 @require_http_methods(["POST"])
 def serve_participant(request, participant_id):
-    """Method to serve specific participant in queue."""
+    """
+    Serve a specific participant in the queue.
+
+    Assigns the participant to a resource if they are in a 'waiting' state and starts their service.
+    Updates the queue's estimated wait time and positions of participants.
+
+    :param request: The HTTP request object containing the resource ID.
+    :param participant_id: The ID of the participant to be served.
+    :return: A JSON response with the updated waiting and serving lists, or an error message if the operation fails.
+    """
     participant = get_object_or_404(Participant, id=participant_id)
     queue_id = participant.queue.id
     handler = CategoryHandlerFactory.get_handler(participant.queue.category)
@@ -330,7 +364,16 @@ def serve_participant(request, participant_id):
 
 
 def serve_participant_no_resource(request, participant_id):
-    """Method to serve participant in queue with no resource assigned."""
+    """
+    Serve a participant in the queue without assigning a resource.
+
+    Starts the service for the participant if they are in the 'waiting' state,
+    updates the queue's estimated wait time, and adjusts the positions of participants.
+
+    :param request: The HTTP request object.
+    :param participant_id: The ID of the participant to be served.
+    :return: A JSON response with the updated waiting and serving lists, or an error message if the operation fails.
+    """
     participant = get_object_or_404(Participant, id=participant_id)
     queue_id = participant.queue.id
     handler = CategoryHandlerFactory.get_handler(participant.queue.category)
@@ -373,7 +416,16 @@ def serve_participant_no_resource(request, participant_id):
 
 @login_required
 def mark_no_show(request, participant_id):
-    """Method to mark participant that no show."""
+    """
+    Mark a participant as a 'No Show' if they are in the 'waiting' state.
+
+    The participant's state is updated to 'no_show', their wait time is calculated,
+    and their position in the queue is adjusted.
+
+    :param request: The HTTP request object.
+    :param participant_id: The ID of the participant to mark as 'No Show'.
+    :return: A redirect to the waitlist management page with a success or error message.
+    """
     participant = get_object_or_404(Participant, id=participant_id)
 
     if participant.state in ['serving', 'cancelled', 'completed']:
@@ -397,7 +449,16 @@ def mark_no_show(request, participant_id):
 @login_required
 @require_http_methods(["POST"])
 def complete_participant(request, participant_id):
-    """Method to complete participant after serving is completed."""
+    """
+    Mark a participant as 'completed' after serving is finished.
+
+    If the participant is in the 'serving' state, their status is updated
+    to 'completed', and their details are saved.
+
+    :param request: The HTTP request object.
+    :param participant_id: The ID of the participant to mark as completed.
+    :return: A JSON response with the updated lists of serving and completed participants.
+    """
     participant = get_object_or_404(Participant, id=participant_id)
     queue = participant.queue
     handler = CategoryHandlerFactory.get_handler(queue.category)
@@ -439,7 +500,16 @@ def complete_participant(request, participant_id):
 @require_http_methods(["POST"])
 @login_required
 def notify_participant(request, participant_id):
-    """Method to notify participant by participant's id"""
+    """
+    Notify a participant via email and/or TTS audio, and mark them as notified.
+
+    If enabled, a TTS audio file is generated and uploaded to S3 for the participant's notification.
+    An email is also sent to the participant if an email address is provided.
+
+    :param request: The HTTP request object containing the notification message.
+    :param participant_id: The ID of the participant to notify.
+    :return: A JSON response with the status of the notification and any generated audio URL.
+    """
     participant = get_object_or_404(Participant, id=participant_id)
     queue = participant.queue
 
@@ -523,7 +593,13 @@ def notify_participant(request, participant_id):
 
 @require_http_methods(["DELETE"])
 def delete_audio_file(request, filename):
-    """Method to delete audio notification file."""
+    """
+    Delete the specified audio notification file from the server.
+
+    :param request: The HTTP request object.
+    :param filename: The name of the audio file to delete.
+    :return: A JSON response indicating success or failure.
+    """
     logger.info(f"Attempting to delete audio file: {filename}")
 
     audio_path = os.path.join(settings.MEDIA_ROOT, "announcements", filename)

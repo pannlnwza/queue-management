@@ -15,8 +15,12 @@ logger = logging.getLogger('queue')
 
 def signup(request):
     """
-    Register a new user.
-    Handles the signup process, creating a new user and profile if the provided data is valid.
+    Register a new user and create a profile.
+
+    Handles user registration and profile creation. If the form is valid, it creates a new user, logs them in, and redirects them to the home page.
+    If the form is invalid, it re-renders the signup page with error messages.
+
+    :return: A redirect to the home page on successful signup, or re-renders the signup form if validation fails.
     """
     if request.method == 'POST':
         form = CustomUserCreationForm(request.POST)
@@ -53,7 +57,11 @@ def signup(request):
 
 def login_view(request):
     """
-    Handle user login and update profile if needed
+    Handle user login and update profile if needed.
+
+    Authenticates the user with the provided username and password. If successful, logs the user in, updates their profile with a Google profile image (if available), and redirects to the 'your-queue' page. If authentication fails, it displays an error message.
+
+    :return: A redirect to the 'your-queue' page on successful login, or re-renders the login page with an error message if login fails.
     """
     if request.method == 'POST':
         username = request.POST.get('username')
@@ -86,7 +94,13 @@ def login_view(request):
 
 @csrf_exempt
 def set_location(request):
-    """Set location of user to show nearby queues."""
+    """
+    Set the user's location to display nearby queues.
+
+    This view accepts a POST request with latitude and longitude data in JSON format, stores it in the user's session, and returns a success response. If the data is invalid or the method is not POST, an error response is returned.
+
+    :return: JsonResponse with a success or failure status.
+    """
     if request.method == 'POST':
         try:
             data = json.loads(request.body)
@@ -107,8 +121,15 @@ def set_location(request):
     return JsonResponse(
         {'status': 'failed', 'error': 'Only POST method allowed'}, status=400)
 
+
 def get_client_ip(request):
-    """Retrieve the client's IP address from the request."""
+    """
+    Retrieve the client's IP address from the request.
+
+    This function checks the `HTTP_X_FORWARDED_FOR` header first (for proxied requests) and falls back to `REMOTE_ADDR` if not available.
+
+    :return: The client's IP address as a string.
+    """
     return (
         x_forwarded_for.split(',')[0]
         if (x_forwarded_for := request.META.get('HTTP_X_FORWARDED_FOR'))
