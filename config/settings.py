@@ -110,7 +110,7 @@ ASGI_APPLICATION = "config.asgi.application"
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
-
+#
 TEST = config('TEST', default=False, cast=bool)
 
 if TEST or 'test' in sys.argv:
@@ -187,7 +187,7 @@ SOCIALACCOUNT_PROVIDERS = {
         'AUTH_PARAMS': {
             'access_type': 'online',
         },
-        'REDIRECT_URI': config('GOOGLE_REDIRECT_URI', default='http://127.0.0.1:8000/accounts/google/login/callback/'),
+        'REDIRECT_URI': config('GOOGLE_REDIRECT_URI', default='https://127.0.0.1:8000/accounts/google/login/callback/'),
     }
 }
 

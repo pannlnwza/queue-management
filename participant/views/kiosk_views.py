@@ -13,6 +13,7 @@ from django.core.mail import EmailMessage
 from django.template.loader import render_to_string
 from django.conf import settings
 from django.contrib import messages
+from manager.utils.send_email import generate_participant_qr_code_url, send_email_with_qr
 
 
 class KioskView(generic.FormView):
@@ -50,6 +51,10 @@ class KioskView(generic.FormView):
                 form_data,
             )
             participant.created_by = 'guest'
+            print(participant.code)
+            participant.qrcode_url = generate_participant_qr_code_url(participant)
+            send_email_with_qr(participant, participant.qrcode_url)
+            participant.qrcode_email_sent = True
             participant.save()
             return redirect('participant:qrcode',
                             participant_code=participant.code)
@@ -83,53 +88,8 @@ class QRcodeView(generic.DetailView):
         context['participant'] = participant
         context['queue'] = participant.queue
 
-        # Generate the QR code URL
-        check_queue_url = self.request.build_absolute_uri(
-            reverse('participant:queue_status',
-                    kwargs={'participant_code': participant.code})
-        )
-
-        qr_code_binary = generate_qr_code(check_queue_url)
-        file = ContentFile(qr_code_binary)
-        file.name = f"{participant.code}.png"
-
-        qr_code_s3_url = upload_to_s3(file, folder="qrcode")
-        participant.qrcode_url = qr_code_s3_url
-        participant.save()
-
-        context['qr_image_url'] = qr_code_s3_url
-        if not participant.qrcode_email_sent:
-            self.send_email_with_qr(participant, qr_code_s3_url, check_queue_url)
-            participant.qrcode_email_sent = True
-            participant.save()
+        context['qr_image_url'] = participant.qrcode_url
         return context
-
-    def send_email_with_qr(self, participant, qr_code_s3_url, check_queue_url):
-        """
-        Sends an email to the participant with the QR code embedded.
-        """
-        if not participant.email:
-            return  # Skip if the participant doesn't have an email
-
-        # Render the email template
-        html_message = render_to_string(
-            'participant/qrcode_for_mail.html',
-            {
-                'participant': participant,
-                'qr_code_image_url': qr_code_s3_url,
-                'status_link': check_queue_url,
-            }
-        )
-
-        # Create and send the email
-        email = EmailMessage(
-            subject=f"Your Queue Ticket for {participant.queue.name}",
-            body=html_message,
-            from_email=settings.DEFAULT_FROM_EMAIL,
-            to=[participant.email],
-        )
-        email.content_subtype = "html"  # Send as HTML email
-        email.send()
 
 
 def welcome(request, queue_code):

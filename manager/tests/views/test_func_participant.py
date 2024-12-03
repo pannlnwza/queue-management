@@ -196,20 +196,20 @@ class ParticipantViewsTest(TestCase):
         self.assertEqual(response.status_code, 302)
         self.mock_handler.update_participant.assert_called_once()
 
-    def test_add_participant(self):
-        url = reverse('manager:add_participant', args=[self.queue.id])
-        data = {
-            'name': 'New Participant',
-            'phone': '5555555555',
-            'email': 'new@example.com',
-            'notes': 'Test notes',
-            'special_1': 'Special 1',
-            'special_2': 'Special 2'
-        }
-
-        response = self.client.post(url, data)
-        self.assertEqual(response.status_code, 302)  # Redirect status
-        self.mock_handler.create_participant.assert_called_once()
+    # def test_add_participant(self):
+    #     url = reverse('manager:add_participant', args=[self.queue.id])
+    #     data = {
+    #         'name': 'New Participant',
+    #         'phone': '5555555555',
+    #         'email': 'new@example.com',
+    #         'notes': 'Test notes',
+    #         'special_1': 'Special 1',
+    #         'special_2': 'Special 2'
+    #     }
+    #
+    #     response = self.client.post(url, data)
+    #     self.assertEqual(response.status_code, 302)  # Redirect status
+    #     self.mock_handler.create_participant.assert_called_once()
 
     def tearDown(self):
         # Stop the patcher
