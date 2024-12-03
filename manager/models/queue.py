@@ -93,8 +93,12 @@ class Queue(models.Model):
                 close_datetime_naive += timedelta(days=1)
         close_datetime = timezone.make_aware(close_datetime_naive, current_datetime.tzinfo)
         time_left = (close_datetime - current_datetime).total_seconds() / 60
-        average_wait_time = self.estimated_wait_time_per_turn * (self.get_number_waiting_now() + 1)
-        return time_left >= average_wait_time, time_left
+        average_wait_time = self.get_average_wait_time_of_new_participant()
+        return time_left >= average_wait_time, time_left, average_wait_time
+
+    def get_average_wait_time_of_new_participant(self):
+        """Returns the average wait time of the participant that is about to join."""
+        return self.estimated_wait_time_per_turn * (self.get_number_waiting_now() + 1)
 
     @staticmethod
     def get_top_featured_queues():
