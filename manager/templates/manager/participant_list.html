@@ -422,8 +422,12 @@
                         <div class="form-control w-full">
                             <label class="label"><span class="label-text">Phone</span></label>
                             <input type="tel" id="add_phone" name="phone" placeholder="Ex. 0812345678"
-                                   class="input input-bordered w-full"/>
+                                   class="input input-bordered w-full"
+                                   maxlength="15"
+                                   pattern="\d*"
+                                   />
                         </div>
+
 
                         <div class="form-control w-full">
                             <label class="label"><span class="label-text">Note</span></label>
