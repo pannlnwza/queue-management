@@ -20,8 +20,8 @@ from manager.utils.category_handler import CategoryHandlerFactory
 from manager.utils.aws_s3_storage import upload_to_s3
 from manager.utils.send_email import send_html_email
 from django.conf import settings
-
 from participant.models import Participant, Notification
+from manager.utils.send_email import send_email_with_qr, generate_participant_qr_code_url
 
 logger = logging.getLogger('queue')
 
@@ -219,8 +219,13 @@ def add_participant(request, queue_id):
     }
 
     try:
-        handler.create_participant(data)
+        participant = handler.create_participant(data)
         queue.record_line_length()
+        qrcode_url = generate_participant_qr_code_url(participant)
+        participant.qrcode_url = qrcode_url
+        send_email_with_qr(participant, participant.qrcode_url)
+        participant.qrcode_email_sent = True
+        participant.save()
         messages.success(request, "Participant has been added.")
         logger.info("Participant added successfully to queue %s", queue_id)
         return redirect('manager:participant_list', queue_id)

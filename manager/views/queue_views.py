@@ -112,6 +112,7 @@ class QueueSettingsView(LoginRequiredMixin, generic.TemplateView):
         context['queue'] = queue
         context['resources'] = resources
         context['participant_set'] = participant_set
+        print(queue.open_time, queue.close_time)
         category_context = handler.add_resource_attributes(queue)
         if category_context:
             context.update(category_context)
@@ -193,8 +194,8 @@ def create_queue(request):
         'description': data.get('description'),
         'open_time': data.get("open_time") if data.get(
             "open_time") else None,
-        'close_time': data.get("open_time") if data.get(
-            "open_time") else None,
+        'close_time': data.get("close_time") if data.get(
+            "close_time") else None,
         'latitude': data.get('latitude'),
         'longitude': data.get('longitude'),
         'created_by': request.user,

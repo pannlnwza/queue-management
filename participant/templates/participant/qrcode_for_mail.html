@@ -70,6 +70,8 @@
             <p>Dear {{ participant.name }},</p>
             <p>Scan QR Code for Quick Access:</p>
             <img src="{{ qr_code_image_url }}" alt="Queue QR Code">
+
+            <p>or <a href="{{ participant.get_status_link }}">Click here!</a></p>
         </div>
 
         <div class="ticket-details">

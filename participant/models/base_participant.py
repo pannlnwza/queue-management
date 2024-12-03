@@ -5,6 +5,7 @@ from django.utils import timezone
 from manager.models import Resource
 from datetime import timedelta
 from django.conf import settings
+from manager.utils.send_email import generate_participant_qr_code_url, send_email_with_qr
 
 
 class Participant(models.Model):
@@ -63,6 +64,8 @@ class Participant(models.Model):
             self.position = last_position + 1
         self.updated_at = timezone.localtime()
         super().save(*args, **kwargs)
+
+
 
     def update_position(self, new_position: int) -> None:
         """
