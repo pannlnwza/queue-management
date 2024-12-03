@@ -260,14 +260,6 @@ def edit_queue(request, queue_id):
         close_time = request.POST.get('close_time')
         tts_enabled = request.POST.get('tts')
 
-        # if 'logo' in request.FILES:
-        #     try:
-        #         logo_file = request.FILES['logo']
-        #         queue.logo = logo_file.read()
-        #     except Exception as e:
-        #         messages.error(request, f"Error processing the logo file: {e}")
-        #         return redirect('manager:your-queue')
-
         if 'logo' in request.FILES:
             try:
                 logo_file = request.FILES['logo']
@@ -284,7 +276,8 @@ def edit_queue(request, queue_id):
         queue.description = description
         queue.latitude = latitude
         queue.longitude = longitude
-        queue.is_closed = status == 'on'
+        print(status)
+        queue.is_closed = status is None
         queue.tts_notifications_enabled = True if tts_enabled == 'on' else False
 
         try:
