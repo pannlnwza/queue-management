@@ -333,26 +333,25 @@ class QueueModelTests(TestCase):
 
         # Add participants with different states
         Participant.objects.create(queue=self.queue, state="cancelled", created_by="guest")
-        Participant.objects.create(queue=self.queue, state="removed", created_by="guest")
+        Participant.objects.create(queue=self.queue, state="no_show", created_by="guest")
         Participant.objects.create(queue=self.queue, state="completed", created_by="guest")
 
         # Cancelled: 1, Total Dropoff: 2, Percentage: (1/2) * 100 = 50.0
         cancelled_percentage = self.queue.get_cancelled_percentage()
         self.assertEqual(cancelled_percentage, 50.0)
 
-    def test_get_removed_percentage(self):
-        """Test calculating the percentage of removed participants."""
+    def test_get_no_show_percentage(self):
+        """Test calculating the percentage of no_show participants."""
         # Clear existing participants
         self.queue.participant_set.all().delete()
 
         # Add participants with different states
         Participant.objects.create(queue=self.queue, state="cancelled", created_by="guest")
-        Participant.objects.create(queue=self.queue, state="removed", created_by="guest")
+        Participant.objects.create(queue=self.queue, state="no_show", created_by="guest")
         Participant.objects.create(queue=self.queue, state="completed", created_by="guest")
 
-        # Removed: 1, Total Dropoff: 2, Percentage: (1/2) * 100 = 50.0
-        removed_percentage = self.queue.get_removed_percentage()
-        self.assertEqual(removed_percentage, 50.0)
+        no_show_percentage = self.queue.get_no_show_percentage()
+        self.assertEqual(no_show_percentage, 50.0)
 
     # def test_get_average_waiting_time(self):
     #     """Test calculating the average waiting time for participants."""

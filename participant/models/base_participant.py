@@ -15,7 +15,6 @@ class Participant(models.Model):
         ('serving', 'Serving'),
         ('completed', 'Completed'),
         ('cancelled', 'Cancelled'),
-        ('removed', 'Removed'),
         ('no_show', 'No Show')
     ]
     CREATE_BY = [
@@ -69,20 +68,41 @@ class Participant(models.Model):
 
 
     def update_position(self, new_position: int) -> None:
-        """Update the position of the participant in the queue."""
+        """
+        Update the position of the participant in the queue.
+
+        :param new_position: The new position to be assigned to the participant.
+        :raises ValueError: If the new position is less than 1, indicating an invalid position.
+        """
         if new_position < 1:
             raise ValueError("Position must be positive.")
         self.position = new_position
         self.save()
 
     def calculate_estimated_wait_time(self) -> int:
-        """Calculate the estimated wait time for this participant in the queue."""
+        """
+        Calculate the estimated wait time for this participant in the queue.
+
+        :returns: The estimated wait time in minutes for the participant based on their position in the queue.
+                  If the participant is at the first position, the estimated wait time is the queue's
+                  estimated wait time per turn. Otherwise, it is the queue's estimated wait time per turn
+                  multiplied by the participant's position minus one.
+        :raises ValueError: If the position is less than 1.
+        """
         if self.position == 1:
             return self.queue.estimated_wait_time_per_turn
         return self.queue.estimated_wait_time_per_turn * self.position
 
     def start_service(self):
-        """Mark the participant as serving."""
+        """
+        Mark the participant as serving.
+
+        This method updates the participant's state to 'serving', removes their position in the queue,
+        and sets the service start time.
+
+        :raises ValueError: If the participant's state is not 'waiting'.
+        """
+
         if self.state == 'waiting':
             self.state = 'serving'
             self.position = None
@@ -90,28 +110,51 @@ class Participant(models.Model):
             self.save()
 
     def get_wait_time(self):
-        """Calculate the wait time for the participant."""
+        """
+        Calculate the wait time for the participant.
+
+        This method calculates the time the participant has been waiting in the queue
+        based on their state. If they are waiting, it calculates the time since they joined the queue.
+        If they are being served, it calculates the time since their service started.
+
+        :returns: An integer representing the wait time in minutes.
+        :raises ValueError: If the participant's state is not 'waiting' or 'serving'.
+        """
+
         if self.state == 'waiting':
             return int(
                 (timezone.localtime() - self.joined_at).total_seconds() / 60)
         elif self.service_started_at:
-            return int((
-                                   self.service_started_at - self.joined_at).total_seconds() / 60)
+            return int((self.service_started_at - self.joined_at).total_seconds() / 60)
 
     def get_service_duration(self):
-        """Calculate the duration of service for the participant."""
+        """
+        Calculate the duration of service for the participant.
+
+        This method calculates the duration of service for the participant. If the participant is currently being served,
+        it calculates the time since their service started. If the service is completed, it calculates the time between
+        when the service started and when it was completed.
+
+        :returns: An integer representing the service duration in minutes. Returns 0 if no service duration is available.
+        :raises ValueError: If the participant's state is not 'serving' or 'completed'.
+        """
         if self.state == 'serving' and self.service_started_at:
-            return int((
-                                   timezone.localtime() - self.service_started_at).total_seconds() / 60)
+            return int((timezone.localtime() - self.service_started_at).total_seconds() / 60)
         elif self.state == 'completed':
             if self.service_started_at and self.service_completed_at:
-                return int((
-                                       self.service_completed_at - self.service_started_at).total_seconds() / 60)
+                return int((self.service_completed_at - self.service_started_at).total_seconds() / 60)
         return 0
 
     def assign_to_resource(self, required_capacity=None):
         """
         Assigns this participant to an available resource based on the queue category.
+
+        This method checks for available resources in the queue and assigns the participant to one. If a required capacity
+        is provided, it filters resources by that capacity; otherwise, it simply picks the first available resource.
+
+        :param required_capacity: Optional capacity required for the resource. If provided, only resources with this
+                                   capacity will be considered.
+        :raises ValueError: If no available resources are found.
         """
         queue = self.queue
 
@@ -132,7 +175,14 @@ class Participant(models.Model):
 
     @staticmethod
     def remove_old_completed_participants():
-        """Remove participants whose service completed 30 days ago"""
+        """
+        Removes participants whose service was completed 30 days ago.
+
+        This method filters participants who have a 'completed' state and whose service was completed before the cutoff
+        time (30 days ago) and deletes them from the database.
+
+        :raises ValueError: If no participants match the criteria.
+        """
         cutoff_time = timezone.localtime() - timedelta(days=30)
         Participant.objects.filter(state='completed',
                                    service_completed_at__lte=cutoff_time).delete()
@@ -140,12 +190,20 @@ class Participant(models.Model):
     def get_status_link(self):
         """
         Returns the full URL to the welcome page for this queue.
+
+        This method generates a URL using the site's domain and the queue's unique code.
+
+        :returns: A string representing the full URL to the queue's status page.
         """
         return f"{settings.SITE_DOMAIN}status/{self.code}"
 
     def get_status_print_link(self):
         """
-        Returns the full URL to the welcome page for this queue.
+        Returns the full URL to the welcome page for this queue, optimized for printing.
+
+        This method generates a URL using the site's domain and the queue's unique code for a version suitable for printing.
+
+        :returns: A string representing the full URL to the queue's status page for printing.
         """
         return f"{settings.SITE_DOMAIN}status_for_printing/{self.code}"
 

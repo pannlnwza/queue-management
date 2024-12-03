@@ -16,18 +16,37 @@ class EditProfileView(LoginRequiredMixin, generic.UpdateView):
     form_class = EditProfileForm
 
     def get_success_url(self):
+        """
+        Returns the URL to redirect to after a successful form submission.
+
+        :return: The success URL for the 'edit_profile' view, including the queue_id.
+        """
         queue_id = self.kwargs.get('queue_id')
         if queue_id:
             return reverse_lazy('manager:edit_profile', kwargs={'queue_id': queue_id})
         return reverse_lazy('manager:edit_profile_no_queue')
 
     def get_object(self, queryset=None):
+        """
+        Retrieves or creates the UserProfile for the currently authenticated user.
+
+        :return: The UserProfile instance for the current user.
+        """
         profile, created = UserProfile.objects.get_or_create(
             user=self.request.user)
         return profile
 
     def form_valid(self, form):
-        """Handle both User and UserProfile updates"""
+        """
+        Handle the update of both the user and their profile, including optional image upload or removal.
+
+        - Updates user details (username, email, first/last name).
+        - Updates the associated UserProfile (phone, image, etc.).
+        - Handles image removal or upload to S3 if applicable.
+
+        :param form: The submitted form with updated user and profile data.
+        :return: A redirect to the success URL if the form is valid.
+        """
         user = self.request.user
         user.username = form.cleaned_data['username']
         user.email = form.cleaned_data['email']

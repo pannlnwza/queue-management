@@ -17,6 +17,7 @@ from asgiref.sync import sync_to_async
 
 
 class QueueStatusView(generic.TemplateView):
+    """View for queue status."""
     template_name = 'participant/status.html'
 
     def get_context_data(self, **kwargs):
@@ -39,7 +40,9 @@ class QueueStatusView(generic.TemplateView):
             "announcements/notification.mp3")
         return context
 
+
 class QueueStatusPrint(generic.TemplateView):
+    """Class for queue status printing."""
     template_name = 'participant/status_print.html'
 
     def get_context_data(self, **kwargs):
@@ -65,11 +68,14 @@ class QueueStatusPrint(generic.TemplateView):
         return context
 
 
-
-
 def sse_queue_status(request, participant_code):
-    """Server-sent Events endpoint to stream the queue status."""
+    """
+    Streams real-time updates on queue status for a participant using Server-Sent Events (SSE).
 
+    :param request: The HTTP request object.
+    :param participant_code: The unique code of the participant for whom the queue status is being streamed.
+    :return: A streaming response with queue status updates.
+    """
     def event_stream():
         """Synchronous generator to stream events."""
         while True:
@@ -118,7 +124,12 @@ def sse_queue_status(request, participant_code):
 
     @sync_to_async
     def fetch_participant_and_queue():
-        """Fetch participant and queue details synchronously."""
+        """
+        Fetches the participant and queue details from the database asynchronously.
+
+        :return: A tuple containing the participant instance, the queue instance, and the handler for the queue's category.
+        :raises Http404: If the participant or queue cannot be found.
+        """
         participant_instance = get_object_or_404(Participant,
                                                  code=participant_code)
         queue = participant_instance.queue
@@ -129,7 +140,12 @@ def sse_queue_status(request, participant_code):
 
     @sync_to_async
     def fetch_notifications(participant):
-        """Fetch notifications for the participant."""
+        """
+        Fetches notifications for the given participant asynchronously.
+
+        :param participant: The participant instance whose notifications are to be fetched.
+        :return: A list of dictionaries containing notification details including message, created_at, is_read, played_sound, and id.
+        """
         notifications = Notification.objects.filter(participant=participant)
         return [
             {
@@ -140,12 +156,15 @@ def sse_queue_status(request, participant_code):
                 'played_sound': notif.played_sound,
                 'id': notif.id,
             }
-            for notif in notifications
-        ]
+            for notif in notifications]
 
     @sync_to_async
     def mark_notifications_played(notification_ids):
-        """Mark notifications as played."""
+        """
+        Marks the notifications as played based on their IDs.
+
+        :param notification_ids: A list of notification IDs to mark as played.
+        """
         Notification.objects.filter(id__in=notification_ids).update(
             played_sound=True)
 
