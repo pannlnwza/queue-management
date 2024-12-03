@@ -92,7 +92,7 @@
                 <div class="card-body">
                     <h2 class="card-title">Waiting</h2>
                     <div>
-                        {% if queue.is_closed %}
+                        {% if queue.is_queue_closed %}
                             <span class="badge badge-error text-base-100">Closed</span>
                         {% else %}
                             <span class="badge badge-success text-base-100">Open</span>
@@ -242,7 +242,7 @@
                             <td class="px-6 py-4 whitespace-nowrap">{{ participant.service_started_at }}</td>
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <button class="btn btn-success btn-square btn-sm text-base-100 no-animation"
-                                        onclick="completeParticipant({{ participant.id }})">
+                                        onclick="openCompleteModal({{ participant.id }})">
                                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"
                                          class="size-5">
                                         <path fill-rule="evenodd"
@@ -387,10 +387,10 @@
             <h3 class="font-bold text-lg">Confirm Serve Participant</h3>
             <p class="py-4">This action cannot be undone. Are you sure you want to serve this participant?</p>
             <div class="modal-action">
-                <button class="btn btn-success text-white" id="confirmCompleteButton" onclick="confirmServe()">Yes,
+                <button class="btn btn-success text-white" id="confirmServeButton" onclick="confirmServe()">Yes,
                     Serve Participant
                 </button>
-                <label for="completeModal" class="btn">Cancel</label>
+                <label for="serveModal" class="btn">Cancel</label>
             </div>
         </div>
     </div>

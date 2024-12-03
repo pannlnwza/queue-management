@@ -246,6 +246,20 @@
         </div>
     </div>
 
+    <input type="checkbox" id="serveModal" class="modal-toggle"/>
+    <div class="modal">
+        <div class="modal-box">
+            <h3 class="font-bold text-lg">Confirm Serve Participant</h3>
+            <p class="py-4">This action cannot be undone. Are you sure you want to serve this participant?</p>
+            <div class="modal-action">
+                <button class="btn btn-success text-white" id="confirmServeButton" onclick="confirmServe()">Yes,
+                    Serve Participant
+                </button>
+                <label for="serveModal" class="btn">Cancel</label>
+            </div>
+        </div>
+    </div>
+
 
     <script>
         const queue_id = {{ queue.id }};
@@ -396,7 +410,7 @@
                     </div>
                     <div class="tooltip" data-tip="Serve">
                     <button class="btn btn-success btn-square btn-sm text-base-100 no-animation"
-                        onclick="serveParticipant(${participant.id})" aria-label="Serve">
+                        onclick="openServeModal(${participant.id})" aria-label="Serve">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="size-5">
                             <path fill-rule="evenodd" d="M16.704 4.153a.75.75 0 0 1 .143 1.052l-8 10.5a.75.75 0 0 1-1.127.075l-4.5-4.5a.75.75 0 0 1 1.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 0 1 1.05-.143Z" clip-rule="evenodd" />
                         </svg>
@@ -407,23 +421,6 @@
             </td>
         `;
             return row;
-        }
-
-
-        function serveParticipant(id) {
-            fetch(`/manager/serve/${id}/`, {
-                method: 'POST',
-                headers: {
-                    'X-CSRFToken': '{{ csrf_token }}',
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({id})
-            })
-                .then(response => {
-                    if (!response.ok) throw new Error('Network response was not ok');
-                    fetchData();
-                })
-                .catch(error => console.error('Error serving participant:', error));
         }
 
         let participantIdToMark = null;
@@ -453,6 +450,53 @@
                     row.style.display = 'none';
                 }
             });
+        }
+
+        function openServeModal(participantId) {
+            currentParticipantId = participantId;
+            document.getElementById('serveModal').checked = true;
+        }
+
+        function serveParticipant(id) {
+            fetch(`/manager/serve/${id}/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({id})
+            })
+                .then(response => {
+                    if (!response.ok) throw new Error('Network response was not ok');
+                    fetchData();
+                })
+                .catch(error => console.error('Error serving participant:', error));
+        }
+
+        function confirmServe() {
+            if (currentParticipantId === null) {
+                alert("No participant selected.");
+                return;
+            }
+            fetch(`/manager/serve/${currentParticipantId}/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+            })
+                .then(response => {
+                    if (response.ok) {
+                        document.getElementById('serveModal').checked = false;
+                        window.location.href = window.location;
+                    } else {
+                        alert("There was an error serving the participant.");
+                    }
+                })
+                .catch(error => {
+                    console.error("Error serving participant:", error);
+                    alert("There was an error. Please try again.");
+                });
         }
 
     </script>

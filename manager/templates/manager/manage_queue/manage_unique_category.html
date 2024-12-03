@@ -163,7 +163,7 @@
                     </div>
 
                     <div>
-                        {% if queue.is_closed %}
+                        {% if queue.is_queue_closed %}
                             <span class="badge badge-error text-base-100">Closed</span>
                         {% else %}
                             <span class="badge badge-success text-base-100">Open</span>
@@ -291,6 +291,9 @@
                                 Name
                             </th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Number
+                            </th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 {{ special_1 }}
                             </th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -319,6 +322,7 @@
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     {{ participant.name }}
                                 </td>
+                                <td class="px-6 py-4 whitespace-nowrap">{{ participant.number }}</td>
                                 <td class="px-6 py-4 whitespace-nowrap"></td>
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     {% if participant.note %}
@@ -886,6 +890,7 @@
 
             row.innerHTML = `
             <td class="px-6 py-4 whitespace-nowrap">${participant.name || '-'}</td>
+            <td class="px-6 py-4 whitespace-nowrap">${participant.number || '-'}</td>
             <td class="px-6 py-4 whitespace-nowrap">${participant.special_1 ? `${participant.special_1}` : '-'}</td>
             <td class="px-6 py-4 whitespace-nowrap">${createNotesModal(participant)}</td>
             <td class="px-6 py-4 whitespace-nowrap">${participant.waited || '0'} min</td>
