@@ -37,14 +37,8 @@ def generate_participant_qr_code_url(participant):
     Generate QR code for the participant, upload to S3, and return the S3 URL.
     """
     try:
-        # Get the full domain (use Sites framework or settings)
-        domain = settings.SITE_DOMAIN or Site.objects.get_current().domain
-        check_queue_url = f"{domain}{reverse('participant:queue_status', kwargs={'participant_code': participant.code})}"
-
-        print(f"Generated QR code URL: {check_queue_url}")
-
         # Generate the QR code binary
-        qr_code_binary = generate_qr_code(check_queue_url)
+        qr_code_binary = generate_qr_code(participant.get_status_link())
 
         # Create a file object for uploading
         file = ContentFile(qr_code_binary)
