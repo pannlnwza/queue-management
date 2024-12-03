@@ -5,6 +5,7 @@ from django.utils import timezone
 from manager.models import Resource
 from datetime import timedelta
 from django.conf import settings
+from manager.utils.send_email import generate_participant_qr_code_url, send_email_with_qr
 
 
 class Participant(models.Model):
@@ -62,8 +63,15 @@ class Participant(models.Model):
             Participant.objects.aggregate(models.Max('position'))[
                 'position__max'] or 0
             self.position = last_position + 1
+        if not self.qrcode_url:
+            self.qrcode_url = generate_participant_qr_code_url(self)
+        if not self.qrcode_email_sent:
+            send_email_with_qr(self, self.qrcode_url)
+            self.qrcode_email_sent = True
         self.updated_at = timezone.localtime()
         super().save(*args, **kwargs)
+
+
 
     def update_position(self, new_position: int) -> None:
         """Update the position of the participant in the queue."""

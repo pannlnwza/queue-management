@@ -4,7 +4,6 @@ from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
 from .models import Participant
 from manager.views import logger
-
 # Thread-local storage to avoid recursion
 _thread_locals = threading.local()
 
