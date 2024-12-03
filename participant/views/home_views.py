@@ -6,6 +6,7 @@ import json
 
 
 class HomePageView(generic.TemplateView):
+    """View for displaying home page."""
     template_name = 'participant/get_started.html'
 
     def get_context_data(self, **kwargs):
@@ -40,6 +41,18 @@ class HomePageView(generic.TemplateView):
 
 @csrf_exempt
 def set_location(request):
+    """
+    Sets the user's location for determining nearby queues.
+
+    This method accepts a POST request containing latitude and longitude data in JSON format.
+    The provided location is saved in the session for future use, enabling the system to show nearby queues based on the user's location.
+
+    :param request: The HTTP request object containing the location data.
+    :returns: A JSON response indicating success or failure, along with an error message if applicable.
+
+    :raises JSONDecodeError: If the body of the request contains invalid JSON.
+    :raises ValueError: If the latitude or longitude data is missing or invalid.
+    """
     if request.method == 'POST':
         try:
             data = json.loads(request.body)
@@ -71,6 +84,17 @@ def set_location(request):
 
 @csrf_exempt
 def set_location_status(request):
+    """
+    Sets the user's location access permission.
+
+    This method accepts a POST request to set the user's location access status.
+    Based on the 'status' value ('blocked' or 'allowed'), the user's latitude and longitude are either removed or saved in the session.
+
+    :param request: The HTTP request object containing the status data.
+    :returns: A JSON response indicating success or failure, with an optional error message.
+
+    :raises Exception: If an unexpected error occurs while processing the request.
+    """
     if request.method == 'POST':
         try:
             data = json.loads(request.body)

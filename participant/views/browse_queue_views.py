@@ -7,6 +7,9 @@ from django.utils import timezone
 
 
 class BaseQueueView(generic.ListView):
+    """
+    Base view for displaying a list of queues filtered by a specific category.
+    """
     model = Queue
     template_name = "participant/list_queues.html"
     context_object_name = "queues"
@@ -23,22 +26,39 @@ class BaseQueueView(generic.ListView):
 
 
 class RestaurantQueueView(BaseQueueView):
+    """
+    View for displaying queues categorized as 'restaurant'.
+    """
     queue_category = "restaurant"
 
 
 class GeneralQueueView(BaseQueueView):
+    """
+    View for displaying queues categorized as 'general'.
+    """
     queue_category = "general"
 
 
 class HospitalQueueView(BaseQueueView):
+    """
+    View for displaying queues categorized as 'hospital'.
+    """
     queue_category = "hospital"
 
 
 class BankQueueView(BaseQueueView):
+    """
+    View for displaying queues categorized as 'bank'.
+    """
     queue_category = "bank"
 
 
 class BrowseQueueView(generic.ListView):
+    """
+    View for browsing all available queues with additional context
+    such as active users and default images.
+    """
+
     model = Queue
     template_name = "participant/browse_queue.html"
 

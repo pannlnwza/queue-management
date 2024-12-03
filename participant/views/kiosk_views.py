@@ -16,6 +16,7 @@ from django.contrib import messages
 
 
 class KioskView(generic.FormView):
+    """View for kiosk page."""
     template_name = 'participant/kiosk.html'
     form_class = KioskForm
 
@@ -35,6 +36,17 @@ class KioskView(generic.FormView):
         return context
 
     def form_valid(self, form):
+        """
+        Handles form submission for creating a participant.
+
+        Checks if the queue is closed. If closed, redirects with an error message. If open,
+        creates a new participant and redirects to the QR code page. In case of an error,
+        redirects to the welcome page.
+
+        :param form: The validated form data for participant creation.
+        :returns: A redirect to either the QR code or welcome page.
+        :raises Exception: Catches any errors during participant creation.
+        """
         try:
             # Check if the queue is closed
             if self.queue.is_queue_closed():
@@ -68,8 +80,11 @@ class QRcodeView(generic.DetailView):
 
     def get_object(self, queryset=None):
         """
-        Override the get_object method to retrieve the participant by `participant_code`
-        instead of `pk`.
+        Override the get_object method to retrieve the participant by `participant_code`.
+
+        :param queryset: Optional queryset to filter the participants.
+        :returns: A participant object identified by the provided `participant_code`.
+        :raises: 404 if the participant with the given `participant_code` is not found.
         """
         participant_code = self.kwargs.get('participant_code')
         return get_object_or_404(Participant, code=participant_code)
@@ -107,6 +122,10 @@ class QRcodeView(generic.DetailView):
     def send_email_with_qr(self, participant, qr_code_s3_url, check_queue_url):
         """
         Sends an email to the participant with the QR code embedded.
+
+        :param participant: The participant to whom the email will be sent.
+        :param qr_code_s3_url: The URL of the QR code image stored on S3.
+        :param check_queue_url: The URL where the participant can check their queue status.
         """
         if not participant.email:
             return  # Skip if the participant doesn't have an email
@@ -133,5 +152,12 @@ class QRcodeView(generic.DetailView):
 
 
 def welcome(request, queue_code):
+    """
+    Renders the welcome page for the given queue.
+
+    :param request: The HTTP request object.
+    :param queue_code: The code of the queue to fetch and display.
+    :return: The rendered welcome page with queue details.
+    """
     queue = get_object_or_404(Queue, code=queue_code)
     return render(request, 'participant/welcome.html', {'queue': queue})
