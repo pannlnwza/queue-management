@@ -364,15 +364,16 @@ class Queue(models.Model):
         return round((unhandled_count / num_participants) * 100,
                      2) if num_participants else 0
 
-    def get_cancelled_percentage(self, start_date=None,
-                                 end_date=None) -> float:
+    def get_cancelled_percentage(self, start_date=None, end_date=None) -> float:
+        """Calculate the percentage of participants in the 'cancelled' state for the given date range."""
         return self._get_substate_percentage('cancelled', start_date, end_date)
 
     def get_no_show_percentage(self, start_date=None, end_date=None) -> float:
+        """Calculate the percentage of participants in the 'no_show' state for the given date range."""
         return self._get_substate_percentage('no_show', start_date, end_date)
 
-    def _get_substate_percentage(self, state: str, start_date=None,
-                                 end_date=None) -> float:
+    def _get_substate_percentage(self, state: str, start_date=None, end_date=None) -> float:
+        """Compute the percentage of participants in a specific state within the given date range."""
         dropoff_total = self.get_number_dropoff(start_date, end_date)
         queryset = self.participant_set.filter(state=state)
         if start_date and end_date:
