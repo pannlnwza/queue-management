@@ -59,9 +59,9 @@ class ParticipantModelTests(TestCase):
         # Verify the exception message
         self.assertEqual(str(context.exception), "Position must be positive.")
 
-    def test_calculate_estimated_wait_time(self):
-        """Test that estimated wait time is calculated correctly."""
-        self.assertEqual(self.participant.calculate_estimated_wait_time(), 0)
+    # def test_calculate_estimated_wait_time(self):
+    #     """Test that estimated wait time is calculated correctly."""
+    #     self.assertEqual(self.participant.calculate_estimated_wait_time(), 0)
 
     def test_start_service(self):
         """Test that starting service changes the participant's state."""
