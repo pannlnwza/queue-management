@@ -4,13 +4,17 @@ from .resource import Table, Counter, Doctor
 
 
 class RestaurantQueue(Queue):
-    """Represents a queue specifically for restaurant."""
+    """
+    Represents a restaurant queue with a set of tables as resources.
+    """
     resources = models.ManyToManyField(Table)
     resource_name = 'Tables'
 
 
 class BankQueue(Queue):
-    """Represents a queue specifically for bank services."""
+    """
+    Represents a queue for bank services with counters as resources.
+    """
     resources = models.ManyToManyField(Counter)
     resource_name = 'Counters'
 
@@ -19,6 +23,8 @@ class BankQueue(Queue):
 
 
 class HospitalQueue(Queue):
-    """Represents a queue specifically for hospital services."""
+    """
+    Represents a queue for hospital services with doctors as resources.
+    """
     resources = models.ManyToManyField(Doctor)
     resource_name = 'Doctors'

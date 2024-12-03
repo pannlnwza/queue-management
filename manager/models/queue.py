@@ -12,7 +12,6 @@ import math
 from math import radians, sin, cos, sqrt, atan2
 
 
-
 class Queue(models.Model):
     """Represents a queue created by a user."""
     STATUS_CHOICES = [
@@ -56,8 +55,10 @@ class Queue(models.Model):
 
     def is_queue_closed(self):
         """
-        Determine if the queue is closed based on the `is_closed` flag or current time.
-        Handles overnight opening and closing times (e.g., 11 PM to 4 AM).
+        Determine if the queue is closed based on the `is_closed` flag or current time,
+        including handling overnight opening and closing times (e.g., 11 PM to 4 AM).
+
+        :return: A boolean indicating if the queue is closed.
         """
         if self.is_closed:
             return True
@@ -76,9 +77,14 @@ class Queue(models.Model):
 
     def is_there_enough_time(self):
         """
-        Check if there is enough time for a person to join the queue based on
+        Determine if there is enough time for a person to join the queue, considering
         the average waiting time and the time left until the queue closes.
-        Handles overnight opening and closing times.
+        This method accounts for overnight opening and closing times.
+
+        :return: A tuple containing:
+                 - A boolean indicating if there is enough time to join the queue.
+                 - The time left until the queue closes in minutes (float).
+                 - The average wait time for a new participant in minutes (float).
         """
         if self.is_closed:
             return False, 0
@@ -97,12 +103,20 @@ class Queue(models.Model):
         return time_left >= average_wait_time, time_left, average_wait_time
 
     def get_average_wait_time_of_new_participant(self):
-        """Returns the average wait time of the participant that is about to join."""
+        """
+        Calculate and return the average wait time for a new participant about to join the queue.
+
+        :return: A float representing the estimated average wait time for the new participant.
+        """
         return self.estimated_wait_time_per_turn * (self.get_number_waiting_now() + 1)
 
     @staticmethod
     def get_top_featured_queues():
-        """Get the top 10 featured queues based on their Queue Length / Max Capacity * 100."""
+        """
+        Retrieve the top 10 featured queues based on the Queue Length / Max Capacity * 100 ratio.
+
+        :return: A list of the top 10 queues sorted by their queue-to-capacity ratio in descending order.
+        """
         queue_ratios = []
         for queue in Queue.objects.all():
             num_participants = queue.get_number_waiting_now()
@@ -121,7 +135,14 @@ class Queue(models.Model):
 
     @staticmethod
     def get_nearby_queues(user_lat, user_lon, radius_km=2):
-        """Retrieve queues within a given radius of the user's location and store their distance."""
+        """
+        Retrieve queues within a specified radius of the user's location and store their distance.
+
+        :param user_lat: Latitude of the user's location.
+        :param user_lon: Longitude of the user's location.
+        :param radius_km: The radius within which to find nearby queues, in kilometers (default is 2 km).
+        :return: A list of queues within the specified radius from the user's location.
+        """
         nearby_queues = []
         for queue in Queue.objects.all():
             queue_lat, queue_lon = radians(queue.latitude), radians(
@@ -141,7 +162,11 @@ class Queue(models.Model):
 
     @property
     def formatted_distance(self):
-        """Property to return the distance from user as a formatted string."""
+        """
+        Property to return the distance from the user as a formatted string.
+
+        :return: A string representing the distance, formatted in kilometers or meters.
+        """
         if self.distance_from_user is not None:
             if self.distance_from_user >= 1:
                 return f"{self.distance_from_user:.1f} km"
@@ -151,6 +176,11 @@ class Queue(models.Model):
         return "Distance not available"
 
     def clean(self):
+        """
+        Validates the latitude and longitude fields to ensure they are within valid ranges.
+
+        :raises ValidationError: If latitude or longitude are invalid or null.
+        """
         if self.latitude is None or self.longitude is None:
             raise ValidationError("Latitude and Longitude cannot be null.")
 
@@ -161,15 +191,30 @@ class Queue(models.Model):
             raise ValidationError("Longitude must be between -180 and 180.")
 
     def has_resources(self):
+        """
+        Determine if the queue has resources based on its category.
+
+        :return: A boolean indicating whether the queue has resources (category is not 'general').
+        """
         return self.category != 'general'
 
     def get_resources_by_status(self, status):
+        """
+        Retrieve resources associated with the queue that match the given status.
+
+        :param status: The status of the resources to filter by.
+        :return: A queryset of resources with the specified status.
+        """
         return self.resource_set.filter(
             status=status
         )
 
     def update_estimated_wait_time_per_turn(self, time_taken: int) -> None:
-        """Update the estimated wait time per turn based on the time taken for a turn."""
+        """
+        Update the estimated wait time per turn based on the time taken for a turn.
+
+        :param time_taken: The time (in minutes) taken for the current turn.
+        """
         total_time = (
                              self.estimated_wait_time_per_turn * self.completed_participants_count) + time_taken
         self.completed_participants_count += 1
@@ -178,7 +223,11 @@ class Queue(models.Model):
         self.save()
 
     def calculate_average_service_duration(self, serve_time: int):
-        """Update the average serve duration based on recent serve time."""
+        """
+        Update the average service duration based on the recent serve time.
+
+        :param serve_time: The time (in minutes) taken to serve the most recent participant.
+        """
         if self.completed_participants_count > 0:
             total_serve_time = (
                                        self.average_service_duration * self.completed_participants_count) + serve_time
@@ -191,10 +240,20 @@ class Queue(models.Model):
         self.save()
 
     def get_participants(self) -> models.QuerySet:
-        """Return a queryset of all participants in this queue. Ordered by joined_at"""
+        """
+        Return a queryset of all participants in this queue, ordered by their join time.
+
+        :return: A queryset of participants, ordered by the `joined_at` field.
+        """
         return self.participant_set.all().order_by('joined_at')
 
     def update_participants_positions(self):
+        """
+        Update the positions of all participants in the queue who are in the 'waiting' state,
+        ordered by their join time.
+
+        :return: None
+        """
         participants = self.participant_set.filter(state='waiting').order_by(
             'joined_at')
         for index, participant in enumerate(participants, start=1):
@@ -202,17 +261,29 @@ class Queue(models.Model):
             participant.save(update_fields=["position"])
 
     def get_number_of_participants(self) -> int:
-        """Return the count of all participants in this queue, excluding cancelled and removed participants."""
+        """
+        Return the count of all participants in this queue, excluding those with 'cancelled' or 'removed' status.
+
+        :return: The number of active participants in the queue.
+        """
         return self.participant_set.exclude(
             state__in=['cancelled', 'removed']).count()
 
     def get_participants_today(self) -> int:
-        """Get the total number of participants added to the queue today."""
+        """
+        Get the total number of participants added to the queue today.
+
+        :return: The count of participants who joined the queue today.
+        """
         today = timezone.now().date()
         return self.participant_set.filter(joined_at__date=today).count()
 
     def get_logo_url(self):
-        """Get a logo URL for the queue, or return a default logo based on category."""
+        """
+        Get the URL for the queue's logo, or return a default logo based on the queue's category.
+
+        :return: The URL of the queue's logo or a default logo URL.
+        """
         if self.logo:
             return self.logo
 
@@ -233,7 +304,15 @@ class Queue(models.Model):
 
     def edit(self, name: str = None, description: str = None,
              is_closed: bool = None, status: str = None) -> None:
-        """Edit the queue's name, description, or closed status."""
+        """
+        Edit the queue's name, description, closed status, or current status.
+
+        :param name: The new name for the queue (optional).
+        :param description: The new description for the queue (optional).
+        :param is_closed: The new closed status for the queue (optional).
+        :param status: The new status for the queue (optional).
+        :raises ValueError: If the name is not between 1 and 255 characters.
+        """
         if name is not None:  # Adjusted to ensure empty string validation is included
             if not (1 <= len(name) <= 255):
                 raise ValueError(
@@ -249,8 +328,10 @@ class Queue(models.Model):
 
     def get_available_resource(self, required_capacity=1):
         """
-        Fetch an available resource for the specified queue.
-        It finds a resource with enough capacity that is currently empty.
+        Fetch an available resource with enough capacity that is currently empty.
+
+        :param required_capacity: The required capacity for the resource (default is 1).
+        :return: The first available resource that meets the capacity requirement, or None if no such resource is found.
         """
         return self.resource_set.filter(
             status='available',
@@ -260,11 +341,19 @@ class Queue(models.Model):
     def get_join_link(self):
         """
         Returns the full URL to the welcome page for this queue.
+
+        :return: A string representing the URL to the queue's welcome page.
         """
         return f"{settings.SITE_DOMAIN}welcome/{self.code}/"
 
     def get_number_of_participants_by_date(self, start_date, end_date):
-        """Return the number of participants within a given date range."""
+        """
+        Return the number of participants within a given date range.
+
+        :param start_date: The start date for the range.
+        :param end_date: The end date for the range.
+        :return: The count of participants who joined within the specified date range.
+        """
         queryset = self.participant_set.all()
         if start_date and end_date:
             queryset = self.participant_set.filter(
@@ -272,46 +361,86 @@ class Queue(models.Model):
         return queryset.count()
 
     def get_number_waiting_now(self, start_date=None, end_date=None):
-        """Return the number of participants currently waiting, optionally within a date range."""
+        """
+        Return the number of participants currently waiting, optionally within a date range.
+
+        :param start_date: The start date for the filter (optional).
+        :param end_date: The end date for the filter (optional).
+        :return: The count of participants who are currently waiting.
+        """
         queryset = self.participant_set.filter(state='waiting')
         if start_date and end_date:
             queryset = queryset.filter(joined_at__range=(start_date, end_date))
         return queryset.count()
 
     def get_number_completed_now(self):
-        """Return the number of participant that completed the service."""
+        """
+        Return the number of participants who have completed the service.
+
+        :return: The count of participants with the 'completed' status.
+        """
         return self.participant_set.filter(state='completed').count()
 
     def get_number_serving_now(self, start_date=None, end_date=None):
-        """Return the number of participants currently serving, optionally within a date range."""
+        """
+        Return the number of participants currently serving, optionally within a date range.
+
+        :param start_date: The start date for the filter (optional).
+        :param end_date: The end date for the filter (optional).
+        :return: The count of participants with the 'serving' status.
+        """
         queryset = self.participant_set.filter(state='serving')
         if start_date and end_date:
             queryset = queryset.filter(joined_at__range=(start_date, end_date))
         return queryset.count()
 
     def get_number_served(self, start_date=None, end_date=None):
-        """Return the number of participants served, optionally within a date range."""
+        """
+        Return the number of participants served, optionally within a date range.
+
+        :param start_date: The start date for the filter (optional).
+        :param end_date: The end date for the filter (optional).
+        :return: The count of participants with the 'completed' status.
+        """
         queryset = self.participant_set.filter(state='completed')
         if start_date and end_date:
             queryset = queryset.filter(joined_at__range=(start_date, end_date))
         return queryset.count()
 
     def get_number_created_by_guest(self, start_date=None, end_date=None):
-        """Return the number of participants joined by link, optionally within a date range."""
+        """
+        Return the number of participants who joined via a link, optionally within a date range.
+
+        :param start_date: The start date for the filter (optional).
+        :param end_date: The end date for the filter (optional).
+        :return: The count of participants who joined as 'guest'.
+        """
         queryset = self.participant_set.filter(created_by='guest')
         if start_date and end_date:
             queryset = queryset.filter(joined_at__range=(start_date, end_date))
         return queryset.count()
 
     def get_number_created_by_staff(self, start_date=None, end_date=None):
-        """Return the number of participants joined by staff, optionally within a date range."""
+        """
+        Return the number of participants who joined via staff, optionally within a date range.
+
+        :param start_date: The start date for the filter (optional).
+        :param end_date: The end date for the filter (optional).
+        :return: The count of participants who joined as 'staff'.
+        """
         queryset = self.participant_set.filter(created_by='staff')
         if start_date and end_date:
             queryset = queryset.filter(joined_at__range=(start_date, end_date))
         return queryset.count()
 
     def get_number_dropoff(self, start_date=None, end_date=None):
-        """Return the number of dropout participants (cancelled and removed), optionally within a date range."""
+        """
+        Return the number of participants who dropped off (cancelled or no-show), optionally within a date range.
+
+        :param start_date: The start date for the filter (optional).
+        :param end_date: The end date for the filter (optional).
+        :return: The count of participants who dropped off.
+        """
         queryset = self.participant_set.filter(
             state__in=['cancelled', 'no_show'])
         if start_date and end_date:
@@ -319,13 +448,25 @@ class Queue(models.Model):
         return queryset.count()
 
     def get_number_unhandled(self, start_date=None, end_date=None):
-        """Return the number of unhandled participants, optionally within a date range."""
+        """
+        Return the number of unhandled participants (waiting or serving), optionally within a date range.
+
+        :param start_date: The start date for the filter (optional).
+        :param end_date: The end date for the filter (optional).
+        :return: The total count of unhandled participants (waiting + serving).
+        """
         waiting_now = self.get_number_waiting_now(start_date, end_date)
         serving_now = self.get_number_serving_now(start_date, end_date)
         return waiting_now + serving_now
 
     def get_guest_percentage(self, start_date=None, end_date=None):
-        """Return percentage of participants joined by link, optionally within a date range."""
+        """
+        Return the percentage of participants who joined via link, optionally within a date range.
+
+        :param start_date: The start date for the filter (optional).
+        :param end_date: The end date for the filter (optional).
+        :return: The percentage of participants who joined as guests.
+        """
         num_participants = self.get_number_of_participants_by_date(start_date,
                                                                    end_date)
         guest_count = self.get_number_created_by_guest(start_date, end_date)
@@ -333,7 +474,13 @@ class Queue(models.Model):
                      2) if num_participants else 0
 
     def get_staff_percentage(self, start_date=None, end_date=None):
-        """Return percentage of participants joined by staff, optionally within a date range."""
+        """
+        Return the percentage of participants who joined via staff, optionally within a date range.
+
+        :param start_date: The start date for the filter (optional).
+        :param end_date: The end date for the filter (optional).
+        :return: The percentage of participants who joined as staff.
+        """
         num_participants = self.get_number_of_participants_by_date(start_date,
                                                                    end_date)
         staff_count = self.get_number_created_by_staff(start_date, end_date)
@@ -341,7 +488,13 @@ class Queue(models.Model):
                      2) if num_participants else 0
 
     def get_served_percentage(self, start_date=None, end_date=None):
-        """Return percentage of participants served, optionally within a date range."""
+        """
+        Return the percentage of participants who have been served, optionally within a date range.
+
+        :param start_date: The start date for the filter (optional).
+        :param end_date: The end date for the filter (optional).
+        :return: The percentage of participants who have been served.
+        """
         num_participants = self.get_number_of_participants_by_date(start_date,
                                                                    end_date)
         served_count = self.get_number_served(start_date, end_date)
@@ -349,7 +502,13 @@ class Queue(models.Model):
                      2) if num_participants else 0
 
     def get_dropoff_percentage(self, start_date=None, end_date=None):
-        """Return percentage of dropout participants, optionally within a date range."""
+        """
+        Return the percentage of participants who dropped off (cancelled or no-show), optionally within a date range.
+
+        :param start_date: The start date for the filter (optional).
+        :param end_date: The end date for the filter (optional).
+        :return: The percentage of participants who dropped off.
+        """
         num_participants = self.get_number_of_participants_by_date(start_date,
                                                                    end_date)
         dropoff_count = self.get_number_dropoff(start_date, end_date)
@@ -357,7 +516,13 @@ class Queue(models.Model):
                      2) if num_participants else 0
 
     def get_unhandled_percentage(self, start_date=None, end_date=None):
-        """Return percentage of unhandled participants, optionally within a date range."""
+        """
+        Return the percentage of unhandled participants (waiting or serving), optionally within a date range.
+
+        :param start_date: The start date for the filter (optional).
+        :param end_date: The end date for the filter (optional).
+        :return: The percentage of unhandled participants.
+        """
         num_participants = self.get_number_of_participants_by_date(start_date,
                                                                    end_date)
         unhandled_count = self.get_number_unhandled(start_date, end_date)
@@ -365,15 +530,35 @@ class Queue(models.Model):
                      2) if num_participants else 0
 
     def get_cancelled_percentage(self, start_date=None, end_date=None) -> float:
-        """Calculate the percentage of participants in the 'cancelled' state for the given date range."""
+        """
+        Calculate the percentage of participants in the 'cancelled' state, optionally within a date range.
+
+        :param start_date: The start date for the filter (optional).
+        :param end_date: The end date for the filter (optional).
+        :return: The percentage of participants with the 'cancelled' state.
+        """
         return self._get_substate_percentage('cancelled', start_date, end_date)
 
     def get_no_show_percentage(self, start_date=None, end_date=None) -> float:
-        """Calculate the percentage of participants in the 'no_show' state for the given date range."""
+        """
+        Calculate the percentage of participants in the 'no_show' state, optionally within a date range.
+
+        :param start_date: The start date for the filter (optional).
+        :param end_date: The end date for the filter (optional).
+        :return: The percentage of participants with the 'no_show' state.
+        """
         return self._get_substate_percentage('no_show', start_date, end_date)
 
     def _get_substate_percentage(self, state: str, start_date=None, end_date=None) -> float:
-        """Compute the percentage of participants in a specific state within the given date range."""
+        """
+        Compute the percentage of participants in a specific state (e.g., 'cancelled', 'no_show')
+        within the given date range.
+
+        :param state: The state to filter participants by (e.g., 'cancelled', 'no_show').
+        :param start_date: The start date for the filter (optional).
+        :param end_date: The end date for the filter (optional).
+        :return: The percentage of participants in the specified state.
+        """
         dropoff_total = self.get_number_dropoff(start_date, end_date)
         queryset = self.participant_set.filter(state=state)
         if start_date and end_date:
@@ -382,7 +567,13 @@ class Queue(models.Model):
                      2) if dropoff_total else 0
 
     def get_average_waiting_time(self, start_date=None, end_date=None):
-        """Calculate the average waiting time for participants, optionally within a date range."""
+        """
+        Calculate the average waiting time for participants, optionally within a date range.
+
+        :param start_date: The start date for the filter (optional).
+        :param end_date: The end date for the filter (optional).
+        :return: The average waiting time formatted as a string.
+        """
         queryset = self.participant_set.exclude(state='waiting')
         if start_date and end_date:
             queryset = queryset.filter(joined_at__range=(start_date, end_date))
@@ -396,7 +587,13 @@ class Queue(models.Model):
         return format_duration(average_wait_time)
 
     def get_max_waiting_time(self, start_date=None, end_date=None):
-        """Calculate the maximum waiting time for participants, optionally within a date range."""
+        """
+        Calculate the maximum waiting time for participants, optionally within a date range.
+
+        :param start_date: The start date for the filter (optional).
+        :param end_date: The end date for the filter (optional).
+        :return: The maximum waiting time formatted as a string.
+        """
         queryset = self.participant_set.exclude(state='waiting')
         if start_date and end_date:
             queryset = queryset.filter(joined_at__range=(start_date, end_date))
@@ -409,7 +606,13 @@ class Queue(models.Model):
         return format_duration(max_wait_time)
 
     def get_average_service_duration(self, start_date=None, end_date=None):
-        """Calculate the average service duration for participants, optionally within a date range."""
+        """
+        Calculate the average service duration for participants, optionally within a date range.
+
+        :param start_date: The start date for the filter (optional).
+        :param end_date: The end date for the filter (optional).
+        :return: The average service duration formatted as a string.
+        """
         queryset = self.participant_set.filter(state='completed')
         if start_date and end_date:
             queryset = queryset.filter(joined_at__range=(start_date, end_date))
@@ -423,7 +626,13 @@ class Queue(models.Model):
         return format_duration(average_service_time)
 
     def get_max_service_duration(self, start_date=None, end_date=None):
-        """Get the maximum service duration for participants, optionally within a date range."""
+        """
+        Get the maximum service duration for participants, optionally within a date range.
+
+        :param start_date: The start date for the filter (optional).
+        :param end_date: The end date for the filter (optional).
+        :return: The maximum service duration formatted as a string.
+        """
         queryset = self.participant_set.filter(state='completed')
         if start_date and end_date:
             queryset = queryset.filter(joined_at__range=(start_date, end_date))
@@ -436,12 +645,22 @@ class Queue(models.Model):
         return format_duration(max_service_time)
 
     def record_line_length(self):
-        """Records the current line length when a participant joins the queue."""
+        """
+        Records the current line length when a participant joins the queue.
+
+        :return: None
+        """
         line_length = self.participant_set.filter(state='waiting').count()
         QueueLineLength.objects.create(queue=self, line_length=line_length)
 
     def get_peak_line_length(self, start_date=None, end_date=None):
-        """Calculate the peak line length within the specified date range."""
+        """
+        Calculate the peak line length within the specified date range.
+
+        :param start_date: The start date for filtering (optional).
+        :param end_date: The end date for filtering (optional).
+        :return: The peak line length, or 0 if no records are found.
+        """
         queryset = QueueLineLength.objects.filter(queue=self)
         if start_date and end_date:
             queryset = queryset.filter(timestamp__range=(start_date, end_date))
@@ -450,7 +669,13 @@ class Queue(models.Model):
         return peak_record.line_length if peak_record else 0
 
     def get_avg_line_length(self, start_date=None, end_date=None):
-        """Calculate the average line length (average number of participants waiting) within a date range."""
+        """
+        Calculate the average line length (average number of participants waiting) within a date range.
+
+        :param start_date: The start date for filtering (optional).
+        :param end_date: The end date for filtering (optional).
+        :return: The average line length, or 0 if no records are found.
+        """
         queryset = QueueLineLength.objects.filter(queue=self)
         if start_date and end_date:
             queryset = queryset.filter(timestamp__range=(start_date, end_date))
