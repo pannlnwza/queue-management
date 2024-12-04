@@ -24,6 +24,8 @@ def participant_leave(request, participant_code):
 
     try:
         participant.state = 'cancelled'
+        participant.position = None
+        participant.queue.update_participants_positions()
         participant.save()
         messages.success(request,
                          f"We are sorry to see you leave {participant.name}. See you next time!")
