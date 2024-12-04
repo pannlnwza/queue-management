@@ -61,7 +61,7 @@ class ManageWaitlist(LoginRequiredMixin, generic.TemplateView):
         context['waiting_list'] = participant_set.filter(
             state='waiting').order_by('position')[:5]
         context['serving_list'] = participant_set.filter(
-            state='serving').order_by('-service_started_at')[:5]
+            state='serving').order_by('service_started_at')[:5]
         context['completed_list'] = participant_set.filter(
             state='completed').order_by('-service_completed_at')[:5]
         context['queue'] = queue
@@ -169,8 +169,8 @@ class WaitingFull(LoginRequiredMixin, generic.TemplateView):
         handler = CategoryHandlerFactory.get_handler(queue.category)
         queue = handler.get_queue_object(queue_id)
         participant_set = handler.get_participant_set(queue_id)
-        waiting_list = participant_set.filter(state='waiting')
-        serving_list = participant_set.filter(state='serving')
+        waiting_list = participant_set.filter(state='waiting').order_by('position')
+        serving_list = participant_set.filter(state='serving').order_by('service_started_at')
         context['queue'] = queue
         context['waiting_list'] = waiting_list
         context['serving_list'] = serving_list

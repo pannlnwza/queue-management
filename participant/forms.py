@@ -31,6 +31,7 @@ class KioskForm(forms.Form):
                     ),
                     label='Party Size',
                     min_value=1,  # Ensures only positive integers are allowed
+                    max_value=30,
                     error_messages={
                         'min_value': 'Please enter a positive number.',
                         'invalid': 'Enter a valid number.',
@@ -40,8 +41,8 @@ class KioskForm(forms.Form):
                     choices=RestaurantParticipant.SERVICE_TYPE_CHOICE,
                     widget=forms.Select(attrs={'class': 'select select-bordered w-full'}),
                     required=False,
-                    initial='first_available',
-                    label='Seating Preference',
+                    initial='dine_in',
+                    label='Service Type',
                 )
             elif queue.category == 'hospital':
                 self.fields['special_1'] = forms.ChoiceField(

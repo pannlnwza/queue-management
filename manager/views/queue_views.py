@@ -2,6 +2,7 @@ import logging
 from datetime import datetime
 import json
 from django.contrib.auth.decorators import login_required
+from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect
 from django.contrib import messages
@@ -77,7 +78,6 @@ class YourQueueView(LoginRequiredMixin, generic.TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         user = self.request.user
-
         state_filter = self.request.GET.get('state_filter', 'any_state')
         authorized_queues = Queue.objects.filter(created_by=user)
 
@@ -86,15 +86,26 @@ class YourQueueView(LoginRequiredMixin, generic.TemplateView):
             'open': 'Open',
             'closed': 'Closed',
         }
-
         if state_filter == 'open':
             authorized_queues = authorized_queues.filter(is_closed=False)
         elif state_filter == 'closed':
             authorized_queues = authorized_queues.filter(is_closed=True)
 
-        context['authorized_queues'] = authorized_queues
-        context['selected_state_filter'] = state_filter_options.get(
-            state_filter)
+        items_per_page = 10
+        paginator = Paginator(authorized_queues, items_per_page)
+        page = self.request.GET.get('page', 1)
+
+        try:
+            queues = paginator.page(page)
+        except PageNotAnInteger:
+            queues = paginator.page(1)
+        except EmptyPage:
+            queues = paginator.page(paginator.num_pages)
+
+        context['authorized_queues'] = queues
+        context['page_obj'] = queues
+        context['selected_state_filter'] = state_filter_options.get(state_filter)
+        context['state_filter_options'] = state_filter_options
         return context
 
 
@@ -168,7 +179,7 @@ class QueueDisplay(generic.TemplateView):
         )
 
 
-        context['participants'] = participants
+        context['participants'] = participants[:6]
         context['calling'] = calling_number
         context['next_in_line'] = next_in_line_number
         return context
@@ -302,7 +313,8 @@ def edit_queue(request, queue_id):
         queue.description = description
         queue.latitude = latitude
         queue.longitude = longitude
-        queue.is_closed = status == 'on'
+        print(status)
+        queue.is_closed = status is None
         queue.tts_notifications_enabled = True if tts_enabled == 'on' else False
 
         try:

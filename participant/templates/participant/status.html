@@ -56,7 +56,10 @@
             <div id="served-message" style="display: none;">
                 <p class="text-green-600 font-bold">You have been served.</p>
             </div>
-            <div>
+            <div id="no-show-message" style="display: none;">
+                <p class="text-red-500 font-bold">You have been marked as no show.</p>
+            </div>
+            <div id="estimatedWait">
                 <p class="text-gray-600 font-bold m-4">Estimated wait time: <span id="EstimatedWaitTime"></span> minutes</p>
             </div>
             <div class="flex justify-center">
@@ -258,7 +261,14 @@
                 if (data.served) {
                     document.getElementById('served-message').style.display = 'block';
                     document.getElementById('leave-button').style.display = 'none';
-                } else if (data.position === 1 && data.served === null) {
+                    document.getElementById('estimatedWait').style.display = 'none';
+                }
+                else if (data.state == 'no_show') {
+                    document.getElementById('no-show-message').style.display = 'block';
+                    document.getElementById('leave-button').style.display = 'none';
+                    document.getElementById('estimatedWait').style.display = 'none';
+                }
+                else if (data.position === 1 && data.served === null) {
                     document.getElementById('first-in-queue-message').style.display = 'block';
                 } else {
                     document.getElementById('ETA-message').style.display = 'block';

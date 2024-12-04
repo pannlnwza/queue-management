@@ -91,7 +91,7 @@ class Participant(models.Model):
         """
         if self.position == 1:
             return self.queue.estimated_wait_time_per_turn
-        return self.queue.estimated_wait_time_per_turn * (self.position - 1)
+        return self.queue.estimated_wait_time_per_turn * self.position
 
     def start_service(self):
         """

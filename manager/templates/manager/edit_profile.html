@@ -1,4 +1,4 @@
-{% extends 'sidebar_manage.html' %}
+{% extends base_template %}
 {% load static %}
 
 {% block content %}
@@ -105,7 +105,7 @@
 
                 <div class="flex space-x-4 mt-4 ml-5">
                     <button type="submit" class="btn btn-primary w-48">Update Profile</button>
-                    <a href="{% url 'manager:manage_waitlist' queue_id %}" class="btn w-48">Back</a>
+                    <a onclick="history.back()" class="btn w-48">Back</a>
                 </div>
             </form>
 
@@ -159,7 +159,7 @@
 
                 buttonContainer.innerHTML = isDefaultImage
                     ? `<label for="image" class="btn btn-primary">Select Image</label>`
-                    : `<button type="button" class="btn btn-error" onclick="handleRemove()">Remove Image</button>`;
+                    : `<button type="button" class="btn btn-error text-white" onclick="handleRemove()">Remove Image</button>`;
             }
 
             function handleImageUpload(event) {

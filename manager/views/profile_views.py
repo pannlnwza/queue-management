@@ -22,8 +22,9 @@ class EditProfileView(LoginRequiredMixin, generic.UpdateView):
         :return: The success URL for the 'edit_profile' view, including the queue_id.
         """
         queue_id = self.kwargs.get('queue_id')
-        return reverse_lazy('manager:edit_profile',
-                            kwargs={'queue_id': queue_id})
+        if queue_id:
+            return reverse_lazy('manager:edit_profile', kwargs={'queue_id': queue_id})
+        return reverse_lazy('manager:edit_profile_no_queue')
 
     def get_object(self, queryset=None):
         """
@@ -81,11 +82,16 @@ class EditProfileView(LoginRequiredMixin, generic.UpdateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         queue_id = self.kwargs.get('queue_id')
-        queue = get_object_or_404(Queue, id=queue_id)
-        handler = CategoryHandlerFactory.get_handler(queue.category)
-        queue = handler.get_queue_object(queue_id)
-        context['queue'] = queue
-        context['queue_id'] = queue_id
+        if queue_id:
+            queue = get_object_or_404(Queue, id=queue_id)
+            handler = CategoryHandlerFactory.get_handler(queue.category)
+            queue = handler.get_queue_object(queue_id)
+            context['queue'] = queue
+            context['queue_id'] = queue_id
+            context['base_template'] = 'sidebar_manage.html'
+        else:
+            context['base_template'] = 'sidebar_home.html'
+
         context['user'] = self.request.user
         profile = self.get_object()
         context['profile_image_url'] = profile.get_profile_image()

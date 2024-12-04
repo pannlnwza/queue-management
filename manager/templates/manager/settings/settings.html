@@ -66,7 +66,7 @@
                 <div class="form-control my-3">
                     <label class="label cursor-pointer flex items-center space-x-2">
                         <span class="label-text font-medium">Open or Closed</span>
-                        <input type="checkbox" name="is_closed" {% if queue.is_closed %}checked{% endif %}
+                        <input type="checkbox" name="is_closed" {% if not queue.is_closed %}checked{% endif %}
                                class="toggle toggle-success"/>
                     </label>
                     <span class="label-text-alt text-base-content/60 mx-1">Toggle to forcefully mark the queue as open or closed.</span>

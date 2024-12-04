@@ -14,6 +14,7 @@ class BaseQueueView(generic.ListView):
     template_name = "participant/list_queues.html"
     context_object_name = "queues"
     queue_category = None
+    paginate_by = 8
 
     def get_queryset(self):
         return Queue.objects.filter(category=self.queue_category)
@@ -21,9 +22,7 @@ class BaseQueueView(generic.ListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["queue_type"] = self.queue_category.capitalize()
-        context["queues"] = self.get_queryset()
         return context
-
 
 class RestaurantQueueView(BaseQueueView):
     """

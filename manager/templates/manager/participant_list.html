@@ -82,7 +82,7 @@
                 </summary>
                 <ul class="menu dropdown-content bg-base-100 rounded-box z-[1] w-52 p-2 shadow">
                     <li><a href="?time_filter=today&state_filter={{ state_filter_option }}">Today</a></li>
-                    <li><a href="?time_filter=last_7k&state_filter={{ state_filter_option }}">Last 7 days</a></li>
+                    <li><a href="?time_filter=last_7&state_filter={{ state_filter_option }}">Last 7 days</a></li>
                     <li><a href="?time_filter=last_30&state_filter={{ state_filter_option }}">Last 30 days</a></li>
                     <li><a href="?time_filter=all_time&state_filter={{ state_filter_option }}">All time</a></li>
                 </ul>
@@ -181,7 +181,7 @@
                                     </li>
                                     <li>
                                         <a id="participantDetail"
-                                           href="{% url 'participant:qrcode' participant.code %}">
+                                           onclick="openQRModal('{{ participant.qrcode_url }}', '{{ participant.get_status_print_link }}')">
                                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"
                                                  fill="currentColor" class="size-4">
                                                 <path d="M4.75 4.25a.5.5 0 1 0 0 1 .5.5 0 0 0 0-1Z"/>
@@ -224,7 +224,8 @@
         </div>
         <div class="pagination flex justify-end space-x-2 py-4">
             {% if page_obj.has_previous %}
-                <a href="?page={{ page_obj.paginator.page_range.start }}" class="btn btn-sm btn-ghost btn-square">
+                <a href="?time_filter={{ time_filter_option }}&state_filter={{ state_filter_option }}&page=1"
+                   class="btn btn-sm btn-ghost btn-square">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="size-4">
                         <path fill-rule="evenodd"
                               d="M3.22 7.595a.75.75 0 0 0 0 1.06l3.25 3.25a.75.75 0 0 0 1.06-1.06l-2.72-2.72 2.72-2.72a.75.75 0 0 0-1.06-1.06l-3.25 3.25Zm8.25-3.25-3.25 3.25a.75.75 0 0 0 0 1.06l3.25 3.25a.75.75 0 1 0 1.06-1.06l-2.72-2.72 2.72-2.72a.75.75 0 0 0-1.06-1.06Z"
@@ -232,12 +233,13 @@
                     </svg>
 
                 </a>
-                <a href="?page={{ page_obj.previous_page_number }}" class="btn btn-sm btn-ghost btn-square">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="size-4">
-                        <path fill-rule="evenodd"
-                              d="M9.78 4.22a.75.75 0 0 1 0 1.06L7.06 8l2.72 2.72a.75.75 0 1 1-1.06 1.06L5.47 8.53a.75.75 0 0 1 0-1.06l3.25-3.25a.75.75 0 0 1 1.06 0Z"
-                              clip-rule="evenodd"/>
-                    </svg>
+                <a href="?time_filter={{ time_filter_option }}&state_filter={{ state_filter_option }}&page={{ page_obj.previous_page_number }}"
+                " class="btn btn-sm btn-ghost btn-square">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="size-4">
+                    <path fill-rule="evenodd"
+                          d="M9.78 4.22a.75.75 0 0 1 0 1.06L7.06 8l2.72 2.72a.75.75 0 1 1-1.06 1.06L5.47 8.53a.75.75 0 0 1 0-1.06l3.25-3.25a.75.75 0 0 1 1.06 0Z"
+                          clip-rule="evenodd"/>
+                </svg>
 
                 </a>
             {% endif %}
@@ -245,7 +247,8 @@
             <span class="btn btn-sm btn-ghost no-animation">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
 
             {% if page_obj.has_next %}
-                <a href="?page={{ page_obj.next_page_number }}" class="btn btn-sm btn-ghost btn-square">
+                <a href="?time_filter={{ time_filter_option }}&state_filter={{ state_filter_option }}&page={{ page_obj.next_page_number }}"
+                   class="btn btn-sm btn-ghost btn-square">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="size-4">
                         <path fill-rule="evenodd"
                               d="M6.22 4.22a.75.75 0 0 1 1.06 0l3.25 3.25a.75.75 0 0 1 0 1.06l-3.25 3.25a.75.75 0 0 1-1.06-1.06L8.94 8 6.22 5.28a.75.75 0 0 1 0-1.06Z"
@@ -253,7 +256,8 @@
                     </svg>
 
                 </a>
-                <a href="?page={{ page_obj.paginator.num_pages }}" class="btn btn-sm btn-ghost btn-square">
+                <a href="?time_filter={{ time_filter_option }}&state_filter={{ state_filter_option }}&page={{ page_obj.paginator.num_pages }}"
+                   class="btn btn-sm btn-ghost btn-square">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="size-4">
                         <path fill-rule="evenodd"
                               d="M12.78 7.595a.75.75 0 0 1 0 1.06l-3.25 3.25a.75.75 0 0 1-1.06-1.06l2.72-2.72-2.72-2.72a.75.75 0 0 1 1.06-1.06l3.25 3.25Zm-8.25-3.25 3.25 3.25a.75.75 0 0 1 0 1.06l-3.25 3.25a.75.75 0 0 1-1.06-1.06l2.72-2.72-2.72-2.72a.75.75 0 0 1 1.06-1.06Z"
@@ -303,19 +307,28 @@
                     </div>
 
                     <div class="form-control w-full">
-                        <label class="label"><span class="label-text">Phone</span></label>
-                        <input type="tel" id="edit_phone" name="phone" pattern="^\+?\d{9,10}$"
-                               placeholder="Ex. 081 234 5678"
+                        <div class="label">
+                            <span class="label-text">Phone</span>
+                            <span class="label-text-alt">(Optional)</span>
+                        </div>
+                        <input type="tel" id="edit_phone" name="phone" pattern="\d*"
+                               placeholder="Ex. 0812345678"
                                class="input input-bordered w-full"/>
                     </div>
 
                     <div class="form-control w-full">
-                        <label class="label"><span class="label-text">Email</span></label>
+                        <div class="label">
+                            <span class="label-text">Email</span>
+                            <span class="label-text-alt">(Optional)</span>
+                        </div>
                         <input type="email" id="edit_email" name="email" class="input input-bordered w-full"/>
                     </div>
 
                     <div class="form-control w-full">
-                        <label class="label"><span class="label-text">Note</span></label>
+                        <div class="label">
+                            <span class="label-text">Note</span>
+                            <span class="label-text-alt">(Optional)</span>
+                        </div>
                         <textarea id="edit_notes" name="notes" class="textarea textarea-bordered w-full"></textarea>
                     </div>
 
@@ -420,17 +433,31 @@
                         </div>
 
                         <div class="form-control w-full">
-                            <label class="label"><span class="label-text">Phone</span></label>
+                            <div class="label">
+                                <span class="label-text">Phone</span>
+                                <span class="label-text-alt">(Optional)</span>
+                            </div>
                             <input type="tel" id="add_phone" name="phone" placeholder="Ex. 0812345678"
                                    class="input input-bordered w-full"
                                    maxlength="10"
                                    pattern="\d*"
-                                   />
+                            />
+                        </div>
+
+                        <div class="form-control w-full">
+                            <div class="label">
+                                <span class="label-text">Email</span>
+                                <span class="label-text-alt">(Optional)</span>
+                            </div>
+                            <input type="email" id="add_email" name="email" class="input input-bordered w-full"/>
                         </div>
 
 
                         <div class="form-control w-full">
-                            <label class="label"><span class="label-text">Note</span></label>
+                            <div class="label">
+                                <span class="label-text">Note</span>
+                                <span class="label-text-alt">(Optional)</span>
+                            </div>
                             <textarea id="add_notes" name="notes" class="textarea textarea-bordered w-full"></textarea>
                         </div>
 
@@ -454,7 +481,8 @@
                             {% if special_1 %}
                                 {% if queue.category == 'restaurant' %}
                                     <div class="form-control border-1">
-                                        <label class="label"><span class="label-text border-1">{{ special_1 }}</span></label>
+                                        <label class="label"><span
+                                                class="label-text border-1">{{ special_1 }}</span></label>
                                         <div class="space-x-2">
                                             {% for size in '1234567'|make_list %}
                                                 <label class="radio join-item">
@@ -499,6 +527,25 @@
                 </div>
                 </div>
 
+                <input type="checkbox" id="QRModal" class="modal-toggle"/>
+                <div class="modal">
+                    <div class="modal-box relative">
+                        <label for="QRModal" class="btn btn-sm btn-square btn-ghost absolute right-2 top-2">✕</label>
+                        <img src="" id="modalQRCode"
+                             alt="QR Code"
+                             class="mx-auto">
+                        <button class="btn no-animation btn-lg mx-auto" id="printButton"
+                                onclick="fetchAndPrint('{{ participant.get_status_print_link }}')">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor"
+                                 class="size-4">
+                                <path fill-rule="evenodd"
+                                      d="M4 5a2 2 0 0 0-2 2v3a2 2 0 0 0 1.51 1.94l-.315 1.896A1 1 0 0 0 4.18 15h7.639a1 1 0 0 0 .986-1.164l-.316-1.897A2 2 0 0 0 14 10V7a2 2 0 0 0-2-2V2a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v3Zm1.5 0V2.5h5V5h-5Zm5.23 5.5H5.27l-.5 3h6.459l-.5-3Z"
+                                      clip-rule="evenodd"/>
+                            </svg>
+                            PRINT
+                        </button>
+                    </div>
+                </div>
 
                 <script>
                     let deleteParticipantId = null;
@@ -612,6 +659,40 @@
                                 row.style.display = 'none';
                             }
                         });
+                    }
+
+                    function openQRModal(qrCodeUrl, printURL) {
+                        const qrCodeImg = document.getElementById('modalQRCode');
+                        qrCodeImg.src = qrCodeUrl;
+                        const printButton = document.getElementById('printButton')
+                        printButton.onclick = function () {
+                            fetchAndPrint(printURL);
+                        };
+                        document.getElementById('QRModal').checked = true;
+                    }
+
+                    async function fetchAndPrint(url) {
+                        try {
+                            const response = await fetch(url);
+                            const pageContent = await response.text();
+
+                            const printFrame = document.createElement('iframe');
+                            printFrame.style.position = 'absolute';
+                            printFrame.style.top = '-10000px';
+                            document.body.appendChild(printFrame);
+
+                            const iframeDoc = printFrame.contentDocument || printFrame.contentWindow.document;
+                            iframeDoc.open();
+                            iframeDoc.write(pageContent);
+                            iframeDoc.close();
+
+                            printFrame.onload = function () {
+                                printFrame.contentWindow.print();
+                                document.body.removeChild(printFrame);
+                            };
+                        } catch (error) {
+                            console.error('Error fetching the page for printing:', error);
+                        }
                     }
                 </script>
 
