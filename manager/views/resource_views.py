@@ -13,9 +13,22 @@ logger = logging.getLogger('queue')
 
 
 class ResourceSettings(LoginRequiredMixin, generic.TemplateView):
+    """
+    Displays and manages resource settings for a specific queue.
+
+    :param template_name: The template to render for this view.
+    :return: A dictionary containing context data for rendering the template.
+    """
+
     template_name = 'manager/settings/resource_settings.html'
 
     def get_context_data(self, **kwargs):
+        """
+        Retrieves context data for the resource settings page.
+
+        :param kwargs: Additional arguments passed to the method.
+        :return: A dictionary containing the context data for rendering the template.
+        """
         context = super().get_context_data(**kwargs)
         queue_id = self.kwargs.get('queue_id')
         queue = get_object_or_404(Queue, id=queue_id)

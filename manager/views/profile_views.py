@@ -10,6 +10,17 @@ from manager.utils.category_handler import CategoryHandlerFactory
 
 
 class EditProfileView(LoginRequiredMixin, generic.UpdateView):
+    """
+    View for editing a user's profile, including updating user details and profile image.
+
+    :param model: The UserProfile model for storing the user's profile data.
+    :param template_name: The template for rendering the profile edit form.
+    :param context_object_name: The name of the context variable for the UserProfile object.
+    :param form_class: The form class for editing the profile.
+
+    :return: A redirect to the success URL if the form is valid, or re-renders the form with errors if invalid.
+    """
+
     model = UserProfile
     template_name = 'manager/edit_profile.html'
     context_object_name = 'profile'
@@ -80,6 +91,12 @@ class EditProfileView(LoginRequiredMixin, generic.UpdateView):
         return super().form_valid(form)
 
     def get_context_data(self, **kwargs):
+        """
+        Adds additional context to the template for rendering the profile edit page.
+
+        :return: A dictionary containing the context for the profile edit template, including user profile data,
+                 queue-related information, and template base settings.
+        """
         context = super().get_context_data(**kwargs)
         queue_id = self.kwargs.get('queue_id')
         if queue_id:
