@@ -3,12 +3,10 @@ from django.conf import settings
 from django.core.mail import EmailMessage
 import qrcode
 from django.template.loader import render_to_string
-from django.urls import reverse
 from manager.utils.aws_s3_storage import upload_to_s3
 from django.core.files.base import ContentFile
 from django.utils.html import strip_tags
 from django.core.mail import EmailMultiAlternatives
-from django.contrib.sites.models import Site
 
 def generate_qr_code(data):
     """
