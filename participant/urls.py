@@ -2,7 +2,6 @@ from django.urls import path
 from participant.views import mark_notification_as_read, RestaurantQueueView, GeneralQueueView, HospitalQueueView, \
     BankQueueView, BrowseQueueView, welcome, HomePageView, KioskView, QRcodeView, \
     QueueStatusView, sse_queue_status, participant_leave, set_location, set_location_status, QueueStatusPrint
-from participant.utils.data_stream import data_stream
 
 app_name = 'participant'
 urlpatterns = [
@@ -14,7 +13,6 @@ urlpatterns = [
     path('status/<str:participant_code>/', QueueStatusView.as_view(), name='queue_status'),
     path('status/<str:participant_code>/leave', participant_leave, name='participant_leave'),
     path('status/<str:participant_code>/sse', sse_queue_status, name='sse_queue_status'),
-    path('api/data-stream/', data_stream, name='data_stream'),
     path('queues/restaurant/', RestaurantQueueView.as_view(), name='restaurant_queues'),
     path('queues/general/', GeneralQueueView.as_view(), name='general_queues'),
     path('queues/hospital/', HospitalQueueView.as_view(), name='hospital_queues'),

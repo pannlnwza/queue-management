@@ -27,10 +27,22 @@ logger = logging.getLogger('queue')
 
 
 class ManageWaitlist(LoginRequiredMixin, generic.TemplateView):
+    """
+    View for managing the waitlist of a specific queue category.
+
+    :param template_name: The template used for rendering the manage queue page.
+
+    :return: A context containing the lists of waiting, serving, and completed participants, resources, and
+             category-specific attributes.
+    """
     template_name = 'manager/manage_queue/manage_unique_category.html'
 
     def get_template_names(self):
-        """Return the appropriate template based on the queue category."""
+        """
+        Returns the appropriate template based on the queue category.
+
+        :return: The template name as a list.
+        """
         queue_id = self.kwargs.get('queue_id')
         queue = get_object_or_404(Queue, id=queue_id)
         handler = CategoryHandlerFactory.get_handler(queue.category)
@@ -41,6 +53,12 @@ class ManageWaitlist(LoginRequiredMixin, generic.TemplateView):
         return [self.template_name]
 
     def get_context_data(self, **kwargs):
+        """
+        Adds context for managing the waitlist, serving, and completed lists of participants.
+
+        :return: A dictionary containing the context for the manage queue template, including participant lists,
+                 resources, and category-specific context attributes.
+        """
         context = super().get_context_data(**kwargs)
         queue_id = self.kwargs.get('queue_id')
         queue = get_object_or_404(Queue, id=queue_id)
@@ -82,9 +100,23 @@ class ManageWaitlist(LoginRequiredMixin, generic.TemplateView):
 
 
 class ParticipantListView(LoginRequiredMixin, generic.TemplateView):
+    """
+    View for listing and filtering participants in a queue.
+
+    :param template_name: The template used for rendering the participant list.
+
+    :return: A context containing the list of participants, filter options, and pagination data.
+    """
+
     template_name = 'manager/participant_list.html'
 
     def get_context_data(self, **kwargs):
+        """
+        Adds context for displaying and filtering participants.
+
+        :return: A dictionary containing the context for the participant list template, including the filtered list
+                 of participants, time and state filter options, and pagination data.
+        """
         context = super().get_context_data(**kwargs)
         queue_id = self.kwargs.get('queue_id')
         queue = get_object_or_404(Queue, id=queue_id)
@@ -160,9 +192,23 @@ class ParticipantListView(LoginRequiredMixin, generic.TemplateView):
 
 
 class WaitingFull(LoginRequiredMixin, generic.TemplateView):
+    """
+    View for displaying the waiting list when it's full.
+
+    :param template_name: The template used for rendering the waiting list full page.
+
+    :return: A context containing the waiting list, serving list, available resources, and category-specific context.
+    """
+
     template_name = 'manager/manage_queue/waiting_full.html'
 
     def get_context_data(self, **kwargs):
+        """
+        Adds context for displaying the waiting list and serving list when the queue is full.
+
+        :return: A dictionary containing the context for the waiting full template, including the lists of waiting
+                 and serving participants, resources, and category-specific context attributes.
+        """
         context = super().get_context_data(**kwargs)
         queue_id = self.kwargs.get('queue_id')
         queue = get_object_or_404(Queue, id=queue_id)

@@ -34,6 +34,15 @@ class QueueForm(forms.ModelForm):
 
 
 class OpeningHoursForm(forms.Form):
+    """
+    Form for setting the opening and closing hours.
+
+    This form allows setting the opening and closing hours for a service, with optional time fields for
+    both the start and end times.
+
+    :param open_time: The opening time (optional).
+    :param close_time: The closing time (optional).
+    """
     open_time = forms.TimeField(
         required=False,
         widget=forms.TimeInput(
@@ -115,6 +124,15 @@ class ResourceForm(forms.Form):
 
 
 class CustomUserCreationForm(UserCreationForm):
+    """
+    Custom form for creating a new user with email support.
+
+    This form extends the default UserCreationForm to include the email field as a required field
+    during user creation.
+
+    :param email: The email address of the user (required).
+    """
+
     email = forms.EmailField(required=True)
 
     class Meta:
@@ -122,6 +140,12 @@ class CustomUserCreationForm(UserCreationForm):
         fields = ("username", "email", "password1", "password2")
 
     def save(self, commit=True):
+        """
+        Override the save method to handle saving the email field.
+
+        :param commit: Whether to commit the save to the database immediately.
+        :return: The saved user instance.
+        """
         user = super(CustomUserCreationForm, self).save(commit=False)
         user.email = self.cleaned_data["email"]
         if commit:
@@ -130,6 +154,15 @@ class CustomUserCreationForm(UserCreationForm):
 
 
 class EditProfileForm(forms.ModelForm):
+    """
+    Form for editing a user's profile.
+
+    :param username: The user's username.
+    :param email: The user's email address.
+    :param phone: The user's phone number (optional).
+    :param image: The user's profile image (optional).
+    :param remove_image: Hidden field for removing the image.
+    """
     username = forms.CharField(max_length=150)
     email = forms.EmailField()
     phone = forms.CharField(max_length=10, required=False)

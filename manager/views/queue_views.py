@@ -19,9 +19,18 @@ logger = logging.getLogger('queue')
 
 
 class BaseViewAll(LoginRequiredMixin, generic.TemplateView):
+    """
+    Base view to display participants in different states (waiting, serving, completed).
+
+    :param state: The state of the participants to filter (e.g., 'waiting', 'serving', 'completed').
+    """
+
     state = None
 
     def get_context_data(self, **kwargs):
+        """
+        Retrieves context data for displaying participants in a specified state.
+        """
         if self.state is None:
             raise ValueError("Subclasses must define 'state'")
         context = super().get_context_data(**kwargs)
@@ -47,7 +56,9 @@ class BaseViewAll(LoginRequiredMixin, generic.TemplateView):
 
     def get_template_names(self):
         """
-        Dynamically determine the template name based on queue category and state.
+        Dynamically determines the template name based on queue category and state.
+
+        :return: A list of template names.
         """
         queue_id = self.kwargs.get('queue_id')
         queue = get_object_or_404(Queue, id=queue_id)
@@ -61,21 +72,36 @@ class BaseViewAll(LoginRequiredMixin, generic.TemplateView):
 
 
 class ViewAllWaiting(BaseViewAll):
+    """
+    Displays participants in the 'waiting' state.
+    """
     state = 'waiting'
 
 
 class ViewAllServing(BaseViewAll):
+    """
+    Displays participants in the 'serving' state.
+    """
     state = 'serving'
 
 
 class ViewAllCompleted(BaseViewAll):
+    """
+    Displays participants in the 'completed' state.
+    """
     state = 'completed'
 
 
 class YourQueueView(LoginRequiredMixin, generic.TemplateView):
+    """
+    Displays queues the user has created, with filtering options.
+    """
     template_name = 'manager/your_queue.html'
 
     def get_context_data(self, **kwargs):
+        """
+        Retrieves context data for displaying the user's authorized queues.
+        """
         context = super().get_context_data(**kwargs)
         user = self.request.user
         state_filter = self.request.GET.get('state_filter', 'any_state')
@@ -110,6 +136,9 @@ class YourQueueView(LoginRequiredMixin, generic.TemplateView):
 
 
 class QueueSettingsView(LoginRequiredMixin, generic.TemplateView):
+    """
+    Displays and manages settings for a specific queue.
+    """
     template_name = 'manager/settings/settings.html'
 
     def get_context_data(self, **kwargs):
@@ -131,6 +160,13 @@ class QueueSettingsView(LoginRequiredMixin, generic.TemplateView):
 
 
 class CreateQueueView(generic.TemplateView):
+    """
+    View for creating a new queue with multi-step process.
+
+    This view handles the creation of a new queue, including selecting the queue category, service type, and specialty.
+    It supports a step-by-step process, with options for category, service type, and medical specialty (if applicable).
+    """
+
     template_name = 'manager/create_queue.html'
 
     def get_context_data(self, **kwargs):
@@ -156,6 +192,13 @@ class CreateQueueView(generic.TemplateView):
 
 
 class QueueDisplay(generic.TemplateView):
+    """
+    View for displaying the current queue's participants, including those currently being served and waiting.
+
+    This view displays the current status of participants in the queue, including the participant being called,
+    the next in line, and a list of the first few participants who are waiting.
+    """
+
     template_name = 'manager/queue_display.html'
 
     def get_context_data(self, **kwargs):

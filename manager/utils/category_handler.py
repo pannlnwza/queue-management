@@ -6,10 +6,25 @@ from django.apps import apps
 
 
 class CategoryHandlerFactory:
+    """
+    Factory class for creating and managing category-specific queue handlers.
+
+    :ivar _handlers: A dictionary to store created handlers for reuse.
+    """
+
     _handlers = {}
 
     @staticmethod
     def get_handler(queue_category):
+        """
+        Retrieves or creates a handler for the specified queue category.
+
+        If a handler for the given category already exists, it returns the handler.
+        Otherwise, it creates a new handler based on the category.
+
+        :param queue_category: The category of the queue (e.g., 'general', 'restaurant').
+        :return: An instance of a category-specific handler.
+        """
         if queue_category in CategoryHandlerFactory._handlers:
             return CategoryHandlerFactory._handlers[queue_category]
 
@@ -29,62 +44,147 @@ class CategoryHandlerFactory:
 
 
 class CategoryHandler(ABC):
+    """
+    Abstract base class for queue category handlers.
+
+    This class defines the interface for handling various queue operations, such as
+    creating queues, managing participants, and assigning resources.
+    """
+
     @abstractmethod
     def create_queue(self, data):
+        """
+        Creates a new queue for the category.
+
+        :param data: The data required to create the queue.
+        """
         pass
 
     @abstractmethod
     def create_participant(self, data):
+        """
+        Creates a new participant for the category.
+
+        :param data: The data required to create the participant.
+        """
         pass
 
     @abstractmethod
     def get_participant_set(self, queue_id):
+        """
+        Retrieves the participants associated with a given queue.
+
+        :param queue_id: The ID of the queue.
+        :return: A set of participants for the queue.
+        """
         pass
 
     @abstractmethod
     def get_queue_object(self, queue_id):
+        """
+        Retrieves the queue object for the specified ID.
+
+        :param queue_id: The ID of the queue.
+        :return: The queue object.
+        """
         pass
 
     @abstractmethod
     def assign_to_resource(self, participant, resource_id=None):
+        """
+        Assigns a participant to a resource.
+
+        :param participant: The participant to be assigned.
+        :param resource_id: The ID of the resource (optional).
+        """
         pass
 
     @abstractmethod
     def complete_service(self, participant):
+        """
+        Marks the service for a participant as complete.
+
+        :param participant: The participant whose service is being completed.
+        """
         pass
 
     @abstractmethod
     def add_context_attributes(self, queue):
-        """Returns restaurant-specific attributes for the context."""
+        """
+        Adds category-specific attributes to the context for rendering.
+
+        :param queue: The queue object.
+        :return: A dictionary of category-specific attributes.
+        """
         pass
 
     @abstractmethod
     def get_template_name(self):
-        """Return the template name specific to the handler's category."""
+        """
+        Retrieves the name of the template specific to the category.
+
+        :return: The template name as a string.
+        """
         pass
 
     @abstractmethod
     def get_participant_data(self, participant):
+        """
+        Retrieves data for a specific participant.
+
+        :param participant: The participant object.
+        :return: A dictionary of participant data.
+        """
         pass
 
     @abstractmethod
     def update_participant(self, participant, data):
+        """
+        Updates the details of a participant.
+
+        :param participant: The participant object to update.
+        :param data: The data to update the participant with.
+        """
         pass
 
     @abstractmethod
     def add_resource_attributes(self, queue):
+        """
+        Adds resource-specific attributes to the queue.
+
+        :param queue: The queue object.
+        :return: A dictionary of resource-specific attributes.
+        """
         pass
 
     @abstractmethod
     def add_resource(self, queue):
+        """
+        Adds a new resource to the queue.
+
+        :param queue: The queue object to add the resource to.
+        """
         pass
 
     @abstractmethod
     def edit_resource(self, resource, data):
+        """
+        Edits an existing resource for the queue.
+
+        :param resource: The resource object to edit.
+        :param data: The data to update the resource with.
+        """
         pass
 
 
 class GeneralQueueHandler(CategoryHandler):
+    """
+    Handler for managing general queues.
+
+    This class provides the implementation for operations related to the 'general' queue category,
+    including creating queues, managing participants, and other generic queue management tasks.
+    """
+
     def create_queue(self, data):
         Queue = apps.get_model('manager', 'Queue')  # Lazy load
         User = apps.get_model('auth', 'User')  # Lazy load
@@ -176,6 +276,13 @@ class GeneralQueueHandler(CategoryHandler):
 
 
 class RestaurantQueueHandler(CategoryHandler):
+    """
+    Handler for managing restaurant queues.
+
+    This class provides the implementation for operations related to the 'restaurant' queue category,
+    including managing tables, party sizes, and other restaurant-specific tasks.
+    """
+
     def create_queue(self, data):
         RestaurantQueue = apps.get_model('manager', 'RestaurantQueue')  # Lazy load
         User = apps.get_model('auth', 'User')  # Lazy load
@@ -367,6 +474,12 @@ class RestaurantQueueHandler(CategoryHandler):
 
 
 class HospitalQueueHandler(CategoryHandler):
+    """
+    Handler for managing hospital queues.
+
+    This class provides the implementation for operations related to the 'hospital' queue category,
+    including managing doctors, patients, and other hospital-specific tasks.
+    """
     def create_queue(self, data):
         HospitalQueue = apps.get_model('manager', 'HospitalQueue')  # Lazy load
         User = apps.get_model('auth', 'User')  # Lazy load
@@ -583,6 +696,13 @@ class HospitalQueueHandler(CategoryHandler):
 
 
 class BankQueueHandler(CategoryHandler):
+    """
+    Handler for managing bank queues.
+
+    This class provides the implementation for operations related to the 'bank' queue category,
+    including managing counters, services, and other bank-specific tasks.
+    """
+
     def create_queue(self, data):
         BankQueue = apps.get_model('manager', 'BankQueue')  # Lazy load
         User = apps.get_model('auth', 'User')  # Lazy load

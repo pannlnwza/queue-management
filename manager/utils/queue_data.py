@@ -8,6 +8,13 @@ from participant.models import Participant
 
 @login_required
 def get_general_queue_data(request, queue_id):
+    """
+    Fetches the data for the general queue, including participants in different states.
+
+    :param request: The HTTP request object.
+    :param queue_id: The ID of the queue to fetch data for.
+    :return: A JsonResponse containing the participants' data grouped by state.
+    """
     Participant.remove_old_completed_participants()
     queue = get_object_or_404(Queue, id=queue_id)
     waiting_participants = Participant.objects.filter(queue=queue, state='waiting').order_by('position')
@@ -60,6 +67,13 @@ def get_general_queue_data(request, queue_id):
 
 @login_required
 def get_unique_queue_category_data(request, queue_id):
+    """
+    Fetches the data for a queue with a unique category, including participants in different states.
+
+    :param request: The HTTP request object.
+    :param queue_id: The ID of the queue to fetch data for.
+    :return: A JsonResponse containing the participants' data grouped by state.
+    """
     Participant.remove_old_completed_participants()
     queue = get_object_or_404(Queue, id=queue_id)
     handler = CategoryHandlerFactory.get_handler(queue.category)

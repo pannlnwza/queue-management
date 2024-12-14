@@ -3,14 +3,18 @@ from django.conf import settings
 from django.core.mail import EmailMessage
 import qrcode
 from django.template.loader import render_to_string
-from django.urls import reverse
 from manager.utils.aws_s3_storage import upload_to_s3
 from django.core.files.base import ContentFile
 from django.utils.html import strip_tags
 from django.core.mail import EmailMultiAlternatives
-from django.contrib.sites.models import Site
 
 def generate_qr_code(data):
+    """
+    Generates a QR code image for the given data.
+
+    :param data: The data to encode into the QR code.
+    :return: The binary content of the QR code image in PNG format.
+    """
     qr = qrcode.QRCode(version=1, box_size=10, border=5)
     qr.add_data(data)
     qr.make(fit=True)
@@ -21,6 +25,14 @@ def generate_qr_code(data):
 
 
 def send_html_email(subject, to_email, template_name, context):
+    """
+    Sends an HTML email with the provided subject, template, and context.
+
+    :param subject: The subject of the email.
+    :param to_email: The recipient's email address.
+    :param template_name: The name of the email template to use.
+    :param context: The context dictionary to render the template.
+    """
     html_message = render_to_string(template_name, context)
     email = EmailMessage(
         subject=subject,
@@ -34,7 +46,11 @@ def send_html_email(subject, to_email, template_name, context):
 
 def generate_participant_qr_code_url(participant):
     """
-    Generate QR code for the participant, upload to S3, and return the S3 URL.
+    Generates a QR code for a participant, uploads it to S3, and returns the S3 URL.
+
+    :param participant: The participant for whom the QR code is being generated.
+    :return: The URL of the uploaded QR code image on S3.
+    :raises RuntimeError: If there's an error generating or uploading the QR code.
     """
     try:
         # Generate the QR code binary
@@ -53,7 +69,12 @@ def generate_participant_qr_code_url(participant):
 
 def send_email_with_qr(participant, qr_code_url):
     """
-    Send an email to the participant with their QR code using an HTML template.
+    Sends an email to the participant with their QR code attached.
+
+    :param participant: The participant to send the email to.
+    :param qr_code_url: The URL of the QR code image to include in the email.
+    :return: True if the email was sent successfully.
+    :raises RuntimeError: If there's an error sending the email.
     """
     try:
         # Ensure QR code URL exists

@@ -4,19 +4,16 @@ from django.db import transaction
 
 def generate_unique_code(model_class, field_name="code", length=12, max_retries=10):
     """
-    Generate a unique code for a given model class.
+    Generates a unique code for a model instance.
 
-    Args:
-        model_class (models.Model): The Django model class to check uniqueness against.
-        field_name (str): The field name to check for uniqueness. Default is 'code'.
-        length (int): The length of the code to generate. Default is 12.
-        max_retries (int): Maximum retries before raising an exception. Default is 10.
+    :param model_class: The model class to check for existing codes. This should be a Django model.
+    :param field_name: The field name where the code should be checked. Default is 'code'.
+    :param length: The length of the generated code. Default is 12 characters.
+    :param max_retries: The maximum number of retries if a code collision occurs. Default is 10.
 
-    Returns:
-        str: A unique code.
+    :return: A unique code that is not already used in the specified model.
 
-    Raises:
-        ValueError: If a unique code cannot be generated within max_retries attempts.
+    :raises ValueError: If a unique code cannot be generated after the specified number of retries.
     """
     characters = string.ascii_uppercase + string.digits
     for _ in range(max_retries):
@@ -28,11 +25,13 @@ def generate_unique_code(model_class, field_name="code", length=12, max_retries=
 
 def generate_unique_number(queue):
     """
-    Generate a unique number for a participant in the format A001 to A999, B001, etc.
-    Args:
-        queue (Queue): The queue instance for which to generate the number.
-    Returns:
-        str: A unique participant number.
+    Generates a unique participant number for a given queue.
+
+    :param queue: The queue instance for which the participant number is being generated.
+
+    :return: A unique participant number, formatted as a string.
+
+    :raises ValueError: If the number generation logic fails unexpectedly.
     """
     with transaction.atomic():
         last_participant = queue.participant_set.select_for_update().order_by('-joined_at').first()

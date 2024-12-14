@@ -8,9 +8,26 @@ from django.utils.timezone import timedelta
 
 
 class StatisticsView(LoginRequiredMixin, generic.TemplateView):
+    """
+    View to display queue statistics, including participant and resource data.
+
+    :param template_name: The template to render for this view.
+    :return: A dictionary containing context data for rendering the template.
+    """
+
     template_name = 'manager/statistics.html'
 
     def get_context_data(self, **kwargs):
+        """
+        Retrieves context data for rendering the statistics page.
+
+        This method calculates various statistics for the selected queue, including the number of participants,
+        wait times, service durations, and percentages related to drop-offs, cancellations, and other factors.
+        It filters the data based on the selected date filter (e.g., 'today', 'last 7 days', 'all time').
+
+        :param kwargs: Additional arguments passed to the method.
+        :return: A dictionary containing the context data for rendering the template.
+        """
         context = super().get_context_data(**kwargs)
         queue_id = self.kwargs.get('queue_id')
         queue = get_object_or_404(Queue, id=queue_id)

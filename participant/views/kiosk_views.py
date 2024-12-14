@@ -1,17 +1,10 @@
-from django.core.files.base import ContentFile
 from django.shortcuts import redirect, get_object_or_404
-from django.urls import reverse
 from participant.models import Participant
 from participant.forms import KioskForm
 from manager.utils.category_handler import CategoryHandlerFactory
-from manager.utils.aws_s3_storage import upload_to_s3
-from manager.utils.send_email import generate_qr_code
 from django.views import generic
 from manager.models import Queue
 from django.shortcuts import render
-from django.core.mail import EmailMessage
-from django.template.loader import render_to_string
-from django.conf import settings
 from django.contrib import messages
 from manager.utils.send_email import generate_participant_qr_code_url, send_email_with_qr
 
